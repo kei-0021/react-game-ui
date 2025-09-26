@@ -1,142 +1,103 @@
 // src/components/ScoreBoard.tsx
-import { Card as CardType } from "./Card.js";
-import styles from "./Card.module.css";
+import React from "react";
+import { Socket } from "socket.io-client";
+import styles from "./Card.module.css"; // カードスタイルがある場合
+
+type Card = {
+  id: string;
+  name: string;
+  description?: string;
+};
 
 type Player = {
   id: string;
   name: string;
-  score: number;
-  cards?: CardType[];
+  score?: number;
+  cards?: Card[];
 };
 
 type ScoreboardProps = {
+  socket: Socket;
   players: Player[];
-  title?: string;
-  maxWidth?: string;
-  highlightTop?: number;
-  currentPlayerId?: string;
-  sortByScore?: boolean;
 };
 
-export default function Scoreboard({
-  players,
-  title = "Scoreboard",
-  maxWidth = "400px",
-  highlightTop = 3,
-  currentPlayerId,
-  sortByScore = true,
-}: ScoreboardProps) {
-  const displayedPlayers = sortByScore
-    ? [...players].sort((a, b) => b.score - a.score)
-    : [...players];
+export default function ScoreBoard({ socket, players }: ScoreboardProps) {
+  const [currentPlayerId, setCurrentPlayerId] = React.useState<string>("");
+
+  React.useEffect(() => {
+    socket.on("game:turn", (playerId: string) => {
+      setCurrentPlayerId(playerId);
+    });
+
+    return () => {
+      socket.off("game:turn");
+    };
+  }, [socket]);
+
+  const nextTurn = () => {
+    socket.emit("game:next-turn");
+  };
+
+  // プレイヤーの score/cards を補完
+  const displayedPlayers = players.map((p) => ({
+    ...p,
+    score: p.score ?? 0,
+    cards: p.cards ?? [],
+  }));
 
   return (
-    <div
-      style={{
-        maxWidth,
-        backgroundColor: "#fff",
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        padding: "16px",
-      }}
-    >
-      <h2
-        style={{
-          fontSize: "1.5rem",
-          fontWeight: "bold",
-          marginBottom: "12px",
-        }}
-      >
-        {title}
-      </h2>
+    <div style={{ padding: "12px", border: "1px solid #ccc", borderRadius: "8px" }}>
+      <h2>Scoreboard</h2>
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {displayedPlayers.map((player) => (
+          <li
+            key={player.id}
+            style={{
+              padding: "6px 12px",
+              marginBottom: "6px",
+              borderRadius: "4px",
+              backgroundColor: player.id === currentPlayerId ? "#a0e7ff" : "#f5f5f5",
+              fontWeight: player.id === currentPlayerId ? "bold" : "normal",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span>{player.name}</span>
+              <span>{player.score}</span>
+            </div>
 
-      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-        {displayedPlayers.map((player, index) => {
-          const isTop = sortByScore && index < highlightTop;
-          const isCurrent = player.id === currentPlayerId;
-
-          return (
-            <li
-              key={player.id}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                padding: "8px 12px",
-                marginBottom: "12px",
-                borderRadius: "8px",
-                backgroundColor: isCurrent
-                  ? "#a0e7ff"
-                  : isTop
-                  ? "#d3d3d3"
-                  : "#f5f5f5",
-                fontWeight: isCurrent || isTop ? "bold" : "normal",
-                transition: "background-color 0.3s ease",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>{player.name}</span>
-                <span>{player.score}</span>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "6px",
-                  marginTop: "6px",
-                  flexWrap: "wrap",
-                }}
-              >
-                {player.cards?.map((card) => (
-                  <div
-                    key={card.id}
-                    className={styles.card}
-                    onMouseEnter={(e) => {
-                      const tooltip = e.currentTarget.querySelector(
-                        `.${styles.tooltip}`
-                      ) as HTMLElement;
-                      if (!tooltip) return;
-
-                      const rect = tooltip.getBoundingClientRect();
-
-                      // 右端補正
-                      const offsetRight = rect.right - window.innerWidth;
-                      if (offsetRight > 0) {
-                        tooltip.style.transform = `translateX(calc(-50% - ${offsetRight}px))`;
-                      }
-
-                      // 左端補正
-                      const offsetLeft = rect.left;
-                      if (offsetLeft < 0) {
-                        tooltip.style.transform = `translateX(calc(-50% + ${-offsetLeft}px))`;
-                      }
-
-                      // 上端補正
-                      if (rect.top < 0) {
-                        tooltip.style.bottom = "";
-                        tooltip.style.top = "120%";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      const tooltip = e.currentTarget.querySelector(
-                        `.${styles.tooltip}`
-                      ) as HTMLElement;
-                      if (!tooltip) return;
-                      tooltip.style.transform = "translateX(-50%)";
-                      tooltip.style.bottom = "120%";
-                      tooltip.style.top = "";
-                    }}
-                  >
-                    {card.name}
-                    {card.description && (
-                      <span className={styles.tooltip}>{card.description}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </li>
-          );
-        })}
+            <div style={{ display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }}>
+              {player.cards.map((card) => (
+                <div
+                  key={card.id}
+                  className={styles.card}
+                  style={{ position: "relative", cursor: "pointer" }}
+                  onMouseEnter={(e) => {
+                    const tooltip = e.currentTarget.querySelector(
+                      `.${styles.tooltip}`
+                    ) as HTMLElement;
+                    if (!tooltip) return;
+                    tooltip.style.display = "block";
+                  }}
+                  onMouseLeave={(e) => {
+                    const tooltip = e.currentTarget.querySelector(
+                      `.${styles.tooltip}`
+                    ) as HTMLElement;
+                    if (!tooltip) return;
+                    tooltip.style.display = "none";
+                  }}
+                >
+                  {card.name}
+                  {card.description && (
+                    <span className={styles.tooltip}>{card.description}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </li>
+        ))}
       </ul>
+
+      <button onClick={nextTurn}>次のターン</button>
     </div>
   );
 }

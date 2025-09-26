@@ -1,8 +1,6 @@
 import { createRoot } from "react-dom/client";
 import Dice from "./components/Dice.js";
-import Scoreboard from "./components/ScoreBoard.js";
 
-import playersData from "./data/players.json";
 
 const rootEl = document.getElementById("root");
 
@@ -11,11 +9,11 @@ if (rootEl) {
   root.render(
     <>
       {/* <Deck cards={allCards} /> */}
-      <Scoreboard
+      {/* <Scoreboard
         players={playersData}
         sortByScore={true}
         currentPlayerId="p2"
-      />
+      /> */}
       <Dice sides={2} />
       {/* <Timer
         initialTime={10}

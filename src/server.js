@@ -1,3 +1,4 @@
+// src/server.ts
 import { createServer } from "http";
 import { Server } from "socket.io";
 import deck from "./data/cards.json" assert { type: "json" };
@@ -7,8 +8,9 @@ const io = new Server(httpServer, {
   cors: { origin: "*" },
 });
 
+// --- デッキ管理 ---
 let currentDeck = [...deck];  // 山札（まだ引かれていないカード）
-let drawnCards = [];          // 引いたカード
+let drawnCards = []; // 引いたカード
 
 function shuffleDeck() {
   // 山札だけをシャッフル
@@ -18,13 +20,27 @@ function shuffleDeck() {
   }
 }
 
+// --- ターン管理 ---
+let players = []; 
+let currentTurnIndex = 0;
+
+// --- Socket.IO ---
 io.on("connection", (socket) => {
   console.log("クライアント接続:", socket.id);
 
-  // 初期山札を送る
+  // プレイヤー登録（接続順）
+  players.push({ id: socket.id, name: `Player ${players.length + 1}` });
+
+  // プレイヤー情報を全クライアントに送信
+  io.emit("players:update", players);
+
+  // 初期デッキ情報送信
   socket.emit("deck:init", { currentDeck, drawnCards });
 
-  // カードを引く
+  // 現在ターン送信
+  io.emit("game:turn", players[currentTurnIndex]?.id);
+
+  // --- デッキ操作 ---
   socket.on("deck:draw", () => {
     console.log("deck:draw 受信");
     if (currentDeck.length > 0) {
@@ -34,30 +50,28 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 山札だけをシャッフル
   socket.on("deck:shuffle", () => {
     console.log("deck:shuffle 受信");
     shuffleDeck();
     io.emit("deck:update", { currentDeck, drawnCards });
   });
 
-  // 引いたカードを山札に戻す
   socket.on("deck:reset", () => {
     console.log("deck:reset 受信");
-    currentDeck = [...currentDeck, ...drawnCards];
+    currentDeck = [...deck]; // 初期デッキに戻す
     drawnCards = [];
     shuffleDeck();
     io.emit("deck:update", { currentDeck, drawnCards });
   });
 
-  // サイコロ
+  // --- ダイス ---
   socket.on("dice:roll", (sides) => {
     console.log("dice:roll 受信");
     const value = Math.floor(Math.random() * sides) + 1;
     io.emit("dice:rolled", value);
   });
 
-  // タイマー
+  // --- タイマー ---
   socket.on("timer:start", (duration) => {
     console.log(`timer:start 受信, duration: ${duration}s`);
     let remaining = duration;
@@ -65,7 +79,6 @@ io.on("connection", (socket) => {
 
     const interval = setInterval(() => {
       remaining--;
-      console.log(`timer:update: ${remaining}s`);
       io.emit("timer:update", remaining);
       if (remaining <= 0) {
         clearInterval(interval);
@@ -74,8 +87,20 @@ io.on("connection", (socket) => {
     }, 1000);
   });
 
+  // --- ターン更新 ---
+  socket.on("game:next-turn", () => {
+    currentTurnIndex = (currentTurnIndex + 1) % players.length;
+    io.emit("game:turn", players[currentTurnIndex]?.id);
+  });
+
+  // --- 切断処理 ---
   socket.on("disconnect", () => {
     console.log("クライアント切断:", socket.id);
+    players = players.filter((p) => p.id !== socket.id);
+    if (currentTurnIndex >= players.length) currentTurnIndex = 0;
+
+    io.emit("game:turn", players[currentTurnIndex]?.id);
+    io.emit("players:update", players); // 切断後もプレイヤー情報更新
   });
 });
 
