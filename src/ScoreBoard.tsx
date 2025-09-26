@@ -1,7 +1,12 @@
+// src/ScoreBoard.tsx
+import { Card as CardType } from "./Card.js";
+import styles from "./Card.module.css";
+
 type Player = {
   id: string;
   name: string;
   score: number;
+  cards?: CardType[];
 };
 
 type ScoreboardProps = {
@@ -10,7 +15,7 @@ type ScoreboardProps = {
   maxWidth?: string;
   highlightTop?: number;
   currentPlayerId?: string;
-  sortByScore?: boolean; // 追加
+  sortByScore?: boolean;
 };
 
 export default function Scoreboard({
@@ -19,7 +24,7 @@ export default function Scoreboard({
   maxWidth = "400px",
   highlightTop = 3,
   currentPlayerId,
-  sortByScore = true, // デフォルトでスコア順
+  sortByScore = true,
 }: ScoreboardProps) {
   const displayedPlayers = sortByScore
     ? [...players].sort((a, b) => b.score - a.score)
@@ -35,9 +40,16 @@ export default function Scoreboard({
         padding: "16px",
       }}
     >
-      <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "12px" }}>
+      <h2
+        style={{
+          fontSize: "1.5rem",
+          fontWeight: "bold",
+          marginBottom: "12px",
+        }}
+      >
         {title}
       </h2>
+
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
         {displayedPlayers.map((player, index) => {
           const isTop = sortByScore && index < highlightTop;
@@ -48,9 +60,9 @@ export default function Scoreboard({
               key={player.id}
               style={{
                 display: "flex",
-                justifyContent: "space-between",
+                flexDirection: "column",
                 padding: "8px 12px",
-                marginBottom: "6px",
+                marginBottom: "12px",
                 borderRadius: "8px",
                 backgroundColor: isCurrent
                   ? "#a0e7ff"
@@ -61,8 +73,66 @@ export default function Scoreboard({
                 transition: "background-color 0.3s ease",
               }}
             >
-              <span>{player.name}</span>
-              <span>{player.score}</span>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>{player.name}</span>
+                <span>{player.score}</span>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "6px",
+                  marginTop: "6px",
+                  flexWrap: "wrap",
+                }}
+              >
+                {player.cards?.map((card) => (
+                  <div
+                    key={card.id}
+                    className={styles.card}
+                    onMouseEnter={(e) => {
+                      const tooltip = e.currentTarget.querySelector(
+                        `.${styles.tooltip}`
+                      ) as HTMLElement;
+                      if (!tooltip) return;
+
+                      const rect = tooltip.getBoundingClientRect();
+
+                      // 右端補正
+                      const offsetRight = rect.right - window.innerWidth;
+                      if (offsetRight > 0) {
+                        tooltip.style.transform = `translateX(calc(-50% - ${offsetRight}px))`;
+                      }
+
+                      // 左端補正
+                      const offsetLeft = rect.left;
+                      if (offsetLeft < 0) {
+                        tooltip.style.transform = `translateX(calc(-50% + ${-offsetLeft}px))`;
+                      }
+
+                      // 上端補正
+                      if (rect.top < 0) {
+                        tooltip.style.bottom = "";
+                        tooltip.style.top = "120%";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      const tooltip = e.currentTarget.querySelector(
+                        `.${styles.tooltip}`
+                      ) as HTMLElement;
+                      if (!tooltip) return;
+                      tooltip.style.transform = "translateX(-50%)";
+                      tooltip.style.bottom = "120%";
+                      tooltip.style.top = "";
+                    }}
+                  >
+                    {card.name}
+                    {card.description && (
+                      <span className={styles.tooltip}>{card.description}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </li>
           );
         })}
