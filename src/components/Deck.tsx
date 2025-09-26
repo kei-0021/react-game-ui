@@ -37,7 +37,7 @@ export default function Deck({ socket, playerId = null }: DeckProps) {
     console.log("Deck.tsx: 山札クリックで draw");
 
     // playerId が null なら場に置く、あればそのプレイヤーの手札に
-    console.log("プレイヤーの手札にする")
+    console.log()
     socket.emit("deck:draw", { playerId });
   };
 

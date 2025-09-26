@@ -73,6 +73,10 @@ export default function ScoreBoard({ socket, players, currentPlayerId }: Scorebo
                     if (!tooltip) return;
                     tooltip.style.display = "none";
                   }}
+                  onClick={() => {
+                    console.log("カードの効果発動:", card.name);
+                    socket.emit("card:play", { cardId: card.id, playerId: player.id });
+                  }}
                 >
                   {card.name}
                   {card.description && (
