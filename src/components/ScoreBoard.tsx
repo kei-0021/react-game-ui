@@ -1,4 +1,4 @@
-// src/ScoreBoard.tsx
+// src/components/ScoreBoard.tsx
 import { Card as CardType } from "./Card.js";
 import styles from "./Card.module.css";
 

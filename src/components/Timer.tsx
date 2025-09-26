@@ -1,4 +1,4 @@
-// src/Timer.tsx
+// src/components/Timer.tsx
 import { useEffect, useState } from "react";
 
 type TimerProps = {

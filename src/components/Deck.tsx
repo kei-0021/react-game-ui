@@ -1,4 +1,4 @@
-// src/Deck.tsx
+// src/components/Deck.tsx
 import React from "react";
 import { Card } from "./Card.js";
 import styles from "./Card.module.css";
