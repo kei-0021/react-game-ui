@@ -1,20 +1,18 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import Deck from "./components/Deck.js";
 import DiceSocket from "./components/Dice.js";
 import Timer from "./components/Timer.js"; // Socket対応Timer
-import { useDeck, useSocket } from "./hooks/index.js";
+import { useSocket } from "./hooks/index.js";
 
 export default function Game() {
   const socket = useSocket("http://127.0.0.1:3000");
-  const { deck, drawnCards, draw, shuffle } = useDeck(socket!);
 
   if (!socket) return <p>接続中…</p>;
 
   return (
     <div>
-      <button onClick={draw}>カードを引く</button>
-      <button onClick={shuffle}>シャッフル</button>
-      <div>引いたカード: {drawnCards.map(c => c.name).join(", ")}</div>
+      <Deck socket={socket} />
 
       <DiceSocket socket={socket} sides={6} />
 
