@@ -2,11 +2,12 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "node16",
-    "moduleResolution": "node16",  // ← ここを追加
+    "moduleResolution": "node16",
     "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true    // ← これを追加
   }
 }

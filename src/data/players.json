@@ -1,0 +1,25 @@
+[
+  {
+    "id": "p1",
+    "name": "Alice",
+    "score": 12,
+    "cards": [
+      { "id": "1", "name": "1", "description": "このカードを使うと1マス進める" },
+      { "id": "2", "name": "2", "description": "このカードを使うと2マス進める" }
+    ]
+},
+{
+    "id": "p2",
+    "name": "Bob",
+    "score": 20,
+    "cards": [
+        { "id": "1", "name": "1", "description": "このカードを使うと1マス進める" }
+    ]   
+  },
+  {
+    "id": "p3",
+    "name": "Charlie",
+    "score": 8,
+    "cards": []
+  }
+]
