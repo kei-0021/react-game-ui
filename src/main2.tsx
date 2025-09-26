@@ -1,14 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import DiceSocket from "./components/Dice.js";
-import { useDeck, useSocket, useTimer } from "./hooks/index.js";
+import Timer from "./components/Timer.js"; // Socket対応Timer
+import { useDeck, useSocket } from "./hooks/index.js";
 
 export default function Game() {
   const socket = useSocket("http://127.0.0.1:3000");
   const { deck, drawnCards, draw, shuffle } = useDeck(socket!);
-  const { timeLeft, start } = useTimer(socket!);
 
-  if (!socket) return <p>接続中…</p>; // ←ここを追加
+  if (!socket) return <p>接続中…</p>;
 
   return (
     <div>
@@ -18,14 +18,16 @@ export default function Game() {
 
       <DiceSocket socket={socket} sides={6} />
 
-      <button onClick={() => start(30)}>30秒タイマー</button>
-      {timeLeft !== null && <p>残り時間: {timeLeft}</p>}
+      {/* Socket対応Timer */}
+      <Timer
+        socket={socket}
+        onFinish={() => console.log("タイマー終了！")}
+      />
     </div>
   );
 }
 
-
-// ここでマウントする
+// マウント
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Game />

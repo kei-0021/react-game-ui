@@ -48,15 +48,22 @@ io.on("connection", (socket) => {
     io.emit("dice:rolled", value); // ← dice:result → dice:rolled に変更
   });
 
-  // タイマー開始s
+  // タイマー開始
   socket.on("timer:start", (duration) => {
+    console.log(`timer:start 受信 from ${socket.id}, duration: ${duration}s`);
     let remaining = duration;
     io.emit("timer:start", duration);
 
     const interval = setInterval(() => {
       remaining--;
+      console.log(`timer:update: ${remaining}s`);
       io.emit("timer:update", remaining);
-      if (remaining <= 0) clearInterval(interval);
+
+      if (remaining <= 0) {
+        console.log("timer:end");
+        clearInterval(interval);
+        io.emit("timer:end"); // 必要なら終了イベントも送信
+      }
     }, 1000);
   });
 

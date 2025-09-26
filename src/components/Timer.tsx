@@ -1,45 +1,46 @@
 // src/components/Timer.tsx
 import { useEffect, useState } from "react";
+import { Socket } from "socket.io-client";
 
 type TimerProps = {
-  initialTime: number;
+  socket?: Socket | null;
   onFinish?: () => void;
 };
 
-export default function Timer({ initialTime, onFinish }: TimerProps) {
-  const [timeLeft, setTimeLeft] = useState(initialTime);
-  const [running, setRunning] = useState(false);
+export default function Timer({ socket = null, onFinish }: TimerProps) {
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!running) return;
-    if (timeLeft <= 0) {
-      setRunning(false);
-      onFinish?.();
-      return;
-    }
+    if (!socket) return;
 
-    const timerId = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
+    const handleStart = (duration: number) => {
+      setTimeLeft(duration);
+    };
 
-    return () => clearInterval(timerId);
-  }, [running, timeLeft, onFinish]);
+    const handleUpdate = (remaining: number) => {
+      setTimeLeft(remaining);
+      if (remaining <= 0) onFinish?.();
+    };
 
-  const start = () => setRunning(true);
-  const stop = () => setRunning(false);
-  const reset = () => setTimeLeft(initialTime);
+    socket.on("timer:start", handleStart);
+    socket.on("timer:update", handleUpdate);
 
-  const getColor = () => {
-    if (timeLeft <= initialTime * 0.2) return "red";
-    if (timeLeft <= initialTime * 0.5) return "orange";
-    return "green";
+    return () => {
+      socket.off("timer:start", handleStart);
+      socket.off("timer:update", handleUpdate);
+    };
+  }, [socket, onFinish]);
+
+  const start = () => {
+    if (!socket) return;
+    socket.emit("timer:start", 30); // 例: 30秒
   };
 
   return (
     <div
       style={{
-        width: "300px",               // 固定幅
-        height: "80px",               // 固定高さ
+        width: "300px",
+        height: "80px",
         border: "2px solid #333",
         borderRadius: "8px",
         padding: "8px",
@@ -56,17 +57,22 @@ export default function Timer({ initialTime, onFinish }: TimerProps) {
         style={{
           fontSize: "1.5rem",
           fontWeight: "bold",
-          color: getColor(),
+          color:
+            timeLeft !== null
+              ? timeLeft <= 6
+                ? "red"
+                : timeLeft <= 15
+                ? "orange"
+                : "green"
+              : "gray",
           transition: "color 0.5s ease",
         }}
       >
-        残り時間: {timeLeft}s
+        残り時間: {timeLeft ?? "-"}s
       </div>
 
       <div style={{ marginTop: "6px" }}>
         <button onClick={start} style={{ marginRight: "4px" }}>開始</button>
-        <button onClick={stop} style={{ marginRight: "4px" }}>停止</button>
-        <button onClick={reset}>リセット</button>
       </div>
     </div>
   );
