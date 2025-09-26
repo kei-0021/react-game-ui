@@ -17,8 +17,30 @@ export default function Deck({ cards }: DeckProps) {
     }
   };
 
+  const shuffle = () => {
+    // 山札（めくっていない部分）だけシャッフル
+    const remaining = deckCards.slice(flippedCount);
+    for (let i = remaining.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+    }
+
+    // めくったカードはそのまま残して残りを更新
+    setDeckCards([...deckCards.slice(0, flippedCount), ...remaining]);
+  };
+
+  const resetFlipped = () => {
+    setFlippedCount(0);
+  };
+
   return (
     <section className={styles.deckSection}>
+      {/* 操作ボタン */}
+      <div style={{ marginBottom: "10px" }}>
+        <button onClick={shuffle} style={{ marginRight: "8px" }}>シャッフル</button>
+        <button onClick={resetFlipped}>めくったカードを戻す</button>
+      </div>
+
       <div style={{ display: "flex", alignItems: "flex-start", gap: "20px" }}>
         {/* 山札（裏面表示） */}
         <div className={styles.deckContainer} onClick={draw}>
