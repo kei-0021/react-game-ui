@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { default as Deck } from "./Deck.js"; // Deck クラス
 import Scoreboard from "./ScoreBoard.js";
+import { default as Timer } from "./Timer.js"; // Deck クラス
 
 import allCards from "./data/cards.json";
 import playersData from "./data/players.json";
@@ -16,6 +17,12 @@ if (rootEl) {
         players={playersData}
         sortByScore={true}
         currentPlayerId="p2"
+      />
+      <Timer
+        initialTime={10}
+        onFinish={() => {
+          console.log("タイムアップ！");
+        }}
       />
     </>
   );
