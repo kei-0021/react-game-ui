@@ -1,31 +1,57 @@
 // src/components/Dice.tsx
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Socket } from "socket.io-client";
 
 type DiceProps = {
-  sides?: number; // サイコロの面数（デフォルト6）
-  onRoll?: (value: number) => void; // 出た目を受け取るコールバック
+  sides?: number;
+  socket?: Socket | null;
+  onRoll?: (value: number) => void;
 };
 
-export default function Dice({ sides = 6, onRoll }: DiceProps) {
+export default function Dice({ sides = 6, socket = null, onRoll }: DiceProps) {
   const [value, setValue] = useState<number | null>(null);
   const [rolling, setRolling] = useState(false);
+  const animRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleRoll = (rolledValue: number) => {
+      console.log("Dice.tsx: Received dice:rolled from server:", rolledValue);
+
+      setRolling(true); // アニメーション開始
+
+      // アニメーション 1000ms
+      const rollDuration = 1000;
+      const interval = 50;
+      let count = 0;
+      const times = rollDuration / interval;
+
+      animRef.current = setInterval(() => {
+        const animValue = Math.floor(Math.random() * sides) + 1;
+        setValue(animValue);
+        count++;
+        if (count >= times) {
+          clearInterval(animRef.current!);
+          animRef.current = null;
+          setValue(rolledValue); // 最終結果に置き換え
+          setRolling(false);
+          onRoll?.(rolledValue);
+        }
+      }, interval);
+    };
+
+    socket.on("dice:rolled", handleRoll);
+    return () => {
+      socket.off("dice:rolled", handleRoll);
+      if (animRef.current) clearInterval(animRef.current);
+    };
+  }, [socket, sides, onRoll]);
 
   const roll = () => {
-    setRolling(true);
-    const rollDuration = 500; // 500ms ころころアニメーション
-    const interval = 50;
-    const times = rollDuration / interval;
-    let count = 0;
-
-    const timer = setInterval(() => {
-      setValue(Math.floor(Math.random() * sides) + 1);
-      count++;
-      if (count >= times) {
-        clearInterval(timer);
-        setRolling(false);
-        onRoll?.(value ?? 1);
-      }
-    }, interval);
+    if (!socket || rolling) return;
+    console.log("Dice.tsx: Dice clicked - emitting dice:roll");
+    socket.emit("dice:roll", sides);
   };
 
   return (
@@ -46,7 +72,7 @@ export default function Dice({ sides = 6, onRoll }: DiceProps) {
         boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
         transition: "transform 0.2s",
       }}
-      onClick={() => !rolling && roll()}
+      onClick={roll}
     >
       {value ?? "🎲"}
     </div>
