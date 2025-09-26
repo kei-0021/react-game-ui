@@ -41,13 +41,26 @@ io.on("connection", (socket) => {
   io.emit("game:turn", players[currentTurnIndex]?.id);
 
   // --- デッキ操作 ---
-  socket.on("deck:draw", () => {
-    console.log("deck:draw 受信");
-    if (currentDeck.length > 0) {
-      const card = currentDeck.shift();
+  socket.on("deck:draw", (data) => {
+    console.log("deck:draw 受信", data);
+    if (currentDeck.length === 0) return;
+
+    const card = currentDeck.shift();
+
+    if (data.playerId) {
+      // プレイヤーの手札に追加
+      const player = players.find((p) => p.id === data.playerId);
+      if (player) {
+        if (!player.cards) player.cards = [];
+        player.cards.push(card);
+      }
+    } else {
+      // playerId が null の場合は場に残す
       drawnCards.push(card);
-      io.emit("deck:update", { currentDeck, drawnCards });
     }
+
+    io.emit("deck:update", { currentDeck, drawnCards });
+    io.emit("players:update", players);
   });
 
   socket.on("deck:shuffle", () => {
@@ -58,8 +71,13 @@ io.on("connection", (socket) => {
 
   socket.on("deck:reset", () => {
     console.log("deck:reset 受信");
-    currentDeck = [...deck]; // 初期デッキに戻す
-    drawnCards = [];
+
+    // 場にあるカードがあれば戻す
+    if (drawnCards.length > 0) {
+      currentDeck.push(...drawnCards);
+      drawnCards = [];
+    }
+
     shuffleDeck();
     io.emit("deck:update", { currentDeck, drawnCards });
   });

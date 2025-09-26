@@ -1,5 +1,4 @@
 // src/components/ScoreBoard.tsx
-import React from "react";
 import { Socket } from "socket.io-client";
 import styles from "./Card.module.css"; // カードスタイルがある場合
 
@@ -19,21 +18,10 @@ type Player = {
 type ScoreboardProps = {
   socket: Socket;
   players: Player[];
+  currentPlayerId?: string | null; // ← nullも許可
 };
 
-export default function ScoreBoard({ socket, players }: ScoreboardProps) {
-  const [currentPlayerId, setCurrentPlayerId] = React.useState<string>("");
-
-  React.useEffect(() => {
-    socket.on("game:turn", (playerId: string) => {
-      setCurrentPlayerId(playerId);
-    });
-
-    return () => {
-      socket.off("game:turn");
-    };
-  }, [socket]);
-
+export default function ScoreBoard({ socket, players, currentPlayerId }: ScoreboardProps) {
   const nextTurn = () => {
     socket.emit("game:next-turn");
   };

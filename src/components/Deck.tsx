@@ -6,9 +6,10 @@ import styles from "./Card.module.css";
 
 type DeckProps = {
   socket: Socket;
+  playerId?: string | null; // 手札に入れる場合のプレイヤーID、nullなら場
 };
 
-export default function Deck({ socket }: DeckProps) {
+export default function Deck({ socket, playerId = null }: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
   const [drawnCards, setDrawnCards] = React.useState<Card[]>([]);
 
@@ -34,7 +35,10 @@ export default function Deck({ socket }: DeckProps) {
   const draw = () => {
     if (deckCards.length === 0) return;
     console.log("Deck.tsx: 山札クリックで draw");
-    socket.emit("deck:draw");
+
+    // playerId が null なら場に置く、あればそのプレイヤーの手札に
+    console.log("プレイヤーの手札にする")
+    socket.emit("deck:draw", { playerId });
   };
 
   const shuffle = () => {
@@ -44,7 +48,7 @@ export default function Deck({ socket }: DeckProps) {
 
   const resetDeck = () => {
     console.log("Deck.tsx: 山札に戻すボタン押下");
-    socket.emit("deck:reset"); // サーバー側で deck 初期化用イベントを受信する想定
+    socket.emit("deck:reset");
   };
 
   return (
@@ -69,7 +73,7 @@ export default function Deck({ socket }: DeckProps) {
           ))}
         </div>
 
-        {/* 引いたカード（表面） */}
+        {/* 引いたカード（表面・場用） */}
         <div className={styles.deckContainer}>
           {drawnCards.map((c, i) => (
             <div
