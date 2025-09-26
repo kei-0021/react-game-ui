@@ -1,4 +1,6 @@
 /* Card.module.css */
+
+/* 通常のカード */
 .card {
   width: 60px;
   height: 80px;
@@ -16,9 +18,10 @@
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
+/* ホバーツールチップ */
 .tooltip {
   visibility: hidden;
   opacity: 0;
@@ -39,4 +42,63 @@
 .card:hover .tooltip {
   visibility: visible;
   opacity: 1;
+}
+
+/* カード裏面 */
+.cardBack {
+  width: 60px;
+  height: 80px;
+  background-color: #444;
+  border: 1px solid #222;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* 山札コンテナ */
+.deckContainer {
+  position: relative;
+  width: 60px;
+  height: 80px;
+  cursor: pointer;
+}
+
+/* 山札のカード（裏面） */
+.deckCard {
+  position: absolute;
+  width: 60px;
+  height: 80px;
+  background-color: #333;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  top: 0;
+  left: 0;
+  transition: transform 0.2s;
+}
+
+/* 山札のカード（表面） */
+.deckCardFront {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60px;
+  height: 80px;
+  background-color: #fff;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  pointer-events: none; /* 上に置いてもクリックを通す */
+}
+
+.deckSection {
+  padding: 16px;
+  border: 2px solid #888;
+  border-radius: 8px;
+  display: inline-block; /* コンテンツに合わせる */
+  background-color: #f9f9f9;
 }
