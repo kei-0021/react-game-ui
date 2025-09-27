@@ -35,9 +35,24 @@ function addScore(playerId, points) {
   const player = players.find(p => p.id === playerId);
   if (!player) return;
   player.score = (player.score || 0) + points;
-  io.emit("players:update", players); // スコアもクライアントに送信
+  io.emit("players:update", players);
 }
 
+// --- 山札に戻す関数（場のカードだけ） ---
+function returnFieldCardsToDeck() {
+  const fieldCards = allCards.filter(c => c.location === "field");
+
+  fieldCards.forEach(card => {
+    card.location = "deck";
+    drawnCards = drawnCards.filter(c => c.id !== card.id);
+  });
+
+  currentDeck = allCards.filter(c => c.location === "deck");
+  shuffleDeck();
+  io.emit("deck:update", { currentDeck, drawnCards, players });
+}
+
+// --- 接続処理 ---
 io.on("connection", (socket) => {
   console.log("クライアント接続:", socket.id);
 
@@ -57,6 +72,7 @@ io.on("connection", (socket) => {
         player.cards = player.cards || [];
         card.location = "hand";
         player.cards.push(card);
+        console.log("プレイヤーのカードになりました")
       }
     } else {
       card.location = "field";
@@ -73,11 +89,23 @@ io.on("connection", (socket) => {
   });
 
   socket.on("deck:reset", () => {
-    currentDeck = allCards.map(c => ({ ...c, location: "deck" }));
-    drawnCards = [];
-    players.forEach(p => (p.cards = []));
+    // field にあるカードだけ戻す
+    const fieldCards = allCards.filter(c => c.location === "field");
+
+    fieldCards.forEach(card => {
+      card.location = "deck"; // 山札に戻す
+      drawnCards = drawnCards.filter(c => c.id !== card.id); // 場から除去
+    });
+
+    // 山札を更新してシャッフル
+    currentDeck = allCards.filter(c => c.location === "deck");
     shuffleDeck();
+
     io.emit("deck:update", { currentDeck, drawnCards, players });
+  });
+
+  socket.on("deck:return-field", () => {
+    returnFieldCardsToDeck();
   });
 
   // カード発動
@@ -85,10 +113,8 @@ io.on("connection", (socket) => {
     const card = allCards.find(c => c.id === cardId);
     if (!card) return;
 
-    // onPlay にサーバーの関数を渡す場合
     if (card.onPlay) card.onPlay({ playerId, addScore });
 
-    // 手札から削除
     if (playerId) {
       const player = players.find(p => p.id === playerId);
       if (player && player.cards) {
@@ -96,14 +122,12 @@ io.on("connection", (socket) => {
       }
     }
 
-    // 場に置く
     card.location = "field";
     drawnCards.push(card);
 
     io.emit("deck:update", { currentDeck, drawnCards });
     io.emit("players:update", players);
   });
-
 
   socket.on("dice:roll", (sides) => {
     const value = Math.floor(Math.random() * sides) + 1;

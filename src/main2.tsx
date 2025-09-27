@@ -23,6 +23,7 @@ export default function Game() {
 
     // プレイヤーリスト更新
     socket.on("players:update", (playerList: Player[]) => {
+      console.log("カード枚数", playerList[0].cards?.length, "枚")
       setPlayers(playerList);
     });
 
