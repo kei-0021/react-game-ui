@@ -37,8 +37,8 @@ export default function Game() {
 
   return (
     <div>
-      <Deck socket={socket} deckId="main" playerId={currentPlayerId} />
-      <Deck socket={socket} deckId="light" playerId={currentPlayerId} />
+      <Deck socket={socket} deckId="main" name="イベントカード" playerId={currentPlayerId} />
+      <Deck socket={socket} deckId="light" name="光カード" playerId={currentPlayerId} />
 
       <DiceSocket socket={socket} diceId="0" sides={6} />
       <DiceSocket socket={socket} diceId="1" sides={2} />

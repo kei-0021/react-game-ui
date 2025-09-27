@@ -1,17 +1,18 @@
 // src/components/Deck.tsx
 import React from "react";
 import { Socket } from "socket.io-client";
-import type { Card, DeckId } from "../types/card.js"; // 実際に使用
-import { PlayerId } from "../types/player.js"; // 型参照
+import type { Card, DeckId } from "../types/card.js";
+import { PlayerId } from "../types/player.js";
 import styles from "./Card.module.css";
 
 type DeckProps = {
   socket: Socket;
-  deckId: DeckId;               // 追加
+  deckId: DeckId;
+  name: string;
   playerId?: PlayerId | null;
 };
 
-export default function Deck({ socket, deckId, playerId = null }: DeckProps) {
+export default function Deck({ socket, deckId, name, playerId = null }: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
   const [drawnCards, setDrawnCards] = React.useState<Card[]>([]);
 
@@ -42,6 +43,9 @@ export default function Deck({ socket, deckId, playerId = null }: DeckProps) {
 
   return (
     <section className={styles.deckSection}>
+      {/* デッキ名 */}
+      <h3 style={{ marginBottom: "6px" }}>{name}</h3>
+
       <div className={styles.deckControls}>
         <button onClick={shuffle}>シャッフル</button>
         <button onClick={resetDeck}>山札に戻す</button>
