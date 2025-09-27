@@ -9,13 +9,13 @@ import lightDeck from "./data/lightCards.json" assert { type: "json" };
 const decks = {
   main: deck.map(c => ({
     ...c,
-    deckId: "main",                  // 追加
+    deckId: "main",
     onPlay: cardEffects[c.name] || (() => {}),
     location: "deck"
   })),
   light: lightDeck.map(c => ({
     ...c,
-    deckId: "light",                 // 追加
+    deckId: "light",
     onPlay: cardEffects[c.name] || (() => {}),
     location: "deck"
   }))
@@ -127,10 +127,6 @@ io.on("connection", socket => {
     // 効果を発動
     if (card.onPlay) card.onPlay({ playerId, addScore });
 
-    // field に置く
-    card.location = "field";
-    drawnCards[deckId].push(card);
-
     // プレイヤーの手札から除去
     if (playerId) {
       const player = players.find(p => p.id === playerId);
@@ -139,11 +135,41 @@ io.on("connection", socket => {
       }
     }
 
+    // field に置く
+    card.location = "field";
+    drawnCards[deckId].push(card);
+
     io.emit(`deck:update:${deckId}`, {
       currentDeck: decks[deckId].filter(c => c.location === "deck"),
       drawnCards: drawnCards[deckId]
     });
     io.emit("players:update", players);
+  });
+
+  // --- ダイス ---
+  socket.on("dice:roll", ({ diceId, sides }) => {
+    const value = Math.floor(Math.random() * sides) + 1;
+    io.emit(`dice:rolled:${diceId}`, value);
+  });
+
+  // --- タイマー ---
+  socket.on("timer:start", (duration) => {
+    let remaining = duration;
+    io.emit("timer:start", duration);
+    const interval = setInterval(() => {
+      remaining--;
+      io.emit("timer:update", remaining);
+      if (remaining <= 0) {
+        clearInterval(interval);
+        io.emit("timer:end");
+      }
+    }, 1000);
+  });
+
+  // --- 次のターン ---
+  socket.on("game:next-turn", () => {
+    currentTurnIndex = (currentTurnIndex + 1) % players.length;
+    io.emit("game:turn", players[currentTurnIndex]?.id);
   });
 
   // --- 切断処理 ---

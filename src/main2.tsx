@@ -40,8 +40,8 @@ export default function Game() {
       <Deck socket={socket} deckId="main" playerId={currentPlayerId} />
       <Deck socket={socket} deckId="light" playerId={currentPlayerId} />
 
-      <DiceSocket socket={socket} sides={6} />
-      <DiceSocket socket={socket} sides={2} />
+      <DiceSocket socket={socket} diceId="0" sides={6} />
+      <DiceSocket socket={socket} diceId="1" sides={2} />
 
       <Timer
         socket={socket}

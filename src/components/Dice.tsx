@@ -2,13 +2,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 
+export type DiceId = string;
+
 type DiceProps = {
-  sides?: number;
   socket?: Socket | null;
+  diceId: DiceId;
+  sides?: number;
   onRoll?: (value: number) => void;
 };
 
-export default function Dice({ sides = 6, socket = null, onRoll }: DiceProps) {
+export default function Dice({ sides = 6, socket = null, diceId, onRoll }: DiceProps) {
   const [value, setValue] = useState<number | null>(null);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef<NodeJS.Timeout | null>(null);
@@ -17,11 +20,8 @@ export default function Dice({ sides = 6, socket = null, onRoll }: DiceProps) {
     if (!socket) return;
 
     const handleRoll = (rolledValue: number) => {
-      console.log("Dice.tsx: Received dice:rolled from server:", rolledValue);
+      setRolling(true);
 
-      setRolling(true); // アニメーション開始
-
-      // アニメーション 1000ms
       const rollDuration = 1000;
       const interval = 50;
       let count = 0;
@@ -34,24 +34,23 @@ export default function Dice({ sides = 6, socket = null, onRoll }: DiceProps) {
         if (count >= times) {
           clearInterval(animRef.current!);
           animRef.current = null;
-          setValue(rolledValue); // 最終結果に置き換え
+          setValue(rolledValue);
           setRolling(false);
           onRoll?.(rolledValue);
         }
       }, interval);
     };
 
-    socket.on("dice:rolled", handleRoll);
+    socket.on(`dice:rolled:${diceId}`, handleRoll);
     return () => {
-      socket.off("dice:rolled", handleRoll);
+      socket.off(`dice:rolled:${diceId}`, handleRoll);
       if (animRef.current) clearInterval(animRef.current);
     };
-  }, [socket, sides, onRoll]);
+  }, [socket, sides, diceId, onRoll]);
 
   const roll = () => {
     if (!socket || rolling) return;
-    console.log("Dice.tsx: Dice clicked - emitting dice:roll");
-    socket.emit("dice:roll", sides);
+    socket.emit("dice:roll", { diceId, sides });
   };
 
   return (
