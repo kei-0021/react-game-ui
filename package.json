@@ -13,11 +13,12 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "src/server.js"
   ],
   "scripts": {
+    "build": "vite build && tsc && cp src/server.js dist/server.js",
     "dev": "vite",
-    "build": "vite build && tsc",
     "preview": "vite preview",
     "server": "node src/server.js",
     "dev:multi": "concurrently \"npm run server\" \"vite\"",

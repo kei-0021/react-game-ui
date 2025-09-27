@@ -1,6 +1,7 @@
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
+
 // https://vite.dev/config/
 export default defineConfig(({ command, mode }) => {
     if (command === "build") {
@@ -24,10 +25,10 @@ export default defineConfig(({ command, mode }) => {
                         },
                     },
                 },
+                emptyOutDir: false, // ← 追加：dist 内の server.js を消さない
             },
         };
-    }
-    else {
+    } else {
         // === 開発用 ===
         return {
             plugins: [react()],
