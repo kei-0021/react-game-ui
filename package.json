@@ -13,10 +13,7 @@
     }
   },
   "files": [
-    "dist/react-game-ui.cjs.js",
-    "dist/react-game-ui.es.js",
-    "dist/react-game-ui.css",
-    "dist/types/**/*.d.ts"
+    "dist"
   ],
   "scripts": {
     "dev": "vite",
