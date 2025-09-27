@@ -1,56 +1,44 @@
 // src/components/Deck.tsx
 import React from "react";
 import { Socket } from "socket.io-client";
-import type { Card } from "../types/card.js"; // 実際に使用
+import type { Card, DeckId } from "../types/card.js"; // 実際に使用
 import { PlayerId } from "../types/player.js"; // 型参照
 import styles from "./Card.module.css";
 
 type DeckProps = {
   socket: Socket;
-  playerId?: PlayerId | null; // 手札に入れる場合のプレイヤーID、nullなら場
+  deckId: DeckId;               // 追加
+  playerId?: PlayerId | null;
 };
 
-export default function Deck({ socket, playerId = null }: DeckProps) {
+export default function Deck({ socket, deckId, playerId = null }: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
   const [drawnCards, setDrawnCards] = React.useState<Card[]>([]);
 
   React.useEffect(() => {
-    socket.on("deck:init", (data: { currentDeck: Card[], drawnCards: Card[] }) => {
-      console.log("Deck.tsx: deck:init 受信", data);
-      setDeckCards(data.currentDeck);
-      setDrawnCards(data.drawnCards);
+    socket.on(`deck:init:${deckId}`, (data: { currentDeck: Card[], drawnCards: Card[] }) => {
+      setDeckCards(data.currentDeck.map(c => ({ ...c, deckId })));
+      setDrawnCards(data.drawnCards.map(c => ({ ...c, deckId })));
     });
 
-    socket.on("deck:update", (data: { currentDeck: Card[], drawnCards: Card[] }) => {
-      console.log("Deck.tsx: deck:update 受信", data);
-      setDeckCards(data.currentDeck);
-      setDrawnCards(data.drawnCards);
+    socket.on(`deck:update:${deckId}`, (data: { currentDeck: Card[], drawnCards: Card[] }) => {
+      setDeckCards(data.currentDeck.map(c => ({ ...c, deckId })));
+      setDrawnCards(data.drawnCards.map(c => ({ ...c, deckId })));
     });
 
     return () => {
-      socket.off("deck:init");
-      socket.off("deck:update");
+      socket.off(`deck:init:${deckId}`);
+      socket.off(`deck:update:${deckId}`);
     };
-  }, [socket]);
+  }, [socket, deckId]);
 
   const draw = () => {
     if (deckCards.length === 0) return;
-    console.log("Deck.tsx: 山札クリックで draw");
-
-    // playerId が null なら場に置く、あればそのプレイヤーの手札に
-    console.log()
-    socket.emit("deck:draw", { playerId });
+    socket.emit("deck:draw", { deckId, playerId });
   };
 
-  const shuffle = () => {
-    console.log("Deck.tsx: shuffle ボタン押下");
-    socket.emit("deck:shuffle");
-  };
-
-  const resetDeck = () => {
-    console.log("Deck.tsx: 山札に戻すボタン押下");
-    socket.emit("deck:reset");
-  };
+  const shuffle = () => socket.emit("deck:shuffle", { deckId });
+  const resetDeck = () => socket.emit("deck:reset", { deckId });
 
   return (
     <section className={styles.deckSection}>
@@ -60,30 +48,22 @@ export default function Deck({ socket, playerId = null }: DeckProps) {
       </div>
 
       <div className={styles.deckWrapper}>
-        {/* 山札（裏面） */}
         <div className={styles.deckContainer} onClick={draw}>
           {deckCards.map((c, i) => (
             <div
               key={c.id}
               className={styles.deckCard}
-              style={{
-                zIndex: deckCards.length - i,
-                transform: `translate(${i * 0.5}px, ${i * 0.5}px)`,
-              }}
+              style={{ zIndex: deckCards.length - i, transform: `translate(${i * 0.5}px, ${i * 0.5}px)` }}
             />
           ))}
         </div>
 
-        {/* 引いたカード（表面・場用） */}
         <div className={styles.deckContainer}>
           {drawnCards.map((c, i) => (
             <div
               key={c.id}
               className={styles.deckCardFront}
-              style={{
-                zIndex: i + 1,
-                transform: `translate(${i * 0.5}px, ${i * 0.5}px)`,
-              }}
+              style={{ zIndex: i + 1, transform: `translate(${i * 0.5}px, ${i * 0.5}px)` }}
             >
               {c.name}
             </div>

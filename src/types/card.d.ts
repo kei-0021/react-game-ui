@@ -1,7 +1,9 @@
 // ID のタイプエイリアス
 export type CardId = string;
+export type DeckId = string;
 
 export type Card = {
+  deckId: DeckId
   id: CardId;
   name: string;
   description?: string;

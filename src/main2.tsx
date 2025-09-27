@@ -6,7 +6,7 @@ import DiceSocket from "./components/Dice.js";
 import ScoreBoard from "./components/ScoreBoard.js";
 import Timer from "./components/Timer.js";
 import { useSocket } from "./hooks/useSocket.js";
-import { Player } from "./types/player.js";
+import { Player, PlayerId } from "./types/player.js";
 
 export default function Game() {
   const socket = useSocket("http://127.0.0.1:3000");
@@ -17,7 +17,7 @@ export default function Game() {
     if (!socket) return;
 
     // 現在ターン
-    socket.on("game:turn", (playerId: string) => {
+    socket.on("game:turn", (playerId: PlayerId) => {
       setCurrentPlayerId(playerId);
     });
 
@@ -37,9 +37,11 @@ export default function Game() {
 
   return (
     <div>
-      <Deck socket={socket} playerId={currentPlayerId} />
+      <Deck socket={socket} deckId="main" playerId={currentPlayerId} />
+      <Deck socket={socket} deckId="light" playerId={currentPlayerId} />
 
       <DiceSocket socket={socket} sides={6} />
+      <DiceSocket socket={socket} sides={2} />
 
       <Timer
         socket={socket}
