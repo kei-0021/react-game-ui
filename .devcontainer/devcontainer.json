@@ -1,5 +1,5 @@
 {
-  "name": "Full Moon Night",
+  "name": "React Game UI",
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".."
