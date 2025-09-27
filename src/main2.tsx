@@ -1,12 +1,14 @@
-// src/main2.tsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import Deck from "./components/Deck.js";
 import DiceSocket from "./components/Dice.js";
 import ScoreBoard from "./components/ScoreBoard.js";
 import Timer from "./components/Timer.js";
+import { cardEffects } from "./data/cardEffects.js";
+import mainDeck from "./data/cards.json";
+import lightDeck from "./data/lightCards.json";
 import { useSocket } from "./hooks/useSocket.js";
-import { Player, PlayerId } from "./types/player.js";
+import { Player } from "./types/player.js";
 
 export default function Game() {
   const socket = useSocket("http://127.0.0.1:3000");
@@ -16,20 +18,30 @@ export default function Game() {
   React.useEffect(() => {
     if (!socket) return;
 
-    // 現在ターン
-    socket.on("game:turn", (playerId: PlayerId) => {
-      setCurrentPlayerId(playerId);
+    // プレイヤー情報
+    socket.on("players:update", setPlayers);
+    socket.on("game:turn", setCurrentPlayerId);
+
+    // 初期デッキ送信
+    const allDecks = [
+      { deckId: "main", name: "イベントカード", cards: mainDeck },
+      { deckId: "light", name: "光カード", cards: lightDeck }
+    ];
+
+    allDecks.forEach(deck => {
+      deck.cards = deck.cards.map(c => ({
+        ...c,
+        onPlay: cardEffects[c.name] || (() => {}),
+        location: "deck"
+      }));
+      socket.emit("deck:add", deck);
     });
 
-    // プレイヤーリスト更新
-    socket.on("players:update", (playerList: Player[]) => {
-      console.log("カード枚数", playerList[0].cards?.length, "枚")
-      setPlayers(playerList);
-    });
+    allDecks.forEach(deck => socket.emit("deck:add", deck));
 
     return () => {
-      socket.off("game:turn");
       socket.off("players:update");
+      socket.off("game:turn");
     };
   }, [socket]);
 
@@ -43,21 +55,12 @@ export default function Game() {
       <DiceSocket socket={socket} diceId="0" sides={6} />
       <DiceSocket socket={socket} diceId="1" sides={2} />
 
-      <Timer
-        socket={socket}
-        onFinish={() => console.log("タイマー終了！")}
-      />
-
-      <ScoreBoard
-        socket={socket}
-        players={players}
-        currentPlayerId={currentPlayerId}
-      />
+      <Timer socket={socket} onFinish={() => console.log("タイマー終了！")} />
+      <ScoreBoard socket={socket} players={players} currentPlayerId={currentPlayerId} />
     </div>
   );
 }
 
-// マウント
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Game />
