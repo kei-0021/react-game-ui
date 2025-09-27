@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist",
     "target": "ESNext",
     "module": "node16",
@@ -9,6 +10,9 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true    // ← これを追加
-  }
+    "resolveJsonModule": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+  },
+  "include": ["src"]
 }
