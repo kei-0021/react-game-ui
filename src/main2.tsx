@@ -5,13 +5,8 @@ import Deck from "./components/Deck.js";
 import DiceSocket from "./components/Dice.js";
 import ScoreBoard from "./components/ScoreBoard.js";
 import Timer from "./components/Timer.js";
-import { useSocket } from "./hooks/index.js";
-
-type Player = {
-  id: string;
-  name: string;
-  score: number;
-};
+import { useSocket } from "./hooks/useSocket.js";
+import { Player } from "./types/player.js";
 
 export default function Game() {
   const socket = useSocket("http://127.0.0.1:3000");

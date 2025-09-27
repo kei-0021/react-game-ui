@@ -1,7 +1,7 @@
 // src/components/Deck.tsx
 import React from "react";
 import { Socket } from "socket.io-client";
-import { Card } from "./Card.js";
+import { Card } from "../types/card.js";
 import styles from "./Card.module.css";
 
 type DeckProps = {

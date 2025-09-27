@@ -1,14 +1,7 @@
 // src/components/ScoreBoard.tsx
 import { Socket } from "socket.io-client";
-import { Card } from "./Card.js";
+import { Player } from "../types/player.js";
 import styles from "./Card.module.css";
-
-type Player = {
-  id: string;
-  name: string;
-  score?: number;
-  cards?: Card[];
-};
 
 type ScoreboardProps = {
   socket: Socket;
