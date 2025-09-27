@@ -1,12 +1,12 @@
 // src/components/ScoreBoard.tsx
 import { Socket } from "socket.io-client";
-import { Player } from "../types/player.js";
+import { Player, PlayerId } from "../types/player.js";
 import styles from "./Card.module.css";
 
 type ScoreboardProps = {
   socket: Socket;
   players: Player[];
-  currentPlayerId?: string | null; // ← nullも許可
+  currentPlayerId?: PlayerId | null; // ← nullも許可
 };
 
 export default function ScoreBoard({ socket, players, currentPlayerId }: ScoreboardProps) {

@@ -1,12 +1,13 @@
 // src/components/Deck.tsx
 import React from "react";
 import { Socket } from "socket.io-client";
-import { Card } from "../types/card.js";
+import type { Card } from "../types/card.js"; // 実際に使用
+import { PlayerId } from "../types/player.js"; // 型参照
 import styles from "./Card.module.css";
 
 type DeckProps = {
   socket: Socket;
-  playerId?: string | null; // 手札に入れる場合のプレイヤーID、nullなら場
+  playerId?: PlayerId | null; // 手札に入れる場合のプレイヤーID、nullなら場
 };
 
 export default function Deck({ socket, playerId = null }: DeckProps) {
