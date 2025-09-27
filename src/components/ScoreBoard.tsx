@@ -1,12 +1,7 @@
 // src/components/ScoreBoard.tsx
 import { Socket } from "socket.io-client";
-import styles from "./Card.module.css"; // カードスタイルがある場合
-
-type Card = {
-  id: string;
-  name: string;
-  description?: string;
-};
+import { Card } from "./Card.js";
+import styles from "./Card.module.css";
 
 type Player = {
   id: string;

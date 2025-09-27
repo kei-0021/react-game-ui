@@ -30,10 +30,18 @@ let currentTurnIndex = 0;
 const httpServer = createServer();
 const io = new Server(httpServer, { cors: { origin: "*" } });
 
+// --- プレイヤースコア管理 ---
+function addScore(playerId, points) {
+  const player = players.find(p => p.id === playerId);
+  if (!player) return;
+  player.score = (player.score || 0) + points;
+  io.emit("players:update", players); // スコアもクライアントに送信
+}
+
 io.on("connection", (socket) => {
   console.log("クライアント接続:", socket.id);
 
-  players.push({ id: socket.id, name: `Player ${players.length + 1}`, cards: [] });
+  players.push({ id: socket.id, name: `Player ${players.length + 1}`, cards: [], score: 0 });
   io.emit("players:update", players);
   socket.emit("deck:init", { currentDeck, drawnCards, players });
   io.emit("game:turn", players[currentTurnIndex] && players[currentTurnIndex].id);
@@ -55,9 +63,8 @@ io.on("connection", (socket) => {
       drawnCards.push(card);
     }
 
-    // クライアントに現在の状態を送信
     io.emit("deck:update", { currentDeck, drawnCards });
-    io.emit("players:update", players); // ←ここで手札情報を更新
+    io.emit("players:update", players);
   });
 
   socket.on("deck:shuffle", () => {
@@ -75,14 +82,13 @@ io.on("connection", (socket) => {
 
   // カード発動
   socket.on("card:play", ({ cardId, playerId }) => {
-    // allCards からカード取得
     const card = allCards.find(c => c.id === cardId);
     if (!card) return;
 
-    // 効果発動
-    if (card.onPlay) card.onPlay();
+    // onPlay にサーバーの関数を渡す場合
+    if (card.onPlay) card.onPlay({ playerId, addScore });
 
-    // カードを手札から削除
+    // 手札から削除
     if (playerId) {
       const player = players.find(p => p.id === playerId);
       if (player && player.cards) {
@@ -94,7 +100,6 @@ io.on("connection", (socket) => {
     card.location = "field";
     drawnCards.push(card);
 
-    // 更新をクライアントに送信
     io.emit("deck:update", { currentDeck, drawnCards });
     io.emit("players:update", players);
   });

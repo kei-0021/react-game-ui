@@ -21,7 +21,7 @@ export default function Deck({ socket, playerId = null }: DeckProps) {
     });
 
     socket.on("deck:update", (data: { currentDeck: Card[], drawnCards: Card[] }) => {
-      console.log("Deck.tsx: deck:update 受信", data);
+      // console.log("Deck.tsx: deck:update 受信", data);
       setDeckCards(data.currentDeck);
       setDrawnCards(data.drawnCards);
     });
