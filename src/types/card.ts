@@ -1,3 +1,5 @@
+import { CardLocation } from "./cardLocation.js";
+
 // ID のタイプエイリアス
 export type CardId = string;
 export type DeckId = string;
@@ -8,6 +10,6 @@ export type Card = {
   name: string;
   description?: string;
   onPlay?: (...args: any[]) => void;
-  location: "deck" | "field" | { hand: string };
+  location: CardLocation;
   isFaceUp?: boolean;
 };

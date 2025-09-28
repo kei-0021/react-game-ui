@@ -5,10 +5,14 @@ import DiceSocket from "./components/Dice.js";
 import ScoreBoard from "./components/ScoreBoard.js";
 import Timer from "./components/Timer.js";
 import { cardEffects } from "./data/cardEffects.js";
-import mainDeck from "./data/cards.json";
-import lightDeck from "./data/lightCards.json";
+import mainDeckJson from "./data/cards.json";
+import lightDeckJson from "./data/lightCards.json";
 import { useSocket } from "./hooks/useSocket.js";
+import type { Card } from "./types/card.js";
 import { Player } from "./types/player.js";
+
+const mainDeck: Card[] = mainDeckJson as Card[];
+const lightDeck: Card[] = lightDeckJson as Card[];
 
 export default function Game() {
   const socket = useSocket("http://127.0.0.1:3000");

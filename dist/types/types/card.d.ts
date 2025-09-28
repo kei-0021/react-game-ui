@@ -1,3 +1,4 @@
+import { CardLocation } from "./cardLocation.js";
 export type CardId = string;
 export type DeckId = string;
 export type Card = {
@@ -5,8 +6,7 @@ export type Card = {
     deckId: DeckId;
     name: string;
     description?: string;
-    onPlay?: () => void;
-    location: "deck" | "field" | {
-        hand: string;
-    };
+    onPlay?: (...args: any[]) => void;
+    location: CardLocation;
+    isFaceUp?: boolean;
 };
