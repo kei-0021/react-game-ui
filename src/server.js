@@ -39,6 +39,7 @@ io.on("connection", socket => {
   const newPlayer = { id: socket.id, name: `Player ${players.length + 1}`, cards: [], score: 0 };
   players.push(newPlayer);
   console.log(`[connection] 新規プレイヤー追加:`, newPlayer);
+  socket.emit("player:assign-id", newPlayer.id)
   io.emit("players:update", players);
   io.emit("game:turn", players[currentTurnIndex]?.id);
 

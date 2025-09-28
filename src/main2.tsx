@@ -12,13 +12,14 @@ import { Player } from "./types/player.js";
 
 export default function Game() {
   const socket = useSocket("http://127.0.0.1:3000");
-  const [players, setPlayers] = React.useState<Player[]>([]);
+  const [myPlayerId, setMyPlayerId] = React.useState<string | null>(null);  const [players, setPlayers] = React.useState<Player[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!socket) return;
 
     // プレイヤー情報
+    socket.on("player:assign-id", setMyPlayerId);
     socket.on("players:update", setPlayers);
     socket.on("game:turn", setCurrentPlayerId);
 
@@ -40,6 +41,7 @@ export default function Game() {
     allDecks.forEach(deck => socket.emit("deck:add", deck));
 
     return () => {
+      socket.off("player:assign-id");
       socket.off("players:update");
       socket.off("game:turn");
     };
@@ -56,7 +58,12 @@ export default function Game() {
       <DiceSocket socket={socket} diceId="1" sides={2} />
 
       <Timer socket={socket} onFinish={() => console.log("タイマー終了！")} />
-      <ScoreBoard socket={socket} players={players} currentPlayerId={currentPlayerId} />
+      <ScoreBoard
+        socket={socket}
+        players={players}
+        currentPlayerId={currentPlayerId}
+        myPlayerId={myPlayerId}
+      />
     </div>
   );
 }
