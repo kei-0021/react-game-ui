@@ -5,7 +5,7 @@
   "description": "React + Socket.IO UI components for card/dice games",
   "main": "dist/react-game-ui.cjs.js",
   "module": "dist/react-game-ui.es.js",
-  "types": "dist/main2.d.ts",
+  "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/react-game-ui.es.js",
@@ -17,16 +17,13 @@
     "src/server.js"
   ],
   "scripts": {
-    "build": "vite build && tsc && cp src/server.js dist/server.js",
+    "build": "vite build && tsc --project tsconfig.json && cp src/types/*.d.ts dist/types/ && cp src/server.js dist/server.js",
     "dev": "vite",
     "preview": "vite preview",
     "server": "node src/server.js",
     "dev:multi": "concurrently \"npm run server\" \"vite\"",
     "test": "node --experimental-vm-modules node_modules/.bin/jest"
   },
-  "keywords": ["react", "game", "socket.io", "ui", "cards", "dice"],
-  "author": "",
-  "license": "ISC",
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"
