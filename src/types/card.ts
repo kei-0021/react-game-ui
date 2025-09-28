@@ -7,6 +7,6 @@ export type Card = {
   deckId: DeckId
   name: string;
   description?: string;
-  onPlay?: () => void;
+  onPlay?: (...args: any[]) => void;
   location: "deck" | "field" | { hand: string };
 };
