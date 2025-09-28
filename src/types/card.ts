@@ -9,4 +9,5 @@ export type Card = {
   description?: string;
   onPlay?: (...args: any[]) => void;
   location: "deck" | "field" | { hand: string };
+  isFaceUp?: boolean;
 };

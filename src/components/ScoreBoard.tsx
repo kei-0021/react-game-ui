@@ -1,5 +1,6 @@
 // src/components/ScoreBoard.tsx
 import { Socket } from "socket.io-client";
+import { Card } from "../types/card.js";
 import { Player, PlayerId } from "../types/player.js";
 import styles from "./Card.module.css";
 
@@ -39,28 +40,31 @@ export default function ScoreBoard({ socket, players, currentPlayerId }: Scorebo
             </div>
 
             <div style={{ display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }}>
-              {player.cards.map(card => (
+              {player.cards.map((card: Card) => (
                 <div
                   key={card.id}
-                  className={styles.card}
+                  className={card.isFaceUp ? styles.card : styles.cardBack}
                   style={{ position: "relative", cursor: "pointer" }}
                   onMouseEnter={e => {
+                    if (!card.isFaceUp) return;
                     const tooltip = e.currentTarget.querySelector(`.${styles.tooltip}`) as HTMLElement;
                     if (!tooltip) return;
                     tooltip.style.display = "block";
                   }}
                   onMouseLeave={e => {
+                    if (!card.isFaceUp) return;
                     const tooltip = e.currentTarget.querySelector(`.${styles.tooltip}`) as HTMLElement;
                     if (!tooltip) return;
                     tooltip.style.display = "none";
                   }}
                   onClick={() => {
+                    if (!card.isFaceUp) return;
                     console.log("カードの効果発動:", card.name);
                     socket.emit("card:play", { deckId: card.deckId, cardId: card.id, playerId: player.id });
                   }}
                 >
-                  {card.name}
-                  {card.description && <span className={styles.tooltip}>{card.description}</span>}
+                  {card.isFaceUp && card.name}
+                  {card.isFaceUp && card.description && <span className={styles.tooltip}>{card.description}</span>}
                 </div>
               ))}
             </div>

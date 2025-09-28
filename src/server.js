@@ -76,6 +76,7 @@ io.on("connection", socket => {
       if (player) {
         player.cards = player.cards || [];
         card.location = "hand";
+        card.isFaceUp = true;
         player.cards.push(card);
       }
     } else {

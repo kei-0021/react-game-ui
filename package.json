@@ -9,8 +9,7 @@
   "exports": {
     ".": {
       "import": "./dist/react-game-ui.es.js",
-      "require": "./dist/react-game-ui.cjs.js",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/react-game-ui.cjs.js"
     }
   },
   "files": [

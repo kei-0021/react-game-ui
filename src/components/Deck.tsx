@@ -69,7 +69,7 @@ export default function Deck({ socket, deckId, name, playerId = null }: DeckProp
               className={styles.deckCardFront}
               style={{ zIndex: i + 1, transform: `translate(${i * 0.5}px, ${i * 0.5}px)` }}
             >
-              {c.name}
+              {c.isFaceUp && c.name}
             </div>
           ))}
         </div>
