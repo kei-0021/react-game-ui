@@ -18,6 +18,7 @@
   "include": [
     "src/components",
     "src/types",
+    "src/global.d.ts"
   ],
   "exclude": [
     "node_modules",

@@ -17,7 +17,7 @@
     "src/server.js"
   ],
   "scripts": {
-    "build": "vite build && tsc --project tsconfig.json && cp src/types/*.d.ts dist/types/ && cp src/server.js dist/server.js",
+    "build": "vite build && tsc --project tsconfig.json && cp src/server.js dist/server.js",
     "dev": "vite",
     "preview": "vite preview",
     "server": "node src/server.js",
