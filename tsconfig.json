@@ -19,7 +19,7 @@
     "src/components",
     "src/types",
     "src/global.d.ts"
-  ],
+, "src/index.ts"  ],
   "exclude": [
     "node_modules",
     "src/__mocks__",
