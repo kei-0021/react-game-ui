@@ -1,20 +1,29 @@
-const { createServer } = require("http");
-const { Server } = require("socket.io");
+// src/server.js
+import express from "express";
+import http from "http";
+import path from "path";
+import { Server } from "socket.io";
+import { fileURLToPath } from "url";
 
-// デッキ・カード管理
-const decks = {};
-const drawnCards = {};
+// ES Module用の __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// プレイヤー管理
-let players = [];
-let currentTurnIndex = 0;
+// --- Expressセットアップ ---
+const app = express();
+const httpServer = http.createServer(app);
 
-// HTTP サーバー作成
-const httpServer = createServer();
+// CORS 許可するオリジン
+const allowedOrigins = [process.env.CLIENT_ORIGIN || "http://localhost:5173"];
 
-// 環境変数で CORS 許可
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : ["*"];
+// --- 静的ファイル配信 ---
+const distPath = path.join(__dirname, "../dist");
+app.use(express.static(distPath));
 
+// SPAキャッチオール（PathError回避版）
+app.get(/.*/, (_, res) => res.sendFile(path.join(distPath, "index.html")));
+
+// --- Socket.IO ---
 const io = new Server(httpServer, {
   cors: {
     origin: allowedOrigins,
@@ -22,6 +31,14 @@ const io = new Server(httpServer, {
     credentials: true,
   },
 });
+
+// --- デッキ・カード管理 ---
+const decks = {};
+const drawnCards = {};
+
+// --- プレイヤー管理 ---
+let players = [];
+let currentTurnIndex = 0;
 
 // --- ユーティリティ関数 ---
 function addScore(playerId, points) {
@@ -43,7 +60,7 @@ function shuffleDeck(deckId) {
   console.log(`[shuffleDeck] デッキ ${deckId} をシャッフル`);
 }
 
-// --- ソケット接続 ---
+// --- Socket.IO 接続 ---
 io.on("connection", socket => {
   console.log(`[connection] クライアント接続: ${socket.id}`);
 
@@ -148,17 +165,11 @@ io.on("connection", socket => {
   // タイマー
   socket.on("timer:start", duration => {
     let remaining = duration;
-    console.log(`[timer:start] タイマー開始: ${duration} 秒`);
     io.emit("timer:start", duration);
-
     const interval = setInterval(() => {
       remaining--;
       io.emit("timer:update", remaining);
-      if (remaining <= 0) {
-        clearInterval(interval);
-        console.log("[timer:end] タイマー終了");
-        io.emit("timer:end");
-      }
+      if (remaining <= 0) clearInterval(interval);
     }, 1000);
   });
 
@@ -170,7 +181,6 @@ io.on("connection", socket => {
 
   // 切断
   socket.on("disconnect", () => {
-    console.log(`[disconnect] プレイヤー切断: ${socket.id}`);
     players = players.filter(p => p.id !== socket.id);
     if (currentTurnIndex >= players.length) currentTurnIndex = 0;
     io.emit("game:turn", players[currentTurnIndex]?.id);
@@ -178,8 +188,8 @@ io.on("connection", socket => {
   });
 });
 
-// サーバー起動
+// --- サーバー起動 ---
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
-  console.log(`Socket.IO サーバーがポート${PORT}で起動`);
+  console.log(`Socket.IO + Express サーバーがポート${PORT}で起動`);
 });

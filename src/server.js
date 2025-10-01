@@ -5,32 +5,23 @@ import path from "path";
 import { Server } from "socket.io";
 import { fileURLToPath } from "url";
 
-// --- ディレクトリ調整 ---
+// ES Module用の __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --- サーバー準備 ---
+// --- Expressセットアップ ---
 const app = express();
 const httpServer = http.createServer(app);
 
-// --- CORS 設定 ---
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || ["http://localhost:5173"];
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (req.method === "OPTIONS") return res.sendStatus(200);
-  next();
-});
+// CORS 許可するオリジン
+const allowedOrigins = [process.env.CLIENT_ORIGIN || "http://localhost:5173"];
 
 // --- 静的ファイル配信 ---
 const distPath = path.join(__dirname, "../dist");
 app.use(express.static(distPath));
-app.get("*", (_, res) => res.sendFile(path.join(distPath, "index.html")));
+
+// SPAキャッチオール（PathError回避版）
+app.get(/.*/, (_, res) => res.sendFile(path.join(distPath, "index.html")));
 
 // --- Socket.IO ---
 const io = new Server(httpServer, {
@@ -73,7 +64,6 @@ function shuffleDeck(deckId) {
 io.on("connection", socket => {
   console.log(`[connection] クライアント接続: ${socket.id}`);
 
-  // 新規プレイヤー追加
   const newPlayer = { id: socket.id, name: `Player ${players.length + 1}`, cards: [], score: 0 };
   players.push(newPlayer);
   io.emit("players:update", players);
