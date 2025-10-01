@@ -1,20 +1,38 @@
-import { createServer } from "http";
+// src/server.js
+import express from "express";
+import http from "http";
+import path from "path";
 import { Server } from "socket.io";
+import { fileURLToPath } from "url";
 
-// デッキ・カード管理
-const decks = {};
-const drawnCards = {};
+// --- ディレクトリ調整 ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// プレイヤー管理
-let players = [];
-let currentTurnIndex = 0;
+// --- サーバー準備 ---
+const app = express();
+const httpServer = http.createServer(app);
 
-// HTTP サーバー作成
-const httpServer = createServer();
+// --- CORS 設定 ---
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || ["http://localhost:5173"];
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.sendStatus(200);
+  next();
+});
 
-// 環境変数で CORS 許可
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : ["*"];
+// --- 静的ファイル配信 ---
+const distPath = path.join(__dirname, "../dist");
+app.use(express.static(distPath));
+app.get("*", (_, res) => res.sendFile(path.join(distPath, "index.html")));
 
+// --- Socket.IO ---
 const io = new Server(httpServer, {
   cors: {
     origin: allowedOrigins,
@@ -22,6 +40,14 @@ const io = new Server(httpServer, {
     credentials: true,
   },
 });
+
+// --- デッキ・カード管理 ---
+const decks = {};
+const drawnCards = {};
+
+// --- プレイヤー管理 ---
+let players = [];
+let currentTurnIndex = 0;
 
 // --- ユーティリティ関数 ---
 function addScore(playerId, points) {
@@ -43,10 +69,11 @@ function shuffleDeck(deckId) {
   console.log(`[shuffleDeck] デッキ ${deckId} をシャッフル`);
 }
 
-// --- ソケット接続 ---
+// --- Socket.IO 接続 ---
 io.on("connection", socket => {
   console.log(`[connection] クライアント接続: ${socket.id}`);
 
+  // 新規プレイヤー追加
   const newPlayer = { id: socket.id, name: `Player ${players.length + 1}`, cards: [], score: 0 };
   players.push(newPlayer);
   io.emit("players:update", players);
@@ -148,17 +175,11 @@ io.on("connection", socket => {
   // タイマー
   socket.on("timer:start", duration => {
     let remaining = duration;
-    console.log(`[timer:start] タイマー開始: ${duration} 秒`);
     io.emit("timer:start", duration);
-
     const interval = setInterval(() => {
       remaining--;
       io.emit("timer:update", remaining);
-      if (remaining <= 0) {
-        clearInterval(interval);
-        console.log("[timer:end] タイマー終了");
-        io.emit("timer:end");
-      }
+      if (remaining <= 0) clearInterval(interval);
     }, 1000);
   });
 
@@ -170,7 +191,6 @@ io.on("connection", socket => {
 
   // 切断
   socket.on("disconnect", () => {
-    console.log(`[disconnect] プレイヤー切断: ${socket.id}`);
     players = players.filter(p => p.id !== socket.id);
     if (currentTurnIndex >= players.length) currentTurnIndex = 0;
     io.emit("game:turn", players[currentTurnIndex]?.id);
@@ -178,8 +198,8 @@ io.on("connection", socket => {
   });
 });
 
-// サーバー起動
+// --- サーバー起動 ---
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
-  console.log(`Socket.IO サーバーがポート${PORT}で起動`);
+  console.log(`Socket.IO + Express サーバーがポート${PORT}で起動`);
 });
