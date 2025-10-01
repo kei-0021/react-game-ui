@@ -9,7 +9,12 @@
   "exports": {
     ".": {
       "import": "./dist/react-game-ui.es.js",
-      "require": "./dist/react-game-ui.cjs.js"
+      "require": "./dist/react-game-ui.cjs.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./server": {
+      "import": "./dist/server.js",
+      "require": "./dist/server.js"
     }
   },
   "files": [
