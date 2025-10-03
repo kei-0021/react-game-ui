@@ -11,14 +11,15 @@
       "import": "./dist/react-game-ui.es.js",
       "require": "./dist/react-game-ui.cjs.js",
       "types": "./dist/types/index.d.ts"
-    }
+    },
+    "./dist/react-game-ui.css": "./dist/react-game-ui.css"
   },
   "files": [
     "dist",
     "src/server.js"
   ],
   "scripts": {
-    "build": "vite build && tsc --project tsconfig.json && cp src/server.js dist/server.js",
+    "build": "vite build && tsc --project tsconfig.json && node -e \"require('fs').copyFileSync('src/server.js', 'dist/server.js')\"",
     "dev": "vite",
     "preview": "vite preview",
     "server": "node src/server.js",
@@ -30,12 +31,14 @@
     "react-dom": "^18.3.1"
   },
   "dependencies": {
+    "express": "^5.1.0",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@types/jest": "^30.0.0",
+    "@types/node": "^24.6.2",
     "@types/react": "^18.3.24",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^5.0.3",

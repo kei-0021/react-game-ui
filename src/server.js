@@ -14,14 +14,23 @@ const isProduction = process.env.NODE_ENV === "production";
 
 // Express アプリ
 const app = express();
+
 if (isProduction) {
-  // 本番のみ dist を静的配信
-  app.use(express.static(path.join(__dirname, "dist")));
+  // 優先: 環境変数 APP_DIST_PATH
+  const staticDir = process.env.APP_DIST_PATH
+    ? path.resolve(process.env.APP_DIST_PATH)
+    : path.join(__dirname, "dist"); // fallback: react-game-ui の dist
+
+  app.use(express.static(staticDir));
+  app.get("/", (req, res) => {
+    res.sendFile(path.join(staticDir, "index.html"));
+  });
 }
 
-// HTTP サーバー作成
+// HTTP サーバー & Socket.IO
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: "*" } });
+
 
 // --------------------
 // ゲームサーバーロジック
