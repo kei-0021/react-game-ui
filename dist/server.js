@@ -1,14 +1,35 @@
+#!/usr/bin/env node
+import express from "express";
 import { createServer } from "http";
+import path from "path";
 import { Server } from "socket.io";
+import { fileURLToPath } from "url";
 
+// __dirname 的なやつ
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 環境判定
+const isProduction = process.env.NODE_ENV === "production";
+
+// Express アプリ
+const app = express();
+if (isProduction) {
+  // 本番のみ dist を静的配信
+  app.use(express.static(path.join(__dirname, "dist")));
+}
+
+// HTTP サーバー作成
+const httpServer = createServer(app);
+const io = new Server(httpServer, { cors: { origin: "*" } });
+
+// --------------------
+// ゲームサーバーロジック
+// --------------------
 const decks = {};
-const drawnCards= {};
-
+const drawnCards = {};
 let players = [];
 let currentTurnIndex = 0;
-
-const httpServer = createServer();
-const io = new Server(httpServer, { cors: { origin: "*" } });
 
 // スコア加算関数
 function addScore(playerId, points) {
@@ -31,7 +52,9 @@ function shuffleDeck(deckId) {
   console.log(`[shuffleDeck] デッキ ${deckId} をシャッフルしました`);
 }
 
-// クライアント接続
+// --------------------
+// Socket.IO 接続
+// --------------------
 io.on("connection", socket => {
   console.log(`[connection] クライアント接続: ${socket.id}`);
 
@@ -46,13 +69,7 @@ io.on("connection", socket => {
   // デッキ初期化
   socket.on("deck:add", ({ deckId, name, cards }) => {
     if (decks[deckId]) return;
-
-    decks[deckId] = cards.map(c => ({
-      ...c,
-      deckId,
-      location: "deck"
-    }));
-
+    decks[deckId] = cards.map(c => ({ ...c, deckId, location: "deck" }));
     drawnCards[deckId] = [];
     console.log(`[deck:add] デッキ "${name}" 初期化完了`);
 
@@ -193,6 +210,10 @@ io.on("connection", socket => {
   });
 });
 
-httpServer.listen(3000, () => {
-  console.log("Socket.IO サーバーがポート3000で起動しました");
+// --------------------
+// サーバー起動
+// --------------------
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT} (production: ${isProduction})`);
 });

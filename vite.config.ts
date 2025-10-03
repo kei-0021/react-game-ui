@@ -1,13 +1,18 @@
+// vite.config.ts
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
 
-// https://vite.dev/config/
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ command }) => {
   if (command === "build") {
     // === ライブラリビルド用 ===
     return {
-      plugins: [react()],
+      plugins: [
+        react({
+          // ビルド時は開発用 JSX を生成しない
+          jsxRuntime: "automatic",
+        }),
+      ],
       build: {
         lib: {
           entry: path.resolve(__dirname, "index.ts"),
@@ -16,7 +21,7 @@ export default defineConfig(({ command, mode }) => {
           fileName: (format) => `react-game-ui.${format}.js`,
         },
         rollupOptions: {
-          // react/react-dom は利用者が持っている前提
+          // 利用者の React を使う（バンドルしない）
           external: ["react", "react-dom"],
           output: {
             globals: {
@@ -25,12 +30,19 @@ export default defineConfig(({ command, mode }) => {
             },
           },
         },
+        define: {
+          "process.env.NODE_ENV": '"production"',
+        },
       },
     };
   } else {
     // === 開発用 ===
     return {
-      plugins: [react()],
+      plugins: [
+        react({
+          jsxRuntime: "automatic",
+        }),
+      ],
       server: {
         host: true, // 0.0.0.0 にバインド
         port: 5173,
