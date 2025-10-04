@@ -1,17 +1,33 @@
-// vite.config.ts
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
 
+// 💥 Rollup Replace プラグインをインポート (必要に応じて pnpm add -D @rollup/plugin-replace)
+import replace from "@rollup/plugin-replace";
+
 export default defineConfig(({ command }) => {
   if (command === "build") {
-    // === ライブラリビルド用 ===
+    // 空のモジュールに置き換えるための設定
+    const replacePlugin = replace({
+      preventAssignment: true,
+      values: {
+        'require("express")': '({})',
+        'require("path")': '({})',
+        'require("url")': '({})',
+        // クライアント側で参照される可能性のある全てのサーバーモジュールを置き換え
+        'express': '({})',
+        'path': '({})',
+        'url': '({})',
+        'http': '({})',
+      },
+      include: ['src/**/*.ts', 'src/**/*.tsx', 'index.ts'], // 自身のソースコードのみを対象
+    });
+
     return {
+      // 💥 修正: replace プラグインを最初に追加し、参照を消してから React プラグインを適用
       plugins: [
-        react({
-          // ビルド時は開発用 JSX を生成しない
-          jsxRuntime: "automatic",
-        }),
+        replacePlugin, 
+        react({ jsxRuntime: "automatic" }),
       ],
       build: {
         lib: {
@@ -21,8 +37,17 @@ export default defineConfig(({ command }) => {
           fileName: (format) => `react-game-ui.${format}.js`,
         },
         rollupOptions: {
-          // 利用者の React を使う（バンドルしない）
-          external: ["react", "react-dom"],
+          external: [
+            "react", 
+            "react-dom", 
+            // 外部化のリストは維持
+            "express", 
+            "path", 
+            "url", 
+            "http", 
+            "socket.io",
+            "socket.io-client" // 💥 クライアントモジュールも外部化
+          ],
           output: {
             globals: {
               react: "React",
@@ -36,15 +61,13 @@ export default defineConfig(({ command }) => {
       },
     };
   } else {
-    // === 開発用 ===
+    // 開発サーバー設定は変更なし
     return {
       plugins: [
-        react({
-          jsxRuntime: "automatic",
-        }),
+        react({ jsxRuntime: "automatic" }),
       ],
       server: {
-        host: true, // 0.0.0.0 にバインド
+        host: true,
         port: 5173,
       },
     };
