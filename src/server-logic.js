@@ -1,40 +1,4 @@
-#!/usr/bin/env node
-// react-game-ui/server.js
-
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-
-// __dirname 的なやつ
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// --------------------
-// Express の静的配信（本番用）
-// --------------------
-export function createLibServer(appDistPath) {
-  const app = express();
-  const isProduction = process.env.NODE_ENV === "production";
-
-  if (isProduction) {
-    // 1. ライブラリの dist（CSS/JS）を /lib 配下で配信
-    const libDist = path.join(__dirname, "dist");
-    app.use("/lib", express.static(libDist));
-
-    // 2. 利用者のビルド成果物 dist
-    const appDist = appDistPath
-      ? path.resolve(appDistPath)
-      : path.join(__dirname, "dist"); // fallback
-    app.use(express.static(appDist));
-
-    // ルートは利用者の index.html を返す
-    app.get("/", (req, res) => {
-      res.sendFile(path.join(appDist, "index.html"));
-    });
-  }
-
-  return app;
-}
+// react-game-ui/server-logic.js
 
 // --------------------
 // Socket.IO ゲームサーバーロジック
@@ -45,7 +9,7 @@ export function initGameServer(io) {
   let players = [];
   let currentTurnIndex = 0;
 
-// スコア加算関数
+  // スコア加算関数
   function addScore(playerId, points) {
     const player = players.find(p => p.id === playerId);
     if (!player) return;
@@ -54,7 +18,7 @@ export function initGameServer(io) {
     io.emit("players:update", players);
   }
 
-// デッキをシャッフル
+  // デッキをシャッフル
   function shuffleDeck(deckId) {
     if (!decks[deckId]) return;
     const currentDeck = decks[deckId].filter(c => c.location === "deck");
@@ -66,16 +30,16 @@ export function initGameServer(io) {
     console.log(`[shuffleDeck] デッキ ${deckId} をシャッフルしました`);
   }
 
-// --------------------
-// Socket.IO 接続
-// --------------------
+  // --------------------
+  // Socket.IO 接続
+  // --------------------
   io.on("connection", socket => {
     console.log(`[connection] クライアント接続: ${socket.id}`);
 
     const newPlayer = { id: socket.id, name: `Player ${players.length + 1}`, cards: [], score: 0 };
     players.push(newPlayer);
-  console.log(`[connection] 新規プレイヤー追加:`, newPlayer);
-  socket.emit("player:assign-id", newPlayer.id)
+    console.log(`[connection] 新規プレイヤー追加:`, newPlayer);
+    socket.emit("player:assign-id", newPlayer.id)
     io.emit("players:update", players);
     io.emit("game:turn", players[currentTurnIndex]?.id);
 
@@ -92,7 +56,7 @@ export function initGameServer(io) {
       });
     });
 
-  // カードを引く
+    // カードを引く
     socket.on("deck:draw", ({ deckId, playerId }) => {
       if (!decks[deckId]) return;
 
@@ -116,7 +80,7 @@ export function initGameServer(io) {
       }
 
       decks[deckId] = currentDeck.concat(decks[deckId].filter(c => c.location !== "deck"));
-    console.log(`[deck:draw] デッキ ${deckId} からカードを引きました:`, card);
+      console.log(`[deck:draw] デッキ ${deckId} からカードを引きました:`, card);
 
       io.emit(`deck:update:${deckId}`, {
         currentDeck: decks[deckId].filter(c => c.location === "deck"),
@@ -125,7 +89,7 @@ export function initGameServer(io) {
       io.emit("players:update", players);
     });
 
-  // デッキシャッフル
+    // デッキシャッフル
     socket.on("deck:shuffle", ({ deckId }) => {
       shuffleDeck(deckId);
       console.log(`[deck:shuffle] デッキ ${deckId} シャッフル`);
