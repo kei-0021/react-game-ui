@@ -20,7 +20,12 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
-const io = new SocketIOServer(httpServer);
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: ["http://localhost:5173"], // ViteのURLを許可
+    methods: ["GET", "POST"],
+  },
+});
 
 const isProduction = process.env.NODE_ENV === "production";
 const PORT = process.env.PORT || 3000;
@@ -57,5 +62,3 @@ httpServer.listen(PORT, () => {
         console.log(`[Server] Serving client app from: ${appDist}`);
     }
 });
-
-// 💥 修正: ここから下にあった `initGameServer` の定義は game-logic.js に移動しました。
