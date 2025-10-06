@@ -14,12 +14,15 @@
     "declaration": true,
     "declarationDir": "dist/types",
     "emitDeclarationOnly": true,
+    "typeRoots": ["./node_modules/@types", "./node_modules"],
+    "types": ["node", "react", "react-dom"]
   },
   "include": [
     "src/components",
     "src/types",
-    "src/global.d.ts"
-, "src/index.ts"  ],
+    "src/global.d.ts",
+    "src/index.ts"  
+  ],
   "exclude": [
     "node_modules",
     "src/__mocks__",

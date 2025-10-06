@@ -1,8 +1,11 @@
 // src/components/ScoreBoard.tsx
+import * as React from "react";
 import { Socket } from "socket.io-client";
 import { Card } from "../types/card.js";
 import { Player, PlayerId } from "../types/player.js";
 import styles from "./Card.module.css";
+
+React;
 
 type ScoreboardProps = {
   socket: Socket;
@@ -15,7 +18,7 @@ export default function ScoreBoard({ socket, players, currentPlayerId, myPlayerI
   const nextTurn = () => socket.emit("game:next-turn");
 
   // プレイヤーの初期化（cards が undefined の場合は空配列にする）
-  const displayedPlayers = players.map(p => ({
+  const displayedPlayers = (players || []).map(p => ({
     ...p,
     score: p.score ?? 0,
     cards: p.cards ?? [],

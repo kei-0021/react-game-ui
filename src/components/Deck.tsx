@@ -1,5 +1,5 @@
 // src/components/Deck.tsx
-import React from "react";
+import * as React from "react";
 import { Socket } from "socket.io-client";
 import type { Card, DeckId } from "../types/card.js";
 import { PlayerId } from "../types/player.js";

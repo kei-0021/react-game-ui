@@ -15,7 +15,7 @@ npm install github:kei-0021/react-game-ui
 - 以下のコマンドでクライアントとサーバーを同時に起動し、複数人同時プレイができます。
 - 内部的に `socket.io` を利用しています。
 ```
-npm run dev:multi
+pnpm run dev:multi
 ```
 
 ## 機能
