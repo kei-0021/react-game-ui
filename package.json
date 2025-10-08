@@ -29,7 +29,6 @@
   ],
   "scripts": {
     "build": "vite build && tsc --project tsconfig.json && node -e \"require('fs').copyFileSync('src/server.js', 'dist/server.js'); require('fs').copyFileSync('src/server-logic.js', 'dist/server-logic.js');\"",
-    "dev": "vite",
     "preview": "vite preview",
     "server": "node src/server.js",
     "dev:multi": "concurrently \"npm run server\" \"vite\"",
