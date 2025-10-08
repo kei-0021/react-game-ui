@@ -2,60 +2,83 @@
 // react-game-ui/server.js
 
 import express from "express";
+import fs from "fs";
 import { createServer } from "http";
 import path from "path";
 import { Server as SocketIOServer } from "socket.io";
 import { fileURLToPath } from "url";
-
-// 💥 修正: game-logic.js からゲームロジックをインポート
-import { initGameServer } from './server-logic.js';
+import { initGameServer } from "./server-logic.js";
 
 // __dirname 的なやつ
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --------------------
-// Express / Socket.IO サーバー起動
-// --------------------
+const defaultLibDist = path.resolve(__dirname, "../../dist");
+const defaultClientDist = path.resolve(__dirname, "../tests"); // デモ用 index.html 配信
 
-const app = express();
-const httpServer = createServer(app);
-const io = new SocketIOServer(httpServer);
+export class GameServer {
+  constructor(options = {}) {
+    this.port = options.port || Number(process.env.PORT) || 3000;
+    this.libDistPath = options.libDistPath || defaultLibDist;
+    this.clientDistPath = options.clientDistPath || defaultClientDist;
+    this.corsOrigins = options.corsOrigins || ["http://localhost:5173"];
+    this.onServerStart = options.onServerStart;
 
-const isProduction = process.env.NODE_ENV === "production";
-const PORT = process.env.PORT || 3000;
-const CLIENT_APP_DIST_PATH = process.env.CLIENT_APP_DIST_PATH; // 利用者のビルド成果物パス
-
-// 1. ライブラリの dist（CSS/JS）を /lib 配下で配信 (UIコンポーネント用)
-const libDist = path.join(__dirname, "dist");
-app.use("/lib", express.static(libDist));
-
-// 2. 利用者のビルド成果物 dist
-const appDist = CLIENT_APP_DIST_PATH 
-  ? path.resolve(CLIENT_APP_DIST_PATH)
-  : path.join(__dirname, "dist"); // fallback (開発・テスト用)
-  
-if (isProduction || CLIENT_APP_DIST_PATH) {
-    app.use(express.static(appDist));
-
-    // ルートは利用者の index.html を返す
-    app.get("/", (req, res) => {
-        res.sendFile(path.join(appDist, "index.html"));
+    this.app = express();
+    this.httpServer = createServer(this.app);
+    this.io = new SocketIOServer(this.httpServer, {
+      cors: { origin: this.corsOrigins, methods: ["GET", "POST"] },
     });
-} else {
-    // 開発中のフィードバックとして
-    console.log("クライアントアプリケーションの配信は設定されていません。環境変数 CLIENT_APP_DIST_PATH を設定してください。");
+
+    this.setupStaticRoutes();
+    this.initSocketLogic();
+  }
+
+  setupStaticRoutes() {
+    if (fs.existsSync(this.libDistPath)) {
+      this.app.use("/lib", express.static(this.libDistPath));
+    } else {
+      console.warn(`[Server] Library dist not found: ${this.libDistPath}`);
+    }
+
+    if (fs.existsSync(this.clientDistPath)) {
+      this.app.use(express.static(this.clientDistPath));
+      const indexPath = path.join(this.clientDistPath, "index.html");
+      if (fs.existsSync(indexPath)) {
+        this.app.get("/", (_req, res) => res.sendFile(indexPath));
+      } else {
+        console.warn(`[Server] index.html not found in ${this.clientDistPath}`);
+        this.app.get("/", (_req, res) =>
+          res.send("<h1>Client app not built yet.</h1>")
+        );
+      }
+    } else {
+      console.warn(`[Server] Client dist not found: ${this.clientDistPath}`);
+      this.app.get("/", (_req, res) =>
+        res.send("<h1>Client app not configured.</h1>")
+      );
+    }
+  }
+
+  initSocketLogic() {
+    try {
+      initGameServer(this.io);
+    } catch (err) {
+      console.error("[Server] Failed to initialize game server logic:", err);
+    }
+  }
+
+  start() {
+    this.httpServer.listen(this.port, () => {
+      const url = `http://localhost:${this.port}`;
+      console.log(`[Server] Server listening on ${url}`);
+      if (this.onServerStart) this.onServerStart(url);
+    });
+  }
 }
 
-// Socket.IO ゲームサーバーロジックの初期化
-initGameServer(io);
-
-
-httpServer.listen(PORT, () => {
-    console.log(`[Server] Production Server listening on port ${PORT}`);
-    if (isProduction) {
-        console.log(`[Server] Serving client app from: ${appDist}`);
-    }
-});
-
-// 💥 修正: ここから下にあった `initGameServer` の定義は game-logic.js に移動しました。
+// CLI 直接実行時
+if (process.argv[1].endsWith("server.js")) {
+  const server = new GameServer();
+  server.start();
+}

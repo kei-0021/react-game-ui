@@ -62,7 +62,6 @@ export function initGameServer(io) {
     io.emit("players:update", players);
     io.emit("game:turn", players[currentTurnIndex]?.id);
 
-    // デッキ初期化
     socket.on("deck:add", ({ deckId, name, cards }) => {
       if (decks[deckId]) return;
       decks[deckId] = cards.map(c => ({ ...c, deckId, location: "deck" }));
@@ -140,7 +139,7 @@ export function initGameServer(io) {
     socket.on("card:play", ({ deckId, cardId, playerId }) => {
       if (!decks[deckId]) return;
 
-      const card = decks[deckId].find(c => c.id === cardId);
+      const card = decks[deckId].find((c) => c.id === cardId);
       if (!card) return;
 
       server_log("card", `プレイヤー ${playerId} がカード ${card.name} を使用`);
@@ -148,28 +147,26 @@ export function initGameServer(io) {
       if (card.onPlay) card.onPlay({ playerId, addScore });
 
       if (playerId) {
-        const player = players.find(p => p.id === playerId);
-        if (player && player.cards) player.cards = player.cards.filter(c => c.id !== cardId);
+        const player = players.find((p) => p.id === playerId);
+        if (player && player.cards) player.cards = player.cards.filter((c) => c.id !== cardId);
       }
 
       card.location = "field";
       drawnCards[deckId].push(card);
 
       io.emit(`deck:update:${deckId}`, {
-        currentDeck: decks[deckId].filter(c => c.location === "deck"),
+        currentDeck: decks[deckId].filter((c) => c.location === "deck"),
         drawnCards: drawnCards[deckId],
       });
       io.emit("players:update", players);
     });
 
-    // サイコロ
     socket.on("dice:roll", ({ diceId, sides }) => {
       const value = Math.floor(Math.random() * sides) + 1;
       server_log("dice", `サイコロ ${diceId} の出目: ${value}`);
       io.emit(`dice:rolled:${diceId}`, value);
     });
 
-    // タイマー
     socket.on("timer:start", (duration) => {
       let remaining = duration;
       server_log("timer", `タイマー開始: ${duration} 秒`);
@@ -186,17 +183,15 @@ export function initGameServer(io) {
       }, 1000);
     });
 
-    // ターン更新
     socket.on("game:next-turn", () => {
       currentTurnIndex = (currentTurnIndex + 1) % players.length;
       server_log("game", `次のターン: ${players[currentTurnIndex]?.name}`);
       io.emit("game:turn", players[currentTurnIndex]?.id);
     });
 
-    // 切断
     socket.on("disconnect", () => {
       server_log("disconnect", `プレイヤー切断: ${socket.id}`);
-      players = players.filter(p => p.id !== socket.id);
+      players = players.filter((p) => p.id !== socket.id);
 
       if (currentTurnIndex >= players.length) currentTurnIndex = 0;
       server_log("disconnect", `現在のターン: ${players[currentTurnIndex]?.name}`);
