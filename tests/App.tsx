@@ -4,18 +4,11 @@ import Deck from "../src/components/Deck.js";
 import Dice from "../src/components/Dice.js";
 import ScoreBoard from "../src/components/ScoreBoard.js";
 import Timer from "../src/components/Timer.js";
-import { cardEffects } from "../src/data/cardEffects.js";
-import mainDeckJson from "../src/data/cards.json";
-import lightDeckJson from "../src/data/lightCards.json";
 import { useSocket } from "../src/hooks/useSocket.js";
-import type { Card } from "../src/types/card.js";
 import type { Player } from "../src/types/player.js";
 
-const mainDeck: Card[] = mainDeckJson as Card[];
-const lightDeck: Card[] = lightDeckJson as Card[];
-
 export default function App() {
-  const socket = useSocket("http://127.0.0.1:3000");
+  const socket = useSocket("http://127.0.0.1:4000");
   const [myPlayerId, setMyPlayerId] = React.useState<string | null>(null);
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = React.useState<string | null>(null);
@@ -26,20 +19,6 @@ export default function App() {
     socket.on("player:assign-id", setMyPlayerId);
     socket.on("players:update", setPlayers);
     socket.on("game:turn", setCurrentPlayerId);
-
-    const allDecks = [
-      { deckId: "main", name: "イベントカード", cards: mainDeck },
-      { deckId: "light", name: "光カード", cards: lightDeck },
-    ];
-
-    allDecks.forEach(deck => {
-      deck.cards = deck.cards.map(c => ({
-        ...c,
-        onPlay: cardEffects[c.name] || (() => {}),
-        location: "deck",
-      }));
-      socket.emit("deck:add", deck);
-    });
 
     return () => {
       socket.off("player:assign-id");

@@ -22,11 +22,28 @@ function server_log(tag, ...args) {
   console.log(`[${tag}]`, ...args);
 }
 
-export function initGameServer(io) {
+export function initGameServer(io, options = {}) {
   const decks = {};
   const drawnCards = {};
   let players = [];
   let currentTurnIndex = 0;
+  const cardEffects = options.cardEffects || {};
+  const initialDecks = options.initialDecks || [];
+
+  console.log("サーバーに渡ってきた cardEffects:", cardEffects);
+  console.log("サーバーに渡ってきた initialDecks:", initialDecks);
+
+  // 初期デッキを登録
+  initialDecks.forEach(({ deckId, name, cards }) => {
+    decks[deckId] = cards.map(c => ({
+      ...c,
+      deckId,
+      location: "deck",
+      onPlay: cardEffects[c.name] || (() => {}),
+    }));
+    drawnCards[deckId] = [];
+    console.log(`[deck] デッキ "${name}" (${deckId}) 初期化完了`);
+  });
 
   // スコア加算関数
   function addScore(playerId, points) {
@@ -62,12 +79,8 @@ export function initGameServer(io) {
     io.emit("players:update", players);
     io.emit("game:turn", players[currentTurnIndex]?.id);
 
-    socket.on("deck:add", ({ deckId, name, cards }) => {
-      if (decks[deckId]) return;
-      decks[deckId] = cards.map(c => ({ ...c, deckId, location: "deck" }));
-      drawnCards[deckId] = [];
-      server_log("deck", `デッキ "${name}" 初期化完了`);
-
+    // 初期デッキをクライアントに送信
+    initialDecks.forEach(({ deckId, name }) => {
       io.emit(`deck:init:${deckId}`, {
         currentDeck: decks[deckId].filter(c => c.location === "deck"),
         drawnCards: drawnCards[deckId],
@@ -139,23 +152,34 @@ export function initGameServer(io) {
     socket.on("card:play", ({ deckId, cardId, playerId }) => {
       if (!decks[deckId]) return;
 
-      const card = decks[deckId].find((c) => c.id === cardId);
+      const card = decks[deckId].find(c => c.id === cardId);
       if (!card) return;
 
       server_log("card", `プレイヤー ${playerId} がカード ${card.name} を使用`);
+      server_log("card", `カード名: "${card.name}"`);
+      server_log("card", "cardEffects keys:", Object.keys(cardEffects));
+      
+      // ✅ ここを修正！
+      const effect = cardEffects[card.name];
+      if (effect) {
+        server_log("card", `カード効果発揮: ${card.name} by ${playerId}`);
+        effect({ playerId, addScore });
+      } else {
+        server_log("card", `カード効果なし: ${card.name} by ${playerId}`);
+      }
 
-      if (card.onPlay) card.onPlay({ playerId, addScore });
-
+      // 残りの処理はそのまま
       if (playerId) {
-        const player = players.find((p) => p.id === playerId);
-        if (player && player.cards) player.cards = player.cards.filter((c) => c.id !== cardId);
+        const player = players.find(p => p.id === playerId);
+        if (player && player.cards)
+          player.cards = player.cards.filter(c => c.id !== cardId);
       }
 
       card.location = "field";
       drawnCards[deckId].push(card);
 
       io.emit(`deck:update:${deckId}`, {
-        currentDeck: decks[deckId].filter((c) => c.location === "deck"),
+        currentDeck: decks[deckId].filter(c => c.location === "deck"),
         drawnCards: drawnCards[deckId],
       });
       io.emit("players:update", players);
