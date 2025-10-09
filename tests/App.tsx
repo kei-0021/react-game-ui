@@ -32,11 +32,11 @@ export default function App() {
 
   return (
     <div>
-      <Deck socket={socket} deckId="main" name="イベントカード" playerId={currentPlayerId} />
-      <Deck socket={socket} deckId="light" name="光カード" playerId={currentPlayerId} />
+      <Deck socket={socket} deckId="fantasy" name="ファンタジーカード" playerId={currentPlayerId} />
+      <Deck socket={socket} deckId="number" name="数字カード" playerId={currentPlayerId} />
 
-      <PlayField socket={socket} deckId="main"/>
-      <PlayField socket={socket} deckId="light"/>
+      <PlayField socket={socket} deckId="fantasy"/>
+      <PlayField socket={socket} deckId="number"/>
 
       <Dice socket={socket} diceId="0" sides={6} />
       <Dice socket={socket} diceId="1" sides={2} />
