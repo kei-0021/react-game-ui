@@ -170,46 +170,52 @@ export function initGameServer(io, options = {}) {
       });
     });
 
-    // カード使用
-    socket.on("card:play", ({ deckId, cardId, playerId, playLocation = "field" }) => {
+    // カード使用（単一 or 複数対応）
+    socket.on("card:play", ({ deckId, cardIds, playerId, playLocation = "field" }) => {
       if (!decks[deckId]) return;
 
-      const card = decks[deckId].find(c => c.id === cardId);
-      if (!card) return;
+      // cardIds が単数の場合も配列に変換
+      const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 
-      server_log("card", `プレイヤー ${playerId} がカード ${card.name} を使用`);
-      
-      // 効果発動
-      const effect = cardEffects[card.name];
-      if (effect) {
-        server_log("card", `カード効果発揮: ${card.name} by ${playerId}`);
-        effect({ playerId, addScore });
-      } else {
-        server_log("card", `カード効果なし: ${card.name} by ${playerId}`);
-      }
-      
-      // プレイヤーの手札から削除
-      if (playerId) {
-        const player = players.find(p => p.id === playerId);
-        if (player && player.cards)
-          player.cards = player.cards.filter(c => c.id !== cardId);
-      }
-      
-      // カードの新しい場所を反映
-      card.location = playLocation;
-      server_log("card", `${playLocation} へ移動しました`);
+      ids.forEach((cardId) => {
+        const card = decks[deckId].find(c => c.id === cardId);
+        if (!card) return;
 
-      // 配列を playLocation に応じて振り分け
-      if (playLocation === "deck") {
-        drawnCards[deckId].push(card);
-      } else if (playLocation === "field") {
-        playFieldCards[deckId] = playFieldCards[deckId] || [];
-        playFieldCards[deckId].push(card);
-      } else if (playLocation === "discard") {
-        discardPile[deckId] = discardPile[deckId] || [];
-        discardPile[deckId].push(card);
-      }
+        server_log("card", `プレイヤー ${playerId} がカード ${card.name} を使用`);
+        
+        // 効果発動
+        const effect = cardEffects[card.name];
+        if (effect) {
+          server_log("card", `カード効果発揮: ${card.name} by ${playerId}`);
+          effect({ playerId, addScore });
+        } else {
+          server_log("card", `カード効果なし: ${card.name} by ${playerId}`);
+        }
 
+        // プレイヤーの手札から削除
+        if (playerId) {
+          const player = players.find(p => p.id === playerId);
+          if (player && player.cards)
+            player.cards = player.cards.filter(c => c.id !== cardId);
+        }
+
+        // カードの新しい場所を反映
+        card.location = playLocation;
+        server_log("card", `${playLocation} へ移動しました`);
+
+        // 配列を playLocation に応じて振り分け
+        if (playLocation === "deck") {
+          drawnCards[deckId].push(card);
+        } else if (playLocation === "field") {
+          playFieldCards[deckId] = playFieldCards[deckId] || [];
+          playFieldCards[deckId].push(card);
+        } else if (playLocation === "discard") {
+          discardPile[deckId] = discardPile[deckId] || [];
+          discardPile[deckId].push(card);
+        }
+      });
+
+      // まとめて更新をクライアントへ送信
       emitDeckUpdate(deckId);
     });
 
