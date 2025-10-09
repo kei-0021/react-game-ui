@@ -6,8 +6,8 @@ import mainDeckJson from "./data/cards.json" assert { type: "json" };
 import lightDeckJson from "./data/lightCards.json" assert { type: "json" };
 
 const initialDecks = [
-  { deckId: "main", name: "イベントカード", cards: mainDeckJson },
-  { deckId: "light", name: "光カード", cards: lightDeckJson },
+  { deckId: "main", name: "イベントカード", cards: mainDeckJson, backColor: "#c25656ff" },
+  { deckId: "light", name: "光カード", cards: lightDeckJson, backColor: "#7e6d36ff" },
 ];
 
 const demoServer = new GameServer({

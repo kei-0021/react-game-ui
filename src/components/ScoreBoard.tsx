@@ -11,9 +11,10 @@ type ScoreboardProps = {
   players: Player[];
   currentPlayerId?: PlayerId | null;
   myPlayerId: PlayerId | null;
+  backColor?: string;
 };
 
-export default function ScoreBoard({ socket, players, currentPlayerId, myPlayerId }: ScoreboardProps) {
+export default function ScoreBoard({ socket, players, currentPlayerId, myPlayerId, backColor = "#000000ff"}: ScoreboardProps) {
   const nextTurn = () => socket.emit("game:next-turn");
 
   const displayedPlayers = (players || []).map(p => ({
@@ -49,14 +50,20 @@ export default function ScoreBoard({ socket, players, currentPlayerId, myPlayerI
                   <div
                     key={card.id}
                     className={isFaceUp ? styles.card : styles.cardBack}
-                    style={{ position: "relative", cursor: "pointer", width: "60px", height: "80px" }}
+                    style={{
+                      position: "relative",
+                      cursor: "pointer",
+                      width: "60px",
+                      height: "80px",
+                      backgroundColor: isFaceUp ? undefined : card.backColor, // 裏面の色
+                    }}
                     onClick={() => {
                       if (!isFaceUp) return;
                       socket.emit("card:play", {
                         deckId: card.deckId,
                         cardId: card.id,
                         playerId: player.id,
-                        playLocation: "field", // 場に出す
+                        playLocation: "field",
                       });
                     }}
                   >

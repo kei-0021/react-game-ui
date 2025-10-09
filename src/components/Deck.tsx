@@ -12,7 +12,7 @@ type DeckProps = {
   playerId?: PlayerId | null;
 };
 
-export default function Deck({ socket, deckId, name, playerId = null }: DeckProps) {
+export default function Deck({ socket, deckId, name, playerId = null}: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
   const [drawnCards, setDrawnCards] = React.useState<Card[]>([]);
 
@@ -57,7 +57,11 @@ export default function Deck({ socket, deckId, name, playerId = null }: DeckProp
             <div
               key={c.id}
               className={styles.deckCard}
-              style={{ zIndex: deckCards.length - i, transform: `translate(${i * 0.5}px, ${i * 0.5}px)` }}
+              style={{ 
+                zIndex: deckCards.length - i, 
+                transform: `translate(${i * 0.5}px, ${i * 0.5}px)` ,
+                backgroundColor: c.backColor,
+              }}
             />
           ))}
         </div>

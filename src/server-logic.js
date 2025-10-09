@@ -36,10 +36,11 @@ export function initGameServer(io, options = {}) {
   // console.log("サーバーに渡ってきた cardEffects:", cardEffects);
 
   // 初期デッキを登録
-  initialDecks.forEach(({ deckId, name, cards }) => {
+  initialDecks.forEach(({ deckId, name, cards, backColor }) => {
     decks[deckId] = cards.map(c => ({
       ...c,
       deckId,
+      backColor: backColor,
       onPlay: cardEffects[c.name] || (() => {}),
     }));
     drawnCards[deckId] = [];
