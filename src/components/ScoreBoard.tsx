@@ -1,7 +1,6 @@
 // src/components/ScoreBoard.tsx
 import * as React from "react";
 import { Socket } from "socket.io-client";
-import { Card } from "../types/card.js";
 import { Player, PlayerId } from "../types/player.js";
 import styles from "./Card.module.css";
 
@@ -14,10 +13,9 @@ type ScoreboardProps = {
   myPlayerId: PlayerId | null;
 };
 
-export default function ScoreBoard({ socket, players, currentPlayerId, myPlayerId}: ScoreboardProps) {
+export default function ScoreBoard({ socket, players, currentPlayerId, myPlayerId }: ScoreboardProps) {
   const nextTurn = () => socket.emit("game:next-turn");
 
-  // プレイヤーの初期化（cards が undefined の場合は空配列にする）
   const displayedPlayers = (players || []).map(p => ({
     ...p,
     score: p.score ?? 0,
@@ -40,37 +38,26 @@ export default function ScoreBoard({ socket, players, currentPlayerId, myPlayerI
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span>
-                {player.id === myPlayerId && "⭐️"} {player.name}
-              </span>
+              <span>{player.id === myPlayerId && "⭐️"} {player.name}</span>
               <span>{player.score}</span>
             </div>
 
             <div style={{ display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }}>
-              {player.cards.map((card: Card) => {
-                // カードが表向き or ターンプレイヤーなら表
+              {player.cards.map(card => {
                 const isFaceUp = card.isFaceUp && player.id === myPlayerId;
-
                 return (
                   <div
                     key={card.id}
                     className={isFaceUp ? styles.card : styles.cardBack}
                     style={{ position: "relative", cursor: "pointer", width: "60px", height: "80px" }}
-                    onMouseEnter={e => {
-                      if (!isFaceUp) return;
-                      const tooltip = e.currentTarget.querySelector(`.${styles.tooltip}`) as HTMLElement;
-                      if (!tooltip) return;
-                      tooltip.style.display = "block";
-                    }}
-                    onMouseLeave={e => {
-                      if (!isFaceUp) return;
-                      const tooltip = e.currentTarget.querySelector(`.${styles.tooltip}`) as HTMLElement;
-                      if (!tooltip) return;
-                      tooltip.style.display = "none";
-                    }}
                     onClick={() => {
                       if (!isFaceUp) return;
-                      socket.emit("card:play", { deckId: card.deckId, cardId: card.id, playerId: player.id });
+                      socket.emit("card:play", {
+                        deckId: card.deckId,
+                        cardId: card.id,
+                        playerId: player.id,
+                        playLocation: "field", // 場に出す
+                      });
                     }}
                   >
                     {isFaceUp && card.name}

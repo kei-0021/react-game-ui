@@ -21,8 +21,8 @@ export class GameServer {
     this.clientDistPath = options.clientDistPath || defaultClientDist;
     this.corsOrigins = options.corsOrigins || ["http://localhost:5173"];
     this.onServerStart = options.onServerStart;
-    this.cardEffects = options.cardEffects || {};
     this.initialDecks = options.initialDecks || []; // ←追加
+    this.cardEffects = options.cardEffects || {};
 
     this.app = express();
     this.httpServer = createServer(this.app);

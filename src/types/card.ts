@@ -11,5 +11,7 @@ export type Card = {
   description?: string;
   onPlay?: (...args: any[]) => void;
   location: CardLocation;
+  drawLocation: CardLocation;
+  playLocation: CardLocation;
   isFaceUp?: boolean;
 };

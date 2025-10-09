@@ -2,6 +2,7 @@
 import React from "react";
 import Deck from "../src/components/Deck.js";
 import Dice from "../src/components/Dice.js";
+import PlayField from "../src/components/PlayField.js";
 import ScoreBoard from "../src/components/ScoreBoard.js";
 import Timer from "../src/components/Timer.js";
 import { useSocket } from "../src/hooks/useSocket.js";
@@ -33,6 +34,9 @@ export default function App() {
     <div>
       <Deck socket={socket} deckId="main" name="イベントカード" playerId={currentPlayerId} />
       <Deck socket={socket} deckId="light" name="光カード" playerId={currentPlayerId} />
+
+      <PlayField socket={socket} deckId="main"/>
+      <PlayField socket={socket} deckId="light"/>
 
       <Dice socket={socket} diceId="0" sides={6} />
       <Dice socket={socket} diceId="1" sides={2} />
