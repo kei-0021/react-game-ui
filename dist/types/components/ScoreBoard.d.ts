@@ -5,6 +5,7 @@ type ScoreboardProps = {
     players: Player[];
     currentPlayerId?: PlayerId | null;
     myPlayerId: PlayerId | null;
+    backColor?: string;
 };
-export default function ScoreBoard({ socket, players, currentPlayerId, myPlayerId }: ScoreboardProps): import("react/jsx-runtime").JSX.Element;
+export default function ScoreBoard({ socket, players, currentPlayerId, myPlayerId, backColor, }: ScoreboardProps): import("react/jsx-runtime").JSX.Element;
 export {};

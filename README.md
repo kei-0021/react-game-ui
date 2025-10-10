@@ -5,10 +5,27 @@ npm install github:kei-0021/react-game-ui
 ```
 
 ## サーバーの起動方法
+- server.jsの`GameServer`を取り込んで、必要な設定をしてください。
+```tsx
+const demoServer = new GameServer({
+  port: 4000,
+  clientDistPath: path.resolve("./tests"),
+  libDistPath: path.resolve("../dist"),
+  corsOrigins: ["http://localhost:5173", "http://localhost:4000"],
+  onServerStart: (url) => {
+    console.log(`🎮 Demo server running at: ${url}`);
+  },
+  initialDecks,
+  cardEffects
+});
+
+// サーバー起動
+demoServer.start();
+```
 - package.jsonに事前に以下の記載をしておいてください。
 ```
 "scripts": {
-    "server": "node ./src/server.js",
+    "server": "node ./pass/to/your/server.js",
     "dev:multi": "concurrently \"npm run server\" \"vite --host\"",
 }
 ```
@@ -30,7 +47,7 @@ pnpm run dev multi
 />
 ```
 - 山札 & カード (Deck)
-  - JSON形式でインポートし、`socket.io` でサーバー側に配信して登録します。
+  - JSON形式でインポートし、`socket.io` でサーバー側に直接渡して登録します。
   - カードに効果を持たせることも可能です。
 ```
 [
@@ -38,14 +55,18 @@ pnpm run dev multi
     "id": "card-001",
     "name": "ファイアボール",
     "description": "敵に大ダメージを与える炎の魔法。",
-    "location": "deck"
+    "location": "deck",
+    "drawLocation": "hand",
+    "playLocation": "field"
   },
   {
     "id": "card-002",
     "name": "ヒーリング",
     "description": "味方を回復させる光の魔法。",
-    "location": "hand"
-  }
+    "location": "deck",
+    "drawLocation": "hand",
+    "playLocation": "field"
+  },
 ]
 ```
 ```ts
@@ -65,12 +86,19 @@ export const cardEffects: Record<string, (params: CardEffectParams) => void> = {
   },
 };
 ```
-```tsx
-// デッキを登録
-allDecks.forEach(deck => socket.emit("deck:add", deck));
+```js
+const initialDecks = [
+  { deckId: "fantasy", name: "ファンタジーカード", cards: fantasyDeckJson, backColor: "#c25656ff" },
+];
 
-// コンポーネントとして配置
-<Deck socket={socket} deckId="main" name="イベントカード" playerId={currentPlayerId} />
+const demoServer = new GameServer({
+  ...
+  initialDecks,
+  cardEffects
+});
+```
+```tsx
+<Deck socket={socket} deckId="fantasy" name="ファンタジーカード" playerId={currentPlayerId} />
 ```
 - サイコロ (Dice)
 ```tsx

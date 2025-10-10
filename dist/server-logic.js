@@ -22,11 +22,42 @@ function server_log(tag, ...args) {
   console.log(`[${tag}]`, ...args);
 }
 
-export function initGameServer(io) {
+export function initGameServer(io, options = {}) {
   const decks = {};
   const drawnCards = {};
+  const playFieldCards = {};
+  const discardPile = {}; 
   let players = [];
   let currentTurnIndex = 0;
+  const initialDecks = options.initialDecks || [];
+  const cardEffects = options.cardEffects || {};
+
+  // console.log("サーバーに渡ってきた initialDecks:", initialDecks);
+  // console.log("サーバーに渡ってきた cardEffects:", cardEffects);
+
+  // 初期デッキを登録
+  initialDecks.forEach(({ deckId, name, cards, backColor }) => {
+    decks[deckId] = cards.map(c => ({
+      ...c,
+      deckId,
+      backColor: backColor,
+      onPlay: cardEffects[c.name] || (() => {}),
+    }));
+    drawnCards[deckId] = [];
+    playFieldCards[deckId] = [];
+    console.log(`[deck] デッキ "${name}" (${deckId}) 初期化完了`);
+  });
+
+  // 共通関数：Deck 状態をクライアントに送信
+  function emitDeckUpdate(deckId) {
+    io.emit(`deck:update:${deckId}`, {
+      currentDeck: decks[deckId].filter(c => c.location === "deck"),
+      drawnCards: drawnCards[deckId],
+      playFieldCards: playFieldCards[deckId],
+      discardPile: discardPile[deckId],
+    });
+    io.emit("players:update", players);
+  }
 
   // スコア加算関数
   function addScore(playerId, points) {
@@ -62,12 +93,8 @@ export function initGameServer(io) {
     io.emit("players:update", players);
     io.emit("game:turn", players[currentTurnIndex]?.id);
 
-    socket.on("deck:add", ({ deckId, name, cards }) => {
-      if (decks[deckId]) return;
-      decks[deckId] = cards.map(c => ({ ...c, deckId, location: "deck" }));
-      drawnCards[deckId] = [];
-      server_log("deck", `デッキ "${name}" 初期化完了`);
-
+    // 初期デッキをクライアントに送信
+    initialDecks.forEach(({ deckId, name }) => {
       io.emit(`deck:init:${deckId}`, {
         currentDeck: decks[deckId].filter(c => c.location === "deck"),
         drawnCards: drawnCards[deckId],
@@ -75,7 +102,7 @@ export function initGameServer(io) {
     });
 
     // カードを引く
-    socket.on("deck:draw", ({ deckId, playerId }) => {
+    socket.on("deck:draw", ({ deckId, playerId, drawLocation = "hand" }) => {
       if (!decks[deckId]) return;
 
       const currentDeck = decks[deckId].filter(c => c.location === "deck");
@@ -88,22 +115,26 @@ export function initGameServer(io) {
         const player = players.find(p => p.id === playerId);
         if (player) {
           player.cards = player.cards || [];
-          card.location = "hand";
+          card.location = drawLocation;
           card.isFaceUp = true;
           player.cards.push(card);
         }
       } else {
-        card.location = "field";
+        card.location = drawLocation || "field";
         drawnCards[deckId].push(card);
       }
 
       decks[deckId] = currentDeck.concat(decks[deckId].filter(c => c.location !== "deck"));
       server_log("deck", `デッキ ${deckId} からカードを引きました:`, card);
 
+      // ← ここで必ず PlayField 配列も送信
       io.emit(`deck:update:${deckId}`, {
         currentDeck: decks[deckId].filter(c => c.location === "deck"),
         drawnCards: drawnCards[deckId],
+        playFieldCards: playFieldCards[deckId], // ここ重要
+        discardPile: discardPile[deckId] || [],
       });
+
       io.emit("players:update", players);
     });
 
@@ -121,44 +152,71 @@ export function initGameServer(io) {
     socket.on("deck:reset", ({ deckId }) => {
       if (!decks[deckId]) return;
 
-      const fieldCards = decks[deckId].filter(c => c.location === "field");
+      // 場のカードも山札に戻す
+      const fieldCards = playFieldCards[deckId] || [];
       fieldCards.forEach(c => {
         c.location = "deck";
         drawnCards[deckId] = drawnCards[deckId].filter(d => d.id !== c.id);
       });
+      playFieldCards[deckId] = []; // ここで空にする
 
       shuffleDeck(deckId);
       server_log("deck", `デッキ ${deckId} リセット`);
       io.emit(`deck:update:${deckId}`, {
         currentDeck: decks[deckId].filter(c => c.location === "deck"),
         drawnCards: drawnCards[deckId],
+        playFieldCards: playFieldCards[deckId],
+        discardPile: discardPile[deckId] || [],
       });
     });
 
-    // カード使用
-    socket.on("card:play", ({ deckId, cardId, playerId }) => {
+    // カード使用（単一 or 複数対応）
+    socket.on("card:play", ({ deckId, cardIds, playerId, playLocation = "field" }) => {
       if (!decks[deckId]) return;
 
-      const card = decks[deckId].find((c) => c.id === cardId);
-      if (!card) return;
+      // cardIds が単数の場合も配列に変換
+      const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 
-      server_log("card", `プレイヤー ${playerId} がカード ${card.name} を使用`);
+      ids.forEach((cardId) => {
+        const card = decks[deckId].find(c => c.id === cardId);
+        if (!card) return;
 
-      if (card.onPlay) card.onPlay({ playerId, addScore });
+        server_log("card", `プレイヤー ${playerId} がカード ${card.name} を使用`);
+        
+        // 効果発動
+        const effect = cardEffects[card.name];
+        if (effect) {
+          server_log("card", `カード効果発揮: ${card.name} by ${playerId}`);
+          effect({ playerId, addScore });
+        } else {
+          server_log("card", `カード効果なし: ${card.name} by ${playerId}`);
+        }
 
-      if (playerId) {
-        const player = players.find((p) => p.id === playerId);
-        if (player && player.cards) player.cards = player.cards.filter((c) => c.id !== cardId);
-      }
+        // プレイヤーの手札から削除
+        if (playerId) {
+          const player = players.find(p => p.id === playerId);
+          if (player && player.cards)
+            player.cards = player.cards.filter(c => c.id !== cardId);
+        }
 
-      card.location = "field";
-      drawnCards[deckId].push(card);
+        // カードの新しい場所を反映
+        card.location = playLocation;
+        server_log("card", `${playLocation} へ移動しました`);
 
-      io.emit(`deck:update:${deckId}`, {
-        currentDeck: decks[deckId].filter((c) => c.location === "deck"),
-        drawnCards: drawnCards[deckId],
+        // 配列を playLocation に応じて振り分け
+        if (playLocation === "deck") {
+          drawnCards[deckId].push(card);
+        } else if (playLocation === "field") {
+          playFieldCards[deckId] = playFieldCards[deckId] || [];
+          playFieldCards[deckId].push(card);
+        } else if (playLocation === "discard") {
+          discardPile[deckId] = discardPile[deckId] || [];
+          discardPile[deckId].push(card);
+        }
       });
-      io.emit("players:update", players);
+
+      // まとめて更新をクライアントへ送信
+      emitDeckUpdate(deckId);
     });
 
     socket.on("dice:roll", ({ diceId, sides }) => {
