@@ -1,52 +1,47 @@
+import replace from "@rollup/plugin-replace";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
 
-// 💥 Rollup Replace プラグインをインポート (必要に応じて pnpm add -D @rollup/plugin-replace)
-import replace from "@rollup/plugin-replace";
-
 export default defineConfig(({ command }) => {
   if (command === "build") {
-    // 空のモジュールに置き換えるための設定
+    // 🧩 ライブラリビルド時の置き換え設定（サーバー依存を除去）
     const replacePlugin = replace({
       preventAssignment: true,
       values: {
         'require("express")': '({})',
         'require("path")': '({})',
         'require("url")': '({})',
-        // クライアント側で参照される可能性のある全てのサーバーモジュールを置き換え
         'express': '({})',
         'path': '({})',
         'url': '({})',
         'http': '({})',
       },
-      include: ['src/**/*.ts', 'src/**/*.tsx', 'index.ts'], // 自身のソースコードのみを対象
+      include: ["src/**/*.ts", "src/**/*.tsx", "src/index.ts"],
     });
 
     return {
-      // 💥 修正: replace プラグインを最初に追加し、参照を消してから React プラグインを適用
       plugins: [
-        replacePlugin, 
+        replacePlugin,
         react({ jsxRuntime: "automatic" }),
       ],
       build: {
         lib: {
-          entry: path.resolve(__dirname, "index.ts"),
+          entry: path.resolve(__dirname, "src/index.ts"),
           name: "ReactGameUI",
           formats: ["es", "cjs"],
           fileName: (format) => `react-game-ui.${format}.js`,
         },
         rollupOptions: {
           external: [
-            "react", 
-            "react-dom", 
-            // 外部化のリストは維持
-            "express", 
-            "path", 
-            "url", 
-            "http", 
+            "react",
+            "react-dom",
+            "express",
+            "path",
+            "url",
+            "http",
             "socket.io",
-            "socket.io-client" // 💥 クライアントモジュールも外部化
+            "socket.io-client",
           ],
           output: {
             globals: {
@@ -58,17 +53,28 @@ export default defineConfig(({ command }) => {
         define: {
           "process.env.NODE_ENV": '"production"',
         },
+        outDir: "dist",
+        emptyOutDir: true,
+        
+        // 🚨 最終修正 1: デバッグ情報を完全に削除し、jsxDEV の残骸を断ち切る
+        sourcemap: false,
+        minify: 'terser', 
       },
     };
   } else {
-    // 開発サーバー設定は変更なし
+    // 🧩 開発モード（デモ・テストUIを tests/ から配信）
     return {
-      plugins: [
-        react({ jsxRuntime: "automatic" }),
-      ],
+      root: path.resolve(__dirname, "tests"),
+      plugins: [react({ jsxRuntime: "automatic" })],
       server: {
         host: true,
         port: 5173,
+      },
+      resolve: {
+        alias: {
+          "@": path.resolve(__dirname, "src"),
+          // ⚠️ 重要な修正: React, ReactDOMのエイリアスは削除済み
+        },
       },
     };
   }

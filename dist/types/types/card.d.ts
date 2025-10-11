@@ -7,6 +7,9 @@ export type Card = {
     name: string;
     description?: string;
     onPlay?: (...args: any[]) => void;
+    backColor: string;
     location: CardLocation;
+    drawLocation: CardLocation;
+    playLocation: CardLocation;
     isFaceUp?: boolean;
 };

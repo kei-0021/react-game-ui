@@ -1,64 +1,91 @@
 #!/usr/bin/env node
-// react-game-ui/server.js
-
 import express from "express";
+import fs from "fs";
 import { createServer } from "http";
 import path from "path";
 import { Server as SocketIOServer } from "socket.io";
 import { fileURLToPath } from "url";
-
-// 💥 修正: game-logic.js からゲームロジックをインポート
-import { initGameServer } from './server-logic.js';
+import { initGameServer } from "./server-logic.js";
 
 // __dirname 的なやつ
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --------------------
-// Express / Socket.IO サーバー起動
-// --------------------
+const defaultLibDist = path.resolve(__dirname, "../../dist");
+const defaultClientDist = path.resolve(__dirname, "../tests");
 
-const app = express();
-const httpServer = createServer(app);
-const io = new SocketIOServer(httpServer, {
-  cors: {
-    origin: ["http://localhost:5173"], // ViteのURLを許可
-    methods: ["GET", "POST"],
-  },
-});
+export class GameServer {
+  constructor(options = {}) {
+    this.port = Number(process.env.PORT) || options.port || 3000; // 0ではなく3000をデフォルトに設定変更
+    this.libDistPath = options.libDistPath || defaultLibDist;
+    this.clientDistPath = options.clientDistPath || defaultClientDist;
+    this.corsOrigins = options.corsOrigins || ["http://localhost:5173"];
+    this.onServerStart = options.onServerStart;
+    this.initialDecks = options.initialDecks || []; // ←追加
+    this.cardEffects = options.cardEffects || {};
 
-const isProduction = process.env.NODE_ENV === "production";
-const PORT = process.env.PORT || 3000;
-const CLIENT_APP_DIST_PATH = process.env.CLIENT_APP_DIST_PATH; // 利用者のビルド成果物パス
-
-// 1. ライブラリの dist（CSS/JS）を /lib 配下で配信 (UIコンポーネント用)
-const libDist = path.join(__dirname, "dist");
-app.use("/lib", express.static(libDist));
-
-// 2. 利用者のビルド成果物 dist
-const appDist = CLIENT_APP_DIST_PATH 
-  ? path.resolve(CLIENT_APP_DIST_PATH)
-  : path.join(__dirname, "dist"); // fallback (開発・テスト用)
-  
-if (isProduction || CLIENT_APP_DIST_PATH) {
-    app.use(express.static(appDist));
-
-    // ルートは利用者の index.html を返す
-    app.get("/", (req, res) => {
-        res.sendFile(path.join(appDist, "index.html"));
+    this.app = express();
+    this.httpServer = createServer(this.app);
+    this.io = new SocketIOServer(this.httpServer, {
+      cors: { 
+        origin: this.corsOrigins.concat(process.env.NODE_ENV === 'production' ? ['*'] : []),
+        methods: ["GET", "POST"] 
+      },
     });
-} else {
-    // 開発中のフィードバックとして
-    console.log("クライアントアプリケーションの配信は設定されていません。環境変数 CLIENT_APP_DIST_PATH を設定してください。");
-}
 
-// Socket.IO ゲームサーバーロジックの初期化
-initGameServer(io);
+    this.setupStaticRoutes();
+    this.initSocketLogic();
+  }
 
-
-httpServer.listen(PORT, () => {
-    console.log(`[Server] Production Server listening on port ${PORT}`);
-    if (isProduction) {
-        console.log(`[Server] Serving client app from: ${appDist}`);
+  setupStaticRoutes() {
+    if (fs.existsSync(this.libDistPath)) {
+      this.app.use("/lib", express.static(this.libDistPath));
+    } else {
+      console.warn(`[Server] Library dist not found: ${this.libDistPath}`);
     }
-});
+
+    if (fs.existsSync(this.clientDistPath)) {
+      this.app.use(express.static(this.clientDistPath));
+      const indexPath = path.join(this.clientDistPath, "index.html");
+      if (fs.existsSync(indexPath)) {
+        this.app.get("/", (_req, res) => {
+          // ポート情報の動的挿入ロジックを完全に削除
+          // Render環境ではポート取得のタイミングが不安定なため
+          res.sendFile(indexPath); 
+        });
+      } else {
+        console.warn(`[Server] index.html not found in ${this.clientDistPath}`);
+        this.app.get("/", (_req, res) =>
+          res.send("<h1>Client app not built yet.</h1>")
+        );
+      }
+    } else {
+      console.warn(`[Server] Client dist not found: ${this.clientDistPath}`);
+      this.app.get("/", (_req, res) =>
+        res.send("<h1>Client app not configured.</h1>")
+      );
+    }
+  }
+
+  initSocketLogic() {
+    try {
+      console.log("[Server] this.cardEffects:", this.cardEffects);
+      console.log("[Server] this.initialDecks:", this.initialDecks);
+      initGameServer(this.io, {
+        initialDecks: this.initialDecks, // ←ここで渡す
+        cardEffects: this.cardEffects,
+      });
+    } catch (err) {
+      console.error("[Server] Failed to initialize game server logic:", err);
+    }
+  }
+
+  start() {
+    this.httpServer.listen(this.port, () => {
+      const actualPort = this.httpServer.address().port;
+      const url = `http://localhost:${actualPort}`;
+      console.log(`[Server] Server listening on ${url}`);
+      if (this.onServerStart) this.onServerStart(url);
+    });
+  }
+}
