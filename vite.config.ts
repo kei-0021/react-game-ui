@@ -55,12 +55,16 @@ export default defineConfig(({ command }) => {
         },
         outDir: "dist",
         emptyOutDir: true,
+        
+        // 🚨 最終修正 1: デバッグ情報を完全に削除し、jsxDEV の残骸を断ち切る
+        sourcemap: false,
+        minify: 'terser', 
       },
     };
   } else {
     // 🧩 開発モード（デモ・テストUIを tests/ から配信）
     return {
-      root: path.resolve(__dirname, "tests"), // ← ここが重要：tests 配下の index.html をルートにする
+      root: path.resolve(__dirname, "tests"),
       plugins: [react({ jsxRuntime: "automatic" })],
       server: {
         host: true,
@@ -69,8 +73,7 @@ export default defineConfig(({ command }) => {
       resolve: {
         alias: {
           "@": path.resolve(__dirname, "src"),
-          react: path.resolve(__dirname, "node_modules/react"),
-          "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+          // ⚠️ 重要な修正: React, ReactDOMのエイリアスは削除済み
         },
       },
     };
