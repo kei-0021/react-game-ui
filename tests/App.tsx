@@ -35,7 +35,7 @@ export default function App() {
       <Deck socket={socket} deckId="fantasy" name="ファンタジーカード" playerId={currentPlayerId} />
       <Deck socket={socket} deckId="number" name="数字カード" playerId={currentPlayerId} />
 
-      <PlayField socket={socket} deckId="fantasy"/>
+      <PlayField socket={socket} deckId="fantasy" is_logging={true}/>
       <PlayField socket={socket} deckId="number"/>
 
       <Dice socket={socket} diceId="0" sides={6} />

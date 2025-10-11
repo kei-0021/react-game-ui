@@ -6,9 +6,10 @@ import { client_log } from "../utils/client-log.js";
 type PlayFieldProps = {
   socket: Socket;
   deckId: string;
+  is_logging?: boolean;
 };
 
-export default function PlayField({ socket, deckId }: PlayFieldProps) {
+export default function PlayField({ socket, deckId, is_logging = false }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
 
   React.useEffect(() => {
@@ -17,9 +18,11 @@ export default function PlayField({ socket, deckId }: PlayFieldProps) {
     }) => {
       const newCards = data.playFieldCards || [];
 
-      client_log("playField", `[${deckId}] 場の状態を更新`);
-      client_log("playField", `[${deckId}] 古いカード数: ${playedCards.length}, 新しいカード数: ${newCards.length}`);
-      client_log("playField", `[${deckId}] 受信したカードリスト:`, newCards.map(c => c.name)); 
+      if (is_logging) {
+        client_log("playField", `[${deckId}] 場の状態を更新`);
+        client_log("playField", `[${deckId}] 古いカード数: ${playedCards.length}, 新しいカード数: ${newCards.length}`);
+        client_log("playField", `[${deckId}] 受信したカードリスト:`, newCards.map(c => c.name)); 
+      }
       
       setPlayedCards(data.playFieldCards || []);
     };
