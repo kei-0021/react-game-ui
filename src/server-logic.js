@@ -42,16 +42,19 @@ export function initGameServer(io, options = {}) {
       deckId,
       backColor: backColor,
       onPlay: cardEffects[c.name] || (() => {}),
+      location: "deck", // すべてのカードの初期位置を 'deck' に設定
     }));
     drawnCards[deckId] = [];
     playFieldCards[deckId] = [];
+    discardPile[deckId] = []; // discardPileも初期化
     console.log(`[deck] デッキ "${name}" (${deckId}) 初期化完了`);
   });
 
   // 共通関数：Deck 状態をクライアントに送信
   function emitDeckUpdate(deckId) {
     io.emit(`deck:update:${deckId}`, {
-      currentDeck: decks[deckId].filter(c => c.location === "deck"),
+      // 常に location が "deck" のカードだけを山札として送信
+      currentDeck: decks[deckId].filter(c => c.location === "deck"), 
       drawnCards: drawnCards[deckId],
       playFieldCards: playFieldCards[deckId],
       discardPile: discardPile[deckId],
@@ -71,12 +74,19 @@ export function initGameServer(io, options = {}) {
   // デッキをシャッフル
   function shuffleDeck(deckId) {
     if (!decks[deckId]) return;
+    
+    // 修正: location が "deck" のカードのみをシャッフル対象とする
     const currentDeck = decks[deckId].filter(c => c.location === "deck");
+    const otherCards = decks[deckId].filter(c => c.location !== "deck"); // 手札、場など
+    
+    // Fisher-Yates シャッフル
     for (let i = currentDeck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
     }
-    decks[deckId] = currentDeck.concat(decks[deckId].filter(c => c.location !== "deck"));
+    
+    // シャッフルされた山札と、場や手札のカードを再結合
+    decks[deckId] = currentDeck.concat(otherCards); 
     server_log("deck", `デッキ ${deckId} をシャッフルしました`);
   }
 
@@ -108,9 +118,19 @@ export function initGameServer(io, options = {}) {
       const currentDeck = decks[deckId].filter(c => c.location === "deck");
       if (!currentDeck.length) return;
 
-      const card = currentDeck.shift();
-      if (!card) return;
+      // シャッフルされている currentDeck の先頭のカードIDを取得
+      const cardToDrawId = currentDeck[0].id; 
+      
+      // decks配列全体からカードオブジェクトを見つけ、場所を更新
+      const cardIndex = decks[deckId].findIndex(c => c.id === cardToDrawId);
+      if (cardIndex === -1) return;
 
+      // decksからは削除せず、locationを更新する方が状態管理しやすいが、
+      // 以前のコードが splice を使用していたため、ここでは `location` を更新し、
+      // `currentDeck` をフィルターで再構築する方法に戻します。
+      const card = decks[deckId][cardIndex]; // カードオブジェクトを取得
+
+      // 移動先の配列に追加
       if (playerId) {
         const player = players.find(p => p.id === playerId);
         if (player) {
@@ -124,16 +144,9 @@ export function initGameServer(io, options = {}) {
         drawnCards[deckId].push(card);
       }
 
-      decks[deckId] = currentDeck.concat(decks[deckId].filter(c => c.location !== "deck"));
       server_log("deck", `デッキ ${deckId} からカードを引きました:`, card);
 
-      // ← ここで必ず PlayField 配列も送信
-      io.emit(`deck:update:${deckId}`, {
-        currentDeck: decks[deckId].filter(c => c.location === "deck"),
-        drawnCards: drawnCards[deckId],
-        playFieldCards: playFieldCards[deckId], // ここ重要
-        discardPile: discardPile[deckId] || [],
-      });
+      emitDeckUpdate(deckId);
 
       io.emit("players:update", players);
     });
@@ -142,32 +155,31 @@ export function initGameServer(io, options = {}) {
     socket.on("deck:shuffle", ({ deckId }) => {
       shuffleDeck(deckId);
       server_log("deck", `デッキ ${deckId} シャッフル`);
-      io.emit(`deck:update:${deckId}`, {
-        currentDeck: decks[deckId].filter(c => c.location === "deck"),
-        drawnCards: drawnCards[deckId],
-      });
+      
+      // 更新されたデッキの状態を送信
+      emitDeckUpdate(deckId);
     });
 
     // デッキリセット
     socket.on("deck:reset", ({ deckId }) => {
       if (!decks[deckId]) return;
 
-      // 場のカードも山札に戻す
-      const fieldCards = playFieldCards[deckId] || [];
-      fieldCards.forEach(c => {
-        c.location = "deck";
-        drawnCards[deckId] = drawnCards[deckId].filter(d => d.id !== c.id);
+      // 場のカード、捨て札、引いたカードをすべて山札に戻す
+      decks[deckId].forEach(c => {
+          c.location = "deck";
+          c.isFaceUp = false;
       });
-      playFieldCards[deckId] = []; // ここで空にする
+
+      // 配列を空にする
+      drawnCards[deckId] = [];
+      playFieldCards[deckId] = [];
+      discardPile[deckId] = [];
 
       shuffleDeck(deckId);
       server_log("deck", `デッキ ${deckId} リセット`);
-      io.emit(`deck:update:${deckId}`, {
-        currentDeck: decks[deckId].filter(c => c.location === "deck"),
-        drawnCards: drawnCards[deckId],
-        playFieldCards: playFieldCards[deckId],
-        discardPile: discardPile[deckId] || [],
-      });
+      
+      // 更新されたデッキの状態を送信
+      emitDeckUpdate(deckId);
     });
 
     // カード使用（単一 or 複数対応）
@@ -181,6 +193,44 @@ export function initGameServer(io, options = {}) {
         const card = decks[deckId].find(c => c.id === cardId);
         if (!card) return;
 
+        // ------------------------------------
+        // 修正ポイント 1: 元の配列からの削除
+        // ------------------------------------
+        
+        // プレイヤーの手札から削除
+        if (playerId) {
+          const player = players.find(p => p.id === playerId);
+          if (player && player.cards) {
+            player.cards = player.cards.filter(c => c.id !== cardId);
+          }
+        }
+        
+        // ** drawnCards から削除 ** (手札からの移動ではない場合)
+        const drawnIndex = drawnCards[deckId].findIndex(c => c.id === cardId);
+        if (drawnIndex !== -1) {
+            drawnCards[deckId].splice(drawnIndex, 1);
+        }
+        
+        // ** playFieldCards から削除 ** (場からの移動ではない場合)
+        const fieldIndex = playFieldCards[deckId].findIndex(c => c.id === cardId);
+        if (fieldIndex !== -1) {
+            playFieldCards[deckId].splice(fieldIndex, 1);
+        }
+
+        // ** discardPile から削除 ** (捨て札からの移動ではない場合)
+        const discardIndex = discardPile[deckId].findIndex(c => c.id === cardId);
+        if (discardIndex !== -1) {
+            discardPile[deckId].splice(discardIndex, 1);
+        }
+        
+        // ------------------------------------
+        // 修正ポイント 2: 新しい場所の配列への追加
+        // ------------------------------------
+
+        // カードの新しい場所を反映 (location プロパティ)
+        card.location = playLocation;
+        card.isFaceUp = true;
+        
         server_log("card", `プレイヤー ${playerId} がカード ${card.name} を使用`);
         
         // 効果発動
@@ -192,25 +242,14 @@ export function initGameServer(io, options = {}) {
           server_log("card", `カード効果なし: ${card.name} by ${playerId}`);
         }
 
-        // プレイヤーの手札から削除
-        if (playerId) {
-          const player = players.find(p => p.id === playerId);
-          if (player && player.cards)
-            player.cards = player.cards.filter(c => c.id !== cardId);
-        }
-
-        // カードの新しい場所を反映
-        card.location = playLocation;
         server_log("card", `${playLocation} へ移動しました`);
 
-        // 配列を playLocation に応じて振り分け
+        // 配列を playLocation に応じて振り分け (新しい場所に追加)
         if (playLocation === "deck") {
-          drawnCards[deckId].push(card);
+          // deck に戻す場合は配列に追加する必要はない (emitDeckUpdateのfilterで処理される)
         } else if (playLocation === "field") {
-          playFieldCards[deckId] = playFieldCards[deckId] || [];
           playFieldCards[deckId].push(card);
         } else if (playLocation === "discard") {
-          discardPile[deckId] = discardPile[deckId] || [];
           discardPile[deckId].push(card);
         }
       });
