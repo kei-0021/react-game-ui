@@ -5,7 +5,8 @@
 // --------------------
 
 // ログ出力カテゴリ設定（true=出力, false=非表示）
-const LOG_CATEGORIES = {
+// let に変更して、initGameServer 関数内で上書きできるようにする
+let LOG_CATEGORIES = {
   connection: true,
   deck: false,
   card: true,
@@ -23,6 +24,17 @@ function server_log(tag, ...args) {
 }
 
 export function initGameServer(io, options = {}) {
+  // === ログ設定の初期化 (追加) ===
+  if (options.initialLogCategories) {
+    // 既存のカテゴリ設定とマージして上書きを許可
+    LOG_CATEGORIES = { 
+        ...LOG_CATEGORIES, 
+        ...options.initialLogCategories 
+    };
+    console.log("[log] ログカテゴリをオプションで初期化しました。", LOG_CATEGORIES);
+  }
+  // =============================
+    
   const decks = {};
   const drawnCards = {};
   const playFieldCards = {};
@@ -47,7 +59,7 @@ export function initGameServer(io, options = {}) {
     drawnCards[deckId] = [];
     playFieldCards[deckId] = [];
     discardPile[deckId] = []; // discardPileも初期化
-    console.log(`[deck] デッキ "${name}" (${deckId}) 初期化完了`);
+    server_log("deck", `デッキ "${name}" (${deckId}) 初期化完了`);
   });
 
   // 共通関数：Deck 状態をクライアントに送信
@@ -102,6 +114,16 @@ export function initGameServer(io, options = {}) {
     socket.emit("player:assign-id", newPlayer.id);
     io.emit("players:update", players);
     io.emit("game:turn", players[currentTurnIndex]?.id);
+
+    // ログ設定の変更を受け付ける (動的変更)
+    socket.on("log:set-category", ({ category, enabled }) => {
+        if (LOG_CATEGORIES.hasOwnProperty(category)) {
+            LOG_CATEGORIES[category] = enabled;
+            console.log(`[log] カテゴリ "${category}" のログ出力を ${enabled ? '有効' : '無効'} に設定しました。`);
+        } else {
+            console.warn(`[log] 未知のログカテゴリ "${category}" が指定されました。`);
+        }
+    });
 
     // 初期デッキをクライアントに送信
     initialDecks.forEach(({ deckId, name }) => {
@@ -242,7 +264,7 @@ export function initGameServer(io, options = {}) {
           server_log("card", `カード効果なし: ${card.name} by ${playerId}`);
         }
 
-        server_log("card", `${playLocation} へ移動しました`);
+        server_log("card", `[${playLocation}] へ移動しました`);
 
         // 配列を playLocation に応じて振り分け (新しい場所に追加)
         if (playLocation === "deck") {

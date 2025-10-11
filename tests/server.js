@@ -19,7 +19,11 @@ const demoServer = new GameServer({
     console.log(`🎮 Demo server running at: ${url}`);
   },
   initialDecks,
-  cardEffects
+  cardEffects,
+  initialLogCategories: {
+    connection: false,
+    deck: false,        
+  }
 });
 
 // サーバー起動

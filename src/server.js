@@ -21,8 +21,10 @@ export class GameServer {
     this.clientDistPath = options.clientDistPath || defaultClientDist;
     this.corsOrigins = options.corsOrigins || ["http://localhost:5173"];
     this.onServerStart = options.onServerStart;
-    this.initialDecks = options.initialDecks || []; // ←追加
+    this.initialDecks = options.initialDecks || []; 
     this.cardEffects = options.cardEffects || {};
+    // === ログ設定の初期値をコンストラクタで受け取る (追加) ===
+    this.initialLogCategories = options.initialLogCategories || null; 
 
     this.app = express();
     this.httpServer = createServer(this.app);
@@ -69,11 +71,13 @@ export class GameServer {
 
   initSocketLogic() {
     try {
-      console.log("[Server] this.cardEffects:", this.cardEffects);
-      console.log("[Server] this.initialDecks:", this.initialDecks);
+      // console.log("[Server] this.cardEffects:", this.cardEffects);
+      // console.log("[Server] this.initialDecks:", this.initialDecks);
+      // === initGameServer にログ設定を渡す (修正) ===
       initGameServer(this.io, {
-        initialDecks: this.initialDecks, // ←ここで渡す
+        initialDecks: this.initialDecks,
         cardEffects: this.cardEffects,
+        initialLogCategories: this.initialLogCategories, // ←ここで渡す
       });
     } catch (err) {
       console.error("[Server] Failed to initialize game server logic:", err);
