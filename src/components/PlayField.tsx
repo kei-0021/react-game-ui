@@ -6,10 +6,11 @@ import { client_log } from "../utils/client-log.js";
 type PlayFieldProps = {
   socket: Socket;
   deckId: string;
+  name: string;
   is_logging?: boolean;
 };
 
-export default function PlayField({ socket, deckId, is_logging = false }: PlayFieldProps) {
+export default function PlayField({ socket, deckId, name, is_logging = false }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
 
   React.useEffect(() => {
@@ -44,7 +45,10 @@ export default function PlayField({ socket, deckId, is_logging = false }: PlayFi
 
   return (
     <section style={{ border: "2px dashed #ccc", borderRadius: "10px", padding: "12px", margin: "12px 0", background: "#fafafa" }}>
-      <h3 style={{ marginBottom: "8px" }}>プレイエリア</h3>
+      <h3 style={{ marginBottom: "8px" }}>
+        プレイエリア 
+        {name && <span style={{ marginLeft: "10px", fontWeight: "normal", fontSize: "0.9em", color: "#666" }}>（{name}）</span>}
+      </h3>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", minHeight: "120px" }}>
         {playedCards.length === 0 && <div style={{ opacity: 0.6 }}>（まだカードが出ていません）</div>}
         {playedCards.map((card) => {
