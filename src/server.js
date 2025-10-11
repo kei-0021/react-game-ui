@@ -16,7 +16,7 @@ const defaultClientDist = path.resolve(__dirname, "../tests");
 
 export class GameServer {
   constructor(options = {}) {
-    this.port = options.port || 0; // 0なら空きポート自動割当
+    this.port = Number(process.env.PORT) || options.port || 3000; // 0ではなく3000をデフォルトに設定変更
     this.libDistPath = options.libDistPath || defaultLibDist;
     this.clientDistPath = options.clientDistPath || defaultClientDist;
     this.corsOrigins = options.corsOrigins || ["http://localhost:5173"];
@@ -27,7 +27,10 @@ export class GameServer {
     this.app = express();
     this.httpServer = createServer(this.app);
     this.io = new SocketIOServer(this.httpServer, {
-      cors: { origin: this.corsOrigins, methods: ["GET", "POST"] },
+      cors: { 
+        origin: this.corsOrigins.concat(process.env.NODE_ENV === 'production' ? ['*'] : []),
+        methods: ["GET", "POST"] 
+      },
     });
 
     this.setupStaticRoutes();
@@ -46,13 +49,9 @@ export class GameServer {
       const indexPath = path.join(this.clientDistPath, "index.html");
       if (fs.existsSync(indexPath)) {
         this.app.get("/", (_req, res) => {
-          let html = fs.readFileSync(indexPath, "utf-8");
-          const actualPort = this.httpServer.address()?.port || this.port;
-          html = html.replace(
-            "</head>",
-            `<script>window.SERVER_URL="http://localhost:${actualPort}";</script></head>`
-          );
-          res.send(html);
+          // ポート情報の動的挿入ロジックを完全に削除
+          // Render環境ではポート取得のタイミングが不安定なため
+          res.sendFile(indexPath); 
         });
       } else {
         console.warn(`[Server] index.html not found in ${this.clientDistPath}`);
