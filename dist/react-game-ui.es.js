@@ -1057,10 +1057,17 @@ function Dice({ sides = 6, socket = null, diceId, onRoll }) {
     }
   );
 }
+function client_log(tag, ...args) {
+  console.log(`[${tag}]`, ...args);
+}
 function PlayField({ socket, deckId }) {
   const [playedCards, setPlayedCards] = React.useState([]);
   React.useEffect(() => {
     const handleUpdate = (data) => {
+      const newCards = data.playFieldCards || [];
+      client_log("playField", `[${deckId}] 場の状態を更新`);
+      client_log("playField", `[${deckId}] 古いカード数: ${playedCards.length}, 新しいカード数: ${newCards.length}`);
+      client_log("playField", `[${deckId}] 受信したカードリスト:`, newCards.map((c) => c.name));
       setPlayedCards(data.playFieldCards || []);
     };
     socket.on(`deck:update:${deckId}`, handleUpdate);

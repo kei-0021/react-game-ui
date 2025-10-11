@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Socket } from "socket.io-client";
 import type { Card } from "../types/card.js";
+import { client_log } from "../utils/client-log.js";
 
 type PlayFieldProps = {
   socket: Socket;
@@ -14,6 +15,12 @@ export default function PlayField({ socket, deckId }: PlayFieldProps) {
     const handleUpdate = (data: {
       playFieldCards?: Card[];
     }) => {
+      const newCards = data.playFieldCards || [];
+
+      client_log("playField", `[${deckId}] 場の状態を更新`);
+      client_log("playField", `[${deckId}] 古いカード数: ${playedCards.length}, 新しいカード数: ${newCards.length}`);
+      client_log("playField", `[${deckId}] 受信したカードリスト:`, newCards.map(c => c.name)); 
+      
       setPlayedCards(data.playFieldCards || []);
     };
 
