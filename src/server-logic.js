@@ -381,9 +381,36 @@ export function initGameServer(io, options = {}) {
             server_log('warn', `Move requested for unknown player ID: ${playerId}`);
         }
     });
+
+    // ------------------------------------
+    // 3. マス目探索処理 (新規追加)
+    //    クリックによる移動を分離し、探索/効果発動のみを行う
+    // ------------------------------------
+    socket.on('game:explore-cell', ({ playerId, targetPosition }) => { 
+        const player = gameState.players.find(p => p.id === playerId);
+        const { row, col } = targetPosition;
+
+        if (player) {
+            server_log('game', `Player ${player.name} exploring cell at (${row}, ${col})`);
+            
+            // 1. 状態更新: マスを探索済みとしてマーク (プレイヤーの位置は変更しない)
+            const wasUpdated = markCellAsExplored(gameState, targetPosition);
+
+            // 2. 全クライアントにプレイヤーとボード（探索済みマス）の更新を通知
+            //    (マス効果でリソースなどが変わる可能性があるため、プレイヤー情報も更新)
+            emitPlayerUpdate(); 
+            
+            if (wasUpdated) {
+                broadcastExploredUpdate(); // 'board-update' イベントを送信
+            }
+
+        } else {
+            server_log('warn', `Explore requested for unknown player ID: ${playerId}`);
+        }
+    });
     // ------------------------------------
     
-    // 3. 新規接続したクライアントに現在の探索済みマス目リストを送信
+    // 4. 新規接続したクライアントに現在の探索済みマス目リストを送信 (番号を修正)
     if (gameState.exploredCells.length > 0) {
         // ⭐ イベント名を 'board-update' に変更
         socket.emit('board-update', gameState.exploredCells);

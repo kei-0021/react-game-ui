@@ -25,10 +25,10 @@ export const cellEffects: Record<string, (params: CellEffectParams) => void> = {
     
     // 危険な荒地タイル（🌋） (ペナルティ)
     "Dangerous Zone": ({ playerId, updateResource }) => {
-        // プレイヤーのリソースID 'BATTERY' を -100 する
         if (playerId) {
+            updateResource(playerId, 'OXYGEN', -100);
             updateResource(playerId, 'BATTERY', -100);
-            console.log(`🌋 ${playerId} が Dangerous Zone BATTERY を -100 損失。`);
+            console.log(`🌋 ${playerId} が Dangerous Zone OXYGEN と BATTERY を -100 損失。`);
         }
     },
     

@@ -106,19 +106,22 @@ export default function GameBoardView({
   
   // handleBoardClick をコンポーネント内に定義
   const handleBoardClick = (celldata: CellData, row: number, col: number) => {
-      if (!isBoardReady) return; 
+    if (!isBoardReady) return; 
 
-      // サーバーに移動要求を送信
-      if (socket && myPlayerId) {
-          console.log(`[Client] Sending move request for player ${myPlayerId} to (${row}, ${col})`);
-          
-          socket.emit("game:move-player", { 
-              playerId: myPlayerId,
-              newPosition: { row, col } // 座標オブジェクトを送信
-          });
-          
-          // 更新はサーバーからのブロードキャストに任せる。
-      }
+    // ⭐ 修正ポイント: 移動リクエストを削除し、探索リクエストに変更
+
+    // サーバーにマス目探索要求を送信 (移動ではない)
+    if (socket && myPlayerId) {
+        console.log(`[Client] Sending EXPLORE request for player ${myPlayerId} to (${row}, ${col})`);
+        
+        // サーバー側の実装に合わせてイベント名を調整してください
+        socket.emit("game:explore-cell", { // ⭐ イベント名を "game:explore-cell" に変更
+            playerId: myPlayerId,
+            targetPosition: { row, col } // 座標オブジェクトを送信
+        });
+        
+        // 更新はサーバーからのブロードキャストに任せる。
+    }
   };
 
   const moveP1 = () => {
