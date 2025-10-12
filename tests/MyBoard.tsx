@@ -1,47 +1,17 @@
-import type { DragEvent } from 'react';
+// react-game-ui/tests/MyBoard.tsx
+
 import * as React from 'react';
+import { DragEvent } from 'react';
 import type { CellData } from "../src/components/Board";
 import Board from "../src/components/Board.js";
-import type { PieceData } from "../src/types/piece.js"; // 拡張子を明示
+import type { PieceData } from "../src/types/piece.js";
+import originalDeepSeaCells from "./data/deepSeaCells.json";
 
-// 初期データ（外部で定義された形状情報を含む）
-const boardData = [
-  [
-    { id: 'a1', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-    { id: 'a2', shapeType: 'square', backgroundColor: '#d0d0d0', content: '' },
-    { id: 'a3', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-    { id: 'a4', shapeType: 'square', backgroundColor: '#d0d0d0', content: '' },
-    { id: 'a5', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-  ],
-  [
-    { id: 'b1', shapeType: 'square', backgroundColor: '#d0d0d0', content: 'START' },
-    { id: 'b2', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-    { id: 'b3', shapeType: 'square', backgroundColor: '#d0d0d0', content: '' },
-    { id: 'b4', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-    { id: 'b5', shapeType: 'custom', backgroundColor: '#ff8a8a', content: 'STOP', customClip: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)' }, // カスタムの五角形
-  ],
-  [
-    { id: 'c1', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-    { id: 'c2', shapeType: 'custom', backgroundColor: '#fcd34d', content: '1マス進む', customClip: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }, // カスタムのひし形
-    { id: 'c3', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-    { id: 'c4', shapeType: 'square', backgroundColor: '#d0d0d0', content: '' },
-    { id: 'c5', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-  ],
-  [
-    { id: 'd1', shapeType: 'square', backgroundColor: '#d0d0d0', content: '' },
-    { id: 'd2', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-    { id: 'd3', shapeType: 'square', backgroundColor: '#d0d0d0', content: '' },
-    { id: 'd4', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-    { id: 'd5', shapeType: 'square', backgroundColor: '#d0d0d0', content: '' },
-  ],
-  [
-    { id: 'e1', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-    { id: 'e2', shapeType: 'square', backgroundColor: '#d0d0d0', content: 'GO!' },
-    { id: 'e3', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-    { id: 'e4', shapeType: 'square', backgroundColor: '#d0d0d0', content: '' },
-    { id: 'e5', shapeType: 'square', backgroundColor: '#e9e9e9', content: '' },
-  ],
-];
+// 座標の型を定義
+type Location = {
+    row: number;
+    col: number;
+};
 
 // ユーザーが定義するカスタムレンダラー
 const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
@@ -51,7 +21,6 @@ const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: celldata.backgroundColor,
     color: '#333',
     fontWeight: 'bold',
     fontSize: '16px',
@@ -98,34 +67,102 @@ const initialPieces: PieceData[] = [
   { id: 'p2', name: 'P2', color: '#3b82f6', location: { row: 4, col: 1 } }, // (4, 1)
 ];
 
-// クリックハンドラ
-const handleBoardClick = (celldata: CellData, row: number, col: number) => {
-    // console.log(`Cell Clicked: ${celldata.id} at (${row}, ${col})`);
-};
-
 const handlePieceClick = (pieceId: string) => {
     console.log(`Piece Clicked: ${pieceId}`);
 };
 
 
+// -----------------------------------------------------
+// ⭐ フィッシャー・イェーツ・シャッフルアルゴリズム
+// -----------------------------------------------------
+const shuffleArray = (array: any[]) => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+};
+
+
+// -----------------------------------------------------
+// ⭐ 修正: 全てのマスをシャッフルし、新しい盤面を生成する関数
+// -----------------------------------------------------
+const createRandomBoard = (originalCells: CellData[][]): CellData[][] => {
+    const rows = originalCells.length;
+    const cols = originalCells[0].length; 
+    
+    // 1. 全てのマス目データ（特殊マス含む）を一つの配列に平坦化
+    let allCells: CellData[] = [];
+    originalCells.forEach(rowArr => {
+        allCells = allCells.concat(rowArr);
+    });
+
+    // 2. 全てのマスをシャッフル
+    shuffleArray(allCells);
+
+    // 3. シャッフルされたマス目を、新しい二次元配列に再構成
+    const newBoard: CellData[][] = [];
+    let cellIndex = 0;
+
+    for (let r = 0; r < rows; r++) {
+        const newRow: CellData[] = [];
+        for (let c = 0; c < cols; c++) {
+            const originalCell = allCells[cellIndex];
+            
+            // ⭐ 新しい座標に合わせてIDを更新し、マス目を配置
+            newRow.push({ 
+                ...originalCell, 
+                id: `r${r}c${c}` // 新しい座標に基づいたIDを割り当てる
+            });
+            cellIndex++;
+        }
+        newBoard.push(newRow);
+    }
+    
+    return newBoard;
+};
 
 export default function GameBoardView() {
   const [pieces, setPieces] = React.useState(initialPieces);
-  
-  // ボードのサイズを取得 (5x5)
-  const rows = boardData.length;
-  const cols = boardData[0].length; 
+  const [deepSeaCells, setDeepSeaCells] = React.useState<CellData[][]>(
+      createRandomBoard(originalDeepSeaCells)
+  );
 
-  // 例: P1 を移動させるロジック (デモ用)
+  // ⭐ 1. 探索済みマス目の状態をコンポーネント内に定義
+  const [exploredCells, setExploredCells] = React.useState<Location[]>(
+      initialPieces.map(p => p.location)
+  );
+
+  // ボードのサイズを取得 
+  const rows = deepSeaCells.length;
+  const cols = deepSeaCells[0].length; 
+  
+  // ⭐ 2. ユーティリティ関数をコンポーネント内に定義
+  const isExplored = (row: number, col: number) => {
+    return exploredCells.some(loc => loc.row === row && loc.col === col);
+  }
+
+  // ⭐ 3. マスを探索済みとしてマークする関数をコンポーネント内に定義
+  const markCellAsExplored = (row: number, col: number) => {
+    if (!isExplored(row, col)) {
+        setExploredCells(prev => [...prev, { row, col }]);
+        console.log(`[Exploration]: Cell (${row}, ${col}) marked as Explored (Color change!).`);
+    }
+  };
+  
+  // ⭐ 4. handleBoardClick をコンポーネント内に定義
+  const handleBoardClick = (celldata: CellData, row: number, col: number) => {
+      // ユーザーがクリックしたマスを探索済みとしてマークする
+      markCellAsExplored(row, col);
+      // その他のクリック処理があればここに追加
+  };
+
   const moveP1 = () => {
     setPieces(prev => {
         const p1 = prev.find(p => p.id === 'p1');
         if (p1) {
-            // 🚀 完全にランダムな行と列を生成 (0からrows/cols-1の範囲)
             const newRow = Math.floor(Math.random() * rows);
             const newCol = Math.floor(Math.random() * cols);
-            
-            // 新しい位置を計算し、ピースの配列を更新
             return prev.map(p => p.id === 'p1' ? { ...p, location: { row: newRow, col: newCol } } : p);
         }
         return prev;
@@ -134,35 +171,45 @@ export default function GameBoardView() {
 
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
     console.log(`[Piece Drag Started]: ${piece.id} from (${piece.location.row}, ${piece.location.col})`);
-    
-    // ネイティブのドラッグAPIを使用してピースIDを転送データとして設定
     e.dataTransfer.setData('pieceId', piece.id);
     e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleCellDrop = (e: DragEvent<HTMLDivElement>, targetRow: number, targetCol: number) => {
-    e.preventDefault();
-    
-    // 1. ドラッグ開始時に保存したピースIDを取得
-    const draggedPieceId = e.dataTransfer.getData('pieceId');
-    
-    if (draggedPieceId) {
-        // 2. Stateを更新して座標を移動させる
-        setPieces(prev => {
-            return prev.map(p => 
-                p.id === draggedPieceId 
-                    ? { ...p, location: { row: targetRow, col: targetCol } } 
-                    : p
-            );
-        });
-        console.log(`[Piece Dropped]: ${draggedPieceId} to (${targetRow}, ${targetCol})`);
-    }
-};
+      e.preventDefault();
+      
+      const draggedPieceId = e.dataTransfer.getData('pieceId');
+      
+      if (draggedPieceId) {
+          const droppedCellData = deepSeaCells[targetRow][targetCol];
+          
+          // 1. ピースの移動
+          setPieces(prev => {
+              return prev.map(p => 
+                  p.id === draggedPieceId 
+                      ? { ...p, location: { row: targetRow, col: targetCol } } 
+                      : p
+              );
+          });
+          
+          // 2. ドロップされたマスも探索済みとしてマーク (移動による探索)
+          markCellAsExplored(targetRow, targetCol);
+
+          // 3. ゲームロジックの実行
+          console.log(`[Piece Dropped]: ${draggedPieceId} to ${droppedCellData.id}`);
+
+          if (droppedCellData.content === '⚠️') {
+              console.log(`🚨 WARNマス処理を実行。`);
+          } else if (droppedCellData.content === '💎') {
+              console.log(`✨ RELICマス処理を実行。`);
+          }
+      }
+  };
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>カスタムボードゲームUI</h1>
-      <p style={{ marginBottom: '20px', color: '#666' }}>マス目の形状は外部レンダラーで定義され、コマは独立して配置されます。</p>
+      <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>ディープ・アビス (Deep Abyss)</h1>
+      <p style={{ marginBottom: '20px', color: '#666' }}>クリックでマス目が探索済みになり、色が変わります。コマをドラッグ&ドロップしても移動後のマスが探索済みになります。</p>
       
       <button 
         onClick={moveP1}
@@ -182,12 +229,15 @@ export default function GameBoardView() {
       </button>
 
       <Board 
-        rows={rows} // 5
-        cols={cols} // 5
-        boardData={boardData} 
-        pieces={pieces} // コマのデータを渡す
-        renderCell={MyCustomCellRenderer} // 形状定義関数を渡す
-        onCellClick={handleBoardClick}
+        rows={rows} 
+        cols={cols} 
+        boardData={deepSeaCells} 
+        pieces={pieces} 
+        // ⭐ 修正: Boardコンポーネントに探索済みリストを正しく渡す
+        changedCells={exploredCells} 
+
+        renderCell={MyCustomCellRenderer} 
+        onCellClick={handleBoardClick} // クリック時に探索状態を更新
         onPieceClick={handlePieceClick}
         allowPieceDrag={true}
         onPieceDragStart={handlePieceDragStart}

@@ -1,28 +1,39 @@
+// src/components/Board.tsx (最終版 - content/changedContentロジック修正済み)
+
+import type { DragEvent } from 'react';
 import * as React from 'react';
 import type { PieceData } from '../types/piece.js';
-
-// **【注意】** ReactのDragEventの型をインポートします
-import type { DragEvent } from 'react';
 
 import styles from './Board.module.css';
 import Cell from './Cell.js';
 import Piece from './Piece.js';
 
-// マス目の基本データ型
+// マス目の基本データ型（Cell.tsxと統一）
 export type CellData = {
   id: string;
-  // ... その他のゲーム固有データ
-  shapeType: string; // 例: 'square', 'circle', 'custom-polygon'など
+  shapeType: string;
   backgroundColor: string;
-  // ユーザーが定義したい無限のカスタムプロパティ
+  changedColor: string;
+  
+  content: string;        
+  changedContent: string; 
+  
+  customClip?: string;
   [key: string]: any; 
+};
+
+// 座標の型
+type Location = {
+    row: number;
+    col: number;
 };
 
 type BoardProps = {
   rows: number;
   cols: number;
-  boardData: CellData[][]; // ボードの状態を二次元配列で受け取る
+  boardData: CellData[][];
   pieces: PieceData[]; 
+  changedCells: Location[];
   
   allowPieceDrag?: boolean;
   
@@ -40,24 +51,22 @@ export default function Board({
     cols, 
     boardData, 
     pieces, 
+    changedCells, 
     renderCell, 
     onCellClick, 
     onPieceClick, 
     allowPieceDrag = false, 
-    // ⭐⭐⭐ [修正1: onPieceDragStartをpropsから受け取る]
     onPieceDragStart,
     onCellDrop
 }: BoardProps) {
   
   const handleCellClick = (row: number, col: number) => {
+    // クリックハンドラーは元のCellDataを参照
     const data = boardData[row][col];
     onCellClick(data, row, col);
   };
   
-  // ⭐⭐⭐ [追加] Pieceコンポーネントに渡すonDragStartハンドラ
-  // Pieceコンポーネントは pieceData と イベント を受け取る想定
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
-      // 外部で定義されたロジックを実行
       onPieceDragStart(e, piece);
   };
 
@@ -68,36 +77,57 @@ export default function Board({
     gridTemplateRows: `repeat(${rows}, 1fr)`, 
     gridTemplateColumns: `repeat(${cols}, 1fr)`,
     gap: '4px',
-    width: '600px', // 例
-    height: '600px', // 例
-    position: 'relative', // コマの絶対配置のために追加
+    width: '600px', 
+    height: '600px', 
+    position: 'relative',
   } as React.CSSProperties;
 
   return (
     <div className={styles.boardContainer} style={boardStyle}>
-      {/* 1. マス目のレンダリング (変更なし) */}
+      {/* 1. マス目のレンダリング */}
       {boardData.map((rowArr, row) => (
-        rowArr.map((cellData, col) => (
-          <Cell
-            key={cellData.id}
-            row={row}
-            col={col}
-            cellData={cellData}
-            onClick={handleCellClick}
-            // ⭐ [追加] ドロップイベントのハンドラを渡す
-            onDrop={(e) => onCellDrop(e, row, col)}
-            // ⭐ [追加] onDragOver も必須 (これを実装しないと onDrop は機能しない)
-            onDragOver={(e) => e.preventDefault()} 
-          >
-            {/* renderCell プロップを使用して、外部で定義されたカスタム形状を挿入 */}
-            {renderCell(cellData, row, col)}
-          </Cell>
-        ))
+        rowArr.map((originalCellData, col) => {
+          
+          // ⭐ [探索済み状態の判定]
+          const isChanged = changedCells.some(
+            loc => loc.row === row && loc.col === col
+          );
+          
+          // ⭐ 修正ロジック: 探索状態に応じて content を切り替える
+          // changedContent (探索後) vs content (探索前)
+          const effectiveContent = isChanged 
+            ? originalCellData.changedContent    // 探索済み: changedContent (例: '⚠️')を表示
+            : originalCellData.content;           // 未探索: content (例: "")を表示
+            
+          // ⭐ Cellとレンダラーに渡す、加工された CellData オブジェクト
+          const cellDataForRenderer: CellData = { 
+            ...originalCellData, 
+            // ⭐ content プロパティに有効なコンテンツを設定
+            content: effectiveContent 
+            // changedContent はそのまま保持
+          };
+
+          return (
+            <Cell
+              key={originalCellData.id}
+              row={row}
+              col={col}
+              // ⭐ 加工された CellData を渡す
+              cellData={cellDataForRenderer} 
+              onClick={handleCellClick}
+              onDrop={(e) => onCellDrop(e, row, col)}
+              onDragOver={(e) => e.preventDefault()}
+              changed={isChanged} // ⭐ Cellに探索済み状態を渡す
+            >
+              {/* ⭐ レンダラーも加工されたデータを参照する */}
+              {renderCell(cellDataForRenderer, row, col)}
+            </Cell>
+          );
+        })
       ))}
 
-      {/* 2. コマのレンダリング */}
+      {/* 2. コマのレンダリング (変更なし) */}
       {pieces.map(piece => {
-        // ... (コマのグループ配置ロジックは変更なし) ...
         const sameLocationPieces = pieces.filter(
             p => p.location.row === piece.location.row && p.location.col === piece.location.col
         );
@@ -107,7 +137,6 @@ export default function Board({
         let offsetX = 0;
         let offsetY = 0;
         
-        // 複数のコマがある場合、円形にずらして配置する
         if (groupCount > 1) {
             const radius = 18; 
             const angle = (2 * Math.PI / groupCount) * groupIndex;
@@ -130,7 +159,6 @@ export default function Board({
             style={pieceStyle}
             onClick={onPieceClick}
             isDraggable={allowPieceDrag}
-            // onDragStartプロパティを渡す
             onDragStart={(e) => handlePieceDragStart(e, piece)}
           />
         );

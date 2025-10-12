@@ -1,0 +1,82 @@
+[
+  [
+    { "id": "a1", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "a2", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "a3", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "a4", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "a5", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "a6", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "a7", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "a8", "shapeType": "custom", "backgroundColor": "#0d1721", "content": "", "changedContent": "⚠️", "customClip": "polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)", "changedColor": "#ff5c5c" }
+  ],
+  [
+    { "id": "b1", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "🌊", "changedColor": "#407398" },
+    { "id": "b2", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "b3", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "b4", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "b5", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" }, 
+    { "id": "b6", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" }, 
+    { "id": "b7", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" }, 
+    { "id": "b8", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" }
+  ],
+  [
+    { "id": "c1", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "c2", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "c3", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "c4", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "c5", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "c6", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "💎", "changedColor": "#6be097" },
+    { "id": "c7", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "c8", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" }
+  ],
+  [
+    { "id": "d1", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "d2", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "d3", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "d4", "shapeType": "custom", "backgroundColor": "#1c2a38", "content": "", "changedContent": "💨", "customClip": "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)", "changedColor": "#ffcc40" },
+    { "id": "d5", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "d6", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "d7", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "d8", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" }
+  ],
+  [
+    { "id": "e1", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "e2", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "e3", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "e4", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "e5", "shapeType": "custom", "backgroundColor": "#0d1721", "content": "", "changedContent": "💨", "customClip": "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)", "changedColor": "#ffcc40" },
+    { "id": "e6", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "e7", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "e8", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" }
+  ],
+  [
+    { "id": "f1", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "f2", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "f3", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "💎", "changedColor": "#6be097" },
+    { "id": "f4", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "f5", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "f6", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "f7", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "f8", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" }
+  ],
+  [
+    { "id": "g1", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "g2", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "g3", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "g4", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "g5", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "g6", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "g7", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "g8", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" }
+  ],
+  [
+    { "id": "h1", "shapeType": "custom", "backgroundColor": "#1c2a38", "content": "", "changedContent": "⚠️", "customClip": "polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)", "changedColor": "#ff5c5c" },
+    { "id": "h2", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "h3", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "h4", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "h5", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "h6", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+    { "id": "h7", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
+    { "id": "h8", "shapeType": "custom", "backgroundColor": "#0d1721", "content": "", "changedContent": "🔱", "customClip": "polygon(50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%)", "changedColor": "#5d99c6" }
+  ]
+]
