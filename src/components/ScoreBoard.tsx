@@ -1,12 +1,17 @@
-// src/components/ScoreBoard.tsx
+// src/components/ScoreBoard.tsx (修正後)
 import * as React from "react";
 import { Socket } from "socket.io-client";
 import { Player, PlayerId } from "../types/player.js";
+// ⭐ 修正: Resource 型をインポート
+import type { Resource } from "../types/resource.js";
 import styles from "./Card.module.css";
+
+// Player型はリソースを持つことを前提とする
+type PlayerWithResources = Player & { resources: Resource[] };
 
 type ScoreboardProps = {
   socket: Socket;
-  players: Player[];
+  players: PlayerWithResources[]; // ⭐ プレイヤー型をリソースを持つ型に修正
   currentPlayerId?: PlayerId | null;
   myPlayerId: PlayerId | null;
   backColor?: string;
@@ -23,10 +28,12 @@ export default function ScoreBoard({
 
   const [selectedCards, setSelectedCards] = React.useState<string[]>([]); // 同時出し用の選択カード
 
+  // ⭐ 修正: displayedPlayersでresourcesも初期化
   const displayedPlayers = (players || []).map((p) => ({
     ...p,
     score: p.score ?? 0,
     cards: p.cards ?? [],
+    resources: p.resources ?? [], // ⭐ リソースがnull/undefinedの場合に空配列を適用
   }));
 
   const toggleCardSelection = (cardId: string, isFaceUp: boolean) => {
@@ -81,9 +88,34 @@ export default function ScoreBoard({
           >
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span>{player.id === myPlayerId && "⭐️"} {player.name}</span>
-              <span>{player.score}</span>
+              <span>スコア: {player.score}</span>
             </div>
 
+            {/* ⭐ リソース表示エリアの修正 */}
+            {player.resources && player.resources.length > 0 && (
+              <div style={{ 
+                // ⭐ 修正: flexを削除し、縦に並ぶようにする
+                display: "block", 
+                // gap: "12px", // 削除またはコメントアウト
+                marginTop: "4px", 
+                marginBottom: "8px", 
+                fontSize: "0.9em", 
+                color: "#333" 
+              }}>
+                {player.resources.map((resource) => (
+                  <div 
+                    key={resource.id} 
+                    title={resource.name}
+                    style={{ marginBottom: "2px" }} // ⭐ 追加: 項目間に隙間を設ける
+                  >
+                    {/* アイコン、名前、現在値/最大値を表示 */}
+                    {resource.icon} {resource.name}: {resource.currentValue} / {resource.maxValue}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* ... カードの表示ロジック（省略） */}
             <div style={{ display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }}>
               {player.cards.map((card) => {
                 const isFaceUp: boolean = !!card.isFaceUp && player.id === myPlayerId;

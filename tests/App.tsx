@@ -1,22 +1,39 @@
-// src/App.tsx
+// src/App.tsx (修正後)
+
 import React from "react";
-import Dice from "../src/components/Dice.js";
+// import Deck from "../src/components/Deck.js";
+// import PlayField from "../src/components/PlayField.js";
 import ScoreBoard from "../src/components/ScoreBoard.js";
 import { useSocket } from "../src/hooks/useSocket.js";
 import type { Player } from "../src/types/player.js";
+import type { Resource } from "../src/types/resource.js"; // ⭐ Resource 型をインポート
 import MyBoard from "./MyBoard.js";
+
+// ⭐ 抽象的な Player 型にリソース情報が付加されていることを示す型を定義
+// サーバーから送られてくる Player データは、リソース情報を含むものと想定
+type PlayerWithResources = Player & { resources: Resource[] };
+
 
 export default function App() {
   const socket = useSocket("http://127.0.0.1:4000");
   const [myPlayerId, setMyPlayerId] = React.useState<string | null>(null);
-  const [players, setPlayers] = React.useState<Player[]>([]);
+  
+  // ⭐ 状態管理の型を PlayerWithResources[] に変更
+  const [players, setPlayers] = React.useState<PlayerWithResources[]>([]); 
+  
   const [currentPlayerId, setCurrentPlayerId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!socket) return;
 
     socket.on("player:assign-id", setMyPlayerId);
-    socket.on("players:update", setPlayers);
+    
+    // ⭐ socket.onで受け取るデータも PlayerWithResources[] 型であることを宣言
+    // サーバーがこの型でデータを送ることを前提とする
+    socket.on("players:update", (updatedPlayers: PlayerWithResources[]) => {
+      setPlayers(updatedPlayers);
+    });
+    
     socket.on("game:turn", setCurrentPlayerId);
 
     return () => {
@@ -34,19 +51,19 @@ export default function App() {
       <Deck socket={socket} deckId="number" name="数字カード" playerId={currentPlayerId} />
 
       <PlayField socket={socket} deckId="fantasy" name="ファンタジーカード" is_logging={true}/>
-      <PlayField socket={socket} deckId="number" name="数字カード"/>
+      <PlayField socket={socket} deckId="number" name="数字カード"/> */}
 
-      <Dice socket={socket} diceId="0" sides={6} /> */}
-      <Dice socket={socket} diceId="1" sides={2} />
+      {/* <Dice socket={socket} diceId="0" sides={6} /> */}
+      {/* <Dice socket={socket} diceId="1" sides={2} /> */}
 
       {/* <Timer socket={socket} onFinish={() => console.log("タイマー終了！")} /> */}
       <ScoreBoard
         socket={socket}
-        players={players}
+        players={players} // ⭐ PlayerWithResources[] 型のデータが渡される
         currentPlayerId={currentPlayerId}
         myPlayerId={myPlayerId}
       />
-      <MyBoard></MyBoard>
+      <MyBoard />
     </div>
   );
 }

@@ -5,7 +5,6 @@
 // --------------------
 
 // ログ出力カテゴリ設定（true=出力, false=非表示）
-// let に変更して、initGameServer 関数内で上書きできるようにする
 let LOG_CATEGORIES = {
   connection: true,
   deck: false,
@@ -15,6 +14,7 @@ let LOG_CATEGORIES = {
   timer: true,
   addScore: true,
   disconnect: true,
+  resource: true, // ⭐ 追加: リソースログカテゴリ
 };
 
 // 共通ログ関数
@@ -24,7 +24,7 @@ function server_log(tag, ...args) {
 }
 
 export function initGameServer(io, options = {}) {
-  // === ログ設定の初期化 (追加) ===
+  // === ログ設定の初期化 (既存) ===
   if (options.initialLogCategories) {
     // 既存のカテゴリ設定とマージして上書きを許可
     LOG_CATEGORIES = { 
@@ -43,26 +43,25 @@ export function initGameServer(io, options = {}) {
   let currentTurnIndex = 0;
   const initialDecks = options.initialDecks || [];
   const cardEffects = options.cardEffects || {};
+  const initialResources = options.initialResources || []; 
 
-  // console.log("サーバーに渡ってきた initialDecks:", initialDecks);
-  // console.log("サーバーに渡ってきた cardEffects:", cardEffects);
 
-  // 初期デッキを登録
+  // 初期デッキを登録 (既存)
   initialDecks.forEach(({ deckId, name, cards, backColor }) => {
     decks[deckId] = cards.map(c => ({
       ...c,
       deckId,
       backColor: backColor,
       onPlay: cardEffects[c.name] || (() => {}),
-      location: "deck", // すべてのカードの初期位置を 'deck' に設定
+      location: "deck", 
     }));
     drawnCards[deckId] = [];
     playFieldCards[deckId] = [];
-    discardPile[deckId] = []; // discardPileも初期化
+    discardPile[deckId] = []; 
     server_log("deck", `デッキ "${name}" (${deckId}) 初期化完了`);
   });
 
-  // 共通関数：Deck 状態をクライアントに送信
+  // 共通関数：Deck 状態をクライアントに送信 (既存)
   function emitDeckUpdate(deckId) {
     io.emit(`deck:update:${deckId}`, {
       // 常に location が "deck" のカードだけを山札として送信
@@ -73,17 +72,46 @@ export function initGameServer(io, options = {}) {
     });
     io.emit("players:update", players);
   }
-
-  // スコア加算関数
+  
+  // 共通関数：Player 状態をクライアントに送信 (追加)
+  function emitPlayerUpdate() {
+      io.emit("players:update", players);
+  }
+  
+  // スコア加算関数 (既存)
   function addScore(playerId, points) {
     const player = players.find(p => p.id === playerId);
     if (!player) return;
     player.score = (player.score || 0) + points;
     server_log("addScore", `${player.name} に ${points} ポイント加算`);
-    io.emit("players:update", players);
+    emitPlayerUpdate();
   }
 
-  // デッキをシャッフル
+  // ------------------------------------
+  // ⭐ 追加: リソース更新関数 (汎用)
+  // ------------------------------------
+  function updatePlayerResource(playerId, resourceId, amount) {
+    const player = players.find(p => p.id === playerId);
+    if (!player || !player.resources) return false;
+
+    const resource = player.resources.find(r => r.id === resourceId);
+    if (!resource) return false;
+
+    // 値を更新し、最大値と最小値(0)を超えないように制限
+    const newValue = resource.currentValue + amount;
+    resource.currentValue = Math.min(resource.maxValue, Math.max(0, newValue));
+
+    server_log(
+        "resource", 
+        `${player.name}: ${resource.name} を ${amount > 0 ? '+' : ''}${amount}、現在値: ${resource.currentValue}`
+    );
+    
+    emitPlayerUpdate();
+    return true;
+  }
+  // ------------------------------------
+
+  // デッキをシャッフル (既存)
   function shuffleDeck(deckId) {
     if (!decks[deckId]) return;
     
@@ -108,14 +136,23 @@ export function initGameServer(io, options = {}) {
   io.on("connection", socket => {
     server_log("connection", `クライアント接続: ${socket.id}`);
 
-    const newPlayer = { id: socket.id, name: `Player ${players.length + 1}`, cards: [], score: 0 };
+    // ⭐ 修正: 新規プレイヤーに初期リソースを追加
+    const newPlayer = { 
+        id: socket.id, 
+        name: `Player ${players.length + 1}`, 
+        cards: [], 
+        score: 0,
+        // ⭐ リソースをディープコピーして追加（参照エラー回避のため）
+        resources: JSON.parse(JSON.stringify(initialResources)) 
+    };
+    
     players.push(newPlayer);
     server_log("connection", `新規プレイヤー追加:`, newPlayer);
     socket.emit("player:assign-id", newPlayer.id);
     io.emit("players:update", players);
     io.emit("game:turn", players[currentTurnIndex]?.id);
 
-    // ログ設定の変更を受け付ける (動的変更)
+    // ログ設定の変更を受け付ける (既存)
     socket.on("log:set-category", ({ category, enabled }) => {
         if (LOG_CATEGORIES.hasOwnProperty(category)) {
             LOG_CATEGORIES[category] = enabled;
@@ -125,7 +162,7 @@ export function initGameServer(io, options = {}) {
         }
     });
 
-    // 初期デッキをクライアントに送信
+    // 初期デッキをクライアントに送信 (既存)
     initialDecks.forEach(({ deckId, name }) => {
       io.emit(`deck:init:${deckId}`, {
         currentDeck: decks[deckId].filter(c => c.location === "deck"),
@@ -133,26 +170,20 @@ export function initGameServer(io, options = {}) {
       });
     });
 
-    // カードを引く
+    // カードを引く (既存)
     socket.on("deck:draw", ({ deckId, playerId, drawLocation = "hand" }) => {
       if (!decks[deckId]) return;
 
       const currentDeck = decks[deckId].filter(c => c.location === "deck");
       if (!currentDeck.length) return;
 
-      // シャッフルされている currentDeck の先頭のカードIDを取得
       const cardToDrawId = currentDeck[0].id; 
       
-      // decks配列全体からカードオブジェクトを見つけ、場所を更新
       const cardIndex = decks[deckId].findIndex(c => c.id === cardToDrawId);
       if (cardIndex === -1) return;
 
-      // decksからは削除せず、locationを更新する方が状態管理しやすいが、
-      // 以前のコードが splice を使用していたため、ここでは `location` を更新し、
-      // `currentDeck` をフィルターで再構築する方法に戻します。
-      const card = decks[deckId][cardIndex]; // カードオブジェクトを取得
+      const card = decks[deckId][cardIndex]; 
 
-      // 移動先の配列に追加
       if (playerId) {
         const player = players.find(p => p.id === playerId);
         if (player) {
@@ -169,46 +200,48 @@ export function initGameServer(io, options = {}) {
       server_log("deck", `デッキ ${deckId} からカードを引きました:`, card);
 
       emitDeckUpdate(deckId);
-
       io.emit("players:update", players);
     });
 
-    // デッキシャッフル
+    // デッキシャッフル (既存)
     socket.on("deck:shuffle", ({ deckId }) => {
       shuffleDeck(deckId);
       server_log("deck", `デッキ ${deckId} シャッフル`);
-      
-      // 更新されたデッキの状態を送信
       emitDeckUpdate(deckId);
     });
 
-    // デッキリセット
+    // デッキリセット (既存)
     socket.on("deck:reset", ({ deckId }) => {
       if (!decks[deckId]) return;
 
-      // 場のカード、捨て札、引いたカードをすべて山札に戻す
       decks[deckId].forEach(c => {
           c.location = "deck";
           c.isFaceUp = false;
       });
 
-      // 配列を空にする
       drawnCards[deckId] = [];
       playFieldCards[deckId] = [];
       discardPile[deckId] = [];
 
       shuffleDeck(deckId);
       server_log("deck", `デッキ ${deckId} リセット`);
-      
-      // 更新されたデッキの状態を送信
       emitDeckUpdate(deckId);
     });
 
+    // ------------------------------------
+    // ⭐ 追加: リソース更新イベントハンドラ
+    // ------------------------------------
+    socket.on("player:update-resource", ({ resourceId, amount }) => {
+        const playerId = socket.id;
+        // updatePlayerResource 関数を呼び出す
+        updatePlayerResource(playerId, resourceId, amount);
+    });
+    // ------------------------------------
+    
     // カード使用（単一 or 複数対応）
     socket.on("card:play", ({ deckId, cardIds, playerId, playLocation = "field" }) => {
       if (!decks[deckId]) return;
 
-      // cardIds が単数の場合も配列に変換
       const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 
       ids.forEach((cardId) => {
@@ -227,19 +260,19 @@ export function initGameServer(io, options = {}) {
           }
         }
         
-        // ** drawnCards から削除 ** (手札からの移動ではない場合)
+        // ** drawnCards から削除 **
         const drawnIndex = drawnCards[deckId].findIndex(c => c.id === cardId);
         if (drawnIndex !== -1) {
             drawnCards[deckId].splice(drawnIndex, 1);
         }
         
-        // ** playFieldCards から削除 ** (場からの移動ではない場合)
+        // ** playFieldCards から削除 **
         const fieldIndex = playFieldCards[deckId].findIndex(c => c.id === cardId);
         if (fieldIndex !== -1) {
             playFieldCards[deckId].splice(fieldIndex, 1);
         }
 
-        // ** discardPile から削除 ** (捨て札からの移動ではない場合)
+        // ** discardPile から削除 **
         const discardIndex = discardPile[deckId].findIndex(c => c.id === cardId);
         if (discardIndex !== -1) {
             discardPile[deckId].splice(discardIndex, 1);
@@ -259,7 +292,12 @@ export function initGameServer(io, options = {}) {
         const effect = cardEffects[card.name];
         if (effect) {
           server_log("card", `カード効果発揮: ${card.name} by ${playerId}`);
-          effect({ playerId, addScore });
+          // ⭐ 修正: updateResource 関数を effect に渡す
+          effect({ 
+              playerId, 
+              addScore, 
+              updateResource: updatePlayerResource 
+          }); 
         } else {
           server_log("card", `カード効果なし: ${card.name} by ${playerId}`);
         }
@@ -276,16 +314,18 @@ export function initGameServer(io, options = {}) {
         }
       });
 
-      // まとめて更新をクライアントへ送信
-      emitDeckUpdate(deckId);
+      emitDeckUpdate(deckId); // デッキの更新
+      emitPlayerUpdate(); // ⭐ リソースやスコア変更の可能性があるので players:update も送信
     });
 
+    // ダイスロール (既存)
     socket.on("dice:roll", ({ diceId, sides }) => {
       const value = Math.floor(Math.random() * sides) + 1;
       server_log("dice", `サイコロ ${diceId} の出目: ${value}`);
       io.emit(`dice:rolled:${diceId}`, value);
     });
 
+    // タイマー開始 (既存)
     socket.on("timer:start", (duration) => {
       let remaining = duration;
       server_log("timer", `タイマー開始: ${duration} 秒`);
@@ -302,12 +342,14 @@ export function initGameServer(io, options = {}) {
       }, 1000);
     });
 
+    // 次のターン (既存)
     socket.on("game:next-turn", () => {
       currentTurnIndex = (currentTurnIndex + 1) % players.length;
       server_log("game", `次のターン: ${players[currentTurnIndex]?.name}`);
       io.emit("game:turn", players[currentTurnIndex]?.id);
     });
 
+    // 切断 (既存)
     socket.on("disconnect", () => {
       server_log("disconnect", `プレイヤー切断: ${socket.id}`);
       players = players.filter((p) => p.id !== socket.id);

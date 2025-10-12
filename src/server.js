@@ -23,6 +23,7 @@ export class GameServer {
     this.onServerStart = options.onServerStart;
     this.initialDecks = options.initialDecks || []; 
     this.cardEffects = options.cardEffects || {};
+    this.initialResources = options.initialResources || [];
     // === ログ設定の初期値をコンストラクタで受け取る (追加) ===
     this.initialLogCategories = options.initialLogCategories || null; 
 
@@ -71,12 +72,11 @@ export class GameServer {
 
   initSocketLogic() {
     try {
-      // console.log("[Server] this.cardEffects:", this.cardEffects);
-      // console.log("[Server] this.initialDecks:", this.initialDecks);
       // === initGameServer にログ設定を渡す (修正) ===
       initGameServer(this.io, {
         initialDecks: this.initialDecks,
         cardEffects: this.cardEffects,
+        initialResources: this.initialResources,
         initialLogCategories: this.initialLogCategories, // ←ここで渡す
       });
     } catch (err) {

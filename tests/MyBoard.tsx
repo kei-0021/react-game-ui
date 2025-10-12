@@ -146,7 +146,7 @@ export default function GameBoardView() {
   const markCellAsExplored = (row: number, col: number) => {
     if (!isExplored(row, col)) {
         setExploredCells(prev => [...prev, { row, col }]);
-        console.log(`[Exploration]: Cell (${row}, ${col}) marked as Explored (Color change!).`);
+        console.log(`[Cell]: Cell (${row}, ${col}) marked as Explored (Color change!).`);
     }
   };
   

@@ -10,6 +10,25 @@ const initialDecks = [
   { deckId: "number", name: "数字カード", cards: numberDeckJson, backColor: "#7e6d36ff" },
 ];
 
+const DEEP_SEA_RESOURCES = [
+  {
+    id: 'OXYGEN',
+    name: '酸素',
+    icon: '💨',
+    currentValue: 100,
+    maxValue: 100,
+    type: 'CONSUMABLE', 
+  },
+  {
+    id: 'BATTERY',
+    name: 'バッテリー',
+    icon: '🔋',
+    currentValue: 50,
+    maxValue: 50,
+    type: 'CONSUMABLE',
+  }
+];
+
 const demoServer = new GameServer({
   port: 4000,
   clientDistPath: path.resolve("./tests"),
@@ -20,6 +39,7 @@ const demoServer = new GameServer({
   },
   initialDecks,
   cardEffects,
+  initialResources: DEEP_SEA_RESOURCES,
   initialLogCategories: {
     connection: false,
     deck: false,        
