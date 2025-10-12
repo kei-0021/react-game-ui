@@ -1,8 +1,8 @@
 // src/App.tsx (修正後)
 
 import React from "react";
-// import Deck from "../src/components/Deck.js";
-// import PlayField from "../src/components/PlayField.js";
+import Deck from "../src/components/Deck.js";
+import PlayField from "../src/components/PlayField.js";
 import ScoreBoard from "../src/components/ScoreBoard.js";
 import { useSocket } from "../src/hooks/useSocket.js";
 import type { Player } from "../src/types/player.js";
@@ -47,11 +47,11 @@ export default function App() {
 
   return (
     <div>
-      {/* <Deck socket={socket} deckId="fantasy" name="ファンタジーカード" playerId={currentPlayerId} />
+      <Deck socket={socket} deckId="fantasy" name="ファンタジーカード" playerId={currentPlayerId} />
       <Deck socket={socket} deckId="number" name="数字カード" playerId={currentPlayerId} />
 
       <PlayField socket={socket} deckId="fantasy" name="ファンタジーカード" is_logging={true}/>
-      <PlayField socket={socket} deckId="number" name="数字カード"/> */}
+      <PlayField socket={socket} deckId="number" name="数字カード"/>
 
       {/* <Dice socket={socket} diceId="0" sides={6} /> */}
       {/* <Dice socket={socket} diceId="1" sides={2} /> */}

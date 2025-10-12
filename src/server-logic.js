@@ -14,13 +14,24 @@ let LOG_CATEGORIES = {
   timer: true,
   addScore: true,
   disconnect: true,
-  resource: true, // ⭐ 追加: リソースログカテゴリ
+  resource: true,
+  warn: true,
 };
+
+// ANSIエスケープコードを定義
+const ANSI_RED = '\x1b[31m';
+const ANSI_RESET = '\x1b[0m';
 
 // 共通ログ関数
 function server_log(tag, ...args) {
   if (!LOG_CATEGORIES[tag]) return;
-  console.log(`[${tag}]`, ...args);
+  
+  // ⭐ 警告タグの場合、console.warn() を使用する
+  if (tag === 'warn') {
+    console.warn(ANSI_RED + `[${tag}]` + ANSI_RESET, ...args.map(arg => ANSI_RED + String(arg) + ANSI_RESET));
+  } else {
+    console.log(`[${tag}]`, ...args);
+  }
 }
 
 export function initGameServer(io, options = {}) {
@@ -86,19 +97,24 @@ export function initGameServer(io, options = {}) {
     server_log("addScore", `${player.name} に ${points} ポイント加算`);
     emitPlayerUpdate();
   }
-
+  
+    // ------------------------------------
+  // ⭐ 統一された汎用リソース更新関数 (updatePlayerResource)
   // ------------------------------------
-  // ⭐ 追加: リソース更新関数 (汎用)
-  // ------------------------------------
+  // 注: 以前の重複した定義を削除し、この一つに統一
   function updatePlayerResource(playerId, resourceId, amount) {
     const player = players.find(p => p.id === playerId);
     if (!player || !player.resources) return false;
 
     const resource = player.resources.find(r => r.id === resourceId);
-    if (!resource) return false;
+    if (!resource) {
+      server_log("warn", `リソースID "${resourceId}" が見つかりません。カード効果が適用できませんでした。`);
+      return false;
+    }
 
     // 値を更新し、最大値と最小値(0)を超えないように制限
     const newValue = resource.currentValue + amount;
+    // Math.max(0, ...) でリソースがマイナスにならないことを保証
     resource.currentValue = Math.min(resource.maxValue, Math.max(0, newValue));
 
     server_log(
@@ -109,6 +125,7 @@ export function initGameServer(io, options = {}) {
     emitPlayerUpdate();
     return true;
   }
+
   // ------------------------------------
 
   // デッキをシャッフル (既存)

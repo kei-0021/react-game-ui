@@ -15,7 +15,7 @@ const DEEP_SEA_RESOURCES = [
     id: 'OXYGEN',
     name: '酸素',
     icon: '💨',
-    currentValue: 100,
+    currentValue: 40,
     maxValue: 100,
     type: 'CONSUMABLE', 
   },
