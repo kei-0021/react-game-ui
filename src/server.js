@@ -24,9 +24,10 @@ export class GameServer {
     this.initialDecks = options.initialDecks || []; 
     this.cardEffects = options.cardEffects || {};
     this.initialResources = options.initialResources || [];
-    // === ログ設定の初期値をコンストラクタで受け取る (追加) ===
-    this.initialLogCategories = options.initialLogCategories || null;
     this.initialBoard = options.initialBoard || [];
+    this.cellEffects = options.cellEffects || [];
+
+    this.initialLogCategories = options.initialLogCategories || null;
 
     this.app = express();
     this.httpServer = createServer(this.app);
@@ -79,7 +80,8 @@ export class GameServer {
         cardEffects: this.cardEffects,
         initialResources: this.initialResources,
         initialBoard: this.initialBoard,
-        initialLogCategories: this.initialLogCategories, // ←ここで渡す
+        cellEffects: this.cellEffects,
+        initialLogCategories: this.initialLogCategories,
       });
     } catch (err) {
       console.error("[Server] Failed to initialize game server logic:", err);

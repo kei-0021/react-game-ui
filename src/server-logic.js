@@ -7,12 +7,13 @@ let LOG_CATEGORIES = {
   connection: true,
   deck: false,
   card: true,
+  cell: true,
   game: true,
   dice: true,
   timer: false,
   addScore: true,
-  disconnect: true,
   resource: true,
+  disconnect: true,
   warn: true,
 };
 
@@ -120,12 +121,12 @@ const createRandomBoard = (initialBoard) => {
         const newRow = [];
         for (let c = 0; c < cols; c++) {
             if (cellIndex >= allCells.length) break; 
-
+            
             const originalCell = allCells[cellIndex];
             
             newRow.push({ 
                 ...originalCell, 
-                id: `r${r}c${c}`
+              id: `r${r}c${c}`
             });
             cellIndex++;
         }
@@ -136,6 +137,42 @@ const createRandomBoard = (initialBoard) => {
     
     return newBoard;
 };
+
+// -----------------------------------------------------------------
+// タイル効果の適用ロジック (NEW!)
+// -----------------------------------------------------------------
+
+/**
+ * プレイヤーが停止したマス目の効果を適用する
+ * @param {GameState} gameState - 現在のゲーム状態
+ * @param {string} playerId - 効果を適用するプレイヤーのID
+ * @param {Location} location - プレイヤーが停止したマス目の座標
+ * @param {function} updateResource - リソース更新ヘルパー関数
+ */
+const applyCellEffect = (gameState, playerId, location, updateResource) => {
+    const { row, col } = location;
+    
+    // 座標が盤面の範囲内かチェック
+    if (row < 0 || row >= gameState.board.length || col < 0 || col >= gameState.board[row].length) {
+        server_log("warn", `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
+        return;
+    }
+
+    const cell = gameState.board[row][col];
+    
+    if (cell && cell.effect) {
+        server_log("cell", `マス効果発動: ${cell.name} by ${playerId}`);
+        
+        try {
+            cell.effect({ playerId, updateResource });
+        } catch (e) {
+            server_log("warn", `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
+        }
+    } else {
+        server_log("cell", `マス効果なし: (${row}, ${col}) ${cell.effect}`);
+    }
+};
+
 
 // ------------------------------------
 // メインのゲームロジック初期化関数
@@ -156,9 +193,22 @@ export function initGameServer(io, options = {}) {
   const cardEffects = options.cardEffects || {};
   const initialResources = options.initialResources || []; 
   const initialBoard = options.initialBoard || []; 
+  const cellEffects = options.cellEffects || [];
+
   
-  // 盤面の初期化
-  const Cells = createRandomBoard(initialBoard);
+  // 盤面の初期化 (これは二次元配列であると仮定します)
+  const initCells = createRandomBoard(initialBoard);
+  
+  // ネストされた map を使用して、各行（row）とその中の各セル（cell）を処理します。
+  const Cells = initCells.map(row => 
+    row.map(cell => {      
+      return {
+        ...cell,
+        // cell.name を使用して cellEffects から関数を割り当てます
+        effect: cellEffects[cell.name] || (() => {})
+      };
+    })
+  );
   const isBoardInitialized = Cells.length > 0;
   
   /** @type {GameState} */
@@ -224,7 +274,7 @@ export function initGameServer(io, options = {}) {
   const broadcastExploredUpdate = () => {
       // ⭐ クライアント側の要求に合わせてイベント名を 'board-update' に変更
       io.emit('board-update', gameState.exploredCells); 
-      server_log('game', `Explored cells updated and broadcasted. Total: ${gameState.exploredCells.length}`);
+      server_log('cell', `Explored cells updated and broadcasted. Total: ${gameState.exploredCells.length}`);
   };
 
   // スコア加算関数
@@ -304,7 +354,7 @@ export function initGameServer(io, options = {}) {
     io.emit("game:turn", gameState.players[currentTurnIndex]?.id);
 
     // ------------------------------------
-    // ⭐ 2. プレイヤーの移動処理 (統合済み)
+    // 2. プレイヤーの移動処理
     // ------------------------------------
     socket.on('game:move-player', ({ playerId, newPosition }) => {
         const playerToMove = gameState.players.find(p => p.id === playerId);
@@ -317,14 +367,16 @@ export function initGameServer(io, options = {}) {
             // 2. 状態更新: マスを探索済みとしてマーク
             const wasUpdated = markCellAsExplored(gameState, newPosition);
 
-            // 3. 全クライアントにプレイヤーとボード（探索済みマス）の更新を通知
+            // 3. マス目の効果を実行 (NEW!)
+            applyCellEffect(gameState, playerId, newPosition, updatePlayerResource);
+
+            // 4. 全クライアントにプレイヤーとボード（探索済みマス）の更新を通知
             emitPlayerUpdate(); 
             
             if (wasUpdated) {
-                broadcastExploredUpdate(); // ⭐ 'board-update' イベントを送信
+                broadcastExploredUpdate(); // 'board-update' イベントを送信
             }
 
-            // TODO: ここでマス目の効果(リソース獲得など)を実行する
         } else {
             server_log('warn', `Move requested for unknown player ID: ${playerId}`);
         }
