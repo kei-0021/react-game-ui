@@ -4,6 +4,8 @@ import { cardEffects } from "./data/cardEffects.js";
 
 import fantasyDeckJson from "./data/fantasyCards.json" assert { type: "json" };
 import numberDeckJson from "./data/numberCards.json" assert { type: "json" };
+// ⭐ 追加: deepSeaCells.json をインポート
+import originalDeepSeaCells from "./data/deepSeaCells.json" assert { type: "json" };
 
 const initialDecks = [
   { deckId: "fantasy", name: "ファンタジーカード", cards: fantasyDeckJson, backColor: "#c25656ff" },
@@ -40,6 +42,8 @@ const demoServer = new GameServer({
   initialDecks,
   cardEffects,
   initialResources: DEEP_SEA_RESOURCES,
+  // ⭐ 修正: 読み込んだ盤面データを initialBoard に渡す
+  initialBoard: originalDeepSeaCells,
   initialLogCategories: {
     connection: false,
     deck: false,        

@@ -1,17 +1,23 @@
-// react-game-ui/tests/MyBoard.tsx
-
 import * as React from 'react';
 import { DragEvent } from 'react';
-import type { CellData } from "../src/components/Board";
-import Board from "../src/components/Board.js";
-import type { PieceData } from "../src/types/piece.js";
-import originalDeepSeaCells from "./data/deepSeaCells.json";
+import { Socket } from "socket.io-client";
+import type { CellData } from "../src/components/Board"; // ⭐ 拡張子を削除
+import Board from "../src/components/Board"; // ⭐ 拡張子を削除
+import type { PieceData } from "../src/types/piece"; // ⭐ 拡張子を削除
+import { PlayerId } from '../src/types/player'; // ⭐ 拡張子を削除
+// サーバーから確定盤面を受け取るため、クライアント側の初期データは参照のみとし、
+// 初期状態では使用しない
 
 // 座標の型を定義
 type Location = {
     row: number;
     col: number;
 };
+
+type GameBoardViewProps = {
+  socket: Socket;
+  myPlayerId: PlayerId | null;
+}
 
 // ユーザーが定義するカスタムレンダラー
 const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
@@ -42,7 +48,7 @@ const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
       <div 
         style={{ 
           ...baseStyle, 
-          clipPath: celldata.customClip as string, // ⭐ 外部から渡された無限の形状CSS
+          clipPath: celldata.customClip as string, 
           border: '2px dashed #000',
           backgroundColor: celldata.backgroundColor === '#ff8a8a' ? '#ff3b3b' : celldata.backgroundColor,
           color: 'white'
@@ -61,112 +67,73 @@ const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
   );
 };
 
-// コマの初期状態
-const initialPieces: PieceData[] = [
-  { id: 'p1', name: 'P1', color: '#10b981', location: { row: 0, col: 0 } }, // (0, 0)
-  { id: 'p2', name: 'P2', color: '#3b82f6', location: { row: 4, col: 1 } }, // (4, 1)
-];
-
+const initialPieces: PieceData[] = [];
 const handlePieceClick = (pieceId: string) => {
     console.log(`Piece Clicked: ${pieceId}`);
 };
 
-
-// -----------------------------------------------------
-// ⭐ フィッシャー・イェーツ・シャッフルアルゴリズム
-// -----------------------------------------------------
-const shuffleArray = (array: any[]) => {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
+// サーバーから受け取るプレイヤーの型
+type ServerPlayer = {
+    id: PlayerId;
+    name: string;
+    cards: any[];
+    score: number;
+    resources: any[];
+    position: Location; // サーバー側と一致
 };
 
+// 暫定的な空のボードデータ
+const EMPTY_BOARD: CellData[][] = [[], []];
 
-// -----------------------------------------------------
-// ⭐ 修正: 全てのマスをシャッフルし、新しい盤面を生成する関数
-// -----------------------------------------------------
-const createRandomBoard = (originalCells: CellData[][]): CellData[][] => {
-    const rows = originalCells.length;
-    const cols = originalCells[0].length; 
-    
-    // 1. 全てのマス目データ（特殊マス含む）を一つの配列に平坦化
-    let allCells: CellData[] = [];
-    originalCells.forEach(rowArr => {
-        allCells = allCells.concat(rowArr);
-    });
-
-    // 2. 全てのマスをシャッフル
-    shuffleArray(allCells);
-
-    // 3. シャッフルされたマス目を、新しい二次元配列に再構成
-    const newBoard: CellData[][] = [];
-    let cellIndex = 0;
-
-    for (let r = 0; r < rows; r++) {
-        const newRow: CellData[] = [];
-        for (let c = 0; c < cols; c++) {
-            const originalCell = allCells[cellIndex];
-            
-            // ⭐ 新しい座標に合わせてIDを更新し、マス目を配置
-            newRow.push({ 
-                ...originalCell, 
-                id: `r${r}c${c}` // 新しい座標に基づいたIDを割り当てる
-            });
-            cellIndex++;
-        }
-        newBoard.push(newRow);
-    }
-    
-    return newBoard;
-};
-
-export default function GameBoardView() {
+export default function GameBoardView({
+  socket,
+  myPlayerId
+}: GameBoardViewProps) {
   const [pieces, setPieces] = React.useState(initialPieces);
-  const [deepSeaCells, setDeepSeaCells] = React.useState<CellData[][]>(
-      createRandomBoard(originalDeepSeaCells)
-  );
+  
+  // 初期ボード状態を空にし、サーバーからの受信を待つ
+  const [deepSeaCells, setDeepSeaCells] = React.useState<CellData[][]>(EMPTY_BOARD);
+  
+  const [isBoardReady, setIsBoardReady] = React.useState(false);
+  const [serverPlayers, setServerPlayers] = React.useState<ServerPlayer[]>([]);
+  
+  // 探索済みマス目の状態 (サーバーから送られてくるデータを格納する)
+  const [exploredCells, setExploredCells] = React.useState<Location[]>([]);
 
-  // ⭐ 1. 探索済みマス目の状態をコンポーネント内に定義
-  const [exploredCells, setExploredCells] = React.useState<Location[]>(
-      initialPieces.map(p => p.location)
-  );
-
-  // ボードのサイズを取得 
+  // ボードのサイズを計算
   const rows = deepSeaCells.length;
-  const cols = deepSeaCells[0].length; 
+  const cols = deepSeaCells[0]?.length || 0; 
   
-  // ⭐ 2. ユーティリティ関数をコンポーネント内に定義
-  const isExplored = (row: number, col: number) => {
-    return exploredCells.some(loc => loc.row === row && loc.col === col);
-  }
-
-  // ⭐ 3. マスを探索済みとしてマークする関数をコンポーネント内に定義
-  const markCellAsExplored = (row: number, col: number) => {
-    if (!isExplored(row, col)) {
-        setExploredCells(prev => [...prev, { row, col }]);
-        console.log(`[Cell]: Cell (${row}, ${col}) marked as Explored (Color change!).`);
-    }
-  };
-  
-  // ⭐ 4. handleBoardClick をコンポーネント内に定義
+  // handleBoardClick をコンポーネント内に定義
   const handleBoardClick = (celldata: CellData, row: number, col: number) => {
-      // ユーザーがクリックしたマスを探索済みとしてマークする
-      markCellAsExplored(row, col);
-      // その他のクリック処理があればここに追加
+      if (!isBoardReady) return; 
+
+      // サーバーに移動要求を送信
+      if (socket && myPlayerId) {
+          console.log(`[Client] Sending move request for player ${myPlayerId} to (${row}, ${col})`);
+          
+          socket.emit("game:move-player", { 
+              playerId: myPlayerId,
+              newPosition: { row, col } // 座標オブジェクトを送信
+          });
+          
+          // 更新はサーバーからのブロードキャストに任せる。
+      }
   };
 
   const moveP1 = () => {
-    setPieces(prev => {
-        const p1 = prev.find(p => p.id === 'p1');
-        if (p1) {
-            const newRow = Math.floor(Math.random() * rows);
-            const newCol = Math.floor(Math.random() * cols);
-            return prev.map(p => p.id === 'p1' ? { ...p, location: { row: newRow, col: newCol } } : p);
-        }
-        return prev;
-    });
+    if (!isBoardReady || rows === 0 || cols === 0) return;
+
+    if (socket && myPlayerId) {
+        const newRow = Math.floor(Math.random() * rows);
+        const newCol = Math.floor(Math.random() * cols);
+
+        socket.emit("game:move-player", { 
+            playerId: myPlayerId,
+            newPosition: { row: newRow, col: newCol }
+        });
+        console.log(`[Client] Sending RANDOM move request for player ${myPlayerId} to (${newRow}, ${newCol})`);
+    }
   };
 
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
@@ -178,39 +145,122 @@ export default function GameBoardView() {
   const handleCellDrop = (e: DragEvent<HTMLDivElement>, targetRow: number, targetCol: number) => {
       e.preventDefault();
       
+      if (!isBoardReady) return; 
+
       const draggedPieceId = e.dataTransfer.getData('pieceId');
       
-      if (draggedPieceId) {
-          const droppedCellData = deepSeaCells[targetRow][targetCol];
-          
-          // 1. ピースの移動
-          setPieces(prev => {
-              return prev.map(p => 
-                  p.id === draggedPieceId 
-                      ? { ...p, location: { row: targetRow, col: targetCol } } 
-                      : p
-              );
+      if (draggedPieceId && myPlayerId && socket) {
+          // サーバーにドラッグ&ドロップによる移動を要求
+          socket.emit("game:move-player", { 
+              playerId: draggedPieceId, // ドラッグされたピースのID = プレイヤーIDと仮定
+              newPosition: { row: targetRow, col: targetCol }
           });
           
-          // 2. ドロップされたマスも探索済みとしてマーク (移動による探索)
-          markCellAsExplored(targetRow, targetCol);
-
-          // 3. ゲームロジックの実行
-          console.log(`[Piece Dropped]: ${draggedPieceId} to ${droppedCellData.id}`);
-
-          if (droppedCellData.content === '⚠️') {
-              console.log(`🚨 WARNマス処理を実行。`);
-          } else if (droppedCellData.content === '💎') {
-              console.log(`✨ RELICマス処理を実行。`);
-          }
+          // 更新はサーバーからのブロードキャストに任せる。
+          console.log(`[Piece Dropped]: ${draggedPieceId} to r${targetRow}c${targetCol} (Sent to server)`);
       }
   };
+
+  // ------------------------------------
+  // ⭐ 1. サーバーからの確定盤面同期 (初期設定)
+  // ------------------------------------
+  React.useEffect(() => {
+    const handleInitBoard = (boardData: CellData[][]) => {
+      console.log("[Socket] サーバーから確定盤面データを受信しました。");
+      if (boardData && boardData.length > 0) {
+        setDeepSeaCells(boardData);
+        setIsBoardReady(true);
+      } else {
+        console.warn("[Socket] 受信した盤面データが空または無効です。");
+      }
+    };
+
+    socket.on("game:init-board", handleInitBoard);
+
+    return () => {
+      socket.off("game:init-board", handleInitBoard);
+    };
+  }, [socket]);
+
+
+  // ------------------------------------
+  // ⭐ 2. サーバーからの探索済みマス目リスト同期 (新規追加)
+  // ------------------------------------
+  React.useEffect(() => {
+    const handleExploredUpdate = (updatedExploredCells: Location[]) => {
+      console.log("[Socket] 探索済みマス目リストが更新されました。", updatedExploredCells);
+      // サーバーから送られてきた最新のリストでローカルの状態を上書き
+      setExploredCells(updatedExploredCells);
+    };
+    
+    socket.on("board-update", handleExploredUpdate); 
+
+    return () => {
+      socket.off("board-update", handleExploredUpdate);
+    };
+  }, [socket]);
+
+
+  // ------------------------------------
+  // 3. サーバーからのプレイヤー状態同期 (既存)
+  // ------------------------------------
+  React.useEffect(() => {
+    const handlePlayersUpdate = (updatedPlayers: ServerPlayer[]) => {
+      console.log("[Socket] プレイヤー情報が更新されました。", updatedPlayers);
+      setServerPlayers(updatedPlayers);
+    };
+
+    socket.on("players:update", handlePlayersUpdate);
+
+    return () => {
+      socket.off("players:update", handlePlayersUpdate);
+    };
+  }, [socket]);
+
+  // ------------------------------------
+  // 4. serverPlayers に基づいてコマ (pieces) を更新 (既存)
+  // ------------------------------------
+  React.useEffect(() => {
+    setPieces(prevPieces => {
+        const newPieces: PieceData[] = [];
+        serverPlayers.forEach(p => {
+            const existingPiece = prevPieces.find(piece => piece.id === p.id);
+            const location: Location = p.position; 
+
+            if (existingPiece) {
+                newPieces.push({ ...existingPiece, location });
+            } else {
+                const defaultColor = p.id === myPlayerId ? '#ff00ff' : '#000000';
+                const defaultName = p.name || `P${newPieces.length + 1}`;
+                newPieces.push({ 
+                    id: p.id, 
+                    name: defaultName, 
+                    color: defaultColor,
+                    location 
+                });
+            }
+        });
+        
+        return newPieces;
+    });
+  }, [serverPlayers, myPlayerId]);
+
+  // ------------------------------------
+
+  // 盤面がロードされるまでローディング表示
+  if (!isBoardReady) {
+    return (
+        <div style={{ padding: '40px', textAlign: 'center', fontSize: '20px', color: '#333' }}>
+            <p>サーバーから盤面データをロード中...</p>
+        </div>
+    );
+  }
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
       <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>ディープ・アビス (Deep Abyss)</h1>
-      <p style={{ marginBottom: '20px', color: '#666' }}>クリックでマス目が探索済みになり、色が変わります。コマをドラッグ&ドロップしても移動後のマスが探索済みになります。</p>
-      
+      <p style={{ marginBottom: '20px', color: '#666' }}>クリックまたはドラッグ&ドロップで移動し、サーバー経由で他のプレイヤーとコマの位置を同期します。</p>
+
       <button 
         onClick={moveP1}
         style={{
@@ -225,24 +275,30 @@ export default function GameBoardView() {
           fontWeight: 'bold'
         }}
       >
-        P1をランダムに移動 (デモ)
+        P1をランダムに移動 (サーバー同期テスト)
       </button>
 
-      <Board 
-        rows={rows} 
-        cols={cols} 
-        boardData={deepSeaCells} 
-        pieces={pieces} 
-        // ⭐ 修正: Boardコンポーネントに探索済みリストを正しく渡す
-        changedCells={exploredCells} 
+      {rows > 0 && cols > 0 ? (
+        <Board 
+          rows={rows} 
+          cols={cols} 
+          boardData={deepSeaCells} 
+          pieces={pieces} 
+          // サーバーから取得した探索済みリストを使用
+          changedCells={exploredCells} 
 
-        renderCell={MyCustomCellRenderer} 
-        onCellClick={handleBoardClick} // クリック時に探索状態を更新
-        onPieceClick={handlePieceClick}
-        allowPieceDrag={true}
-        onPieceDragStart={handlePieceDragStart}
-        onCellDrop={handleCellDrop} 
-      />
+          renderCell={MyCustomCellRenderer} 
+          onCellClick={handleBoardClick}
+          onPieceClick={handlePieceClick}
+          allowPieceDrag={true}
+          onPieceDragStart={handlePieceDragStart}
+          onCellDrop={handleCellDrop} 
+        />
+      ) : (
+          <div style={{ padding: '40px', textAlign: 'center', fontSize: '20px', color: '#ff6347' }}>
+            <p>エラー: 盤面データが正しくロードされませんでした。</p>
+          </div>
+      )}
     </div>
   );
 }

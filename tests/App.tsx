@@ -63,7 +63,10 @@ export default function App() {
         currentPlayerId={currentPlayerId}
         myPlayerId={myPlayerId}
       />
-      <MyBoard />
+      <MyBoard 
+        socket={socket}
+        myPlayerId={myPlayerId}
+      />
     </div>
   );
 }

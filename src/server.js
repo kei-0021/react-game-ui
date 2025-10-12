@@ -25,7 +25,8 @@ export class GameServer {
     this.cardEffects = options.cardEffects || {};
     this.initialResources = options.initialResources || [];
     // === ログ設定の初期値をコンストラクタで受け取る (追加) ===
-    this.initialLogCategories = options.initialLogCategories || null; 
+    this.initialLogCategories = options.initialLogCategories || null;
+    this.initialBoard = options.initialBoard || [];
 
     this.app = express();
     this.httpServer = createServer(this.app);
@@ -77,6 +78,7 @@ export class GameServer {
         initialDecks: this.initialDecks,
         cardEffects: this.cardEffects,
         initialResources: this.initialResources,
+        initialBoard: this.initialBoard,
         initialLogCategories: this.initialLogCategories, // ←ここで渡す
       });
     } catch (err) {
