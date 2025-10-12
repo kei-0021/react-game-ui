@@ -149,7 +149,7 @@ const createRandomBoard = (initialBoard) => {
  * @param {Location} location - プレイヤーが停止したマス目の座標
  * @param {function} updateResource - リソース更新ヘルパー関数
  */
-const applyCellEffect = (gameState, playerId, location, updateResource) => {
+const applyCellEffect = (gameState, playerId, location, cellEffects, addScore, updatePlayerResource) => {
     const { row, col } = location;
     
     // 座標が盤面の範囲内かチェック
@@ -158,13 +158,19 @@ const applyCellEffect = (gameState, playerId, location, updateResource) => {
         return;
     }
 
+    // 効果発動
     const cell = gameState.board[row][col];
+    const effect = cellEffects[cell.name];
     
-    if (cell && cell.effect) {
+    if (effect) {
         server_log("cell", `マス効果発動: ${cell.name} by ${playerId}`);
         
         try {
-            cell.effect({ playerId, updateResource });
+          effect({ 
+            playerId, 
+            addScore, 
+            updateResource: updatePlayerResource 
+          }); 
         } catch (e) {
             server_log("warn", `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
         }
@@ -195,20 +201,8 @@ export function initGameServer(io, options = {}) {
   const initialBoard = options.initialBoard || []; 
   const cellEffects = options.cellEffects || [];
 
-  
-  // 盤面の初期化 (これは二次元配列であると仮定します)
-  const initCells = createRandomBoard(initialBoard);
-  
-  // ネストされた map を使用して、各行（row）とその中の各セル（cell）を処理します。
-  const Cells = initCells.map(row => 
-    row.map(cell => {      
-      return {
-        ...cell,
-        // cell.name を使用して cellEffects から関数を割り当てます
-        effect: cellEffects[cell.name] || (() => {})
-      };
-    })
-  );
+  // 盤面の初期化
+  const Cells = createRandomBoard(initialBoard);
   const isBoardInitialized = Cells.length > 0;
   
   /** @type {GameState} */
@@ -263,7 +257,6 @@ export function initGameServer(io, options = {}) {
     });
     io.emit("players:update", gameState.players);
   }
-
 
   // 共通関数：Player 状態をクライアントに送信
   function emitPlayerUpdate() {
@@ -368,7 +361,7 @@ export function initGameServer(io, options = {}) {
             const wasUpdated = markCellAsExplored(gameState, newPosition);
 
             // 3. マス目の効果を実行 (NEW!)
-            applyCellEffect(gameState, playerId, newPosition, updatePlayerResource);
+            applyCellEffect(gameState, playerId, newPosition, cellEffects, addScore, updatePlayerResource);
 
             // 4. 全クライアントにプレイヤーとボード（探索済みマス）の更新を通知
             emitPlayerUpdate(); 
@@ -501,6 +494,8 @@ export function initGameServer(io, options = {}) {
     // カード使用
     socket.on("card:play", ({ deckId, cardIds, playerId, playLocation = "field" }) => {
       if (!decks[deckId]) return;
+
+      server_log("card", `受信した playLocation: ${playLocation}`);
 
       const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 

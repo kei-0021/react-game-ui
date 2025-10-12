@@ -49,22 +49,35 @@ export default function ScoreBoard({
     const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
     if (!myPlayer) return;
 
-    // 選択カードをデッキごとにグループ化
+    // 選択カードをデッキごとにグループ化し、同時に playLocation を取得
     const cardsByDeck: Record<string, string[]> = {};
+    let targetPlayLocation: string | undefined; // 送信先の playLocation を保持する変数
+
     selectedCards.forEach((cardId) => {
       const card = myPlayer.cards.find((c) => c.id === cardId);
       if (!card) return;
+      
+      // ⭐ 最初のカードの playLocation を設定
+      if (!targetPlayLocation) {
+        // ⭐ ここで型アサーションを使用し、card.playLocation がオブジェクトではなく文字列であることを強制
+        targetPlayLocation = card.playLocation as string; 
+      }
+      
       if (!cardsByDeck[card.deckId]) cardsByDeck[card.deckId] = [];
       cardsByDeck[card.deckId].push(card.id);
     });
 
+    // targetPlayLocation が設定されていない場合は処理を終了（ありえないはずだが安全のため）
+    if (!targetPlayLocation) return;
+    
     // デッキごとにサーバーへ送信
     Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
       socket.emit("card:play", {
         deckId,
         cardIds,       // そのデッキ内の複数カード
         playerId: myPlayerId,
-        playLocation: "field",
+        // ⭐ 取得した targetPlayLocation を使用
+        playLocation: targetPlayLocation, 
       });
     });
 

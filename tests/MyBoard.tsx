@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { DragEvent } from 'react';
 import { Socket } from "socket.io-client";
-import type { CellData } from "../src/components/Board"; // ⭐ 拡張子を削除
-import Board from "../src/components/Board"; // ⭐ 拡張子を削除
-import type { PieceData } from "../src/types/piece"; // ⭐ 拡張子を削除
-import { PlayerId } from '../src/types/player'; // ⭐ 拡張子を削除
+import type { CellData } from "../src/components/Board";
+import Board from "../src/components/Board";
+import type { PieceData } from "../src/types/piece";
+import { PlayerId } from '../src/types/player';
 // サーバーから確定盤面を受け取るため、クライアント側の初期データは参照のみとし、
 // 初期状態では使用しない
 
@@ -27,7 +27,8 @@ const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    color: '#333',
+    // ⭐ 修正: テキスト色を明るい色に変更し、濃い背景でも見えるように
+    color: '#e0e0e0', 
     fontWeight: 'bold',
     fontSize: '16px',
     textAlign: 'center',
@@ -49,7 +50,8 @@ const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
         style={{ 
           ...baseStyle, 
           clipPath: celldata.customClip as string, 
-          border: '2px dashed #000',
+          // ⭐ 修正: 枠線を濃い背景に合うように調整
+          border: '2px dashed rgba(255, 255, 255, 0.4)', 
           backgroundColor: celldata.backgroundColor === '#ff8a8a' ? '#ff3b3b' : celldata.backgroundColor,
           color: 'white'
         }}
@@ -61,7 +63,13 @@ const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
 
   // デフォルト（正方形）
   return (
-    <div style={{ ...baseStyle, border: '1px solid #3333331a' }}>
+    <div 
+      style={{ 
+        ...baseStyle, 
+        // ⭐ 修正: グリッド線の色をダークなテーマに合わせる
+        border: '1px solid rgba(255, 255, 255, 0.1)', 
+      }}
+    >
       {celldata.content}
     </div>
   );
@@ -107,8 +115,6 @@ export default function GameBoardView({
   // handleBoardClick をコンポーネント内に定義
   const handleBoardClick = (celldata: CellData, row: number, col: number) => {
     if (!isBoardReady) return; 
-
-    // ⭐ 修正ポイント: 移動リクエストを削除し、探索リクエストに変更
 
     // サーバーにマス目探索要求を送信 (移動ではない)
     if (socket && myPlayerId) {
@@ -233,7 +239,10 @@ export default function GameBoardView({
             if (existingPiece) {
                 newPieces.push({ ...existingPiece, location });
             } else {
-                const defaultColor = p.id === myPlayerId ? '#ff00ff' : '#000000';
+                // ⭐ 修正: コマの色をダークテーマで目立つネオンカラーに変更
+                const defaultColor = p.id === myPlayerId ? 
+                    '#4fc3f7' :  // 明るい水色 (ハイライト)
+                    '#242a2aff';   // シアン (他のプレイヤー)
                 const defaultName = p.name || `P${newPieces.length + 1}`;
                 newPieces.push({ 
                     id: p.id, 
@@ -252,23 +261,22 @@ export default function GameBoardView({
 
   // 盤面がロードされるまでローディング表示
   if (!isBoardReady) {
+    // ⭐ 修正: ローディング表示のテキスト色をダークテーマに合わせる
     return (
-        <div style={{ padding: '40px', textAlign: 'center', fontSize: '20px', color: '#333' }}>
+        <div style={{ padding: '40px', textAlign: 'center', fontSize: '20px', color: '#e0e0e0' }}>
             <p>サーバーから盤面データをロード中...</p>
         </div>
     );
   }
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>ディープ・アビス (Deep Abyss)</h1>
-      <p style={{ marginBottom: '20px', color: '#666' }}>クリックまたはドラッグ&ドロップで移動し、サーバー経由で他のプレイヤーとコマの位置を同期します。</p>
+    <div style={{ textAlign: 'center' }}>
 
       <button 
         onClick={moveP1}
         style={{
           padding: '10px 20px',
-          backgroundColor: '#10b981',
+          backgroundColor: '#00bcd4',
           color: 'white',
           border: 'none',
           borderRadius: '6px',
@@ -278,7 +286,7 @@ export default function GameBoardView({
           fontWeight: 'bold'
         }}
       >
-        P1をランダムに移動 (サーバー同期テスト)
+        ランダムに移動
       </button>
 
       {rows > 0 && cols > 0 ? (
@@ -298,7 +306,8 @@ export default function GameBoardView({
           onCellDrop={handleCellDrop} 
         />
       ) : (
-          <div style={{ padding: '40px', textAlign: 'center', fontSize: '20px', color: '#ff6347' }}>
+          // ⭐ 修正: エラー表示のテキスト色をダークテーマに合わせる
+          <div style={{ padding: '40px', textAlign: 'center', fontSize: '20px', color: '#ff79c6' }}>
             <p>エラー: 盤面データが正しくロードされませんでした。</p>
           </div>
       )}

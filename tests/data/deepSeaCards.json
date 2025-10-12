@@ -1,0 +1,74 @@
+[
+  {
+    "id": "action-DIVE-01",
+    "name": "潜行 (DIVE)",
+    "description": "前方へ最大3マス移動する。ライト照射は行わない。重複時: 全員、移動力半減＆バッテリーに損傷1。",
+    "location": "deck",
+    "drawLocation": "hand",
+    "playLocation": "field"
+  },
+  {
+    "id": "action-DIVE-02",
+    "name": "潜行 (DIVE)",
+    "description": "前方へ最大3マス移動する。ライト照射は行わない。重複時: 全員、移動力半減＆バッテリーに損傷1。",
+    "location": "deck",
+    "drawLocation": "hand",
+    "playLocation": "field"
+  },
+  {
+    "id": "action-DIVE-03",
+    "name": "潜行 (DIVE)",
+    "description": "前方へ最大3マス移動する。ライト照射は行わない。重複時: 全員、移動力半減＆バッテリーに損傷1。",
+    "location": "deck",
+    "drawLocation": "hand",
+    "playLocation": "field"
+  },
+  {
+    "id": "action-SUPPLY-01",
+    "name": "補給・照射 (STAY)",
+    "description": "移動を行わず、バッテリーを最大まで回復 AND ライト照射を2回まで行う(コスト不要)。重複時も効果は減少しない。",
+    "location": "deck",
+    "drawLocation": "hand",
+    "playLocation": "field"
+  },
+  {
+    "id": "action-SUPPLY-02",
+    "name": "補給・照射 (STAY)",
+    "description": "移動を行わず、バッテリーを最大まで回復 AND ライト照射を2回まで行う(コスト不要)。重複時も効果は減少しない。",
+    "location": "deck",
+    "drawLocation": "hand",
+    "playLocation": "field"
+  },
+  {
+    "id": "action-SUPPLY-03",
+    "name": "補給・照射 (STAY)",
+    "description": "移動を行わず、バッテリーを最大まで回復 AND ライト照射を2回まで行う(コスト不要)。重複時も効果は減少しない。",
+    "location": "deck",
+    "drawLocation": "hand",
+    "playLocation": "field"
+  },
+  {
+    "id": "action-ASCEND-01",
+    "name": "緊急浮上 (ASCEND)",
+    "description": "浅瀬(母艦方向)へ最大4マス移動し、潜水艦の酸素を大きく回復する。重複時: 全員、酸素回復量半減＆移動力が1マスに固定。",
+    "location": "deck",
+    "drawLocation": "hand",
+    "playLocation": "field"
+  },
+  {
+    "id": "action-ASCEND-02",
+    "name": "緊急浮上 (ASCEND)",
+    "description": "浅瀬(母艦方向)へ最大4マス移動し、潜水艦の酸素を大きく回復する。重複時: 全員、酸素回復量半減＆移動力が1マスに固定。",
+    "location": "deck",
+    "drawLocation": "hand",
+    "playLocation": "field"
+  },
+  {
+    "id": "action-ASCEND-03",
+    "name": "緊急浮上 (ASCEND)",
+    "description": "浅瀬(母艦方向)へ最大4マス移動し、潜水艦の酸素を大きく回復する。重複時: 全員、酸素回復量半減＆移動力が1マスに固定。",
+    "location": "deck",
+    "drawLocation": "hand",
+    "playLocation": "field"
+  }
+]
