@@ -7,6 +7,7 @@ import ScoreBoard from "../src/components/ScoreBoard.js";
 import Timer from "../src/components/Timer.js";
 import { useSocket } from "../src/hooks/useSocket.js";
 import type { Player } from "../src/types/player.js";
+import MyBoard from "./MyBoard.js";
 
 export default function App() {
   const socket = useSocket("http://127.0.0.1:4000");
@@ -48,6 +49,7 @@ export default function App() {
         currentPlayerId={currentPlayerId}
         myPlayerId={myPlayerId}
       />
+      <MyBoard></MyBoard>
     </div>
   );
 }

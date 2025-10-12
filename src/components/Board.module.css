@@ -1,0 +1,58 @@
+/* src/components/Board.module.css */
+
+/*
+ * ===========================================
+ * ボードコンテナ (Board.tsx のラッパー)
+ * ===========================================
+ */
+.boardContainer {
+  /*
+   * Board.tsx で以下のプロパティが動的に設定されます:
+   * display: grid;
+   * grid-template-rows: repeat(var(--board-rows), 1fr); 
+   * grid-template-columns: repeat(var(--board-cols), 1fr);
+   * gap: 4px; 
+   */
+  
+  width: 600px; /* ボードの全体サイズ（任意で調整） */
+  height: 600px;
+  background-color: #eee;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/*
+ * ===========================================
+ * セルコンテナ (Cell.tsx のラッパー)
+ * ===========================================
+ */
+.cell {
+  /*
+   * Cellコンテナは、中のカスタム要素（形状）を
+   * 中央に配置するための Flexbox です。
+   * **この .cell 自体は正方形のグリッドセルを占有します。**
+   */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* * マス目間の境界線は BoardContainer の gap で処理するため、
+   * ここでは border は設定しません。 
+   */
+  overflow: hidden; /* 内部の形状がはみ出さないように */
+  cursor: pointer;
+  padding: 2px; /* 内部要素とセルの境界の間にわずかなスペースを設ける */
+}
+
+
+
+/*
+ * ===========================================
+ * ハイライト (カスタムクラス)
+ * ===========================================
+ * MyCustomCellRenderer 内の要素に適用するハイライトは、
+ * renderCell 関数内でカスタムスタイルとして定義してください。
+ * ここでは .cell ラッパー自体に適用されるスタイルのみを定義します。
+ */
+/* .highlight {
+  border: 2px solid orange;
+  box-shadow: 0 0 10px rgba(255, 165, 0, 0.8);
+} */
