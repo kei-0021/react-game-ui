@@ -9,7 +9,8 @@
     "description": "隣接マスへ1マス移動し、裏向きタイルを表にする。バッテリーを1消費する。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-A-02-P1",
@@ -21,7 +22,8 @@
     "description": "隣接マスへ1マス移動し、裏向きタイルを表にする。バッテリーを1消費する。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-B-01-P1",
@@ -33,7 +35,8 @@
     "description": "隣接マスへ1マス移動する。移動先は必ず表向きタイルであること。バッテリー消費なし。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-B-02-P1",
@@ -45,7 +48,8 @@
     "description": "隣接マスへ1マス移動する。移動先は必ず表向きタイルであること。バッテリー消費なし。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-C-01-P1",
@@ -57,7 +61,8 @@
     "description": "移動を行わず、バッテリーを2個回復する。さらに、隣接する裏向きタイルすべてを確認し、情報を得る。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-D-01-P1",
@@ -69,7 +74,8 @@
     "description": "移動を行わず、現在地で遺物トークンの回収、または地形データの収集を行う。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-A-01-P2",
@@ -81,7 +87,8 @@
     "description": "隣接マスへ1マス移動し、裏向きタイルを表にする。バッテリーを1消費する。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-A-02-P2",
@@ -93,7 +100,8 @@
     "description": "隣接マスへ1マス移動し、裏向きタイルを表にする。バッテリーを1消費する。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-B-01-P2",
@@ -105,7 +113,8 @@
     "description": "隣接マスへ1マス移動する。移動先は必ず表向きタイルであること。バッテリー消費なし。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-B-02-P2",
@@ -117,7 +126,8 @@
     "description": "隣接マスへ1マス移動する。移動先は必ず表向きタイルであること。バッテリー消費なし。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-C-01-P2",
@@ -129,7 +139,8 @@
     "description": "移動を行わず、バッテリーを2個回復する。さらに、隣接する裏向きタイルすべてを確認し、情報を得る。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-D-01-P2",
@@ -141,7 +152,8 @@
     "description": "移動を行わず、現在地で遺物トークンの回収、または地形データの収集を行う。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-A-01-P3",
@@ -153,7 +165,8 @@
     "description": "隣接マスへ1マス移動し、裏向きタイルを表にする。バッテリーを1消費する。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-A-02-P3",
@@ -165,7 +178,8 @@
    "description": "隣接マスへ1マス移動し、裏向きタイルを表にする。バッテリーを1消費する。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-B-01-P3",
@@ -177,7 +191,8 @@
     "description": "隣接マスへ1マス移動する。移動先は必ず表向きタイルであること。バッテリー消費なし。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-B-02-P3",
@@ -189,7 +204,8 @@
     "description": "隣接マスへ1マス移動する。移動先は必ず表向きタイルであること。バッテリー消費なし。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-C-01-P3",
@@ -201,7 +217,8 @@
     "description": "移動を行わず、バッテリーを2個回復する。さらに、隣接する裏向きタイルすべてを確認し、情報を得る。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   },
   {
     "id": "card-D-01-P3",
@@ -213,6 +230,7 @@
     "description": "移動を行わず、現在地で遺物トークンの回収、または地形データの収集を行う。",
     "location": "deck",
     "drawLocation": "hand",
-    "playLocation": "field"
+    "playLocation": "field",
+    "playBackLocation": "hand"
   }
 ]

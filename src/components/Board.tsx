@@ -1,16 +1,17 @@
-// src/components/Board.tsx (最終版 - content/changedContentロジック修正済み)
+// src/components/Board.tsx
 
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import type { PieceData } from '../types/piece.js';
 
+import type { CellId } from '../types/definition.js';
 import styles from './Board.module.css';
-import Cell from './Cell.js'; // Cellコンポーネントが onDoubleClick を受け付ける前提
+import Cell from './Cell.js';
 import Piece from './Piece.js';
 
 // マス目の基本データ型（Cell.tsxと統一）
 export type CellData = {
-  id: string;
+  id: CellId;
   shapeType: string;
   backgroundColor: string;
   changedColor: string;

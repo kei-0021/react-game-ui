@@ -1,8 +1,10 @@
+// src/components/PlayField.tsx
+
 import * as React from "react";
 import { Socket } from "socket.io-client";
 import type { Card } from "../types/card.js";
+import { DeckId } from "../types/definition.js";
 import { client_log } from "../utils/client-log.js";
-// ⭐ 1. Card.module.css のインポートを追加
 import styles from "./Card.module.css";
 
 // =========================================================================
@@ -49,7 +51,7 @@ const CardDisplayContent = ({ card, isFaceUp }: { card: Card, isFaceUp: boolean 
 
 type PlayFieldProps = {
   socket: Socket;
-  deckId: string;
+  deckId: DeckId;
   name: string;
   is_logging?: boolean;
 };
@@ -79,12 +81,22 @@ export default function PlayField({ socket, deckId, name, is_logging = false }: 
     };
   }, [socket, deckId]);
 
-  const playCard = (card: Card) => {
-    socket.emit("card:play", {
-      deckId: card.deckId,
-      cardId: card.id,
-      playLocation: "field",
-    });
+  // ⭐ [追加] サーバーにカードを手札に戻すようリクエストする関数
+  const returnCardToOwnerHand = (card: Card) => {
+      // ownerId が設定されているカードのみを対象とする
+      if (!card.ownerId) {
+          client_log("playField", `警告: ${card.name} には所有者IDが設定されていません。手札に戻せません。`);
+          return;
+      }
+      
+      // ⭐ 新しいイベント名 'card:return-to-hand' でサーバーにリクエスト
+      socket.emit("card:return-to-hand", {
+          deckId: card.deckId,
+          cardId: card.id,
+          targetPlayerId: card.ownerId, // 持ち主IDを送信
+      });
+      
+      client_log("playField", `カード ${card.name} を持ち主 ${card.ownerId} の手札に戻すようリクエスト`);
   };
 
   return (
@@ -96,36 +108,25 @@ export default function PlayField({ socket, deckId, name, is_logging = false }: 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", minHeight: "120px" }}>
         {playedCards.length === 0 && <div style={{ opacity: 0.6 }}>（まだカードが出ていません）</div>}
         {playedCards.map((card) => {
-            const isFaceUp = true; // プレイ済みカードは常に表向きにする
+            const isFaceUp = true; 
             return (
                 <div
                 key={card.id}
-                // ⭐ 2. styles.card クラスを適用し、インラインスタイルを削除
                 className={styles.card}
                 style={{
-                    // width: "80px",  <-- 削除
-                    // height: "120px", <-- 削除
-                    // border: "1px solid #999", <-- 削除
-                    // borderRadius: "6px", <-- 削除
-                    // background: "white", <-- 削除
-                    // boxShadow: "2px 2px 4px rgba(0,0,0,0.1)", <-- 削除
                     cursor: "pointer",
                     position: "relative",
-                    // スタイルは Card.module.css に任せ、配置のためのインラインスタイルのみ残す
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                 }}
-                // ⭐ 3. Reactによるツールチップのインライン表示/非表示ロジックを削除
-                // onMouseEnter={e => { ... }}
-                // onMouseLeave={e => { ... }}
+                // ⭐ [修正] ダブルクリックイベントハンドラを追加
+                onDoubleClick={() => returnCardToOwnerHand(card)}
                 >
-                {/* ⭐ 修正: CardDisplayContent を使用して画像または名前を表示 */}
                 <CardDisplayContent card={card} isFaceUp={isFaceUp} />
                 
                 {card.description && (
                     <span
-                    // ⭐ 4. styles.tooltip クラスを適用
                     className={styles.tooltip}
                     >
                     {card.description}

@@ -1,8 +1,8 @@
 // src/components/Deck.tsx (最終修正版 - ツールチップ表示をReactで制御)
 import * as React from "react";
 import { Socket } from "socket.io-client";
-import type { Card, DeckId } from "../types/card.js";
-import { PlayerId } from "../types/player.js";
+import type { Card, } from "../types/card.js";
+import type { DeckId, PlayerId } from "../types/definition.js";
 import styles from "./Card.module.css";
 
 type DeckProps = {

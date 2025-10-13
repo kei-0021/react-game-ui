@@ -1,8 +1,7 @@
 // src/components/Dice.tsx
 import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
-
-export type DiceId = string;
+import { DiceId } from "../types/definition.js";
 
 type DiceProps = {
   socket?: Socket | null;

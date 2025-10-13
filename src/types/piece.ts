@@ -1,8 +1,10 @@
-// src/types/piece.d.ts
+// src/types/piece.ts
+
+import { PieceId } from "./definition.js";
 
 // コマのデータ型
 export type PieceData = {
-  id: string;
+  id: PieceId;
   name: string;
   color: string;
   // コマが現在いるマス目の論理的な位置

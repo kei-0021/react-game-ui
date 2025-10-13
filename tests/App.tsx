@@ -3,9 +3,10 @@ import Deck from "../src/components/Deck";
 import PlayField from "../src/components/PlayField";
 import ScoreBoard from "../src/components/ScoreBoard";
 import { useSocket } from "../src/hooks/useSocket";
+import type { ResourceId } from "../src/types/definition";
 import type { Player } from "../src/types/player";
 import type { Resource } from "../src/types/resource";
-import MyBoard from "./MyBoard"; // .js拡張子を削除
+import MyBoard from "./MyBoard";
 
 // 抽象的な Player 型にリソース情報が付加されていることを示す型を定義
 type PlayerWithResources = Player & { resources: Resource[] };
@@ -16,7 +17,6 @@ const RESOURCE_IDS = {
     BATTERY: 'BATTERY',
     HULL: 'hull' // 船体耐久度
 };
-
 
 export default function App() {
   const socket = useSocket("http://127.0.0.1:4000");
@@ -68,7 +68,7 @@ export default function App() {
     });
   };
 
-  const handleDebugResource = (resourceId: string, amount: number) => {
+  const handleDebugResource = (resourceId: ResourceId, amount: number) => {
     if (!socket || !debugTargetId) return;
     socket.emit('player:update-resource', { 
         targetPlayerId: debugTargetId, 

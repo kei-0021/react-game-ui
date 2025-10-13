@@ -261,7 +261,7 @@ export function initGameServer(io, options = {}) {
       deckId,
       backColor: backColor,
       onPlay: cardEffects[c.name] || (() => {}),
-      location: "deck", 
+      location: "deck",
     }));
     drawnCards[deckId] = [];
     playFieldCards[deckId] = [];
@@ -485,9 +485,17 @@ export function initGameServer(io, options = {}) {
           player.cards = player.cards || [];
           card.location = drawLocation;
           card.isFaceUp = true;
+          
+          // ⭐ [修正点] ownerId を設定
+          // カードがプレイヤーの手札に入るため、所有者IDを記録します。
+          card.ownerId = playerId; 
+          
           player.cards.push(card);
         }
       } else {
+        // playerId がない場合 (例: 公開の場に引く) は ownerId を設定しない (または undefined/null に設定)
+        card.ownerId = undefined; // 明示的に undefined に設定しても良い
+        
         card.location = drawLocation || "field";
         drawnCards[deckId].push(card);
       }
@@ -556,12 +564,23 @@ export function initGameServer(io, options = {}) {
 
         const discardIndex = discardPile[deckId].findIndex(c => c.id === cardId);
         if (discardIndex !== -1) { discardPile[deckId].splice(discardIndex, 1); }
-        
+
         // 新しい場所の配列への追加（移動先への追加）
         card.location = playLocation;
         card.isFaceUp = true;
         
         server_log("card", `プレイヤー ${playerId} がカード ${card.name} を使用`);
+        
+        // ⭐ [修正点 1] ownerId の処理: 
+        if (playLocation === "field") {
+            // Field に行く場合: ownerId を維持または設定 (手札から来た場合は既に設定済み)
+            // ※ ただし、手札から来たなら ownerId は既に card にあるはずなので、ここでは変更しません。
+            //    もしフィールドに置いた時点で playerId を明示的に設定したいなら:
+            //    card.ownerId = playerId;
+        } else if (playLocation === "discard") {
+            // Discard に行く場合: ownerId をクリアする
+            card.ownerId = null;
+        }
         
         // 効果発動
         const effect = cardEffects[card.name];
@@ -575,7 +594,7 @@ export function initGameServer(io, options = {}) {
         } else {
           server_log("card", `カード効果なし: ${card.name} by ${playerId}`);
         }
-
+        
         server_log("card", `[${playLocation}] へ移動しました`);
 
         // 配列を playLocation に応じて振り分け (新しい場所に追加)
@@ -588,6 +607,44 @@ export function initGameServer(io, options = {}) {
 
       emitDeckUpdate(deckId); 
       emitPlayerUpdate(); 
+    });
+
+    // ⭐ [新規追加] カードを手札に戻す
+    socket.on("card:return-to-hand", ({ deckId, cardId, targetPlayerId }) => {
+        if (!decks[deckId] || !targetPlayerId) {
+            server_log("warn", "card:return-to-hand: 不正なデッキIDまたはターゲットプレイヤーIDです。", { deckId, targetPlayerId });
+            return;
+        }
+
+        const card = decks[deckId].find(c => c.id === cardId);
+        const player = gameState.players.find(p => p.id === targetPlayerId);
+
+        if (!card || !player) {
+            server_log("warn", "card:return-to-hand: カードまたはプレイヤーが見つかりません。", { cardId, targetPlayerId });
+            return;
+        }
+
+        // 1. 移動元 (PlayField) からの削除
+        const fieldIndex = playFieldCards[deckId].findIndex(c => c.id === cardId);
+        if (fieldIndex !== -1) {
+            playFieldCards[deckId].splice(fieldIndex, 1);
+        } else {
+            server_log("warn", `card:return-to-hand: カード ${card.name} はPlayFieldに見つかりませんでしたが、処理を続行します。`);
+        }
+
+        // 2. カードの属性を更新
+        card.location = "hand"; // ロケーションを手札に戻す
+        card.isFaceUp = true;    // (手札に戻るため通常は表向きを維持)
+        // card.ownerId は既に設定されているはずなので、ここでは変更しない
+
+        // 3. 移動先 (プレイヤーの手札) への追加
+        player.cards.push(card);
+        
+        server_log("card", `カード ${card.name} を持ち主 ${player.name} の手札に戻しました。`);
+
+        // 4. 全クライアントへ更新を通知
+        emitDeckUpdate(deckId); 
+        emitPlayerUpdate(); 
     });
 
     // ダイスロール 

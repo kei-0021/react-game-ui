@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Socket } from "socket.io-client";
-import { Card } from "../types/card.js"; // Card型をインポートに追加
-import { Player, PlayerId } from "../types/player.js"; // Card型をインポートに追加
+import { Card } from "../types/card.js";
+import { PlayerId } from "../types/definition.js";
+import { Player } from "../types/player.js";
 import type { Resource } from "../types/resource.js";
 import styles from "./Card.module.css";
 

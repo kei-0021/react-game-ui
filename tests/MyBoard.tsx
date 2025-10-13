@@ -3,8 +3,8 @@ import { DragEvent } from 'react';
 import { Socket } from "socket.io-client";
 import type { CellData } from "../src/components/Board";
 import Board from "../src/components/Board";
+import { PlayerId } from '../src/types/definition';
 import type { PieceData } from "../src/types/piece";
-import { PlayerId } from '../src/types/player';
 // サーバーから確定盤面を受け取るため、クライアント側の初期データは参照のみとし、
 // 初期状態では使用しない
 

@@ -1,7 +1,6 @@
 // src/types/resource.ts
 
-// ID のタイプエイリアス
-export type ResourceId = string; 
+import { ResourceId } from "./definition.js";
 
 export type Resource = {
   id: ResourceId;

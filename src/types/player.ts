@@ -1,10 +1,8 @@
-// src/types/player.ts (修正後)
+// src/types/player.ts
 
 import type { Card } from "./card.js";
+import type { PlayerId } from "./definition.js";
 import type { Resource } from "./resource.js";
-
-// ID のタイプエイリアス
-export type PlayerId = string;
 
 export type Player = {
   id: PlayerId;
