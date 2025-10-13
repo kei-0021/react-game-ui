@@ -276,7 +276,7 @@ export default function App() {
               <Deck 
                 socket={socket} 
                 deckId="deepSea" 
-                name="深海カード" 
+                name="深海生物カード" 
                 playerId={currentPlayerId} 
               />
             </div>
@@ -286,7 +286,7 @@ export default function App() {
               <PlayField 
                 socket={socket} 
                 deckId="deepSea" 
-                name="深海カード" 
+                name="深海生物カード" 
               />
             </div>
           </div>

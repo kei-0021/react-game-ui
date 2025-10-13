@@ -2,6 +2,50 @@ import * as React from "react";
 import { Socket } from "socket.io-client";
 import type { Card } from "../types/card.js";
 import { client_log } from "../utils/client-log.js";
+// ⭐ 1. Card.module.css のインポートを追加
+import styles from "./Card.module.css";
+
+// =========================================================================
+// ⭐ NEW: カード表面の内容をレンダリングするヘルパーコンポーネントを再定義
+// =========================================================================
+const CardDisplayContent = ({ card, isFaceUp }: { card: Card, isFaceUp: boolean }) => {
+  if (!isFaceUp) {
+    return null; // 裏向きなら何も表示しない (PlayFieldでは常にFaceUpだが念のため)
+  }
+
+  // PNG画像パスが存在する場合
+  if (card.frontImage) {
+    return (
+      <img 
+        src={card.frontImage} 
+        alt={card.name} 
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          objectFit: 'contain' // 画像をコンテナ内に収める
+        }} 
+      />
+    );
+  }
+
+  // 従来のカード名表示の場合 (画像パスが存在しない場合)
+  return (
+    <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100%', 
+        width: '100%',
+        padding: '5px',
+        color: '#333', // カードの文字色
+    }}>
+        <strong style={{ fontSize: '0.8em', wordBreak: 'break-all', textAlign: 'center' }}>
+            {card.name}
+        </strong>
+    </div>
+  );
+};
+// =========================================================================
 
 type PlayFieldProps = {
   socket: Socket;
@@ -56,48 +100,33 @@ export default function PlayField({ socket, deckId, name, is_logging = false }: 
             return (
                 <div
                 key={card.id}
+                // ⭐ 2. styles.card クラスを適用し、インラインスタイルを削除
+                className={styles.card}
                 style={{
-                    width: "80px",
-                    height: "120px",
-                    border: "1px solid #999",
-                    borderRadius: "6px",
+                    // width: "80px",  <-- 削除
+                    // height: "120px", <-- 削除
+                    // border: "1px solid #999", <-- 削除
+                    // borderRadius: "6px", <-- 削除
+                    // background: "white", <-- 削除
+                    // boxShadow: "2px 2px 4px rgba(0,0,0,0.1)", <-- 削除
+                    cursor: "pointer",
+                    position: "relative",
+                    // スタイルは Card.module.css に任せ、配置のためのインラインスタイルのみ残す
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "white",
-                    boxShadow: "2px 2px 4px rgba(0,0,0,0.1)",
-                    cursor: "pointer",
-                    position: "relative",
                 }}
-                onMouseEnter={e => {
-                    const tooltip = e.currentTarget.querySelector(".tooltip") as HTMLElement;
-                    if (!tooltip) return;
-                    tooltip.style.display = "block";
-                }}
-                onMouseLeave={e => {
-                    const tooltip = e.currentTarget.querySelector(".tooltip") as HTMLElement;
-                    if (!tooltip) return;
-                    tooltip.style.display = "none";
-                }}
+                // ⭐ 3. Reactによるツールチップのインライン表示/非表示ロジックを削除
+                // onMouseEnter={e => { ... }}
+                // onMouseLeave={e => { ... }}
                 >
-                {card.name}
+                {/* ⭐ 修正: CardDisplayContent を使用して画像または名前を表示 */}
+                <CardDisplayContent card={card} isFaceUp={isFaceUp} />
+                
                 {card.description && (
                     <span
-                    className="tooltip"
-                    style={{
-                        display: "none",
-                        position: "absolute",
-                        bottom: "110%",
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        padding: "6px 10px",
-                        background: "#333",
-                        color: "white",
-                        borderRadius: "4px",
-                        whiteSpace: "nowrap",
-                        zIndex: 1000,
-                        fontSize: "12px",
-                    }}
+                    // ⭐ 4. styles.tooltip クラスを適用
+                    className={styles.tooltip}
                     >
                     {card.description}
                     </span>

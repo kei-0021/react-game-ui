@@ -15,4 +15,5 @@ export type Card = {
   drawLocation: CardLocation;
   playLocation: CardLocation;
   isFaceUp?: boolean;
+  frontImage?: string; 
 };

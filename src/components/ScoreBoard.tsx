@@ -1,17 +1,58 @@
-// src/components/ScoreBoard.tsx (修正後)
 import * as React from "react";
 import { Socket } from "socket.io-client";
-import { Player, PlayerId } from "../types/player.js";
-// ⭐ 修正: Resource 型をインポート
+import { Card } from "../types/card.js"; // Card型をインポートに追加
+import { Player, PlayerId } from "../types/player.js"; // Card型をインポートに追加
 import type { Resource } from "../types/resource.js";
 import styles from "./Card.module.css";
+
+// =========================================================================
+// ⭐ NEW: カード表面の内容をレンダリングするヘルパーコンポーネント
+// =========================================================================
+const CardDisplayContent = ({ card, isFaceUp }: { card: Card, isFaceUp: boolean }) => {
+    if (!isFaceUp) {
+      return null; // 裏向きなら何も表示しない
+    }
+
+    // PNG画像パスが存在する場合
+    if (card.frontImage) {
+      return (
+        <img 
+          src={card.frontImage} 
+          alt={card.name} 
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'contain' // 画像をコンテナ内に収める
+          }} 
+        />
+      );
+    }
+  
+    // 従来のカード名表示の場合 (画像パスが存在しない場合)
+    return (
+      <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          height: '100%', 
+          width: '100%',
+          padding: '5px',
+          color: '#333', // カードの文字色
+      }}>
+          <strong style={{ fontSize: '0.8em', wordBreak: 'break-all', textAlign: 'center' }}>
+              {card.name}
+          </strong>
+      </div>
+    );
+  };
+// =========================================================================
 
 // Player型はリソースを持つことを前提とする
 type PlayerWithResources = Player & { resources: Resource[] };
 
 type ScoreboardProps = {
   socket: Socket;
-  players: PlayerWithResources[]; // ⭐ プレイヤー型をリソースを持つ型に修正
+  players: PlayerWithResources[]; // プレイヤー型をリソースを持つ型に修正
   currentPlayerId?: PlayerId | null;
   myPlayerId: PlayerId | null;
   backColor?: string;
@@ -28,12 +69,12 @@ export default function ScoreBoard({
 
   const [selectedCards, setSelectedCards] = React.useState<string[]>([]); // 同時出し用の選択カード
 
-  // ⭐ 修正: displayedPlayersでresourcesも初期化
+  // 修正: displayedPlayersでresourcesも初期化
   const displayedPlayers = (players || []).map((p) => ({
     ...p,
     score: p.score ?? 0,
     cards: p.cards ?? [],
-    resources: p.resources ?? [], // ⭐ リソースがnull/undefinedの場合に空配列を適用
+    resources: p.resources ?? [], // リソースがnull/undefinedの場合に空配列を適用
   }));
 
   const toggleCardSelection = (cardId: string, isFaceUp: boolean) => {
@@ -57,9 +98,9 @@ export default function ScoreBoard({
       const card = myPlayer.cards.find((c) => c.id === cardId);
       if (!card) return;
       
-      // ⭐ 最初のカードの playLocation を設定
+      // 最初のカードの playLocation を設定
       if (!targetPlayLocation) {
-        // ⭐ ここで型アサーションを使用し、card.playLocation がオブジェクトではなく文字列であることを強制
+        // ここで型アサーションを使用し、card.playLocation がオブジェクトではなく文字列であることを強制
         targetPlayLocation = card.playLocation as string; 
       }
       
@@ -76,7 +117,7 @@ export default function ScoreBoard({
         deckId,
         cardIds,       // そのデッキ内の複数カード
         playerId: myPlayerId,
-        // ⭐ 取得した targetPlayLocation を使用
+        // 取得した targetPlayLocation を使用
         playLocation: targetPlayLocation, 
       });
     });
@@ -104,10 +145,10 @@ export default function ScoreBoard({
               <span>スコア: {player.score}</span>
             </div>
 
-            {/* ⭐ リソース表示エリアの修正 */}
+            {/* リソース表示エリアの修正 */}
             {player.resources && player.resources.length > 0 && (
               <div style={{ 
-                // ⭐ 修正: flexを削除し、縦に並ぶようにする
+                // 修正: flexを削除し、縦に並ぶようにする
                 display: "block", 
                 // gap: "12px", // 削除またはコメントアウト
                 marginTop: "4px", 
@@ -119,7 +160,7 @@ export default function ScoreBoard({
                   <div 
                     key={resource.id} 
                     title={resource.name}
-                    style={{ marginBottom: "2px" }} // ⭐ 追加: 項目間に隙間を設ける
+                    style={{ marginBottom: "2px" }} // 追加: 項目間に隙間を設ける
                   >
                     {/* アイコン、名前、現在値/最大値を表示 */}
                     {resource.icon} {resource.name}: {resource.currentValue} / {resource.maxValue}
@@ -128,7 +169,7 @@ export default function ScoreBoard({
               </div>
             )}
             
-            {/* ... カードの表示ロジック（省略） */}
+            {/* カードの表示ロジック（画像表示を適用） */}
             <div style={{ display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }}>
               {player.cards.map((card) => {
                 const isFaceUp: boolean = !!card.isFaceUp && player.id === myPlayerId;
@@ -137,19 +178,29 @@ export default function ScoreBoard({
                 return (
                   <div
                     key={card.id}
+                    // isFaceUp の場合に card クラスを適用（カードの表面スタイル）
                     className={isFaceUp ? styles.card : styles.cardBack}
                     style={{
                       position: "relative",
                       cursor: isFaceUp ? "pointer" : "default",
-                      width: "60px",
-                      height: "80px",
-                      backgroundColor: isFaceUp ? undefined : card.backColor,
+                      // ⭐ 修正: widthとheightのインラインスタイルを削除 (Card.module.cssの90px x 120pxを適用)
+                      // width: "60px",
+                      // height: "80px",
+                      // isFaceUp でない場合に backColor を適用
+                      backgroundColor: isFaceUp ? undefined : card.backColor, 
                       border: isSelected ? "2px solid gold" : "none",
                       boxSizing: "border-box",
+                      // カードの内容を中央揃えにするためのflexプロパティ
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
                     }}
                     onClick={() => toggleCardSelection(card.id, isFaceUp)}
                   >
-                    {isFaceUp && card.name}
+                    {/* ⭐ 修正: CardDisplayContent を使用して画像または名前を表示 */}
+                    <CardDisplayContent card={card} isFaceUp={isFaceUp} />
+                    
+                    {/* ツールチップはそのまま残す */}
                     {isFaceUp && card.description && (
                       <span className={styles.tooltip}>{card.description}</span>
                     )}

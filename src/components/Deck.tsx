@@ -1,3 +1,4 @@
+// src/components/Deck.tsx (最終修正版 - ツールチップ表示をReactで制御)
 import * as React from "react";
 import { Socket } from "socket.io-client";
 import type { Card, DeckId } from "../types/card.js";
@@ -11,19 +12,66 @@ type DeckProps = {
   playerId?: PlayerId | null;
 };
 
-// サーバーから受信するデータ型を拡張
+// サーバーから受信するデータ型
 type DeckUpdateData = { 
   currentDeck: Card[], 
   drawnCards: Card[], 
   discardPile: Card[] 
 };
 
+// =========================================================================
+// ⭐ ヘルパーコンポーネント: カード表面の内容をレンダリング
+// =========================================================================
+  const CardContent = ({ card }: { card: Card }) => {
+    if (!card.isFaceUp) {
+      return null; // 裏向きなら何も表示しない
+    }
 
+    // PNG画像パスが存在する場合
+    if (card.frontImage) {
+      return (
+        <img 
+          src={card.frontImage} 
+          alt={card.name} 
+          // <img>が親の要素全体を使うように設定
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'contain' // 画像をコンテナ内に収める
+          }} 
+        />
+      );
+    }else{
+      console.log(`[CardContent] pngの描画失敗" ${card.id}. Path: ${card.frontImage}`)
+    }
+  
+  // 従来のカード名表示の場合 (画像パスが存在しない場合)
+  return (
+    <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100%', 
+        width: '100%',
+        padding: '5px',
+    }}>
+        <strong style={{ fontSize: '1em', wordBreak: 'break-all', textAlign: 'center' }}>
+            {card.name}
+        </strong>
+    </div>
+  );
+};
+
+// =========================================================================
+// Deck コンポーネント本体
+// =========================================================================
 export default function Deck({ socket, deckId, name, playerId = null}: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
   const [drawnCards, setDrawnCards] = React.useState<Card[]>([]);
-  // 捨て札（Discard Pile）の状態を管理
   const [discardPile, setDiscardPile] = React.useState<Card[]>([]); 
+  
+  // ⭐ ⭐ ⭐ 追加: 捨て札カードのホバー状態を管理する state ⭐ ⭐ ⭐
+  const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
 
   React.useEffect(() => {
     // デッキ初期化イベント購読
@@ -90,7 +138,7 @@ export default function Deck({ socket, deckId, name, playerId = null}: DeckProps
           ))}
         </div>
 
-        {/* 2. ドロー済みカードコンテナ */}
+        {/* 2. ドロー済みカードコンテナ (CardContentで画像/テキストを自動切替) */}
         <div className={styles.deckContainer}>
           {drawnCards.map((c, i) => (
             <div
@@ -98,44 +146,49 @@ export default function Deck({ socket, deckId, name, playerId = null}: DeckProps
               className={styles.deckCardFront}
               style={{ zIndex: i + 1, transform: `translate(${i * 0.3}px, ${i * 0.3}px)` }}
             >
-              {c.isFaceUp && c.name}
+              {/* CardContentを使用 */}
+              <CardContent card={c} /> 
             </div>
           ))}
         </div>
         
         {/* 3. 捨て札置き場コンテナ */}
-        <div className={styles.deckContainer} style={{ border: '1px solid #777', backgroundColor: '#e0e0e0' }}> 
-          {discardPile.length > 0 && ( // 捨て札がある場合のみ表示
-            // 捨て札の山の一番上を表向きで表示
-            <div
-              key={discardPile[discardPile.length - 1].id}
-              className={styles.deckCardFront} 
-              style={{ 
-                  zIndex: 1, 
-                  backgroundColor: 'white', 
-                  borderColor: '#aaa',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  // ⭐ 修正: コンテンツを垂直方向の中央に寄せる
-                  justifyContent: 'center', 
-                  alignItems: 'center',
-                  textAlign: 'center',
-                  padding: '5px',
-                  position: 'relative', // 内部の絶対配置の基準
-              }}
-            >
-              {/* カード名 (中央配置) */}
-              <strong style={{ fontSize: '1em', wordBreak: 'break-all', flexGrow: 1, 
-                  // ⭐ 修正: テキストを垂直方向にも中央に配置
-                  display: 'flex', 
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '15px' // 合計枚数との隙間
-              }}>
-                  {discardPile[discardPile.length - 1].name}
-              </strong>
-            </div>
-          )}
+        <div className={`${styles.deckContainer} ${styles.discardPileWrapper}`}> 
+          {discardPile.length > 0 && (() => {
+            const topCard = discardPile[discardPile.length - 1];
+            return (
+              // 捨て札の山の一番上を表向きで表示
+              <div
+                key={topCard.id}
+                className={`${styles.deckCardFront} ${styles.discardTopCard}`} 
+                style={{ 
+                    // インラインで pointerEvents を強制
+                    pointerEvents: 'auto', 
+                }}
+                // ⭐ ⭐ ⭐ 追加: マウスイベントでホバー状態を更新 ⭐ ⭐ ⭐
+                onMouseEnter={() => setIsDiscardHovered(true)}
+                onMouseLeave={() => setIsDiscardHovered(false)}
+              >
+                {/* CardContentを使用 */}
+                <CardContent card={topCard} />
+                
+                {/* ツールチップを表示 */}
+                {topCard.description && (
+                  <span 
+                    className={styles.tooltip}
+                    style={{
+                      // ⭐ ⭐ ⭐ state に基づいて表示/非表示をインラインで強制制御 ⭐ ⭐ ⭐
+                      visibility: isDiscardHovered ? 'visible' : 'hidden',
+                      opacity: isDiscardHovered ? 1 : 0,
+                      zIndex: 9999, // 最前面に表示
+                    }}
+                  >
+                    {topCard.description}
+                  </span>
+                )}
+              </div>
+            );
+          })()}
         </div>
         
       </div>

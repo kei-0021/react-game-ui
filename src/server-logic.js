@@ -472,16 +472,21 @@ export function initGameServer(io, options = {}) {
       if (!decks[deckId]) return;
 
       decks[deckId].forEach(c => {
-          c.location = "deck";
-          c.isFaceUp = false;
+          // c.location が "discard" または "field" の場合のみ "deck" に戻す
+          if (c.location === "discard" || c.location === "field") {
+              c.location = "deck";
+              c.isFaceUp = false;
+          }
       });
 
-      drawnCards[deckId] = [];
+      // プレイフィールドと捨て札の配列のみをクリア
       playFieldCards[deckId] = [];
       discardPile[deckId] = [];
 
+      // drawnCardsはクリアしない (手札として保持される可能性のため)
+
       shuffleDeck(deckId);
-      server_log("deck", `デッキ ${deckId} リセット`);
+      server_log("deck", `デッキ ${deckId} リセット (field/discard のカードのみデッキに戻しシャッフル)`);
       emitDeckUpdate(deckId);
     });
     

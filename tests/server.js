@@ -4,7 +4,7 @@ import { cardEffects } from "./data/cardEffects.js";
 
 // import fantasyDeckJson from "./data/fantasyCards.json" assert { type: "json" };
 // import numberDeckJson from "./data/numberCards.json" assert { type: "json" };
-import deepSeaDeckJson from "./data/deepSeaCards.json" assert { type: "json" };
+import deepSeaDeckJson from "./data/deepSeaCardsSpecies.json" assert { type: "json" };
 // ⭐ 追加: deepSeaCells.json をインポート
 import { cellEffects } from "./data/cellEffects.js";
 import originalDeepSeaCells from "./data/deepSeaCells.json" assert { type: "json" };
@@ -12,7 +12,7 @@ import originalDeepSeaCells from "./data/deepSeaCells.json" assert { type: "json
 const initialDecks = [
   // { deckId: "fantasy", name: "ファンタジーカード", cards: fantasyDeckJson, backColor: "#c25656ff" },
   // { deckId: "number", name: "数字カード", cards: numberDeckJson, backColor: "#7e6d36ff" },
-  { deckId: "deepSea", name: "深海カード", cards: deepSeaDeckJson, backColor: "#0d3c99ff" },
+  { deckId: "deepSea", name: "深海生物カード", cards: deepSeaDeckJson, backColor: "#0d3c99ff" },
 ];
 
 const DEEP_SEA_RESOURCES = [
