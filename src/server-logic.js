@@ -220,6 +220,7 @@ export function initGameServer(io, options = {}) {
     
   const initialDecks = options.initialDecks || [];
   const cardEffects = options.cardEffects || {};
+  const initialHand = options.initialHand || {};
   const initialResources = options.initialResources || []; 
   const initialBoard = options.initialBoard || []; 
   const cellEffects = options.cellEffects || [];
@@ -268,7 +269,6 @@ export function initGameServer(io, options = {}) {
     discardPile[deckId] = []; 
     server_log("deck", `デッキ "${name}" (${deckId}) 初期化完了`);
   });
-
 
   // 共通関数：Deck 状態をクライアントに送信
   function emitDeckUpdate(deckId) {
@@ -366,6 +366,42 @@ export function initGameServer(io, options = {}) {
     gameState.players.push(newPlayer);
     server_log("connection", `新規プレイヤー追加:`, newPlayer);
     socket.emit("player:assign-id", newPlayer.id);
+
+    // ==========================================
+    // ⭐ [新規追加] 初期手札の配布ロジック
+    // ==========================================
+    const { deckId: startDeckId, count: startCount } = initialHand;
+
+    if (startDeckId && startCount > 0 && decks[startDeckId]) {
+        server_log("deck", `${newPlayer.name} に初期手札として ${startDeckId} から ${startCount} 枚配布開始`);
+
+        for (let i = 0; i < startCount; i++) {
+            const currentDeck = decks[startDeckId].filter(c => c.location === "deck");
+            if (!currentDeck.length) {
+                server_log("warn", `初期手札配布中にデッキ ${startDeckId} のカードが不足しました。`);
+                break; 
+            }
+
+            const cardToDrawId = currentDeck[0].id; 
+            const cardIndex = decks[startDeckId].findIndex(c => c.id === cardToDrawId);
+
+            if (cardIndex !== -1) {
+                const card = decks[startDeckId][cardIndex]; 
+                
+                // カードの属性を設定
+                card.location = "hand";
+                card.isFaceUp = true;
+                card.ownerId = newPlayer.id; // 所有者IDを設定 (前のセクションで実装)
+
+                // プレイヤーの手札に追加
+                newPlayer.cards.push(card);
+            }
+        }
+        // 配布後、デッキの状態も更新
+        emitDeckUpdate(startDeckId); 
+    }
+    // ==========================================
+
     emitPlayerUpdate(); // 全プレイヤーへ更新を通知
     io.emit("game:turn", gameState.players[currentTurnIndex]?.id);
 

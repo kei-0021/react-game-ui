@@ -23,6 +23,7 @@ export class GameServer {
     this.onServerStart = options.onServerStart;
     this.initialDecks = options.initialDecks || []; 
     this.cardEffects = options.cardEffects || {};
+    this.initialHand = options.initialHand || {};
     this.initialResources = options.initialResources || [];
     this.initialBoard = options.initialBoard || [];
     this.cellEffects = options.cellEffects || [];
@@ -79,6 +80,7 @@ export class GameServer {
         initialDecks: this.initialDecks,
         cardEffects: this.cardEffects,
         initialResources: this.initialResources,
+        initialHand: this.initialHand,
         initialBoard: this.initialBoard,
         cellEffects: this.cellEffects,
         initialLogCategories: this.initialLogCategories,
