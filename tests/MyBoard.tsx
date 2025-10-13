@@ -130,18 +130,20 @@ export default function GameBoardView({
     }
   };
 
-  const moveP1 = () => {
-    if (!isBoardReady || rows === 0 || cols === 0) return;
+  // ⭐ ダブルクリック処理: 探索済みマーク解除要求を送信
+  const handleBoardDoubleClick = (celldata: CellData, row: number, col: number) => {
+    if (!isBoardReady) return; 
 
+    // サーバーに探索済みマーク解除要求を送信
     if (socket && myPlayerId) {
-        const newRow = Math.floor(Math.random() * rows);
-        const newCol = Math.floor(Math.random() * cols);
-
-        socket.emit("game:move-player", { 
-            playerId: myPlayerId,
-            newPosition: { row: newRow, col: newCol }
+        console.log(`[Client] Sending UNEXPLORE request for player ${myPlayerId} to (${row}, ${col})`);
+        
+        // サーバー側の実装に合わせて新しいイベント名を使用 (例: game:unexplore-cell)
+        socket.emit("game:unexplore-cell", { // ⭐ 新しいイベント名
+            targetPosition: { row, col } // 座標オブジェクトを送信
         });
-        console.log(`[Client] Sending RANDOM move request for player ${myPlayerId} to (${newRow}, ${newCol})`);
+        
+        // 更新はサーバーからのブロードキャストに任せる。
     }
   };
 
@@ -272,23 +274,6 @@ export default function GameBoardView({
   return (
     <div style={{ textAlign: 'center' }}>
 
-      <button 
-        onClick={moveP1}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#00bcd4',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          marginBottom: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-          fontWeight: 'bold'
-        }}
-      >
-        ランダムに移動
-      </button>
-
       {rows > 0 && cols > 0 ? (
         <Board 
           rows={rows} 
@@ -300,6 +285,7 @@ export default function GameBoardView({
 
           renderCell={MyCustomCellRenderer} 
           onCellClick={handleBoardClick}
+          onCellDoubleClick={handleBoardDoubleClick} 
           onPieceClick={handlePieceClick}
           allowPieceDrag={true}
           onPieceDragStart={handlePieceDragStart}

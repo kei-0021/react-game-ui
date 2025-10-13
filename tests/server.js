@@ -2,17 +2,14 @@ import path from "path";
 import { GameServer } from "../src/server.js";
 import { cardEffects } from "./data/cardEffects.js";
 
-// import fantasyDeckJson from "./data/fantasyCards.json" assert { type: "json" };
-// import numberDeckJson from "./data/numberCards.json" assert { type: "json" };
-import deepSeaDeckJson from "./data/deepSeaCardsSpecies.json" assert { type: "json" };
-// ⭐ 追加: deepSeaCells.json をインポート
 import { cellEffects } from "./data/cellEffects.js";
+import deepSeaSpeciesActionJson from "./data/deepSeaActionCards.json" assert { type: "json" };
 import originalDeepSeaCells from "./data/deepSeaCells.json" assert { type: "json" };
+import deepSeaSpeciesDeckJson from "./data/deepSeaSpeciesCards.json" assert { type: "json" };
 
 const initialDecks = [
-  // { deckId: "fantasy", name: "ファンタジーカード", cards: fantasyDeckJson, backColor: "#c25656ff" },
-  // { deckId: "number", name: "数字カード", cards: numberDeckJson, backColor: "#7e6d36ff" },
-  { deckId: "deepSea", name: "深海生物カード", cards: deepSeaDeckJson, backColor: "#0d3c99ff" },
+  { deckId: "deepSeaSpecies", name: "深海生物カード", cards: deepSeaSpeciesDeckJson, backColor: "#0d3c99ff" },
+  { deckId: "deepSeaAction", name: "アクションカード", cards: deepSeaSpeciesActionJson, backColor: "#0d8999ff" },
 ];
 
 const DEEP_SEA_RESOURCES = [
@@ -20,18 +17,26 @@ const DEEP_SEA_RESOURCES = [
     id: 'OXYGEN',
     name: '酸素',
     icon: '💨',
-    currentValue: 40,
-    maxValue: 100,
+    currentValue: 50,
+    maxValue: 50,
     type: 'CONSUMABLE', 
   },
   {
     id: 'BATTERY',
     name: 'バッテリー',
     icon: '🔋',
-    currentValue: 50,
-    maxValue: 50,
+    currentValue: 6,
+    maxValue: 6,
     type: 'CONSUMABLE',
-  }
+  },
+  {
+    id: 'ARTIFACT',
+    name: '遺物',
+    icon: '💰',
+    currentValue: 0,
+    maxValue: 100,
+    type: 'CONSUMABLE',
+  },
 ];
 
 const demoServer = new GameServer({

@@ -85,6 +85,29 @@ const markCellAsExplored = (gameState, location) => {
     return false; // 更新なし
 };
 
+/**
+ * 特定のマスを探索済みリストから削除する（未探索に戻す）
+ * @param {GameState} gameState
+ * @param {Location} location
+ * @returns {boolean} - 削除されたかどうか
+ */
+const unmarkCellAsExplored = (gameState, location) => {
+    const initialLength = gameState.exploredCells.length;
+    
+    // マッチしない要素のみを残す（フィルタリングで削除を実現）
+    gameState.exploredCells = gameState.exploredCells.filter(loc => 
+        !(loc.row === location.row && loc.col === location.col)
+    );
+
+    const wasRemoved = gameState.exploredCells.length < initialLength;
+
+    if (wasRemoved) {
+        server_log('cell', `マス (${location.row}, ${location.col}) の探索済みマークを解除しました。`);
+    }
+    
+    return wasRemoved;
+};
+
 // Fisher-Yates シャッフル
 const shuffleArray = (array) => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -401,6 +424,21 @@ export function initGameServer(io, options = {}) {
             server_log('warn', `Explore requested for unknown player ID: ${playerId}`);
         }
     });
+
+    socket.on('game:unexplore-cell', ({ targetPosition }) => { 
+        // 1. マスを未探索に戻す
+        const wasRemoved = unmarkCellAsExplored(gameState, targetPosition);
+
+        // 2. プレイヤー情報（リソースなど）が影響を受けている可能性があるため更新
+        emitPlayerUpdate(); 
+        
+        // 3. 探索済みリストが変更された場合のみ、クライアントにブロードキャスト
+        if (wasRemoved) {
+            broadcastExploredUpdate(); // ⭐ ここで broadcastExploredUpdate を呼び出す
+        } else {
+        }
+    });
+
     // ------------------------------------
     
     // 4. 新規接続したクライアントに現在の探索済みマス目リストを送信 (番号を修正)

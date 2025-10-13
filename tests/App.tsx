@@ -30,7 +30,7 @@ export default function App() {
   // --- デバッグ用状態 ---
   const [debugTargetId, setDebugTargetId] = React.useState<string | null>(null);
   const [debugScoreAmount, setDebugScoreAmount] = React.useState<number>(10);
-  const [debugResourceAmount, setDebugResourceAmount] = React.useState<number>(10);
+  const [debugResourceAmount, setDebugResourceAmount] = React.useState<number>(1);
   // ----------------------
 
   React.useEffect(() => {
@@ -255,48 +255,51 @@ export default function App() {
         </div>
 
 
-        {/* Flexbox レイアウト (Deck/PlayAreaコンテナとScoreBoard) */}
+        {/* Flexbox レイアウト (Deck / PlayField / ScoreBoard 横並び) */}
         <div style={{ 
           display: 'flex', 
           gap: '20px', 
           marginTop: '20px', 
-          alignItems: 'stretch' 
+          alignItems: 'flex-start' 
         }}>
           
-          {/* 左側: DeckとPlayFieldを縦に並べるコンテナ (幅を400pxに調整) */}
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '20px', 
-            flex: '0 0 400px' 
-          }}> 
+          {/* 左側: Deck と PlayField を縦に2つずつ保持したまま横並び */}
+          <div style={{ display: 'flex', gap: '20px' }}>
             
-            {/* 1. Deckコンポーネント (上部) */}
-            <div style={{ flex: '0 0 auto' }}>
+            {/* Deck縦並び */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '0 0 220px' }}>
               <Deck 
                 socket={socket} 
-                deckId="deepSea" 
+                deckId="deepSeaAction" 
+                name="アクションカード" 
+                playerId={currentPlayerId} 
+              />
+              <Deck 
+                socket={socket} 
+                deckId="deepSeaSpecies" 
                 name="深海生物カード" 
                 playerId={currentPlayerId} 
               />
             </div>
 
-            {/* 2. PlayFieldコンポーネント (下部) */}
-            <div style={{ flex: '0 0 auto' }}> 
+            {/* PlayField縦並び */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '0 0 320px' }}>
               <PlayField 
                 socket={socket} 
-                deckId="deepSea" 
+                deckId="deepSeaAction" 
+                name="アクションカード" 
+              />
+              <PlayField 
+                socket={socket} 
+                deckId="deepSeaSpecies" 
                 name="深海生物カード" 
               />
             </div>
+            
           </div>
 
-          {/* 右側: スコアボード (最小幅を250pxに調整) */}
-          <div style={{ 
-            flex: '1 1 auto', 
-            minWidth: '250px', // 最小幅を250pxに縮小
-            backgroundColor: 'transparent' 
-          }}> 
+          {/* 右側: スコアボード */}
+          <div style={{ flex: '1 1 auto', minWidth: '250px', backgroundColor: 'transparent' }}> 
             <ScoreBoard
               socket={socket}
               players={players} 

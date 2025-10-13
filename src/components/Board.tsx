@@ -5,7 +5,7 @@ import * as React from 'react';
 import type { PieceData } from '../types/piece.js';
 
 import styles from './Board.module.css';
-import Cell from './Cell.js';
+import Cell from './Cell.js'; // Cellコンポーネントが onDoubleClick を受け付ける前提
 import Piece from './Piece.js';
 
 // マス目の基本データ型（Cell.tsxと統一）
@@ -40,6 +40,8 @@ type BoardProps = {
   renderCell: (cellData: CellData, row: number, col: number) => React.ReactNode;
   
   onCellClick: (cellData: CellData, row: number, col: number) => void;
+  onCellDoubleClick: (cellData: CellData, row: number, col: number) => void; // ⭐ 追加
+
   onPieceClick: (pieceId: string) => void;
 
   onPieceDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
@@ -53,7 +55,8 @@ export default function Board({
     pieces, 
     changedCells, 
     renderCell, 
-    onCellClick, 
+    onCellClick,
+    onCellDoubleClick, // ⭐ 追加
     onPieceClick, 
     allowPieceDrag = false, 
     onPieceDragStart,
@@ -64,6 +67,12 @@ export default function Board({
     // クリックハンドラーは元のCellDataを参照
     const data = boardData[row][col];
     onCellClick(data, row, col);
+  };
+  
+  // ⭐ [修正点 1]: ダブルクリックハンドラの追加
+  const handleCellDoubleClick = (row: number, col: number) => {
+    const data = boardData[row][col];
+    onCellDoubleClick(data, row, col);
   };
   
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
@@ -114,7 +123,10 @@ export default function Board({
               col={col}
               // ⭐ 加工された CellData を渡す
               cellData={cellDataForRenderer} 
-              onClick={handleCellClick}
+              onClick={() => handleCellClick(row, col)} // ⭐ 引数渡しを修正
+              // ⭐ [修正点 2]: Cellにダブルクリックハンドラを渡す
+              onDoubleClick={() => handleCellDoubleClick(row, col)}
+              
               onDrop={(e) => onCellDrop(e, row, col)}
               onDragOver={(e) => e.preventDefault()}
               changed={isChanged} // ⭐ Cellに探索済み状態を渡す

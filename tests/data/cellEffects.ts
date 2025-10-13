@@ -7,10 +7,10 @@ type CellEffectParams = {
 export const cellEffects: Record<string, (params: CellEffectParams) => void> = {
 // 探索者が見つけたレリックタイル (💎)
     "Relic Site": ({ playerId, updateResource }) => {
-        // プレイヤーのリソースID 'artifact' に +5 する
+        // プレイヤーのリソースID 'artifact' に +1 する
         if (playerId) {
-            updateResource(playerId, 'artifact', 5);
-            console.log(`[EFFECT] ${playerId} が Relic Site に着地し、artifact を +5 獲得。`);
+            updateResource(playerId, 'ARTIFACT', 1);
+            console.log(`[EFFECT] ${playerId} が Relic Site に着地し、artifact を +1 獲得。`);
         }
     },
     
@@ -39,10 +39,10 @@ export const cellEffects: Record<string, (params: CellEffectParams) => void> = {
     },
 
     // ランドマークタイル (🔱)
-    "Abyss Landmark": ({ playerId, addScore }) => {
+    "Abyss Landmark": ({ playerId, updateResource }) => {
         if (playerId) {
-            addScore(playerId, 10);
-            console.log(`[EFFECT] ${playerId} が Abyss Landmark に到達し、スコアを +10 獲得。`);
+            updateResource(playerId, 'ARTIFACT', 5);
+            console.log(`[EFFECT] ${playerId} が Abyss Landmark に到達し、artifact を +5 獲得。`);
         }
     }
 };

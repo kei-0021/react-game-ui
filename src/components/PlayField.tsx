@@ -88,7 +88,7 @@ export default function PlayField({ socket, deckId, name, is_logging = false }: 
   };
 
   return (
-    <section style={{ border: "2px dashed #ccc", borderRadius: "10px", padding: "12px", margin: "12px 0", background: "#fafafa" }}>
+    <section style={{ border: "2px dashed #ccc", borderRadius: "10px", padding: "12px", background: "#fafafa" }}>
       <h3 style={{ marginBottom: "8px" }}>
         プレイエリア 
         {name && <span style={{ marginLeft: "10px", fontWeight: "normal", fontSize: "0.9em", color: "#666" }}>（{name}）</span>}
