@@ -1,82 +1,10 @@
 [
-  [
-    { "id": "a1", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "a2", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "a3", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "a4", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "a5", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "a6", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "a7", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "a8", "name": "Dangerous Zone", "shapeType": "custom", "backgroundColor": "#0d1721", "content": "", "changedContent": "🌋", "customClip": "polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)", "changedColor": "#ff5c5c" }
-  ],
-  [
-    { "id": "b1", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "🌊", "changedColor": "#407398" },
-    { "id": "b2", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "b3", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "b4", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "b5", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "b6", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "b7", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "b8", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" }
-  ],
-  [
-    { "id": "c1", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "c2", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "c3", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "c4", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "c5", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "c6", "name": "Relic Site", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "💎", "changedColor": "#6be097" },
-    { "id": "c7", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "c8", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" }
-  ],
-  [
-    { "id": "d1", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "d2", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "d3", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "d4", "name": "Energy Vein", "shapeType": "custom", "backgroundColor": "#1c2a38", "content": "", "changedContent": "🫧", "customClip": "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)", "changedColor": "#ffcc40" },
-    { "id": "d5", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "d6", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "d7", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "d8", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" }
-  ],
-  [
-    { "id": "e1", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "e2", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "e3", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "e4", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "e5", "name": "Energy Vein", "shapeType": "custom", "backgroundColor": "#0d1721", "content": "", "changedContent": "🫧", "customClip": "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)", "changedColor": "#ffcc40" },
-    { "id": "e6", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "e7", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "e8", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" }
-  ],
-  [
-    { "id": "f1", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "f2", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "f3", "name": "Relic Site", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "💎", "changedColor": "#6be097" },
-    { "id": "f4", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "f5", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "f6", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "f7", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "f8", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" }
-  ],
-  [
-    { "id": "g1", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "g2", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "g3", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "g4", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "g5", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "g6", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "g7", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "g8", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" }
-  ],
-  [
-    { "id": "h1", "name": "Dangerous Zone", "shapeType": "custom", "backgroundColor": "#1c2a38", "content": "", "changedContent": "🌋", "customClip": "polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)", "changedColor": "#ff5c5c" },
-    { "id": "h2", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "h3", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "h4", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "h5", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "h6", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
-    { "id": "h7", "name": "Empty Deep Sea", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" },
-    { "id": "h8", "name": "Abyss Landmark", "shapeType": "custom", "backgroundColor": "#0d1721", "content": "", "changedContent": "🔱", "customClip": "polygon(50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%)", "changedColor": "#5d99c6" }
-  ]
+  { "templateId": "RA", "name": "遺物 (古代遺物)", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "💎", "changedColor": "#ffd700" },
+  { "templateId": "RB", "name": "遺物 (技術部品)", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "⚙️", "changedColor": "#c0c0c0" },
+  { "templateId": "B_NORM", "name": "危険生物 (通常)", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "🦑", "changedColor": "#ff5c5c" },
+  { "templateId": "B_TRACK", "name": "危険生物 (追跡型)", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "🦈", "changedColor": "#cc0000" },
+  { "templateId": "T_VOL", "name": "特殊地形 (火山)", "shapeType": "custom", "backgroundColor": "#1c2a38", "content": "", "changedContent": "🌋", "customClip": "polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)", "changedColor": "#ff4500" },
+  { "templateId": "T_CRF", "name": "特殊地形 (珊瑚礁)", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "🐠", "changedColor": "#3cb371" },
+  { "templateId": "N_A", "name": "通常地形 (深海A)", "shapeType": "square", "backgroundColor": "#1c2a38", "content": "", "changedContent": "", "changedColor": "#6a89cc" },
+  { "templateId": "N_B", "name": "通常地形 (深海B)", "shapeType": "square", "backgroundColor": "#0d1721", "content": "", "changedContent": "", "changedColor": "#407398" }
 ]
