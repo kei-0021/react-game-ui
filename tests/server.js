@@ -88,7 +88,7 @@ const demoServer = new GameServer({
   cellEffects,
   initialLogCategories: {
     connection: false,
-    deck: false,        
+    deck: true,        
   }
 });
 

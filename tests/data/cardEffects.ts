@@ -28,12 +28,12 @@ export const cardEffects: Record<string, (params: CardEffectParams) => void> = {
     console.log(`🏥 緊急酸素補給"! by ${playerId}`);
     if (playerId) updateResource(playerId, "OXYGEN", 20);
   },
-  "バッテリー充電": ({ playerId, updateResource }) => {
-    console.log(`🔋 バッテリー充電"! by ${playerId}`);
-    if (playerId) updateResource(playerId, "BATTERY", 5);
+  "探索": ({ playerId, updateResource }) => {
+    console.log(`🔍 探索"! by ${playerId}`);
+    if (playerId) updateResource(playerId, "BATTERY", -1);
   },
-  "バッテリー過負荷": ({ playerId, updateResource }) => {
-    console.log(`🔋⚡️ バッテリー過負荷"! by ${playerId}`);
-    if (playerId) updateResource(playerId, "BATTERY", -10);
+  "ソナー＆チャージ": ({ playerId, updateResource }) => {
+    console.log(`🔋⚡️ ソナー＆チャージ"! by ${playerId}`);
+    if (playerId) updateResource(playerId, "BATTERY", 2);
   },
 };

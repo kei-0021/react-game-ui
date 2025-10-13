@@ -2,6 +2,7 @@
 import * as React from "react";
 import { Socket } from "socket.io-client";
 import type { Card, } from "../types/card.js";
+import { CardLocation } from "../types/cardLocation.js";
 import type { DeckId, PlayerId } from "../types/definition.js";
 import styles from "./Card.module.css";
 
@@ -100,7 +101,24 @@ export default function Deck({ socket, deckId, name, playerId = null}: DeckProps
 
   const draw = () => {
     if (deckCards.length === 0) return;
-    socket.emit("deck:draw", { deckId, playerId });
+
+    const cardToDraw = deckCards[0];
+    const drawLocation = cardToDraw?.drawLocation || "hand"; 
+
+    // ⭐ [修正点] drawLocation に応じて playerId を含めるか判断する
+    const requestData: { deckId: DeckId; playerId?: PlayerId | null; drawLocation: CardLocation } = {
+        deckId, 
+        drawLocation,
+    };
+
+    if (drawLocation === "hand" && playerId) {
+        // 手札に引く場合のみ playerId を含める
+        requestData.playerId = playerId;
+    }
+    // "field" に引く場合は playerId を含めない
+
+    // サーバーにイベントを送信
+    socket.emit("deck:draw", requestData);
   };
 
   const shuffle = () => socket.emit("deck:shuffle", { deckId });

@@ -179,81 +179,23 @@ export default function App() {
               myPlayerId={myPlayerId}
             />
         </div>
-        
-        {/* 5. 🛠️ デバッグコントロールパネル */}
-        <div style={debugPanelStyle}>
-            <p style={{ color: '#FFEB3B', fontSize: '1.1em', marginBottom: '8px' }}>🛠️ デバッグ/テストコントロール</p>
-            
-            {/* ターゲットプレイヤー選択 */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <select 
-                    value={debugTargetId || ''} 
-                    onChange={(e) => setDebugTargetId(e.target.value)}
-                    style={{ 
-                        ...inputStyle, 
-                        width: '180px', 
-                        cursor: 'pointer',
-                        backgroundColor: 'rgba(0, 188, 212, 0.2)',
-                    }}
-                >
-                    <option value="" disabled>プレイヤーを選択</option>
-                    {players.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.name} ({p.id === myPlayerId ? '自分' : p.id.substring(0, 4)})
-                        </option>
-                    ))}
-                </select>
-            </div>
-            
-            {/* スコア更新 */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <input 
-                    type="number" 
-                    value={debugScoreAmount} 
-                    onChange={(e) => setDebugScoreAmount(parseInt(e.target.value) || 0)}
-                    style={inputStyle}
-                />
-                <button 
-                    onClick={() => handleDebugScore(debugScoreAmount)}>
-                    + スコア加算
-                </button>
-                <button 
-                    onClick={() => handleDebugScore(-debugScoreAmount)}>
-                    - スコア減算
-                </button>
-            </div>
 
-            {/* リソース更新 */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <input 
-                    type="number" 
-                    value={debugResourceAmount} 
-                    onChange={(e) => setDebugResourceAmount(parseInt(e.target.value) || 0)}
-                    style={inputStyle}
-                />
-                
-                {/* 酸素 (Oxygen) */}
-                <button 
-                    onClick={() => handleDebugResource(RESOURCE_IDS.OXYGEN, debugResourceAmount)}>
-                    酸素 +
-                </button>
-                <button 
-                    onClick={() => handleDebugResource(RESOURCE_IDS.OXYGEN, -debugResourceAmount)}>
-                    酸素 -
-                </button>
-
-                {/* バッテリー (Battery) */}
-                <button 
-                    onClick={() => handleDebugResource(RESOURCE_IDS.BATTERY, debugResourceAmount)}>
-                    バッテリー +
-                </button>
-                <button 
-                    onClick={() => handleDebugResource(RESOURCE_IDS.BATTERY, -debugResourceAmount)}>
-                    バッテリー -
-                </button>
-            </div>
-        </div>
-
+        {/* 5. 🛠️ デバッグコントロールパネル
+        <DebugControlPanel
+                players={players}
+                myPlayerId={myPlayerId}
+                debugTargetId={debugTargetId}
+                setDebugTargetId={setDebugTargetId}
+                debugScoreAmount={debugScoreAmount}
+                setDebugScoreAmount={setDebugScoreAmount}
+                handleDebugScore={handleDebugScore}
+                debugResourceAmount={debugResourceAmount}
+                setDebugResourceAmount={setDebugResourceAmount}
+                handleDebugResource={handleDebugResource}
+                RESOURCE_IDS={RESOURCE_IDS}
+                debugPanelStyle={debugPanelStyle}
+                inputStyle={inputStyle}
+            /> */}
 
         {/* Flexbox レイアウト (Deck / PlayField / ScoreBoard 横並び) */}
         <div style={{ 

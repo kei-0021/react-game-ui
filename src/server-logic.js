@@ -529,11 +529,11 @@ export function initGameServer(io, options = {}) {
           player.cards.push(card);
         }
       } else {
-        // playerId がない場合 (例: 公開の場に引く) は ownerId を設定しない (または undefined/null に設定)
-        card.ownerId = undefined; // 明示的に undefined に設定しても良い
+        // playerId がない場合 (例: 公開の場に引く) は ownerId を null に設定
+        card.ownerId = null;
         
         card.location = drawLocation || "field";
-        drawnCards[deckId].push(card);
+        playFieldCards[deckId].push(card);
       }
 
       server_log("deck", `デッキ ${deckId} からカードを引きました:`, card);
