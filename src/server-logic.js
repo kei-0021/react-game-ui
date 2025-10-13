@@ -484,12 +484,6 @@ export function initGameServer(io, options = {}) {
       server_log("deck", `デッキ ${deckId} リセット`);
       emitDeckUpdate(deckId);
     });
-
-    // リソース更新イベントハンドラ
-    socket.on("player:update-resource", ({ resourceId, amount }) => {
-        const playerId = socket.id;
-        updatePlayerResource(playerId, resourceId, amount);
-    });
     
     // カード使用
     socket.on("card:play", ({ deckId, cardIds, playerId, playLocation = "field" }) => {
@@ -575,6 +569,33 @@ export function initGameServer(io, options = {}) {
           io.emit("timer:end");
         }
       }, 1000);
+    });
+
+    // ------------------------------------
+    // 5. スコア加算処理
+    // ------------------------------------
+    socket.on('player:add-score', ({ targetPlayerId, points }) => {
+        // ターゲットIDがない場合は、要求したクライアント自身に加算
+        const playerId = targetPlayerId || socket.id; 
+        addScore(playerId, points);
+        server_log('addScore', `外部要求により ${playerId} に ${points} ポイント加算`);
+    });
+
+    // ------------------------------------
+    // 6. 汎用リソース更新処理
+    // ------------------------------------
+    socket.on("player:update-resource", ({ targetPlayerId, resourceId, amount }) => {
+        // ターゲットIDがない場合は、要求したクライアント自身のリソースを更新
+        const playerId = targetPlayerId || socket.id; 
+        
+        // 既存の updatePlayerResource 関数を呼び出す
+        const success = updatePlayerResource(playerId, resourceId, amount);
+
+        if (success) {
+            server_log('resource', `外部要求により ${playerId} の ${resourceId} を ${amount} 更新`);
+        } else {
+            server_log('warn', `外部要求によるリソース更新失敗: ${playerId}, ${resourceId}`);
+        }
     });
 
     // 次のターン

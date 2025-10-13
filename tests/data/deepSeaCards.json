@@ -2,7 +2,7 @@
   {
     "id": "action-DIVE-01",
     "name": "潜行 (DIVE)",
-    "description": "前方へ最大3マス移動する。ライト照射は行わない。重複時: 全員、移動力半減＆バッテリーに損傷1。",
+    "description": "前方へ最大3マス移動する。重複時: 全員、移動力半減＆バッテリーに損傷1。",
     "location": "deck",
     "drawLocation": "hand",
     "playLocation": "field"
@@ -10,7 +10,7 @@
   {
     "id": "action-DIVE-02",
     "name": "潜行 (DIVE)",
-    "description": "前方へ最大3マス移動する。ライト照射は行わない。重複時: 全員、移動力半減＆バッテリーに損傷1。",
+    "description": "前方へ最大3マス移動する。重複時: 全員、移動力半減＆バッテリーに損傷1。",
     "location": "deck",
     "drawLocation": "hand",
     "playLocation": "field"
@@ -18,7 +18,7 @@
   {
     "id": "action-DIVE-03",
     "name": "潜行 (DIVE)",
-    "description": "前方へ最大3マス移動する。ライト照射は行わない。重複時: 全員、移動力半減＆バッテリーに損傷1。",
+    "description": "前方へ最大3マス移動する。重複時: 全員、移動力半減＆バッテリーに損傷1。",
     "location": "deck",
     "drawLocation": "hand",
     "playLocation": "field"
