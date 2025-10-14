@@ -1,7 +1,8 @@
 import React from "react";
 import Deck from "../src/components/Deck";
 import PlayField from "../src/components/PlayField";
-import ScoreBoard from "../src/components/ScoreBoard";
+import { ScoreBoard } from "../src/components/ScoreBoard";
+import TokenStore from "../src/components/TokenStore";
 import { useSocket } from "../src/hooks/useSocket";
 import type { ResourceId } from "../src/types/definition";
 import type { Player } from "../src/types/player";
@@ -177,10 +178,14 @@ export default function App() {
             <MyBoard 
               socket={socket}
               myPlayerId={myPlayerId}
-            />
+              />
         </div>
 
-        {/* 5. 🛠️ デバッグコントロールパネル
+
+        {/* 5. トークン置き場 */}
+        <TokenStore socket={socket} tokenStoreId="ARTIFACT" name="遺物"></TokenStore>
+
+        {/* 6. 🛠️ デバッグコントロールパネル
         <DebugControlPanel
                 players={players}
                 myPlayerId={myPlayerId}

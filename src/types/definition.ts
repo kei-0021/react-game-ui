@@ -11,3 +11,6 @@ export type CellId = string;
 export type PieceId = string;
 
 export type DiceId = string;
+
+export type TokenStoreId = string;
+export type TokenId = string;

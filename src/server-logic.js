@@ -13,6 +13,7 @@ let LOG_CATEGORIES = {
   timer: false,
   addScore: true,
   resource: true,
+  token: true, // ⭐ トークンログカテゴリ
   disconnect: true,
   warn: true,
 };
@@ -45,6 +46,7 @@ function server_log(tag, ...args) {
  * @property {any[]} cards
  * @property {number} score
  * @property {any[]} resources
+ * @property {any[]} tokens // トークンは配列であることを明示
  * @property {Location} position
  */
 
@@ -53,6 +55,8 @@ function server_log(tag, ...args) {
  * @typedef {object} GameState
  * @property {ServerPlayer[]} players
  * @property {any[]} initialResources
+ * @property {any[]} initialTokenStores // ストアの配列を保持
+ * @property {any[]} initialTokens
  * @property {any[][]} board
  * @property {Location[]} exploredCells 
  * @property {number} turn
@@ -162,17 +166,20 @@ const createRandomBoard = (initialBoard) => {
 };
 
 // -----------------------------------------------------------------
-// タイル効果の適用ロジック (NEW!)
+// タイル効果の適用ロジック
 // -----------------------------------------------------------------
 
 /**
  * プレイヤーが停止したマス目の効果を適用する
- * @param {GameState} gameState - 現在のゲーム状態
+ * @param {MockGameState} gameState - 現在のゲーム状態
  * @param {string} playerId - 効果を適用するプレイヤーのID
  * @param {Location} location - プレイヤーが停止したマス目の座標
- * @param {function} updateResource - リソース更新ヘルパー関数
+ * @param {any[]} cellEffects - マス効果定義
+ * @param {function} addScore - スコア加算ヘルパー関数
+ * @param {function} updatePlayerResource - リソース更新ヘルパー関数
+ * @param {function} updatePlayerToken - トークン更新ヘルパー関数
  */
-const applyCellEffect = (gameState, playerId, location, cellEffects, addScore, updatePlayerResource) => {
+const applyCellEffect = (gameState, playerId, location, cellEffects, addScore, updatePlayerResource, updatePlayerToken) => {
     const { row, col } = location;
     
     // 座標が盤面の範囲内かチェック
@@ -192,7 +199,8 @@ const applyCellEffect = (gameState, playerId, location, cellEffects, addScore, u
           effect({ 
             playerId, 
             addScore, 
-            updateResource: updatePlayerResource 
+            updateResource: updatePlayerResource, 
+            updateToken: updatePlayerToken 
           }); 
         } catch (e) {
             server_log("warn", `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
@@ -201,6 +209,118 @@ const applyCellEffect = (gameState, playerId, location, cellEffects, addScore, u
         server_log("cell", `マス効果なし: (${row}, ${col}) ${cell.effect}`);
     }
 };
+
+// -----------------------------------------------------------------
+// MockGameState クラスと TokenStore クラスの定義
+// -----------------------------------------------------------------
+
+class TokenStore {
+    /**
+     * @param {string} id 
+     * @param {string} name 
+     * @param {any[]} initialTokens 
+     */
+    constructor(id, name, initialTokens) {
+        this.id = id;
+        this.name = name;
+        this.tokens = [...initialTokens];
+    }
+    getTokens() {
+        return this.tokens;
+    }
+}
+
+class MockGameState {
+    /**
+     * @param {GameState} initialState
+     * @param {any[]} initialTokenStoresDef
+     */
+    constructor(initialState, initialTokenStoresDef) {
+        this.players = initialState.players;
+        this.initialResources = initialState.initialResources;
+        this.initialTokens = initialState.initialTokens;
+        this.board = initialState.board;
+        this.exploredCells = initialState.exploredCells;
+        this.turn = initialState.turn;
+
+        /** @type {Map<string, TokenStore>} */
+        this.tokenStores = new Map();
+        initialTokenStoresDef.forEach(storeDef => {
+            this.tokenStores.set(storeDef.tokenStoreId, new TokenStore(storeDef.tokenStoreId, storeDef.name, storeDef.tokens));
+        });
+    }
+
+    /**
+     * @param {string} tokenStoreId
+     * @returns {TokenStore | undefined}
+     */
+    getTokenStore(tokenStoreId) {
+        return this.tokenStores.get(tokenStoreId);
+    }
+    
+    /**
+     * トークン獲得ロジックを処理する
+     * @param {string} tokenStoreId - 獲得元のストアID ('scoreboard-acquisition' の場合はスコアボードからの特殊な操作)
+     * @param {string} userId 
+     * @param {string} tokenId 
+     * @returns {boolean} 成功したかどうか
+     */
+    acquireToken(tokenStoreId, userId, tokenId) {
+        const player = this.players.find(p => p.id === userId);
+        if (!player) return false;
+
+        if (tokenStoreId === 'scoreboard-acquisition') {
+            server_log('token', `ユーザー ${userId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`);
+
+            if (!Array.isArray(player.tokens)) {
+                server_log('warn', `Player ${userId}'s tokens property was not an array, initializing it. (scoreboard)`);
+                player.tokens = [];
+            }
+
+            // 例: プレイヤーのインベントリにこのトークンを「追加」する処理をシミュレート
+            const token = { 
+                id: tokenId, 
+                name: `Token ${tokenId.slice(0, 4)}`, 
+                backColor: '#333',
+                count: 1
+            };
+            
+            player.tokens.push(token); 
+            server_log('token', `トークン ${tokenId} をプレイヤー ${userId} のインベントリに再追加しました。`);
+            return true;
+        }
+
+        // 通常の TokenStore からの獲得処理
+        const store = this.tokenStores.get(tokenStoreId);
+        if (store) {
+            const index = store.tokens.findIndex(t => t.id === tokenId);
+            if (index !== -1) {
+                const acquiredToken = store.tokens.splice(index, 1)[0];
+                
+                if (!Array.isArray(player.tokens)) {
+                    server_log('warn', `Player ${userId}'s tokens property was not an array, initializing it. (store acquisition)`);
+                    player.tokens = [];
+                }
+                
+                // 獲得したトークンをプレイヤーのインベントリに追加
+                player.tokens.push(acquiredToken);
+
+                server_log('token', `ユーザー ${userId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    getFullState() {
+        return {
+            players: this.players,
+            board: this.board,
+            exploredCells: this.exploredCells,
+            turn: this.turn,
+        };
+    }
+}
 
 
 // ------------------------------------
@@ -222,6 +342,8 @@ export function initGameServer(io, options = {}) {
   const cardEffects = options.cardEffects || {};
   const initialHand = options.initialHand || {};
   const initialResources = options.initialResources || []; 
+  const initialTokenStores = options.initialTokenStore || []; 
+  const initialTokens = options.initialTokens || [];
   const initialBoard = options.initialBoard || []; 
   const cellEffects = options.cellEffects || [];
 
@@ -230,13 +352,18 @@ export function initGameServer(io, options = {}) {
   const isBoardInitialized = Cells.length > 0;
   
   /** @type {GameState} */
-  const gameState = {
+  const initialState = {
       players: [], 
       initialResources: initialResources,
+      initialTokenStores: initialTokenStores, 
+      initialTokens: initialTokens,
       board: Cells, 
       exploredCells: [], 
       turn: 1, 
   };
+  
+  // MockGameState のインスタンスを作成
+  const gameState = new MockGameState(initialState, initialTokenStores);
   
   // ------------------------------------
   // デッキ関連の状態と初期化
@@ -288,7 +415,7 @@ export function initGameServer(io, options = {}) {
   
   // 探索済みマス目リストを全クライアントにブロードキャストするヘルパー関数
   const broadcastExploredUpdate = () => {
-      // ⭐ クライアント側の要求に合わせてイベント名を 'board-update' に変更
+      // クライアント側の要求に合わせてイベント名を 'board-update' に変更
       io.emit('board-update', gameState.exploredCells); 
       server_log('cell', `Explored cells updated and broadcasted. Total: ${gameState.exploredCells.length}`);
   };
@@ -324,6 +451,33 @@ export function initGameServer(io, options = {}) {
     emitPlayerUpdate();
     return true;
   }
+  
+  // 統一された汎用トークン更新関数
+  function updatePlayerToken(playerId, tokenId, amount) {
+    const player = gameState.players.find(p => p.id === playerId);
+    // プレイヤーとトークン配列の存在を確認
+    if (!player || !player.tokens) return false;
+
+    // トークンIDに基づいてトークンを見つける (トークンは { id, count, name, ... } 形式を想定)
+    const token = player.tokens.find(t => t.id === tokenId);
+    if (!token) {
+      server_log("warn", `トークンID "${tokenId}" が見つかりません。トークン数が更新できませんでした。`);
+      return false;
+    }
+
+    // トークンは資源と異なり最大値がないため、最小値 0 のみチェック
+    const newValue = (token.count || 0) + amount; // count が未定義の場合に備えて 0 を使用
+    token.count = Math.max(0, newValue);
+
+    server_log(
+        "token", 
+        `${player.name}: ${token.name || tokenId} を ${amount > 0 ? '+' : ''}${amount}、現在枚数: ${token.count}`
+    );
+    
+    emitPlayerUpdate();
+    return true;
+  }
+
 
   // デッキをシャッフル
   function shuffleDeck(deckId) {
@@ -352,14 +506,27 @@ export function initGameServer(io, options = {}) {
         socket.emit("game:init-board", gameState.board);
         server_log("game", `接続時にクライアント ${socket.id} へ盤面データを送信`);
     }
+
+    // ⭐ トークンストアの状態をクライアントに送信 (初期化イベント)
+    gameState.tokenStores.forEach(store => {
+        socket.emit(`token-store:init:${store.id}`, store.getTokens());
+        server_log("token", `接続時にクライアント ${socket.id} へストア ${store.id} の初期データを送信`);
+    });
+
+    // 1. 新規プレイヤーに初期リソース、初期トークン、初期位置オブジェクトを追加
+    const initialTokensCopy = Array.isArray(initialTokens) 
+        ? JSON.parse(JSON.stringify(initialTokens))
+        : [];
     
-    // 1. 新規プレイヤーに初期リソースと初期位置オブジェクトを追加
+    server_log("token", `Player ${socket.id} のトークンを初期化:`, initialTokensCopy);
+
     const newPlayer = { 
         id: socket.id, 
         name: `Player ${gameState.players.length + 1}`,
         cards: [], 
         score: 0,
         resources: JSON.parse(JSON.stringify(initialResources)),
+        tokens: initialTokensCopy, 
         position: { row: 0, col: 0 } 
     };
     
@@ -367,9 +534,7 @@ export function initGameServer(io, options = {}) {
     server_log("connection", `新規プレイヤー追加:`, newPlayer);
     socket.emit("player:assign-id", newPlayer.id);
 
-    // ==========================================
-    // ⭐ [新規追加] 初期手札の配布ロジック
-    // ==========================================
+    // 初期手札の配布ロジック
     const { deckId: startDeckId, count: startCount } = initialHand;
 
     if (startDeckId && startCount > 0 && decks[startDeckId]) {
@@ -388,45 +553,43 @@ export function initGameServer(io, options = {}) {
             if (cardIndex !== -1) {
                 const card = decks[startDeckId][cardIndex]; 
                 
-                // カードの属性を設定
                 card.location = "hand";
                 card.isFaceUp = true;
-                card.ownerId = newPlayer.id; // 所有者IDを設定 (前のセクションで実装)
+                card.ownerId = newPlayer.id; 
 
-                // プレイヤーの手札に追加
                 newPlayer.cards.push(card);
             }
         }
-        // 配布後、デッキの状態も更新
         emitDeckUpdate(startDeckId); 
     }
-    // ==========================================
 
-    emitPlayerUpdate(); // 全プレイヤーへ更新を通知
+    emitPlayerUpdate(); 
     io.emit("game:turn", gameState.players[currentTurnIndex]?.id);
 
-    // ------------------------------------
     // 2. プレイヤーの移動処理
-    // ------------------------------------
     socket.on('game:move-player', ({ playerId, newPosition }) => {
         const playerToMove = gameState.players.find(p => p.id === playerId);
 
         if (playerToMove) {
-            // 1. 位置の更新
             playerToMove.position = newPosition;
             server_log('game', `Player ${playerToMove.name} moved to (${newPosition.row}, ${newPosition.col})`);
             
-            // 2. 状態更新: マスを探索済みとしてマーク
             const wasUpdated = markCellAsExplored(gameState, newPosition);
 
-            // 3. マス目の効果を実行 (NEW!)
-            applyCellEffect(gameState, playerId, newPosition, cellEffects, addScore, updatePlayerResource);
+            applyCellEffect(
+                gameState, 
+                playerId, 
+                newPosition, 
+                cellEffects, 
+                addScore, 
+                updatePlayerResource,
+                updatePlayerToken 
+            );
 
-            // 4. 全クライアントにプレイヤーとボード（探索済みマス）の更新を通知
             emitPlayerUpdate(); 
             
             if (wasUpdated) {
-                broadcastExploredUpdate(); // 'board-update' イベントを送信
+                broadcastExploredUpdate(); 
             }
 
         } else {
@@ -434,10 +597,7 @@ export function initGameServer(io, options = {}) {
         }
     });
 
-    // ------------------------------------
-    // 3. マス目探索処理 (新規追加)
-    //    クリックによる移動を分離し、探索/効果発動のみを行う
-    // ------------------------------------
+    // 3. マス目探索処理
     socket.on('game:explore-cell', ({ playerId, targetPosition }) => { 
         const player = gameState.players.find(p => p.id === playerId);
         const { row, col } = targetPosition;
@@ -445,15 +605,12 @@ export function initGameServer(io, options = {}) {
         if (player) {
             server_log('game', `Player ${player.name} exploring cell at (${row}, ${col})`);
             
-            // 1. 状態更新: マスを探索済みとしてマーク (プレイヤーの位置は変更しない)
             const wasUpdated = markCellAsExplored(gameState, targetPosition);
-
-            // 2. 全クライアントにプレイヤーとボード（探索済みマス）の更新を通知
-            //    (マス効果でリソースなどが変わる可能性があるため、プレイヤー情報も更新)
+            
             emitPlayerUpdate(); 
             
             if (wasUpdated) {
-                broadcastExploredUpdate(); // 'board-update' イベントを送信
+                broadcastExploredUpdate(); 
             }
 
         } else {
@@ -462,24 +619,18 @@ export function initGameServer(io, options = {}) {
     });
 
     socket.on('game:unexplore-cell', ({ targetPosition }) => { 
-        // 1. マスを未探索に戻す
         const wasRemoved = unmarkCellAsExplored(gameState, targetPosition);
 
-        // 2. プレイヤー情報（リソースなど）が影響を受けている可能性があるため更新
         emitPlayerUpdate(); 
         
-        // 3. 探索済みリストが変更された場合のみ、クライアントにブロードキャスト
         if (wasRemoved) {
-            broadcastExploredUpdate(); // ⭐ ここで broadcastExploredUpdate を呼び出す
+            broadcastExploredUpdate(); 
         } else {
         }
     });
 
-    // ------------------------------------
-    
-    // 4. 新規接続したクライアントに現在の探索済みマス目リストを送信 (番号を修正)
+    // 4. 新規接続したクライアントに現在の探索済みマス目リストを送信
     if (gameState.exploredCells.length > 0) {
-        // ⭐ イベント名を 'board-update' に変更
         socket.emit('board-update', gameState.exploredCells);
     }
 
@@ -521,15 +672,11 @@ export function initGameServer(io, options = {}) {
           player.cards = player.cards || [];
           card.location = drawLocation;
           card.isFaceUp = true;
-          
-          // ⭐ [修正点] ownerId を設定
-          // カードがプレイヤーの手札に入るため、所有者IDを記録します。
           card.ownerId = playerId; 
           
           player.cards.push(card);
         }
       } else {
-        // playerId がない場合 (例: 公開の場に引く) は ownerId を null に設定
         card.ownerId = null;
         
         card.location = drawLocation || "field";
@@ -554,18 +701,14 @@ export function initGameServer(io, options = {}) {
       if (!decks[deckId]) return;
 
       decks[deckId].forEach(c => {
-          // c.location が "discard" または "field" の場合のみ "deck" に戻す
           if (c.location === "discard" || c.location === "field") {
               c.location = "deck";
               c.isFaceUp = false;
           }
       });
 
-      // プレイフィールドと捨て札の配列のみをクリア
       playFieldCards[deckId] = [];
       discardPile[deckId] = [];
-
-      // drawnCardsはクリアしない (手札として保持される可能性のため)
 
       shuffleDeck(deckId);
       server_log("deck", `デッキ ${deckId} リセット (field/discard のカードのみデッキに戻しシャッフル)`);
@@ -607,14 +750,8 @@ export function initGameServer(io, options = {}) {
         
         server_log("card", `プレイヤー ${playerId} がカード ${card.name} を使用`);
         
-        // ⭐ [修正点 1] ownerId の処理: 
-        if (playLocation === "field") {
-            // Field に行く場合: ownerId を維持または設定 (手札から来た場合は既に設定済み)
-            // ※ ただし、手札から来たなら ownerId は既に card にあるはずなので、ここでは変更しません。
-            //    もしフィールドに置いた時点で playerId を明示的に設定したいなら:
-            //    card.ownerId = playerId;
-        } else if (playLocation === "discard") {
-            // Discard に行く場合: ownerId をクリアする
+        // ownerId の処理: 
+        if (playLocation === "discard") {
             card.ownerId = null;
         }
         
@@ -625,7 +762,8 @@ export function initGameServer(io, options = {}) {
           effect({ 
               playerId, 
               addScore, 
-              updateResource: updatePlayerResource 
+              updateResource: updatePlayerResource,
+              updateToken: updatePlayerToken 
           }); 
         } else {
           server_log("card", `カード効果なし: ${card.name} by ${playerId}`);
@@ -633,7 +771,6 @@ export function initGameServer(io, options = {}) {
         
         server_log("card", `[${playLocation}] へ移動しました`);
 
-        // 配列を playLocation に応じて振り分け (新しい場所に追加)
         if (playLocation === "field") {
           playFieldCards[deckId].push(card);
         } else if (playLocation === "discard") {
@@ -645,7 +782,7 @@ export function initGameServer(io, options = {}) {
       emitPlayerUpdate(); 
     });
 
-    // ⭐ [新規追加] カードを手札に戻す
+    // カードを手札に戻す
     socket.on("card:return-to-hand", ({ deckId, cardId, targetPlayerId }) => {
         if (!decks[deckId] || !targetPlayerId) {
             server_log("warn", "card:return-to-hand: 不正なデッキIDまたはターゲットプレイヤーIDです。", { deckId, targetPlayerId });
@@ -660,7 +797,6 @@ export function initGameServer(io, options = {}) {
             return;
         }
 
-        // 1. 移動元 (PlayField) からの削除
         const fieldIndex = playFieldCards[deckId].findIndex(c => c.id === cardId);
         if (fieldIndex !== -1) {
             playFieldCards[deckId].splice(fieldIndex, 1);
@@ -668,19 +804,51 @@ export function initGameServer(io, options = {}) {
             server_log("warn", `card:return-to-hand: カード ${card.name} はPlayFieldに見つかりませんでしたが、処理を続行します。`);
         }
 
-        // 2. カードの属性を更新
-        card.location = "hand"; // ロケーションを手札に戻す
-        card.isFaceUp = true;    // (手札に戻るため通常は表向きを維持)
-        // card.ownerId は既に設定されているはずなので、ここでは変更しない
+        card.location = "hand"; 
+        card.isFaceUp = true;    
 
-        // 3. 移動先 (プレイヤーの手札) への追加
         player.cards.push(card);
         
         server_log("card", `カード ${card.name} を持ち主 ${player.name} の手札に戻しました。`);
 
-        // 4. 全クライアントへ更新を通知
         emitDeckUpdate(deckId); 
         emitPlayerUpdate(); 
+    });
+
+    // トークン獲得イベントのハンドラ (再修正済み)
+    socket.on('game:acquire-token', (payload) => {
+        const { tokenStoreId, tokenId, tokenName } = payload;
+        const userId = socket.id; 
+
+        server_log('token', `User ${userId} attempts to acquire token: ${tokenName} (Store: ${tokenStoreId}, ID: ${tokenId})`);
+
+        const success = gameState.acquireToken(tokenStoreId, userId, tokenId);
+
+        if (success) {
+            if (tokenStoreId !== 'scoreboard-acquisition') {
+                const updatedTokens = gameState.getTokenStore(tokenStoreId)?.getTokens();
+                if (updatedTokens) {
+                    // ⭐ UPDATE イベントを全クライアントにブロードキャストする
+                    io.emit(`token-store:update:${tokenStoreId}`, updatedTokens); 
+                    server_log('token', `ストア ${tokenStoreId} の更新 (${updatedTokens.length} 個) をブロードキャストしました。`);
+                }
+            }
+            
+            // プレイヤーインベントリの更新 (獲得者の手札/インベントリ表示に必要)
+            emitPlayerUpdate(); 
+
+            // ゲーム全体の状態更新（スコアボード表示などに影響）
+            io.emit('game:state-update', gameState.getFullState());
+            
+        } else {
+            server_log('warn', `Failed to acquire token ${tokenId}. It might not exist or logic failed.`);
+            
+            // 失敗した場合、獲得を試みたクライアントに最新の状態を再送信し、UIをリセットさせる
+            const currentTokens = gameState.getTokenStore(tokenStoreId)?.getTokens();
+            if (currentTokens) {
+                socket.emit(`token-store:update:${tokenStoreId}`, currentTokens);
+            }
+        }
     });
 
     // ダイスロール 
@@ -707,30 +875,36 @@ export function initGameServer(io, options = {}) {
       }, 1000);
     });
 
-    // ------------------------------------
     // 5. スコア加算処理
-    // ------------------------------------
     socket.on('player:add-score', ({ targetPlayerId, points }) => {
-        // ターゲットIDがない場合は、要求したクライアント自身に加算
         const playerId = targetPlayerId || socket.id; 
         addScore(playerId, points);
         server_log('addScore', `外部要求により ${playerId} に ${points} ポイント加算`);
     });
 
-    // ------------------------------------
     // 6. 汎用リソース更新処理
-    // ------------------------------------
     socket.on("player:update-resource", ({ targetPlayerId, resourceId, amount }) => {
-        // ターゲットIDがない場合は、要求したクライアント自身のリソースを更新
         const playerId = targetPlayerId || socket.id; 
         
-        // 既存の updatePlayerResource 関数を呼び出す
         const success = updatePlayerResource(playerId, resourceId, amount);
 
         if (success) {
             server_log('resource', `外部要求により ${playerId} の ${resourceId} を ${amount} 更新`);
         } else {
             server_log('warn', `外部要求によるリソース更新失敗: ${playerId}, ${resourceId}`);
+        }
+    });
+    
+    // 7. 汎用トークン更新処理 (新規)
+    socket.on("player:update-token", ({ targetPlayerId, tokenId, amount }) => {
+        const playerId = targetPlayerId || socket.id; 
+        
+        const success = updatePlayerToken(playerId, tokenId, amount);
+
+        if (success) {
+            server_log('token', `外部要求により ${playerId} の ${tokenId} を ${amount} 更新`);
+        } else {
+            server_log('warn', `外部要求によるトークン更新失敗: ${playerId}, ${tokenId}`);
         }
     });
 
@@ -751,11 +925,11 @@ export function initGameServer(io, options = {}) {
         server_log("disconnect", `現在のターン: ${gameState.players[currentTurnIndex]?.name}`);
         io.emit("game:turn", gameState.players[currentTurnIndex]?.id);
       } else {
-        server_log("disconnect", "プレイヤーがいなくなりました。");
-        io.emit("game:turn", null);
+        server_log("disconnect", "全プレイヤー切断、ゲームを待機状態に");
+        io.emit("game:turn", null); // 全クライアントにターン終了を通知
       }
       
-      emitPlayerUpdate();
+      emitPlayerUpdate(); // プレイヤーリストの更新を通知
     });
   });
 }

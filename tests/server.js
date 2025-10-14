@@ -150,22 +150,14 @@ const convertCellsTo2D = (cells1D, rows, cols) => {
 const completeDeepSeaCells2D = convertCellsTo2D(completeDeepSeaCells1D, ROWS, COLS);
 
 // -----------------------------------------------------------
-
-const initialDecks = [
-  { deckId: "deepSeaSpecies", name: "深海生物カード", cards: deepSeaSpeciesDeckJson, backColor: "#0d3c99ff" },
-    { 
-    deckId: "deepSeaAction", 
-    name: "アクションカード", 
-    cards: deepSeaActionCardsThreeSets, // 3セット18枚を設定
-    backColor: "#0d8999ff" 
-  },
-];
+// ⭐ ゲームリソース定義
+// -----------------------------------------------------------
 
 const DEEP_SEA_RESOURCES = [
   {
     id: 'OXYGEN',
     name: '酸素',
-    icon: '💨',
+    icon: '🫧',
     currentValue: 50,
     maxValue: 50,
     type: 'CONSUMABLE', 
@@ -178,15 +170,77 @@ const DEEP_SEA_RESOURCES = [
     maxValue: 6,
     type: 'CONSUMABLE',
   },
+];
+
+// -----------------------------------------------------------
+// ⭐ [新規] トークンテンプレートと生成ヘルパー
+// -----------------------------------------------------------
+
+const DEEP_SEA_TOKENS_ARTIFACT = [
   {
     id: 'ARTIFACT',
-    name: '遺物',
-    icon: '💰',
-    currentValue: 0,
-    maxValue: 100,
-    type: 'CONSUMABLE',
+    name: '💰',
+    color: '#D4AF37', // Gold color for store display
   },
 ];
+
+/**
+ * トークンテンプレートから指定された枚数分のトークンを生成し、ユニークなIDを割り当てる
+ * @param {Array} templates - トークンテンプレートの配列
+ * @returns {Array} 生成されたすべてのトークン（1次元配列）
+ */
+const createUniqueTokens = (templates, counts) => {
+    const allTokens = [];
+    
+    templates.forEach(template => {
+        for (let i = 1; i <= counts; i++) {
+            // トークンオブジェクトは、プレイヤーに渡されたときに count プロパティが使われるため、
+            // ストアの個別のトークンには count を含めず、代わりに isAvailable: true などで管理する
+            // ここではシンプルに、同じ構造を複製し、ユニークなIDを持たせる
+            allTokens.push({
+                ...template,
+                // ストア内の各トークンはユニークなIDを持つ
+                id: `${template.id}-${i}`, 
+                templateId: template.id, // 種類を識別するためのID
+            });
+        }
+    });
+    
+    console.log(`✅ Token Store: Total ${allTokens.length} individual tokens generated.`);
+    return allTokens;
+};
+
+// サーバー起動時にストアに配置されるトークン
+const initTokenStores = [
+  {
+    tokenStoreId: "ARTIFACT",
+    name: "遺物",
+    tokens: createUniqueTokens(DEEP_SEA_TOKENS_ARTIFACT, 10)
+  },
+]
+
+// -----------------------------------------------------------
+// ⭐ デッキ定義
+// -----------------------------------------------------------
+
+const initialDecks = [
+  { 
+    deckId: "deepSeaSpecies",
+    name: "深海生物カード",
+    cards: deepSeaSpeciesDeckJson,
+    backColor: "#0d3c99ff"
+  },
+  { 
+    deckId: "deepSeaAction", 
+    name: "アクションカード", 
+    cards: deepSeaActionCardsThreeSets, // 3セット18枚を設定
+    backColor: "#0d8999ff" 
+  },
+];
+
+// -----------------------------------------------------------
+// ⭐ GameServer 初期化
+// -----------------------------------------------------------
 
 const demoServer = new GameServer({
   port: 4000,
@@ -199,6 +253,7 @@ const demoServer = new GameServer({
   initialDecks,
   cardEffects,
   initialResources: DEEP_SEA_RESOURCES,
+  initialTokenStore: initTokenStores, // ⭐ [修正] 個別のトークン配列を設定
   initialHand: {
     deckId: "deepSeaAction",
     count: 6 // 各プレイヤーに6枚のカードが初期手札として配られる
