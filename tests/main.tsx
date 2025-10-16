@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import GameRoom from "./rooms/GameRoom.js";
+import GameRoom from "./rooms/GameRoom2.js";
 import RoomLobby from "./rooms/RoomLobby.js";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

@@ -130,7 +130,7 @@ export function initGameServer(io, options = {}) {
         const roomInfo = activeRooms.get(roomId);
         if (!roomInfo) return;
 
-        io.to(roomId).emit(`deck:update:${deckId}`, {
+        io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, {
             currentDeck: roomInfo.decks[deckId].filter(c => c.location === "deck"), 
             drawnCards: roomInfo.drawnCards[deckId],
             playFieldCards: roomInfo.playFieldCards[deckId],
@@ -374,7 +374,7 @@ export function initGameServer(io, options = {}) {
                 io.to(roomId).emit("game:init-board", roomInfo.gameStateInstance.board);
             }
             gameStateInstance.tokenStores.forEach(store => {
-                io.to(roomId).emit(`token-store:init:${store.id}`, store.getTokens());
+                io.to(roomId).emit(`token-store:init:${roomId}:${store.id}`, store.getTokens());
             });
             Object.keys(decks).forEach((deckId) => {
                 io.to(roomId).emit(`deck:init:${deckId}`, {
@@ -551,24 +551,23 @@ export function initGameServer(io, options = {}) {
             emitDeckUpdate(roomId, deckId);
         });
 
-        // デッキリセット 
+        // デッキリセット（プレイヤーの手札はそのまま）
         socket.on("deck:reset", ({ roomId, deckId }) => {
             const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo || !roomInfo.decks[deckId]) { server_log('warn', `[${roomId}] ルームまたはデッキが見つかりません for reset`); return; }
+            if (!roomInfo || !roomInfo.decks[deckId]) { 
+                server_log('warn', `[${roomId}] ルームまたはデッキが見つかりません for reset`); 
+                return; 
+            }
 
             const { decks, playFieldCards, discardPile } = roomInfo;
 
+            // デッキ・プレイフィールド・捨て札のカード位置をリセット
             decks[deckId].forEach(c => {
-                if (c.location === "discard" || c.location === "field" || c.location === "hand") {
+                if (c.location === "discard" || c.location === "field") {
                     c.location = "deck";
                     c.isFaceUp = false;
                     c.ownerId = null; // 所有者をクリア
                 }
-            });
-
-            // プレイヤーの手札からもカードを削除（念のため）
-            roomInfo.gameStateInstance.players.forEach(player => {
-                player.cards = player.cards.filter(c => c.deckId !== deckId || c.location !== "hand");
             });
 
             // 各配列をクリア
@@ -576,11 +575,10 @@ export function initGameServer(io, options = {}) {
             discardPile[deckId] = [];
 
             shuffleDeck(roomId, deckId);
-            server_log("deck", `[${roomId}] デッキ ${deckId} リセット`);
+            server_log("deck", `[${roomId}] デッキ ${deckId} リセット（手札はそのまま）`);
             emitDeckUpdate(roomId, deckId);
-            emitPlayerUpdate(roomId); // プレイヤーの手札が変更された可能性があるので更新
         });
-        
+
         // カード使用
         socket.on("card:play", ({ roomId, deckId, cardIds, playerId, playLocation = "field" }) => {
             const roomInfo = activeRooms.get(roomId);
@@ -636,6 +634,106 @@ export function initGameServer(io, options = {}) {
 
             emitDeckUpdate(roomId, deckId);
             emitPlayerUpdate(roomId);
+        });
+
+        // カードを手札に戻す
+        socket.on("card:return-to-hand", ({ roomId, deckId, cardId, targetPlayerId }) => {
+            const room = activeRooms.get(roomId); // ← gameRooms ではなく activeRooms を使う
+            if (!room) {
+                server_log("warn", "card:return-to-hand: 無効なルームIDです。", { roomId });
+                return;
+            }
+
+            const { decks, playFieldCards, gameStateInstance } = room; // gameStateInstance に修正
+
+            if (!decks[deckId] || !targetPlayerId) {
+                server_log("warn", "card:return-to-hand: 不正なデッキIDまたはターゲットプレイヤーIDです。", { deckId, targetPlayerId });
+                return;
+            }
+
+            const card = decks[deckId].find(c => c.id === cardId);
+            const player = gameStateInstance.players.find(p => p.id === targetPlayerId);
+
+            if (!card || !player) {
+                server_log("warn", "card:return-to-hand: カードまたはプレイヤーが見つかりません。", { cardId, targetPlayerId });
+                return;
+            }
+
+            const fieldIndex = playFieldCards[deckId].findIndex(c => c.id === cardId);
+            if (fieldIndex !== -1) {
+                playFieldCards[deckId].splice(fieldIndex, 1);
+            } else {
+                server_log("warn", `card:return-to-hand: カード ${card.name} はPlayFieldに見つかりませんでしたが、処理を続行します。`);
+            }
+
+            card.location = "hand";
+            card.isFaceUp = true;
+
+            player.cards.push(card);
+
+            server_log("card", `カード ${card.name} を持ち主 ${player.name} の手札に戻しました。（room: ${roomId}）`);
+
+            emitDeckUpdate(roomId, deckId);
+            emitPlayerUpdate(roomId);
+        });
+
+        // トークン獲得イベントのハンドラ（room対応版）
+        socket.on('game:acquire-token', (payload) => {
+            const { roomId, tokenStoreId, tokenId, tokenName } = payload;
+
+            const roomInfo = activeRooms.get(roomId);
+            if (!roomInfo) {
+                server_log('warn', `[${roomId}] Room not found.`);
+                return;
+            }
+
+            const { gameStateInstance } = roomInfo;
+
+            // socket.id からプレイヤーIDを取得
+            const player = gameStateInstance.players.find(p => p.socketId === socket.id);
+            if (!player) {
+                server_log('warn', `[${roomId}] プレイヤーが見つかりません (socket.id: ${socket.id})`);
+                return;
+            }
+            const playerId = player.id;
+
+            server_log('token', `[${roomId}] Player ${player.name} attempts to acquire token: ${tokenName} (Store: ${tokenStoreId}, ID: ${tokenId})`);
+
+            const success = gameStateInstance.acquireToken(tokenStoreId, playerId, tokenId);
+
+            if (success) {
+                if (tokenStoreId !== 'scoreboard-acquisition') {
+                    const updatedTokens = gameStateInstance.getTokenStore(tokenStoreId)?.getTokens();
+                    if (updatedTokens) {
+                        io.to(roomId).emit(`token-store:update:${roomId}:${tokenStoreId}`, updatedTokens);
+                        server_log('token', `[${roomId}] ストア ${tokenStoreId} の更新 (${updatedTokens.length} 個) をブロードキャストしました。`);
+                    }
+                }
+
+                emitPlayerUpdate(roomId);
+                io.to(roomId).emit('game:state-update', gameStateInstance.getFullState());
+            } else {
+                server_log('warn', `[${roomId}] Failed to acquire token ${tokenId}. It might not exist or logic failed.`);
+                const currentTokens = gameStateInstance.getTokenStore(tokenStoreId)?.getTokens();
+                if (currentTokens) {
+                    socket.emit(`token-store:update:${roomId}:${tokenStoreId}`, currentTokens);
+                }
+            }
+        });
+
+        // 次のターン
+        socket.on("game:next-turn", ({ roomId }) => {
+            const roomInfo = activeRooms.get(roomId);
+            if (!roomInfo) {
+                server_log("warn", `[${roomId}] ルームが見つかりません for next-turn`);
+                return;
+            }
+
+            const { gameStateInstance } = roomInfo;
+            roomInfo.currentTurnIndex = (roomInfo.currentTurnIndex + 1) % gameStateInstance.players.length;
+
+            server_log("game", `[${roomId}] 次のターン: ${gameStateInstance.players[roomInfo.currentTurnIndex]?.name}`);
+            io.to(roomId).emit("game:turn", gameStateInstance.players[roomInfo.currentTurnIndex]?.id);
         });
 
         // 接続切断処理

@@ -1,6 +1,4 @@
-import { CellEffectParams } from "../../src/types/cellEffectParams";
-
-export const cellEffects: Record<string, (params: CellEffectParams) => void> = {
+export const cellEffects = {
 // 探索者が見つけたレリックタイル (💎)
     "Relic Site": ({ playerId, updateResource }) => {
         // プレイヤーのリソースID 'artifact' に +1 する

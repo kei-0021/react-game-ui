@@ -1,45 +1,32 @@
 import * as React from "react";
 import { Socket } from "socket.io-client";
 import { Card } from "../types/card.js";
-import { PlayerId } from "../types/definition.js";
+import { PlayerId, RoomId } from "../types/definition.js";
 import { PlayerWithResources } from "../types/playerWithResources.js";
 import type { Resource } from "../types/resource.js";
 import { Token } from "../types/token.js";
 import styles from "./Card.module.css";
 
 // =========================================================================
-// ⭐ NEW: カード表面の内容をレンダリングするヘルパーコンポーネント (React.memoでラップ)
+// カード表面の内容をレンダリング（React.memo）
 // =========================================================================
 const CardDisplayContent = React.memo(({ card, isFaceUp }: { card: Card, isFaceUp: boolean }) => {
-    if (!isFaceUp) {
-      return null; // 裏向きなら何も表示しない
-    }
-  
-    // PNG画像パスが存在する場合
+    if (!isFaceUp) return null;
+
     if (card.frontImage) {
       return (
         <img 
           src={card.frontImage} 
           alt={card.name} 
-          style={{ 
-            width: '100%', 
-            height: '100%', 
-            objectFit: 'contain' // 画像をコンテナ内に収める
-          }} 
+          style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
         />
       );
     }
     
-    // 従来のカード名表示の場合 (画像パスが存在しない場合)
     return (
       <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          height: '100%', 
-          width: '100%',
-          padding: '5px',
-          color: '#333', // カードの文字色
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          height: '100%', width: '100%', padding: '5px', color: '#333'
       }}>
           <strong style={{ fontSize: '0.8em', wordBreak: 'break-all', textAlign: 'center' }}>
               {card.name}
@@ -48,81 +35,60 @@ const CardDisplayContent = React.memo(({ card, isFaceUp }: { card: Card, isFaceU
     );
 });
 
-// === トークン表示用のインラインコンポーネント (TokenDisplayの機能を簡易化) (React.memoでラップ) ===
-const TokenDisplayContent = React.memo(({ tokens, socket, myPlayerId, playerIdBeingDisplayed } : { 
+// =========================================================================
+// トークン表示用 (React.memo)
+// =========================================================================
+const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed } : { 
     tokens?: Token[], 
-    socket: Socket, 
+    socket: Socket,
+    roomId: RoomId,
     myPlayerId: PlayerId | null,
     playerIdBeingDisplayed: PlayerId
 }) => {
-    // 自分のトークンかどうかを判定し、クリック可能にする
     const isMyToken = myPlayerId === playerIdBeingDisplayed;
 
     if (!tokens || tokens.length === 0) return null;
     
-    // トークンリストのレンダリング
     return (
         <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: '8px', 
-            marginTop: '8px',
-            paddingTop: '8px',
-            borderTop: '1px solid #ddd',
+            display: 'flex', flexWrap: 'wrap', gap: '8px', 
+            marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #ddd',
         }}>
-            {/* トークンが存在するもののみをフィルタリングして表示 */}
-            {tokens.map(token => { 
-              return (
+            {tokens.map(token => (
                 <div 
                     key={token.id} 
-                    title={`クリックして再獲得: ${token.name}`}
+                    title={isMyToken ? `クリックして再獲得: ${token.name}` : token.name}
                     style={{ 
-                        // ⭐ 丸型表示のためのスタイル変更
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        backgroundColor: '#ffffffff',
-                        borderRadius: '50%', // 円形にする
-                        width: '48px', // サイズを固定
-                        height: '48px', // サイズを固定
-                        fontSize: '0.75em',
-                        fontWeight: 'bold',
-                        textAlign: 'center',
-                        lineHeight: '1.1',
-                        
-                        // その他のスタイル
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.2)', // 影を強化
-                        cursor: isMyToken ? 'pointer' : 'default', // 自分のトークンのみカーソルを変更
-                        opacity: isMyToken ? 1 : 0.7, // 他のプレイヤーのトークンは少し暗くする
-                        flexShrink: 0,
-                        wordBreak: 'break-word', // 長い名前の折り返し
-                        padding: '2px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        backgroundColor: '#fff', borderRadius: '50%', 
+                        width: '48px', height: '48px',
+                        fontSize: '0.75em', fontWeight: 'bold',
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.2)', 
+                        cursor: isMyToken ? 'pointer' : 'default', 
+                        opacity: isMyToken ? 1 : 0.7,
+                        flexShrink: 0, padding: '2px'
+                    }}
+                    onClick={() => {
+                        if (!isMyToken) return;
+                        socket.emit("token:reclaim", {
+                            roomId,
+                            playerId: myPlayerId,
+                            tokenId: token.id,
+                        });
                     }}
                 >
-                    {/* トークン名を中央に直接表示 */}
                     {token.name}
                 </div>
-              );
-            })}
+            ))}
         </div>
     );
 });
-// =========================================================================
 
-// Player型はリソースを持つことを前提とする
+// =========================================================================
+// PlayerListItem（1プレイヤー分）
+// =========================================================================
 type DisplayedPlayer = PlayerWithResources & { score: number, cards: Card[], resources: Resource[], tokens: Token[] };
 
-type ScoreboardProps = {
-    socket: Socket;
-    players: PlayerWithResources[]; // プレイヤー型をリソースを持つ型に修正
-    currentPlayerId?: PlayerId | null;
-    myPlayerId: PlayerId | null;
-    backColor?: string;
-};
-
-// =========================================================================
-// ⭐ プレイヤーリストアイテムをメモ化するコンポーネント
-// =========================================================================
 type PlayerListItemProps = {
     player: DisplayedPlayer;
     currentPlayerId: PlayerId | null | undefined;
@@ -130,9 +96,9 @@ type PlayerListItemProps = {
     selectedCards: string[];
     toggleCardSelection: (cardId: string, isFaceUp: boolean) => void;
     socket: Socket;
+    roomId: RoomId;
 };
 
-// プレイヤーデータが変更されない限り再レンダリングしない
 const PlayerListItem = React.memo(({
     player,
     currentPlayerId,
@@ -140,10 +106,9 @@ const PlayerListItem = React.memo(({
     selectedCards,
     toggleCardSelection,
     socket,
+    roomId,
 }: PlayerListItemProps) => {
 
-    // カードとリソースのレンダリングもMemo化して再計算を削減可能だが、今回はItem全体をMemo化
-    
     return (
         <li
             key={player.id}
@@ -164,15 +129,9 @@ const PlayerListItem = React.memo(({
                 <span style={{ fontSize: "1.2em"}}>スコア: {player.score}</span>
             </div>
 
-            {/* リソース表示エリアの修正 */}
-            {player.resources && player.resources.length > 0 && (
-                <div style={{ 
-                    display: "block", 
-                    marginTop: "4px", 
-                    marginBottom: "8px", 
-                    fontSize: "0.9em", 
-                    color: "#333" 
-                }}>
+            {/* リソース */}
+            {player.resources?.length > 0 && (
+                <div style={{ marginTop: "4px", marginBottom: "8px", fontSize: "0.9em", color: "#333" }}>
                     <strong style={{ display: "block", marginBottom: "4px"}}>リソース:</strong>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                         {player.resources.map((resource) => (
@@ -193,21 +152,21 @@ const PlayerListItem = React.memo(({
                 </div>
             )}
             
-            {/* トークン表示 */}
-            {player.tokens && player.tokens.length > 0 && (
+            {/* トークン */}
+            {player.tokens?.length > 0 && (
                 <TokenDisplayContent 
                     tokens={player.tokens} 
                     socket={socket} 
+                    roomId={roomId}
                     myPlayerId={myPlayerId} 
                     playerIdBeingDisplayed={player.id} 
                 />
             )}
 
-            {/* カードの表示ロジック（画像表示を適用） */}
+            {/* カード */}
             <div style={{ display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }}>
                 {player.cards.map((card) => {
-                    // 自分のカードのみ表、そうでなければ裏
-                    const isFaceUp: boolean = !!card.isFaceUp && player.id === myPlayerId;
+                    const isFaceUp = !!card.isFaceUp && player.id === myPlayerId;
                     const isSelected = selectedCards.includes(card.id);
 
                     return (
@@ -220,15 +179,11 @@ const PlayerListItem = React.memo(({
                                 backgroundColor: isFaceUp ? undefined : card.backColor, 
                                 border: isSelected ? "2px solid gold" : "none",
                                 boxSizing: "border-box",
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
+                                display: 'flex', justifyContent: 'center', alignItems: 'center',
                             }}
                             onClick={() => toggleCardSelection(card.id, isFaceUp)}
                         >
                             <CardDisplayContent card={card} isFaceUp={isFaceUp} />
-                            
-                            {/* ツールチップはそのまま残す */}
                             {isFaceUp && card.description && (
                                 <span className={styles.tooltip}>{card.description}</span>
                             )}
@@ -238,31 +193,29 @@ const PlayerListItem = React.memo(({
             </div>
         </li>
     );
-}, (prevProps, nextProps) => {
-    // 複雑なオブジェクト比較は避ける。ここでは、playerオブジェクト自体が不変であればOKとする。
-    // player、selectedCards配列、myPlayerId、currentPlayerIdの参照が全て同じなら再レンダリングしない
-    // ただし、selectedCardsはStateなので変更されると参照が変わる
-    return (
-        prevProps.player === nextProps.player &&
-        prevProps.selectedCards === nextProps.selectedCards &&
-        prevProps.myPlayerId === nextProps.myPlayerId &&
-        prevProps.currentPlayerId === nextProps.currentPlayerId
-    );
 });
 
+// =========================================================================
+// メインコンポーネント
+// =========================================================================
+type ScoreboardProps = {
+    socket: Socket;
+    players: PlayerWithResources[];
+    currentPlayerId?: PlayerId | null;
+    myPlayerId: PlayerId | null;
+    roomId: RoomId;
+    backColor?: string;
+};
 
-// =========================================================================
-// ⭐ メインコンポーネント
-// =========================================================================
 export default function ScoreBoard({
     socket,
     players,
     currentPlayerId,
     myPlayerId,
+    roomId,
     backColor = "#000000ff",
 }: ScoreboardProps) {
     
-    // ⭐ UseMemoを使用して、playersプロップスが変更されたときのみ displayedPlayers を再計算
     const displayedPlayers: DisplayedPlayer[] = React.useMemo(() => {
         return (players || []).map((p) => ({
             ...p,
@@ -271,16 +224,16 @@ export default function ScoreBoard({
             resources: p.resources ?? [],
             tokens: p.tokens ?? [],
         }));
-    }, [players]); // players配列の参照が変更されたときのみ実行
+    }, [players]);
 
-    const [selectedCards, setSelectedCards] = React.useState<string[]>([]); // 同時出し用の選択カード
+    const [selectedCards, setSelectedCards] = React.useState<string[]>([]);
 
     const toggleCardSelection = React.useCallback((cardId: string, isFaceUp: boolean) => {
         if (!isFaceUp) return;
         setSelectedCards((prev) =>
             prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
         );
-    }, []); // 依存配列は空でOK
+    }, []);
 
     const playSelectedCards = React.useCallback(() => {
         if (selectedCards.length === 0 || !myPlayerId) return;
@@ -292,7 +245,6 @@ export default function ScoreBoard({
         let targetPlayLocation: string | undefined;
 
         selectedCards.forEach((cardId) => {
-            // @ts-ignore
             const card = myPlayer.cards.find((c) => c.id === cardId);
             if (!card) return;
             
@@ -308,34 +260,31 @@ export default function ScoreBoard({
         
         Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
             socket.emit("card:play", {
+                roomId,
                 deckId,
-                cardIds,       // そのデッキ内の複数カード
+                cardIds,
                 playerId: myPlayerId,
                 playLocation: targetPlayLocation, 
             });
         });
 
-        setSelectedCards([]); // 選択解除
-    }, [selectedCards, myPlayerId, displayedPlayers, socket]); // 依存配列にStateとPropsを追加
+        setSelectedCards([]);
+    }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId]);
 
-    // nextTurn関数も useCallback でメモ化
-    const nextTurn = React.useCallback(() => socket.emit("game:next-turn"), [socket]);
+    const nextTurn = React.useCallback(() => {
+        socket.emit("game:next-turn", { roomId });
+    }, [socket, roomId]);
 
     return (
         <div style={{ 
-            padding: "16px", 
-            border: "1px solid #333", 
-            borderRadius: "12px", 
-            backgroundColor: "#f9f9f9",
-            maxWidth: "900px",
-            margin: "0 auto",
+            padding: "16px", border: "1px solid #333", borderRadius: "12px", 
+            backgroundColor: "#f9f9f9", maxWidth: "900px", margin: "0 auto",
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
         }}>
             <h2 style={{ fontSize: "1.5em", marginBottom: "12px", borderBottom: "2px solid #ddd", paddingBottom: "8px" }}>
                 ゲームスコアボード
             </h2>
             <ul style={{ listStyle: "none", padding: 0 }}>
-                {/* PlayerListItemコンポーネントを使用してレンダリング */}
                 {displayedPlayers.map((player) => (
                     <PlayerListItem
                         key={player.id}
@@ -345,6 +294,7 @@ export default function ScoreBoard({
                         selectedCards={selectedCards}
                         toggleCardSelection={toggleCardSelection}
                         socket={socket}
+                        roomId={roomId}
                     />
                 ))}
             </ul>
