@@ -1,6 +1,5 @@
 import { Socket } from "socket.io-client";
-import type { DeckId } from "../types/card.js";
-import { PlayerId } from "../types/player.js";
+import type { DeckId, PlayerId } from "../types/definition.js";
 type DeckProps = {
     socket: Socket;
     deckId: DeckId;

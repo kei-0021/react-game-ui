@@ -255,7 +255,7 @@ const PlayerListItem = React.memo(({
 // =========================================================================
 // ⭐ メインコンポーネント
 // =========================================================================
-export function ScoreBoard({
+export default function ScoreBoard({
     socket,
     players,
     currentPlayerId,

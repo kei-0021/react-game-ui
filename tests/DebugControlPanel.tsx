@@ -38,33 +38,29 @@ export default function DebugControlPanel({
     debugPanelStyle,
     inputStyle
 }: DebugControlPanelProps) {
+    
+    // 💡 変更: 自分のプレイヤーのみをフィルタリング
+    const myPlayer = players.find(p => p.id === myPlayerId);
+    // <select>でマップするための配列。myPlayerが存在すればそれを含む配列にする
+    const selectablePlayers = myPlayer ? [myPlayer] : [];
+
     return (
         // 5. 🛠️ デバッグコントロールパネル
         <div style={debugPanelStyle}>
             <p style={{ color: '#FFEB3B', fontSize: '1.1em', marginBottom: '8px' }}>🛠️ デバッグ/テストコントロール</p>
             
-            {/* ターゲットプレイヤー選択 */}
+            {/* ターゲットプレイヤー表示（選択肢は自分だけ、固定表示） */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <select 
-                    value={debugTargetId || ''} 
-                    onChange={(e) => setDebugTargetId(e.target.value)}
-                    style={{ 
-                        ...inputStyle, 
-                        width: '180px', 
-                        cursor: 'pointer',
-                        backgroundColor: 'rgba(0, 188, 212, 0.2)',
-                    }}
-                >
-                    <option value="" disabled>プレイヤーを選択</option>
-                    {players.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.name} ({p.id === myPlayerId ? '自分' : p.id.substring(0, 4)})
-                        </option>
-                    ))}
-                </select>
+            {myPlayer ? (
+                <span style={{ ...inputStyle, display: 'inline-block', width: '180px', backgroundColor: 'rgba(0, 188, 212, 0.2)', padding: '4px 8px' }}>
+                {myPlayer.name} (自分: {myPlayer.id.substring(0, 4)})
+                </span>
+            ) : (
+                <span style={{ color: '#FFEB3B' }}>プレイヤーIDが見つかりません</span>
+            )}
             </div>
             
-            {/* スコア更新 */}
+            {/* スコア更新 (以下変更なし) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <input 
                     type="number" 
@@ -82,7 +78,7 @@ export default function DebugControlPanel({
                 </button>
             </div>
 
-            {/* リソース更新 */}
+            {/* リソース更新 (以下変更なし) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <input 
                     type="number" 

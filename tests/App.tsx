@@ -7,6 +7,7 @@ import { useSocket } from "../src/hooks/useSocket";
 import type { ResourceId } from "../src/types/definition";
 import type { Player } from "../src/types/player";
 import type { Resource } from "../src/types/resource";
+import DebugControlPanel from "./DebugControlPanel";
 import MyBoard from "./MyBoard";
 
 // 抽象的な Player 型にリソース情報が付加されていることを示す型を定義
@@ -185,7 +186,7 @@ export default function App() {
         {/* 5. トークン置き場 */}
         <TokenStore socket={socket} tokenStoreId="ARTIFACT" name="遺物"></TokenStore>
 
-        {/* 6. 🛠️ デバッグコントロールパネル
+        {/* 6. 🛠️ デバッグコントロールパネル */}
         <DebugControlPanel
                 players={players}
                 myPlayerId={myPlayerId}
@@ -200,7 +201,7 @@ export default function App() {
                 RESOURCE_IDS={RESOURCE_IDS}
                 debugPanelStyle={debugPanelStyle}
                 inputStyle={inputStyle}
-            /> */}
+            /> 
 
         {/* Flexbox レイアウト (Deck / PlayField / ScoreBoard 横並び) */}
         <div style={{ 
