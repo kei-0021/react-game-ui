@@ -5,21 +5,24 @@ import { Socket } from "socket.io-client";
 type TimerProps = {
   socket?: Socket | null;
   onFinish?: () => void;
+  roomId?: string; // ルーム対応用
 };
 
-export default function Timer({ socket = null, onFinish }: TimerProps) {
+export default function Timer({ socket = null, onFinish, roomId }: TimerProps) {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !roomId) return;
 
-    const handleStart = (duration: number) => {
-      setTimeLeft(duration);
+    const handleStart = (data: { duration: number; roomId: string }) => {
+      if (data.roomId !== roomId) return; // 他のルームのイベントは無視
+      setTimeLeft(data.duration);
     };
 
-    const handleUpdate = (remaining: number) => {
-      setTimeLeft(remaining);
-      if (remaining <= 0) onFinish?.();
+    const handleUpdate = (data: { remaining: number; roomId: string }) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(data.remaining);
+      if (data.remaining <= 0) onFinish?.();
     };
 
     socket.on("timer:start", handleStart);
@@ -29,11 +32,11 @@ export default function Timer({ socket = null, onFinish }: TimerProps) {
       socket.off("timer:start", handleStart);
       socket.off("timer:update", handleUpdate);
     };
-  }, [socket, onFinish]);
+  }, [socket, roomId, onFinish]);
 
   const start = () => {
-    if (!socket) return;
-    socket.emit("timer:start", 30); // 例: 30秒
+    if (!socket || !roomId) return;
+    socket.emit("timer:start", { duration: 30, roomId }); // ルームID付き
   };
 
   return (

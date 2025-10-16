@@ -391,6 +391,21 @@ export function initGameServer(io, options = {}) {
             }
         });
 
+        // スコア加算
+        socket.on("room:player:add-score", ({ roomId, targetPlayerId, points }) => {
+            const roomInfo = activeRooms.get(roomId);
+            if (!roomInfo) return;
+
+            addScore(roomId, targetPlayerId, points);
+        });
+
+        socket.on("room:player:update-resource", ({ roomId, playerId, resourceId, amount }) => {
+            const roomInfo = activeRooms.get(roomId);
+            if (!roomInfo) return;
+
+            updatePlayerResource(roomId, playerId, resourceId, amount);
+        });
+
         // 3. プレイヤーの移動処理
         socket.on('game:move-player', ({ roomId, playerId, newPosition }) => {
             const roomInfo = activeRooms.get(roomId);

@@ -1,0 +1,214 @@
+/* Deep Abyss Theme Colors */
+:root {
+    --color-background-deep: #01041d; /* 非常に深い紺/黒 */
+    --color-background-dark: #070c38; /* ダークなセクション背景 */
+    --color-background-mid: #0d1657; /* ルームアイテム背景 */
+    --color-text-light: #ffffff; /* 通常の文字色 */
+    --color-text-secondary: #9aa8c4; /* 補助的な文字色 */
+    --color-cyan-accent: #00bcd4; /* シアン（ネオン）アクセント */
+    --color-cyan-hover: #0097a7; /* シアン（ネオン）ホバー */
+    --color-green-success: #4caf50; /* 参加ボタン色 */
+    --color-green-hover: #388e3c;
+    --color-red-full: #b71c1c; /* ルーム満室色 */
+    --color-yellow-status: #ffeb3b; /* 接続中などのステータス色 */
+}
+
+/* ページ全体のスタイル */
+body {
+    background-color: var(--color-background-deep);
+    color: var(--color-text-light);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* ロビーコンテナ */
+.lobby-container {
+    padding: 24px;
+    max-width: 512px; /* max-w-lg */
+    margin: 32px auto; /* mx-auto */
+    background-color: var(--color-background-dark); /* bg-gray-900 */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 50px var(--color-cyan-accent) inset; /* 深海の光のようなシャドウ */
+    border-radius: 12px; /* rounded-xl */
+}
+
+/* ヘッダータイトル */
+.lobby-title {
+    font-size: 30px; /* text-3xl */
+    font-weight: 700; /* font-bold */
+    text-align: center;
+    margin-bottom: 24px;
+    color: var(--color-cyan-accent); /* text-cyan-400 */
+    text-shadow: 0 0 5px var(--color-cyan-accent); /* ネオン効果 */
+}
+
+/* セクション（枠で囲まれた部分） */
+.section {
+    margin-bottom: 24px;
+    padding: 16px;
+    background-color: var(--color-background-dark); /* bg-gray-800 */
+    border-radius: 8px; /* rounded-lg */
+    border: 1px solid #1f3a93; /* 深い青の境界線 */
+}
+
+.create-room-section {
+    border-color: var(--color-cyan-accent); /* 作成セクションはシアンで強調 */
+    box-shadow: 0 0 10px rgba(0, 188, 212, 0.3);
+}
+
+/* セクションタイトル */
+.section-title {
+    font-size: 20px; /* text-xl */
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 12px;
+}
+
+.list-header {
+    color: var(--color-cyan-accent); /* リストタイトルを強調 */
+}
+
+/* 入力フィールド */
+.input-field {
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background-color: #121f6a; /* bg-gray-700よりも少し深い青 */
+    border: 1px solid #283593; /* border-gray-600 */
+    border-radius: 6px;
+    color: var(--color-text-light);
+    transition: border-color 0.2s;
+}
+.input-field::placeholder {
+    color: var(--color-text-secondary); /* placeholder-gray-400 */
+}
+.input-field:focus {
+    outline: none;
+    border-color: var(--color-cyan-accent); /* focus:border-cyan-400 */
+}
+
+/* ボタンの共通スタイル */
+.button {
+    width: 100%;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 700;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s, transform 0.1s;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-light);
+}
+.button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: saturate(0.5);
+}
+.button:not(:disabled):active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* プライマリーボタン (作成) */
+.primary-button {
+    background-color: var(--color-cyan-accent); /* bg-cyan-600 */
+}
+.primary-button:not(:disabled):hover {
+    background-color: var(--color-cyan-hover); /* hover:bg-cyan-500 */
+}
+
+/* サクセスボタン (IDで参加) */
+.success-button {
+    background-color: var(--color-green-success); /* bg-green-600 */
+}
+.success-button:not(:disabled):hover {
+    background-color: var(--color-green-hover); /* hover:bg-green-500 */
+}
+
+/* ステータスメッセージ */
+.status-message {
+    color: var(--color-text-secondary); /* text-gray-400 */
+    text-align: center;
+    font-size: 14px;
+    margin-top: 8px;
+}
+.status-message.loading {
+    color: var(--color-yellow-status); /* text-yellow-500 */
+}
+
+/* ルームリスト */
+.room-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* space-y-3 */
+}
+
+/* ルームアイテム */
+.room-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s, opacity 0.2s;
+    cursor: pointer;
+}
+
+/* 参加可能なルーム */
+.room-item-available {
+    background-color: var(--color-background-mid); /* bg-gray-700 */
+}
+.room-item-available:hover {
+    background-color: #1a237e; /* hover:bg-gray-600 */
+}
+
+/* 満室のルーム */
+.room-item-full {
+    background-color: var(--color-red-full); /* bg-red-900 */
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ルーム情報 */
+.room-info {
+    flex-grow: 1;
+}
+
+.room-name {
+    font-size: 16px; /* text-lg */
+    font-weight: 500;
+}
+
+.room-id {
+    font-size: 14px; /* text-sm */
+    color: var(--color-text-secondary);
+}
+
+/* ルームのステータス（人数、作成時刻） */
+.room-status {
+    text-align: right;
+}
+
+.player-count {
+    font-size: 14px; /* text-sm */
+    font-weight: 700; /* font-bold */
+    display: block; /* 縦に並べるためにブロック要素に */
+}
+
+/* 人数OK */
+.status-ok {
+    color: var(--color-green-success); /* text-green-400 */
+}
+
+/* 人数FULL */
+.status-full {
+    color: var(--color-red-full); /* text-red-400 */
+}
+
+.created-at {
+    font-size: 12px; /* text-xs */
+    color: #4a629b; /* text-gray-500 */
+}
