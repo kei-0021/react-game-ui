@@ -1,5 +1,5 @@
 import * as React from "react";
-import React__default, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React__default, { useState, useRef, useMemo, useEffect, useCallback } from "react";
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production_min = {};
 /**
@@ -1270,12 +1270,13 @@ function Deck({ socket, deckId, name, playerId = null }) {
     )
   ] });
 }
-function Dice({ sides = 6, socket = null, diceId, onRoll }) {
+function Dice({ sides = 6, socket = null, diceId, roomId, onRoll }) {
   const [value, setValue] = useState(null);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef(null);
+  const rollEventName = useMemo(() => `dice:rolled:${roomId}:${diceId}`, [roomId, diceId]);
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !roomId) return;
     const handleRoll = (rolledValue) => {
       setRolling(true);
       const rollDuration = 1e3;
@@ -1295,37 +1296,48 @@ function Dice({ sides = 6, socket = null, diceId, onRoll }) {
         }
       }, interval);
     };
-    socket.on(`dice:rolled:${diceId}`, handleRoll);
+    socket.on(rollEventName, handleRoll);
     return () => {
-      socket.off(`dice:rolled:${diceId}`, handleRoll);
+      socket.off(rollEventName, handleRoll);
       if (animRef.current) clearInterval(animRef.current);
     };
-  }, [socket, sides, diceId, onRoll]);
+  }, [socket, sides, diceId, roomId, onRoll, rollEventName]);
   const roll = () => {
     if (!socket || rolling) return;
-    socket.emit("dice:roll", { diceId, sides });
+    socket.emit("dice:roll", {
+      roomId,
+      diceId,
+      sides
+    });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+  const diceStyle = {
+    width: "80px",
+    height: "80px",
+    border: "2px solid #333",
+    borderRadius: "8px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "2rem",
+    fontWeight: "bold",
+    cursor: rolling ? "not-allowed" : "pointer",
+    userSelect: "none",
+    backgroundColor: rolling ? "#ffeaa7" : "#fff",
+    color: "#333",
+    boxShadow: rolling ? "0 0 15px rgba(255, 107, 107, 0.7)" : "0 4px 6px rgba(0,0,0,0.3)",
+    transition: "all 0.2s",
+    fontFamily: "Inter, sans-serif"
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
-      style: {
-        width: "80px",
-        height: "80px",
-        border: "2px solid #333",
-        borderRadius: "8px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: "2rem",
-        fontWeight: "bold",
-        cursor: rolling ? "not-allowed" : "pointer",
-        userSelect: "none",
-        backgroundColor: "#fff",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-        transition: "transform 0.2s"
-      },
+      style: diceStyle,
       onClick: roll,
-      children: value ?? "🎲"
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "1em" }, children: value ?? "🎲" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "0.5rem", color: "#666" }, children: diceId })
+      ]
     }
   );
 }

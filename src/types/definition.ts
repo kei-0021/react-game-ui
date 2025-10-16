@@ -1,6 +1,8 @@
 // src/types/definition.ts
 // タイプエイリアスだけをまとめたファイル
 
+export type RoomId = string;
+
 export type PlayerId = string;
 export type ResourceId = string;
 

@@ -105,7 +105,7 @@ async function startServer() {
     initialHand:{deckId:"deepSeaAction",count:6},
     initialBoard:completeDeepSeaCells2D,
     cellEffects, // cellEffects が未定義のため、一旦コメントアウトまたは定義を追加してください
-    initialLogCategories:{connection:false,deck:true}
+    initialLogCategories:{connection:true,deck:true, room:true, lobby:true}
   });
 
   demoServer.start();
