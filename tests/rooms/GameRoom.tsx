@@ -1,14 +1,18 @@
-import React from "react";
-import Deck from "../src/components/Deck";
-import PlayField from "../src/components/PlayField";
-import ScoreBoard from "../src/components/ScoreBoard";
-import TokenStore from "../src/components/TokenStore";
-import { useSocket } from "../src/hooks/useSocket";
-import type { ResourceId } from "../src/types/definition";
-import type { Player } from "../src/types/player";
-import type { PlayerWithResources } from "../src/types/playerWithResources";
-import DebugControlPanel from "./DebugControlPanel";
-import MyBoard from "./MyBoard";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import Deck from "../../src/components/Deck";
+import PlayField from "../../src/components/PlayField";
+import ScoreBoard from "../../src/components/ScoreBoard";
+import TokenStore from "../../src/components/TokenStore";
+import { useSocket } from "../../src/hooks/useSocket";
+import type { ResourceId } from "../../src/types/definition";
+import type { Player } from "../../src/types/player";
+import type { PlayerWithResources } from "../../src/types/playerWithResources";
+import DebugControlPanel from "../components/DebugControlPanel";
+import MyBoard from "../components/MyBoard";
+
+// 仮のサーバーURL
+const SERVER_URL = "http://127.0.0.1:4000"; 
 
 // デバッグ/テスト用リソースID
 const RESOURCE_IDS = {
@@ -17,59 +21,73 @@ const RESOURCE_IDS = {
     HULL: 'hull' // 船体耐久度
 };
 
-export default function App() {
-  const socket = useSocket("http://127.0.0.1:4000");
-  const [myPlayerId, setMyPlayerId] = React.useState<string | null>(null);
+// 既存のApp.tsxのロジックをGameRoomに移植
+export default function GameRoom() {
+  // 1. URLからroomIdを取得
+  const { roomId } = useParams<{ roomId: string }>(); 
   
-  // 状態管理の型を PlayerWithResources[] に変更
-  const [players, setPlayers] = React.useState<PlayerWithResources[]>([]); 
+  // 2. Socket接続を確立
+  // useSocketはio(SERVER_URL)をラップしていると仮定
+  const socket = useSocket(SERVER_URL); 
   
-  const [currentPlayerId, setCurrentPlayerId] = React.useState<string | null>(null);
+  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
+  const [players, setPlayers] = useState<PlayerWithResources[]>([]); 
+  const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
 
   // --- デバッグ用状態 ---
-  const [debugTargetId, setDebugTargetId] = React.useState<string | null>(null);
-  const [debugScoreAmount, setDebugScoreAmount] = React.useState<number>(10);
-  const [debugResourceAmount, setDebugResourceAmount] = React.useState<number>(1);
+  const [debugTargetId, setDebugTargetId] = useState<string | null>(null);
+  const [debugScoreAmount, setDebugScoreAmount] = useState<number>(10);
+  const [debugResourceAmount, setDebugResourceAmount] = useState<number>(1);
   // ----------------------
 
-  React.useEffect(() => {
-    if (!socket) return;
+  useEffect(() => {
+    if (!socket || !roomId) return;
+    
+    // 💡 ルーム参加処理
+    socket.emit("room:join", roomId); 
+    console.log(`Socket joining room: ${roomId}`);
 
+    // --- ゲームロジックのイベントリスナー ---
+    
     socket.on("player:assign-id", (id: Player["id"]) => {
         setMyPlayerId(id);
-        setDebugTargetId(id); // 初期ターゲットを自分自身に設定
+        setDebugTargetId(id); 
     });
     
-    // socket.onで受け取るデータも PlayerWithResources[] 型であることを宣言
-    // サーバーがこの型でデータを送ることを前提とする
     socket.on("players:update", (updatedPlayers: PlayerWithResources[]) => {
       setPlayers(updatedPlayers);
     });
     
     socket.on("game:turn", setCurrentPlayerId);
 
+    // --- クリーンアップ ---
     return () => {
-      socket.off("player:assign-id");
-      socket.off("players:update");
-      socket.off("game:turn");
+        // コンポーネントがアンマウントされたら、ルームを離脱するイベントを送信しても良い
+        socket.emit("room:leave", roomId);
+        socket.off("player:assign-id");
+        socket.off("players:update");
+        socket.off("game:turn");
     };
-  }, [socket]);
+  }, [socket, roomId]); // 依存配列にsocketとroomIdを含める
   
   // ----------------------------------------------------
-  // デバッグ/テスト用ロジック
+  // デバッグ/テスト用ロジック (App.tsxから移動)
   // ----------------------------------------------------
-
   const handleDebugScore = (amount: number) => {
-    if (!socket || !debugTargetId) return;
-    socket.emit('player:add-score', { 
+    if (!socket || !debugTargetId || !roomId) return;
+    // 💡 ルームIDをペイロードに追加
+    socket.emit('room:player:add-score', { 
+        roomId, // ルームIDを追加
         targetPlayerId: debugTargetId, 
         points: amount 
     });
   };
 
   const handleDebugResource = (resourceId: ResourceId, amount: number) => {
-    if (!socket || !debugTargetId) return;
-    socket.emit('player:update-resource', { 
+    if (!socket || !debugTargetId || !roomId) return;
+    // 💡 ルームIDをペイロードに追加
+    socket.emit('room:player:update-resource', { 
+        roomId, // ルームIDを追加
         targetPlayerId: debugTargetId, 
         resourceId: resourceId, 
         amount: amount 
@@ -78,31 +96,32 @@ export default function App() {
   
   // ----------------------------------------------------
 
-  if (!socket) return <p>接続中…</p>;
+  if (!roomId) return <p>ルームIDの取得を待っています...</p>;
+  if (!socket) return <p>サーバーに接続中...</p>;
   
+  // App.tsxから移動したスタイルとレンダリング部分
+  // ... (スタイルは省略し、JSX部分のみを抽出)
   
   // 1. 🌊 ブラウザ全体に適用する背景スタイル (深海グラデーション + グリッド模様)
   const fullScreenBackgroundStyle: React.CSSProperties = {
     minHeight: '100vh', 
     backgroundColor: '#0a192f', 
     backgroundImage: `
-      // 1. メインの深海グラデーション
       linear-gradient(135deg, #0a192f 0%, #1e3a5f 70%, #0a192f 100%),
-      // 2. レーダーのグリッドパターン (薄いシアン)
       linear-gradient(to right, rgba(139, 233, 253, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(139, 233, 253, 0.05) 1px, transparent 1px)
     `,
     backgroundSize: `
       auto,
-      30px 30px, // グリッドの横サイズ
-      30px 30px  // グリッドの縦サイズ
+      30px 30px, 
+      30px 30px  
     `,
     backgroundPosition: `
       center,
       center,
       center
     `,
-    position: 'relative', // レーダーアニメーションの親要素として設定
+    position: 'relative', 
     overflow: 'hidden', 
     padding: '20px', 
     boxSizing: 'border-box',
@@ -112,7 +131,7 @@ export default function App() {
   // 3. ✨ タイトル装飾スタイル
   const titleStyle: React.CSSProperties = {
     textAlign: 'center', 
-    color: '#ffffff', // 純粋な白
+    color: '#ffffff', 
     textShadow: '0 0 10px rgba(139, 233, 253, 0.7)', 
     marginBottom: '5px' 
   };
@@ -155,35 +174,26 @@ export default function App() {
     marginRight: '10px',
   };
 
+
   return (
-    // 1. ブラウザ全体に背景スタイルを適用 (親要素)
     <div style={fullScreenBackgroundStyle}>
-      
-      {/* 2. コンテンツエリアにグラスモーフィズムスタイルを適用 */}
       <div>
-        
-        {/* 3. タイトルとサブタイトル */}
         <h1 style={titleStyle}>
-          ディープ・アビス (Deep Abyss)
+          ディープ・アビス (Deep Abyss) - Room ID: {roomId}
         </h1>
         <p style={subtitleStyle}>
           深海を調査して眠れる資源を見つけ出せ！
         </p>
         
-        {/* 4. MyBoardを中央寄せするためのラッパーdiv */}
         <div style={boardWrapperStyle}>
-            {/* メインのボードコンポーネント */}
             <MyBoard 
               socket={socket}
               myPlayerId={myPlayerId}
               />
         </div>
 
-
-        {/* 5. トークン置き場 */}
         <TokenStore socket={socket} tokenStoreId="ARTIFACT" name="遺物"></TokenStore>
 
-        {/* 6. 🛠️ デバッグコントロールパネル */}
         <DebugControlPanel
                 players={players}
                 myPlayerId={myPlayerId}
@@ -200,7 +210,6 @@ export default function App() {
                 inputStyle={inputStyle}
             /> 
 
-        {/* Flexbox レイアウト (Deck / PlayField / ScoreBoard 横並び) */}
         <div style={{ 
           display: 'flex', 
           gap: '20px', 
@@ -208,10 +217,8 @@ export default function App() {
           alignItems: 'flex-start' 
         }}>
           
-          {/* 左側: Deck と PlayField を縦に2つずつ保持したまま横並び */}
           <div style={{ display: 'flex', gap: '20px' }}>
             
-            {/* Deck縦並び */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '0 0 220px' }}>
               <Deck 
                 socket={socket} 
@@ -227,7 +234,6 @@ export default function App() {
               />
             </div>
 
-            {/* PlayField縦並び */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '0 0 320px' }}>
               <PlayField 
                 socket={socket} 
@@ -243,7 +249,6 @@ export default function App() {
             
           </div>
 
-          {/* 右側: スコアボード */}
           <div style={{ flex: '1 1 auto', minWidth: '250px', backgroundColor: 'transparent' }}> 
             <ScoreBoard
               socket={socket}
