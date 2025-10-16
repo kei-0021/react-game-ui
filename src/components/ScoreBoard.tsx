@@ -2,7 +2,7 @@ import * as React from "react";
 import { Socket } from "socket.io-client";
 import { Card } from "../types/card.js";
 import { PlayerId } from "../types/definition.js";
-import { Player } from "../types/player.js";
+import { PlayerWithResources } from "../types/playerWithResources.js";
 import type { Resource } from "../types/resource.js";
 import { Token } from "../types/token.js";
 import styles from "./Card.module.css";
@@ -110,7 +110,6 @@ const TokenDisplayContent = React.memo(({ tokens, socket, myPlayerId, playerIdBe
 // =========================================================================
 
 // Player型はリソースを持つことを前提とする
-type PlayerWithResources = Player & { resources: Resource[] };
 type DisplayedPlayer = PlayerWithResources & { score: number, cards: Card[], resources: Resource[], tokens: Token[] };
 
 type ScoreboardProps = {

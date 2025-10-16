@@ -1,8 +1,4 @@
-type CellEffectParams = {
-  playerId?: string;
-  addScore: (playerId: string, points: number) => void;
-  updateResource: (playerId: string, resourceId: string, amount: number) => void;
-};
+import { CellEffectParams } from "../../src/types/cellEffectParams";
 
 export const cellEffects: Record<string, (params: CellEffectParams) => void> = {
 // 探索者が見つけたレリックタイル (💎)

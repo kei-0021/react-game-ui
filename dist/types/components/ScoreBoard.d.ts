@@ -1,10 +1,6 @@
 import { Socket } from "socket.io-client";
 import { PlayerId } from "../types/definition.js";
-import { Player } from "../types/player.js";
-import type { Resource } from "../types/resource.js";
-type PlayerWithResources = Player & {
-    resources: Resource[];
-};
+import { PlayerWithResources } from "../types/playerWithResources.js";
 type ScoreboardProps = {
     socket: Socket;
     players: PlayerWithResources[];

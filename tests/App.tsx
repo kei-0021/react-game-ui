@@ -1,17 +1,14 @@
 import React from "react";
 import Deck from "../src/components/Deck";
 import PlayField from "../src/components/PlayField";
-import { ScoreBoard } from "../src/components/ScoreBoard";
+import ScoreBoard from "../src/components/ScoreBoard";
 import TokenStore from "../src/components/TokenStore";
 import { useSocket } from "../src/hooks/useSocket";
 import type { ResourceId } from "../src/types/definition";
 import type { Player } from "../src/types/player";
-import type { Resource } from "../src/types/resource";
+import type { PlayerWithResources } from "../src/types/playerWithResources";
 import DebugControlPanel from "./DebugControlPanel";
 import MyBoard from "./MyBoard";
-
-// 抽象的な Player 型にリソース情報が付加されていることを示す型を定義
-type PlayerWithResources = Player & { resources: Resource[] };
 
 // デバッグ/テスト用リソースID
 const RESOURCE_IDS = {
@@ -38,7 +35,7 @@ export default function App() {
   React.useEffect(() => {
     if (!socket) return;
 
-    socket.on("player:assign-id", (id) => {
+    socket.on("player:assign-id", (id: Player["id"]) => {
         setMyPlayerId(id);
         setDebugTargetId(id); // 初期ターゲットを自分自身に設定
     });

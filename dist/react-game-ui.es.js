@@ -1,5 +1,5 @@
 import * as React from "react";
-import React__default, { useState, useRef, useEffect } from "react";
+import React__default, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production_min = {};
 /**
@@ -928,6 +928,185 @@ function requireJsxRuntime() {
   return jsxRuntime.exports;
 }
 var jsxRuntimeExports = requireJsxRuntime();
+const boardContainer = "_boardContainer_1laip_8";
+const cell = "_cell_1laip_28";
+const styles$2 = {
+  boardContainer,
+  cell
+};
+function Cell({
+  row,
+  col,
+  cellData,
+  onClick,
+  onDoubleClick,
+  // ⭐ [修正点 2] propsとして受け取る
+  children,
+  onDrop,
+  onDragOver,
+  changed = false
+}) {
+  const handleClick = () => {
+    onClick(row, col);
+  };
+  const handleDoubleClick = () => {
+    onDoubleClick(row, col);
+  };
+  const effectiveBackgroundColor = changed ? cellData.changedColor : cellData.backgroundColor;
+  const cellStyle = {
+    backgroundColor: effectiveBackgroundColor
+    // (clipPathなどの他のスタイルもここに追加できます)
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: styles$2.cell,
+      onClick: handleClick,
+      onDoubleClick: handleDoubleClick,
+      onDrop,
+      onDragOver,
+      style: cellStyle,
+      children
+    }
+  );
+}
+const piece = "_piece_wi08l_3";
+const styles$1 = {
+  piece
+};
+function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
+  const handleClick = (e) => {
+    e.stopPropagation();
+    onClick(piece2.id);
+  };
+  const handleDragStart = (e) => {
+    if (isDraggable) {
+      e.stopPropagation();
+      e.dataTransfer.setData("text/plain", piece2.id);
+      e.dataTransfer.effectAllowed = "move";
+      onDragStart(e, piece2);
+    }
+  };
+  const pieceClasses = [
+    styles$1.piece,
+    isDraggable ? styles$1.draggable : styles$1.clickable
+  ].join(" ");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: pieceClasses,
+      style: {
+        ...style,
+        backgroundColor: piece2.color
+      },
+      onClick: handleClick,
+      draggable: isDraggable,
+      onDragStart: handleDragStart,
+      title: piece2.name,
+      children: piece2.name.substring(0, 1)
+    }
+  );
+}
+function Board({
+  rows,
+  cols,
+  boardData,
+  pieces,
+  changedCells,
+  renderCell,
+  onCellClick,
+  onCellDoubleClick,
+  // ⭐ 追加
+  onPieceClick,
+  allowPieceDrag = false,
+  onPieceDragStart,
+  onCellDrop
+}) {
+  const handleCellClick = (row, col) => {
+    const data = boardData[row][col];
+    onCellClick(data, row, col);
+  };
+  const handleCellDoubleClick = (row, col) => {
+    const data = boardData[row][col];
+    onCellDoubleClick(data, row, col);
+  };
+  const handlePieceDragStart = (e, piece2) => {
+    onPieceDragStart(e, piece2);
+  };
+  const boardStyle = {
+    "--board-rows": rows,
+    "--board-cols": cols,
+    display: "grid",
+    gridTemplateRows: `repeat(${rows}, 1fr)`,
+    gridTemplateColumns: `repeat(${cols}, 1fr)`,
+    gap: "4px",
+    width: "600px",
+    height: "600px",
+    position: "relative"
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.boardContainer, style: boardStyle, children: [
+    boardData.map((rowArr, row) => rowArr.map((originalCellData, col) => {
+      const isChanged = changedCells.some(
+        (loc) => loc.row === row && loc.col === col
+      );
+      const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
+      const cellDataForRenderer = {
+        ...originalCellData,
+        // ⭐ content プロパティに有効なコンテンツを設定
+        content: effectiveContent
+        // changedContent はそのまま保持
+      };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Cell,
+        {
+          row,
+          col,
+          cellData: cellDataForRenderer,
+          onClick: () => handleCellClick(row, col),
+          onDoubleClick: () => handleCellDoubleClick(row, col),
+          onDrop: (e) => onCellDrop(e, row, col),
+          onDragOver: (e) => e.preventDefault(),
+          changed: isChanged,
+          children: renderCell(cellDataForRenderer, row, col)
+        },
+        originalCellData.id
+      );
+    })),
+    pieces.map((piece2) => {
+      const sameLocationPieces = pieces.filter(
+        (p) => p.location.row === piece2.location.row && p.location.col === piece2.location.col
+      );
+      const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece2.id);
+      const groupCount = sameLocationPieces.length;
+      let offsetX = 0;
+      let offsetY = 0;
+      if (groupCount > 1) {
+        const radius = 18;
+        const angle = 2 * Math.PI / groupCount * groupIndex;
+        offsetX = radius * Math.cos(angle);
+        offsetY = radius * Math.sin(angle);
+      }
+      const pieceStyle = {
+        gridArea: `${piece2.location.row + 1} / ${piece2.location.col + 1} / span 1 / span 1`,
+        alignSelf: "center",
+        justifySelf: "center",
+        transform: `translate(${offsetX}px, ${offsetY}px)`,
+        transition: "transform 0.3s ease-in-out"
+      };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Piece,
+        {
+          piece: piece2,
+          style: pieceStyle,
+          onClick: onPieceClick,
+          isDraggable: allowPieceDrag,
+          onDragStart: (e) => handlePieceDragStart(e, piece2)
+        },
+        piece2.id
+      );
+    })
+  ] });
+}
 const card = "_card_1mv54_3";
 const tooltip = "_tooltip_1mv54_23";
 const cardBack = "_cardBack_1mv54_47";
@@ -1577,10 +1756,144 @@ function Timer({ socket = null, onFinish }) {
     }
   );
 }
+const TokenContent = React__default.memo(({ token }) => {
+  if (token.imageSrc) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "img",
+      {
+        src: token.imageSrc,
+        alt: token.name,
+        style: {
+          width: "100%",
+          height: "100%",
+          objectFit: "contain"
+        }
+      }
+    );
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: {
+    display: "flex",
+    alignItems: "center",
+    // 垂直方向の中央寄せ
+    justifyContent: "center",
+    // 水平方向の中央寄せ
+    height: "100%",
+    width: "100%",
+    padding: "5px"
+  }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" }, children: token.name }) });
+});
+function TokenStore({ socket, tokenStoreId, name, onSelect }) {
+  const [tokens, setTokens] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const handleInitTokens = useCallback((initialTokens) => {
+    console.log(`TokenStore (${tokenStoreId}): 初期情報を受信しました。`, initialTokens);
+    setTokens(initialTokens && initialTokens.length > 0 ? initialTokens : []);
+  }, [tokenStoreId]);
+  const handleUpdateTokens = useCallback((updatedTokens) => {
+    console.log(`TokenStore (${tokenStoreId}): 更新情報を受信しました。`, updatedTokens);
+    setTokens(updatedTokens || []);
+  }, [tokenStoreId]);
+  useEffect(() => {
+    if (!socket) {
+      console.warn("TokenStore: Socket connection is not available. UI remains empty.");
+      return;
+    }
+    const INIT_EVENT = `token-store:init:${tokenStoreId}`;
+    const UPDATE_EVENT = `token-store:update:${tokenStoreId}`;
+    socket.on(INIT_EVENT, handleInitTokens);
+    socket.on(UPDATE_EVENT, handleUpdateTokens);
+    console.log(`TokenStore (${tokenStoreId}): リスナーを登録しました。`);
+    return () => {
+      socket.off(INIT_EVENT, handleInitTokens);
+      socket.off(UPDATE_EVENT, handleUpdateTokens);
+      console.log(`TokenStore (${tokenStoreId}): リスナーを解除しました。`);
+    };
+  }, [socket, tokenStoreId, handleInitTokens, handleUpdateTokens]);
+  const getTokenById = useMemo(
+    () => (id) => tokens.find((t) => t.id === id),
+    [tokens]
+  );
+  const handleClick = (id) => {
+    const token = getTokenById(id);
+    if (!token) return;
+    setSelectedId(id);
+    onSelect?.(token);
+  };
+  const handleDoubleClick = (id) => {
+    const token = getTokenById(id);
+    if (!token) return;
+    const eventName = "game:acquire-token";
+    const payload = {
+      tokenStoreId,
+      tokenId: id,
+      tokenName: token.name
+    };
+    console.log(`[TokenStore] ダブルクリック: トークン獲得イベント '${eventName}' を送信`, payload);
+    socket.emit(eventName, payload);
+    setSelectedId(null);
+  };
+  const TOKEN_SIZE = "40px";
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "section",
+    {
+      style: {
+        backgroundColor: "#dededeff",
+        padding: "10px",
+        margin: "15px",
+        borderRadius: "10px",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "10px", color: "#333" }, children: name }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", gap: "12px", flexWrap: "wrap" }, children: tokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            onClick: () => handleClick(t.id),
+            onDoubleClick: () => handleDoubleClick(t.id),
+            style: {
+              padding: "8px",
+              width: TOKEN_SIZE,
+              height: TOKEN_SIZE,
+              borderRadius: "50%",
+              border: selectedId === t.id ? "2px solid #f6fbd1ff" : "2px solid #ccc",
+              // 非選択時: 太さ2px、色#ccc
+              backgroundColor: "#4f4848ff",
+              cursor: "pointer",
+              textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-around",
+              alignItems: "center",
+              boxShadow: "0 4px 8px rgba(0,0,0,0.2)"
+            },
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                style: {
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  // 垂直方向の中央寄せ
+                  justifyContent: "center"
+                  // 水平方向の中央寄せ
+                },
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenContent, { token: t })
+              }
+            )
+          },
+          t.id
+        )) })
+      ]
+    }
+  );
+}
 export {
+  Board,
   Deck,
   Dice,
   PlayField,
   ScoreBoard,
-  Timer
+  Timer,
+  TokenStore
 };
