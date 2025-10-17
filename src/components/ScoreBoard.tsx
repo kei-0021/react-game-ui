@@ -11,9 +11,13 @@ import styles from "./Card.module.css";
 // カード表面の内容をレンダリング（React.memo）
 // =========================================================================
 const CardDisplayContent = React.memo(({ card, isFaceUp }: { card: Card, isFaceUp: boolean }) => {
-    if (!isFaceUp) return null;
+    if (!isFaceUp) {
+        console.log(`[CardDisplayContent] Card ID: ${card.id}, Name: ${card.name} - Not FaceUp. Rendering nothing.`);
+        return null;
+    }
 
     if (card.frontImage) {
+        console.log(`[CardDisplayContent] Card ID: ${card.id}, Name: ${card.name} - Rendering with frontImage: ${card.frontImage}`);
       return (
         <img 
           src={card.frontImage} 
@@ -23,6 +27,7 @@ const CardDisplayContent = React.memo(({ card, isFaceUp }: { card: Card, isFaceU
       );
     }
     
+    console.log(`[CardDisplayContent] Card ID: ${card.id}, Name: ${card.name} - Rendering with card.name (No frontImage).`);
     return (
       <div style={{ 
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -168,11 +173,15 @@ const PlayerListItem = React.memo(({
                 {player.cards.map((card) => {
                     const isFaceUp = !!card.isFaceUp && player.id === myPlayerId;
                     const isSelected = selectedCards.includes(card.id);
+                    const cardClassName = isFaceUp ? styles.card : styles.cardBack;
+
+                    // ログ出力
+                    console.log(`[PlayerListItem] Player: ${player.name}, Card ID: ${card.id}, Name: ${card.name} - isFaceUp: ${isFaceUp}, Class: ${cardClassName}`);
 
                     return (
                         <div
                             key={card.id}
-                            className={isFaceUp ? styles.card : styles.cardBack}
+                            className={cardClassName}
                             style={{
                                 position: "relative",
                                 cursor: isFaceUp ? "pointer" : "default",

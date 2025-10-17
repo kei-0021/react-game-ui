@@ -11,9 +11,13 @@ import styles from "./Card.module.css";
 // カード表面の内容をレンダリングするコンポーネント
 // =========================================================================
 const CardDisplayContent = ({ card, isFaceUp }: { card: Card; isFaceUp: boolean }) => {
-  if (!isFaceUp) return null;
+  if (!isFaceUp) {
+    console.log(`[CardDisplayContent] Card ID: ${card.id}, Name: ${card.name} - isFaceUp is false. Not rendering.`);
+    return null;
+  }
 
   if (card.frontImage) {
+    console.log(`[CardDisplayContent] Card ID: ${card.id}, Name: ${card.name} - Rendering with frontImage: ${card.frontImage}`);
     return (
       <img
         src={card.frontImage}
@@ -27,6 +31,7 @@ const CardDisplayContent = ({ card, isFaceUp }: { card: Card; isFaceUp: boolean 
     );
   }
 
+  console.log(`[CardDisplayContent] Card ID: ${card.id}, Name: ${card.name} - Rendering with card.name (No frontImage).`);
   return (
     <div
       style={{
@@ -51,7 +56,7 @@ const CardDisplayContent = ({ card, isFaceUp }: { card: Card; isFaceUp: boolean 
 // =========================================================================
 type PlayFieldProps = {
   socket: Socket;
-  roomId: RoomId; // ⭐ 追加
+  roomId: RoomId;
   deckId: DeckId;
   name: string;
   is_logging?: boolean;
@@ -59,7 +64,7 @@ type PlayFieldProps = {
 
 export default function PlayField({
   socket,
-  roomId, // ⭐ 追加
+  roomId,
   deckId,
   name,
   is_logging = false,
@@ -76,6 +81,9 @@ export default function PlayField({
         client_log("playField", `[${deckId}] 受信したカードリスト:`, newCards.map((c) => c.name));
       }
 
+      // 新しいカードリストが取得されたことをログ
+      console.log(`[PlayField] Deck ${deckId} - Received ${newCards.length} cards for rendering.`);
+
       setPlayedCards(newCards);
     };
 
@@ -85,7 +93,7 @@ export default function PlayField({
     return () => {
       socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
     };
-  }, [socket, roomId, deckId]);
+  }, [socket, roomId, deckId, playedCards.length]); // playedCards.length を追加して依存関係を正確に
 
   // ⭐ roomId付きで手札に戻す
   const returnCardToOwnerHand = (card: Card) => {
@@ -95,7 +103,7 @@ export default function PlayField({
     }
 
     socket.emit("card:return-to-hand", {
-      roomId, // ⭐ 追加
+      roomId,
       deckId: card.deckId,
       cardId: card.id,
       targetPlayerId: card.ownerId,
@@ -103,6 +111,10 @@ export default function PlayField({
 
     client_log("playField", `カード ${card.name} を持ち主 ${card.ownerId} の手札に戻すようリクエスト`);
   };
+
+  // 描画されるカードのリストを確認
+  console.log(`[PlayField] Deck ${deckId} - Start rendering ${playedCards.length} cards in the Play Area.`);
+
 
   return (
     <section
@@ -132,6 +144,10 @@ export default function PlayField({
         {playedCards.length === 0 && <div style={{ opacity: 0.6 }}>（まだカードが出ていません）</div>}
         {playedCards.map((card) => {
           const isFaceUp = true;
+          
+          // 個々のカードレンダリングのログ
+          console.log(`[PlayField] Deck ${deckId} - Rendering Card ID: ${card.id}, Name: ${card.name} (isFaceUp: ${isFaceUp})`);
+
           return (
             <div
               key={card.id}
