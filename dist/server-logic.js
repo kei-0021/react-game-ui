@@ -756,6 +756,18 @@ export function initGameServer(io, options = {}) {
             io.to(roomId).emit("game:turn", gameStateInstance.players[roomInfo.currentTurnIndex]?.id);
         });
 
+        socket.on("require-popup", ({ roomId, message, color = "blue" }) => {
+            server_log("popup", `[${roomId}] 全員にポップアップ要求: ${message} (色: ${color})`);
+            
+            const popupContent = {
+                message: message,
+                color: color,
+                timestamp: Date.now()
+            };
+            
+            io.to(roomId).emit("client:show-popup", popupContent);
+        });
+
         // 接続切断処理
         socket.on('disconnect', async () => {
             server_log('disconnect', `クライアント切断: ${socket.id}`);

@@ -19,6 +19,7 @@ export let LOG_CATEGORIES = {
   lobby: true,
   disconnect: true,
   warn: true,
+  popup: true,
 };
 
 const ANSI_RED = '\x1b[31m';

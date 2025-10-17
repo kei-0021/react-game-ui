@@ -1335,8 +1335,12 @@ function client_log(tag, ...args) {
   console.log(`[${tag}]`, ...args);
 }
 const CardDisplayContent$1 = ({ card: card2, isFaceUp }) => {
-  if (!isFaceUp) return null;
+  if (!isFaceUp) {
+    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - isFaceUp is false. Not rendering.`);
+    return null;
+  }
   if (card2.frontImage) {
+    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with frontImage: ${card2.frontImage}`);
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       "img",
       {
@@ -1350,6 +1354,7 @@ const CardDisplayContent$1 = ({ card: card2, isFaceUp }) => {
       }
     );
   }
+  console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with card.name (No frontImage).`);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
@@ -1369,7 +1374,6 @@ const CardDisplayContent$1 = ({ card: card2, isFaceUp }) => {
 function PlayField({
   socket,
   roomId,
-  // ⭐ 追加
   deckId,
   name,
   is_logging = false
@@ -1383,13 +1387,14 @@ function PlayField({
         client_log("playField", `[${deckId}] 古いカード数: ${playedCards.length}, 新しいカード数: ${newCards.length}`);
         client_log("playField", `[${deckId}] 受信したカードリスト:`, newCards.map((c) => c.name));
       }
+      console.log(`[PlayField] Deck ${deckId} - Received ${newCards.length} cards for rendering.`);
       setPlayedCards(newCards);
     };
     socket.on(`deck:update:${roomId}:${deckId}`, handleUpdate);
     return () => {
       socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
     };
-  }, [socket, roomId, deckId]);
+  }, [socket, roomId, deckId, playedCards.length]);
   const returnCardToOwnerHand = (card2) => {
     if (!card2.ownerId) {
       client_log("playField", `警告: ${card2.name} には所有者IDが設定されていません。手札に戻せません。`);
@@ -1397,13 +1402,13 @@ function PlayField({
     }
     socket.emit("card:return-to-hand", {
       roomId,
-      // ⭐ 追加
       deckId: card2.deckId,
       cardId: card2.id,
       targetPlayerId: card2.ownerId
     });
     client_log("playField", `カード ${card2.name} を持ち主 ${card2.ownerId} の手札に戻すようリクエスト`);
   };
+  console.log(`[PlayField] Deck ${deckId} - Start rendering ${playedCards.length} cards in the Play Area.`);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "section",
     {
@@ -1437,6 +1442,7 @@ function PlayField({
           playedCards.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { opacity: 0.6 }, children: "（まだカードが出ていません）" }),
           playedCards.map((card2) => {
             const isFaceUp = true;
+            console.log(`[PlayField] Deck ${deckId} - Rendering Card ID: ${card2.id}, Name: ${card2.name} (isFaceUp: ${isFaceUp})`);
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
@@ -1463,8 +1469,12 @@ function PlayField({
   );
 }
 const CardDisplayContent = React.memo(({ card: card2, isFaceUp }) => {
-  if (!isFaceUp) return null;
+  if (!isFaceUp) {
+    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Not FaceUp. Rendering nothing.`);
+    return null;
+  }
   if (card2.frontImage) {
+    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with frontImage: ${card2.frontImage}`);
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       "img",
       {
@@ -1474,6 +1484,7 @@ const CardDisplayContent = React.memo(({ card: card2, isFaceUp }) => {
       }
     );
   }
+  console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with card.name (No frontImage).`);
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: {
     display: "flex",
     alignItems: "center",
@@ -1596,10 +1607,12 @@ const PlayerListItem = React.memo(({
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }, children: player.cards.map((card2) => {
           const isFaceUp = !!card2.isFaceUp && player.id === myPlayerId;
           const isSelected = selectedCards.includes(card2.id);
+          const cardClassName = isFaceUp ? styles.card : styles.cardBack;
+          console.log(`[PlayerListItem] Player: ${player.name}, Card ID: ${card2.id}, Name: ${card2.name} - isFaceUp: ${isFaceUp}, Class: ${cardClassName}`);
           return /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "div",
             {
-              className: isFaceUp ? styles.card : styles.cardBack,
+              className: cardClassName,
               style: {
                 position: "relative",
                 cursor: isFaceUp ? "pointer" : "default",

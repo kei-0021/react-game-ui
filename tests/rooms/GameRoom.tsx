@@ -9,6 +9,7 @@ import type { Player } from "../../src/types/player";
 import type { PlayerWithResources } from "../../src/types/playerWithResources";
 import DebugControlPanel from "../components/DebugControlPanel";
 import MyBoard from "../components/MyBoard";
+import Popup from '../components/PopUp';
 
 const SERVER_URL = "http://127.0.0.1:4000";
 
@@ -18,11 +19,21 @@ const RESOURCE_IDS = {
   HULL: "HULL", // 船体耐久度
 };
 
+// ★ ポップアップの状態の型定義
+interface PopupState {
+    message: string;
+    color: string;
+    visible: boolean;
+}
+
 export default function GameRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
 
-  // ★ 追加: プレイヤー名入力と参加状態
+  // ★ 1. ポップアップの状態を追加
+  const [popup, setPopup] = useState<PopupState>({ message: '', color: 'blue', visible: false });
+
+  // ★ プレイヤー名入力と参加状態
   const [userName, setUserName] = useState<string>('');
   const [isJoining, setIsJoining] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
@@ -37,6 +48,18 @@ export default function GameRoom() {
   const [debugResourceAmount, setDebugResourceAmount] = useState<number>(1);
   // ------------------
 
+  // ★ 汎用ポップアップ表示ロジック
+  const showPopup = useCallback((message: string, color: string) => {
+    // 既存のポップアップがあれば非表示にする
+    setPopup({ message, color, visible: true });
+    
+    // 8秒後に自動的に非表示にする
+    setTimeout(() => {
+        // メッセージと色はそのままで、可視性のみ変更
+        setPopup(prev => ({ ...prev, visible: false }));
+    }, 8000);
+  }, []);
+
   // ★ 新しい参加ハンドラ
   const handleJoinRoom = useCallback(() => {
     if (!socket || !roomId || userName.trim() === '' || isJoining) return;
@@ -48,7 +71,7 @@ export default function GameRoom() {
     console.log(`[CLIENT] Attempting to join room: ${roomId} as ${userName.trim()}`);
   }, [socket, roomId, userName, isJoining]);
 
-  // ★ useEffectのロジックを変更
+  // ★ useEffectのロジック
   useEffect(() => {
     if (!socket || !roomId) return; // hasJoinedがtrueになってからリスナーを設定
 
@@ -69,20 +92,27 @@ export default function GameRoom() {
       console.log("[CLIENT] game:turn:", id);
       setCurrentPlayerId(id);
     };
+
+    // ★ 2. ポップアップ受信リスナーの追加
+    const handleShowPopup = (data: { message: string; color: string }) => {
+        console.log("[CLIENT] client:show-popup received:", data);
+        showPopup(data.message, data.color);
+    };
     
     // イベントリスナーの設定
     socket.on("player:assign-id", handleAssignId);
     socket.on("players:update", handlePlayersUpdate);
     socket.on("game:turn", handleGameTurn);
+    socket.on("client:show-popup", handleShowPopup); // ★ 追加
 
     return () => {
       // 離脱処理（ここはユーザーが手動でページ遷移した場合に実行される）
       socket.off("player:assign-id", handleAssignId);
       socket.off("players:update", handlePlayersUpdate);
       socket.off("game:turn", handleGameTurn);
-      // socket.emit("room:leave", roomId); // 現在、サーバー側でdisconnect時に処理しているため不要だが、明示的に追加しても良い
+      socket.off("client:show-popup", handleShowPopup); // ★ 追加
     };
-  }, [socket, roomId]);
+  }, [socket, roomId, showPopup]);
 
 
   // --- デバッグ用操作 (変更なし) ---
@@ -105,6 +135,21 @@ export default function GameRoom() {
           amount,
       });
   };
+  
+  // ★ 3. require-popup イベント発火ハンドラ
+  const handleTestPopup = useCallback((message: string, color: string) => {
+    if (!socket || !roomId || !hasJoined) return;
+    
+    // サーバーの `require-popup` イベントを発火させる
+    // NOTE: サーバー側でこのイベントを受けて、client:show-popupをルーム全員にemitする必要があります。
+    socket.emit("require-popup", {
+        roomId,
+        message,
+        color
+    });
+    console.log(`[CLIENT] Sent require-popup to server for room: ${roomId}`);
+  }, [socket, roomId, hasJoined]);
+
 
   // --- UIスタイル (変更なし) ---
   const fullScreenBackgroundStyle: React.CSSProperties = useMemo(() => ({
@@ -123,7 +168,7 @@ export default function GameRoom() {
     backgroundPosition: "center",
     padding: "20px",
     fontFamily: "Roboto, sans-serif",
-    color: "black" // 色を white に修正して背景に合うように
+    color: "black"
   }), []);
 
 
@@ -260,8 +305,45 @@ export default function GameRoom() {
   // --- ゲームUI本体 ---
   return (
     <div style={fullScreenBackgroundStyle}>
+      {/* ✅ ポップアップUIのレンダリングを修正
+        popup stateの visible, color, message をそれぞれPropsとして渡す
+      */}
+      <Popup visible={popup.visible} color={popup.color}>
+        {popup.message}
+      </Popup>
+
       <h1 style={titleStyle}>ディープ・アビス (Deep Abyss) - Room ID: {roomId}</h1>
       <p style={subtitleStyle}>深海を調査して眠れる資源を見つけ出せ！</p>
+
+      {/* ★ ポップアップテストボタンの配置 */}
+      <div style={{ textAlign: 'center', marginBottom: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+          <button 
+            style={{ ...joinButtonStyle, backgroundColor: '#3b82f6', color: 'white' }}
+            onClick={() => handleTestPopup("ソナーがフルチャージされました！", "blue")}
+          >
+            Blue Pop
+          </button>
+          <button 
+            style={{ ...joinButtonStyle, backgroundColor: '#10b981', color: 'white' }}
+            onClick={() => handleTestPopup("希少な遺物を発見！", "green")}
+          >
+            Green Pop
+          </button>
+          <button 
+            style={{ ...joinButtonStyle, backgroundColor: '#f59e0b', color: 'white' }}
+            onClick={() => handleTestPopup("酸素残量が危険域です。", "yellow")}
+          >
+            Yellow Pop
+          </button>
+          <button 
+            style={{ ...joinButtonStyle, backgroundColor: '#dc2626', color: 'white' }}
+            onClick={() => handleTestPopup("巨大深海生物に遭遇！", "red")}
+          >
+            Red Pop
+          </button>
+      </div>
+      {/* ----------------------------- */}
+
 
       <div style={boardWrapperStyle}>
         <MyBoard socket={socket} roomId={roomId} myPlayerId={myPlayerId} />

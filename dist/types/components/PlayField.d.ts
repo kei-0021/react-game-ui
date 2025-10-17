@@ -7,6 +7,5 @@ type PlayFieldProps = {
     name: string;
     is_logging?: boolean;
 };
-export default function PlayField({ socket, roomId, // ⭐ 追加
-deckId, name, is_logging, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
+export default function PlayField({ socket, roomId, deckId, name, is_logging, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
 export {};
