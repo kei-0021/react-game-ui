@@ -286,14 +286,18 @@ export function initGameServer(io, options = {}) {
         });
 
         // 2. ルーム参加処理 
-        socket.on("room:join", async (roomId) => {
+        // ★ 修正1: 引数を { roomId, playerName } オブジェクトで受け取る
+        socket.on("room:join", async ({ roomId, playerName }) => {
             // 💡 修正点: 不正なroomId、またはロビー接続時に誤って送信されたroomIdを厳しくチェック
             if (!roomId || typeof roomId !== 'string') {
                  server_log("warn", `Client ${socket.id} が不正な roomId: ${roomId} で join を試行しました。初期化をスキップします。`);
                  return; 
             }
 
-            server_log("room", `[${roomId}] Client ${socket.id} が join リクエストを送信`);
+            // ★ 修正2: プレイヤー名が提供されているかチェック
+            const providedName = (typeof playerName === 'string' && playerName.trim().length > 0) ? playerName.trim() : null;
+
+            server_log("room", `[${roomId}] Client ${socket.id} が join リクエストを送信 (Name: ${providedName || 'N/A'})`);
 
             let roomInfo = activeRooms.get(roomId);
 
@@ -315,12 +319,13 @@ export function initGameServer(io, options = {}) {
                     ? JSON.parse(JSON.stringify(options.initialTokens))
                     : [];
                 
-                // 💡 修正点: Player ID がソケットIDにならないように、ルーム固有のIDを生成
+                // ★ 修正3: playerIdの定義をnewPlayerオブジェクト定義の前に移動
                 const playerId = `${roomId}_p${gameStateInstance.players.length + 1}`; 
                 
                 const newPlayer = { 
-                    id: playerId, // ここで roomId に基づいた新しいIDを設定
-                    name: `Player ${gameStateInstance.players.length + 1}`,
+                    id: playerId, // 定義済みの playerId を使用
+                    // ★ providedNameが提供されていればそれを使用し、なければ自動生成名を使う
+                    name: providedName || `Player ${gameStateInstance.players.length + 1}`,
                     socketId: socket.id, 
                     cards: [], 
                     score: 0,
@@ -752,9 +757,59 @@ export function initGameServer(io, options = {}) {
         });
 
         // 接続切断処理
-        socket.on('disconnect', () => {
+        socket.on('disconnect', async () => {
             server_log('disconnect', `クライアント切断: ${socket.id}`);
-            // TODO: プレイヤーを非アクティブ化、またはルームをクリーンアップするロジック
+            
+            // 1. 切断されたソケットが参加していたゲームルームを特定
+            // Socket.IOは切断時に自動でルームを抜けますが、disconnectingイベントで参加していたルームを取得できます。
+            // しかし、ここではルーム参加時にプレイヤーオブジェクトにroomIdを保持していないため、
+            // activeRooms全体をチェックして、このsocketIdを持つプレイヤーがいたルームを探します。
+
+            let disconnectedRoomId = null;
+            let disconnectingPlayer = null;
+
+            for (const [roomId, roomInfo] of activeRooms.entries()) {
+                const playerIndex = roomInfo.gameStateInstance.players.findIndex(p => p.socketId === socket.id);
+                if (playerIndex !== -1) {
+                    disconnectedRoomId = roomId;
+                    disconnectingPlayer = roomInfo.gameStateInstance.players[playerIndex];
+                    // プレイヤーリストから削除（非アクティブ化）
+                    roomInfo.gameStateInstance.players.splice(playerIndex, 1);
+                    server_log("room", `[${roomId}] プレイヤー ${disconnectingPlayer.name} (${disconnectingPlayer.id}) をリストから削除しました。`);
+                    break;
+                }
+            }
+
+            if (disconnectedRoomId) {
+                // プレイヤーリストの更新をブロードキャスト
+                emitPlayerUpdate(disconnectedRoomId);
+
+                // 2. ルームに残っている接続中のソケットの数をチェック
+                // Socket.IO v3/v4では io.in(roomId).fetchSockets() でルーム内のソケットを取得できます。
+                const socketsInRoom = await io.in(disconnectedRoomId).fetchSockets();
+                
+                server_log("room", `[${disconnectedRoomId}] 残りソケット数: ${socketsInRoom.length}`);
+
+                // 3. 残りソケット数が0であればルームをクリーンアップ
+                if (socketsInRoom.length === 0) {
+                    activeRooms.delete(disconnectedRoomId);
+                    server_log("room", `[${disconnectedRoomId}] 誰もいなくなったため、ルームをアクティブリストから削除しました。`);
+                    // ロビーリストの更新を通知
+                    io.emit('lobby:room-update'); 
+                } else {
+                     // ターンプレイヤーが切断した場合、次のターンへ
+                     const roomInfo = activeRooms.get(disconnectedRoomId);
+                     if (roomInfo && disconnectingPlayer && roomInfo.gameStateInstance.players.length > 0) {
+                         // 切断されたプレイヤーが現在のターンプレイヤーだった場合、ターンをスキップ（次のプレイヤーに移動）
+                         const currentTurnPlayer = roomInfo.gameStateInstance.players[roomInfo.currentTurnIndex];
+                         if (currentTurnPlayer && currentTurnPlayer.id === disconnectingPlayer.id) {
+                            roomInfo.currentTurnIndex = roomInfo.currentTurnIndex % roomInfo.gameStateInstance.players.length; // 新しいプレイヤー数に基づいてインデックスを調整
+                            server_log("game", `[${disconnectedRoomId}] ターンプレイヤーが切断したため、次のターンへ移行します: ${roomInfo.gameStateInstance.players[roomInfo.currentTurnIndex]?.name}`);
+                            io.to(disconnectedRoomId).emit("game:turn", roomInfo.gameStateInstance.players[roomInfo.currentTurnIndex]?.id);
+                         }
+                     }
+                }
+            }
         });
     });
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import Deck from "../../src/components/Deck";
 import PlayField from "../../src/components/PlayField";
@@ -22,6 +22,11 @@ export default function GameRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
 
+  // ★ 追加: プレイヤー名入力と参加状態
+  const [userName, setUserName] = useState<string>('');
+  const [isJoining, setIsJoining] = useState<boolean>(false);
+  const [hasJoined, setHasJoined] = useState<boolean>(false);
+
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<PlayerWithResources[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
@@ -32,37 +37,55 @@ export default function GameRoom() {
   const [debugResourceAmount, setDebugResourceAmount] = useState<number>(1);
   // ------------------
 
+  // ★ 新しい参加ハンドラ
+  const handleJoinRoom = useCallback(() => {
+    if (!socket || !roomId || userName.trim() === '' || isJoining) return;
+
+    setIsJoining(true);
+
+    // サーバーの `room:join` イベントのペイロードをオブジェクトに変更
+    socket.emit("room:join", { roomId, playerName: userName.trim() });
+    console.log(`[CLIENT] Attempting to join room: ${roomId} as ${userName.trim()}`);
+  }, [socket, roomId, userName, isJoining]);
+
+  // ★ useEffectのロジックを変更
   useEffect(() => {
-    if (!socket || !roomId) return;
+    if (!socket || !roomId) return; // hasJoinedがtrueになってからリスナーを設定
 
-    socket.emit("room:join", roomId);
-    console.log(`[CLIENT] Joined room: ${roomId}`);
-
-    socket.on("player:assign-id", (id: Player["id"]) => {
+    const handleAssignId = (id: Player["id"]) => {
       console.log("[CLIENT] Assigned player ID:", id);
       setMyPlayerId(id);
       setDebugTargetId(id);
-    });
+      setHasJoined(true); // サーバーからIDを受け取った時点で「参加完了」とする
+      setIsJoining(false); // 参加処理完了
+    };
 
-    socket.on("players:update", (updatedPlayers: PlayerWithResources[]) => {
+    const handlePlayersUpdate = (updatedPlayers: PlayerWithResources[]) => {
       console.log("[CLIENT] players:update", updatedPlayers);
       setPlayers(updatedPlayers);
-    });
+    };
 
-    socket.on("game:turn", (id: string) => {
+    const handleGameTurn = (id: string) => {
       console.log("[CLIENT] game:turn:", id);
       setCurrentPlayerId(id);
-    });
+    };
+    
+    // イベントリスナーの設定
+    socket.on("player:assign-id", handleAssignId);
+    socket.on("players:update", handlePlayersUpdate);
+    socket.on("game:turn", handleGameTurn);
 
     return () => {
-      socket.emit("room:leave", roomId);
-      socket.off("player:assign-id");
-      socket.off("players:update");
-      socket.off("game:turn");
+      // 離脱処理（ここはユーザーが手動でページ遷移した場合に実行される）
+      socket.off("player:assign-id", handleAssignId);
+      socket.off("players:update", handlePlayersUpdate);
+      socket.off("game:turn", handleGameTurn);
+      // socket.emit("room:leave", roomId); // 現在、サーバー側でdisconnect時に処理しているため不要だが、明示的に追加しても良い
     };
   }, [socket, roomId]);
 
-  // --- デバッグ用操作 ---
+
+  // --- デバッグ用操作 (変更なし) ---
   const handleDebugScore = (amount: number) => {
     if (!socket || !debugTargetId || !roomId) return;
     socket.emit("room:player:add-score", {
@@ -77,14 +100,14 @@ export default function GameRoom() {
       console.log("ここを通った")
       socket.emit("room:player:update-resource", {
           roomId,
-          playerId: debugTargetId, // ← targetPlayerId ではなく playerId
+          playerId: debugTargetId,
           resourceId,
           amount,
       });
   };
 
-  // --- UIスタイル ---
-  const fullScreenBackgroundStyle: React.CSSProperties = {
+  // --- UIスタイル (変更なし) ---
+  const fullScreenBackgroundStyle: React.CSSProperties = useMemo(() => ({
     minHeight: "100vh",
     backgroundColor: "#0a192f",
     backgroundImage: `
@@ -100,8 +123,9 @@ export default function GameRoom() {
     backgroundPosition: "center",
     padding: "20px",
     fontFamily: "Roboto, sans-serif",
-    color: "black"
-  };
+    color: "black" // 色を white に修正して背景に合うように
+  }), []);
+
 
   const titleStyle: React.CSSProperties = {
     textAlign: "center",
@@ -144,6 +168,44 @@ export default function GameRoom() {
     textAlign: "center",
     marginRight: "10px",
   };
+  
+  // ★ ルーム参加フォームのスタイル
+  const joinFormStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    backgroundColor: '#1e3a5f',
+    padding: '30px',
+    borderRadius: '10px',
+    boxShadow: '0 0 20px rgba(139, 233, 253, 0.5)',
+    zIndex: 1000,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '15px',
+    textAlign: 'center',
+  };
+
+  const joinInputStyle: React.CSSProperties = {
+    padding: '10px',
+    borderRadius: '5px',
+    border: '1px solid #8be9fd',
+    backgroundColor: '#0a192f',
+    color: 'white',
+    fontSize: '1em',
+  };
+
+  const joinButtonStyle: React.CSSProperties = {
+    padding: '10px 20px',
+    borderRadius: '5px',
+    border: 'none',
+    backgroundColor: '#8be9fd',
+    color: '#0a192f',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    fontSize: '1em',
+    transition: 'background-color 0.3s',
+  };
 
   // --- 接続前の状態 ---
   if (!roomId)
@@ -161,6 +223,39 @@ export default function GameRoom() {
         <p>サーバーに接続中... (URL: {SERVER_URL})</p>
       </div>
     );
+
+  // --- ルーム参加フォームの表示 ---
+  if (!hasJoined) {
+    return (
+      <div style={fullScreenBackgroundStyle}>
+        <div style={joinFormStyle}>
+          <h2 style={{ color: '#8be9fd', marginBottom: '5px' }}>ルーム参加</h2>
+          <p style={{ margin: '0 0 10px 0', color: 'white' }}>Room ID: {roomId}</p>
+          
+          <input
+            style={joinInputStyle}
+            type="text"
+            placeholder="あなたの名前を入力してください"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            disabled={isJoining}
+            maxLength={12}
+            onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
+          />
+
+          <button
+            style={joinButtonStyle}
+            onClick={handleJoinRoom}
+            disabled={userName.trim() === '' || isJoining}
+          >
+            {isJoining ? '参加中...' : 'ルームに参加'}
+          </button>
+          {isJoining && <p style={{ margin: '5px 0 0 0', color: '#ffeb3b' }}>サーバーからの応答を待っています...</p>}
+        </div>
+      </div>
+    );
+  }
+
 
   // --- ゲームUI本体 ---
   return (

@@ -1707,16 +1707,18 @@ function ScoreBoard({
     ] })
   ] });
 }
-function Timer({ socket = null, onFinish }) {
+function Timer({ socket = null, onFinish, roomId }) {
   const [timeLeft, setTimeLeft] = useState(null);
   useEffect(() => {
-    if (!socket) return;
-    const handleStart = (duration) => {
-      setTimeLeft(duration);
+    if (!socket || !roomId) return;
+    const handleStart = (data) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(data.duration);
     };
-    const handleUpdate = (remaining) => {
-      setTimeLeft(remaining);
-      if (remaining <= 0) onFinish?.();
+    const handleUpdate = (data) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(data.remaining);
+      if (data.remaining <= 0) onFinish?.();
     };
     socket.on("timer:start", handleStart);
     socket.on("timer:update", handleUpdate);
@@ -1724,10 +1726,10 @@ function Timer({ socket = null, onFinish }) {
       socket.off("timer:start", handleStart);
       socket.off("timer:update", handleUpdate);
     };
-  }, [socket, onFinish]);
+  }, [socket, roomId, onFinish]);
   const start = () => {
-    if (!socket) return;
-    socket.emit("timer:start", 30);
+    if (!socket || !roomId) return;
+    socket.emit("timer:start", { duration: 30, roomId });
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",

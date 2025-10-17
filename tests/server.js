@@ -50,7 +50,7 @@ async function startServer() {
     return allCards;
   };
 
-  const deepSeaActionCardsThreeSets = createUniqueCards(deepSeaActionCardsBaseJson, 3);
+  const deepSeaActionCardsTwoSets = createUniqueCards(deepSeaActionCardsBaseJson, 2);
 
   const createBoardCells = (baseCells, counts) => {
     const templateMap = baseCells.reduce((map,t)=>{map[t.templateId]=t;return map;},{});
@@ -86,7 +86,7 @@ async function startServer() {
 
   const initialDecks=[
     {deckId:"deepSeaSpecies",name:"深海生物カード",cards:deepSeaSpeciesDeckJson,backColor:"#0d3c99ff"},
-    {deckId:"deepSeaAction",name:"アクションカード",cards:deepSeaActionCardsThreeSets,backColor:"#0d8999ff"}
+    {deckId:"deepSeaAction",name:"アクションカード",cards:deepSeaActionCardsTwoSets,backColor:"#0d8999ff"}
   ];
 
   // --- GameServer 初期化 ---
