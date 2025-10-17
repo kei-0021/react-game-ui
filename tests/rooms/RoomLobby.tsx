@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 // ★★★ CSSのインポートを追加 ★★★
-import './RoomLobby.css'; // 例として './RoomLobby.css' に保存すると想定
+import './RoomLobby.css';
 
 // 仮のSocket.IOサーバーURL (GameRoom.tsxと合わせる)
 const SERVER_URL = "http://127.0.0.1:4000"; 

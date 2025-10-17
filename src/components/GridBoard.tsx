@@ -1,55 +1,43 @@
-// src/components/Board.tsx
+// src/components/GridBoard.tsx
 
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import type { PieceData } from '../types/piece.js';
 
-import type { CellId } from '../types/definition.js';
 import styles from './Board.module.css';
-import Cell from './Cell.js';
+import { Cell, CellData } from './Cell.js';
 import Piece from './Piece.js';
 
-// マス目の基本データ型（Cell.tsxと統一）
-export type CellData = {
-  id: CellId;
-  shapeType: string;
-  backgroundColor: string;
-  changedColor: string;
-  
-  content: string;        
-  changedContent: string; 
-  
-  customClip?: string;
-  [key: string]: any; 
-};
+// 💡 修正点 1: グリッドの位置情報型を定義（Locationの代わりにGridLocationを使用）
+type GridLocation = {
+  row: number;
+  col: number;
+}
 
-// 座標の型
-type Location = {
-    row: number;
-    col: number;
-};
-
-type BoardProps = {
+// 💡 修正点 2: GridBoardPropsのイベントハンドラの引数を GridLocation に統一
+type GridBoardProps = {
   rows: number;
   cols: number;
   boardData: CellData[][];
   pieces: PieceData[]; 
-  changedCells: Location[];
+  changedCells: GridLocation[];
   
   allowPieceDrag?: boolean;
   
   renderCell: (cellData: CellData, row: number, col: number) => React.ReactNode;
   
-  onCellClick: (cellData: CellData, row: number, col: number) => void;
-  onCellDoubleClick: (cellData: CellData, row: number, col: number) => void; // ⭐ 追加
+  // イベントハンドラの引数を cellData と Location オブジェクトに統一
+  onCellClick: (cellData: CellData, loc: GridLocation) => void;
+  onCellDoubleClick: (cellData: CellData, loc: GridLocation) => void; 
 
   onPieceClick: (pieceId: string) => void;
 
   onPieceDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
+  // onCellDrop は row/col を個別で受け取る方が外部ライブラリとの連携で便利なため維持
   onCellDrop: (e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void; 
 };
 
-export default function Board({ 
+export default function GridBoard({ 
     rows, 
     cols, 
     boardData, 
@@ -57,23 +45,22 @@ export default function Board({
     changedCells, 
     renderCell, 
     onCellClick,
-    onCellDoubleClick, // ⭐ 追加
+    onCellDoubleClick, 
     onPieceClick, 
     allowPieceDrag = false, 
     onPieceDragStart,
     onCellDrop
-}: BoardProps) {
+}: GridBoardProps) {
   
-  const handleCellClick = (row: number, col: number) => {
-    // クリックハンドラーは元のCellDataを参照
-    const data = boardData[row][col];
-    onCellClick(data, row, col);
+  // 💡 修正点 3: イベントハンドラを GridLocation オブジェクトで受け取るように変更
+  const handleCellClick = (loc: GridLocation) => {
+    const data = boardData[loc.row][loc.col];
+    onCellClick(data, loc);
   };
   
-  // ⭐ [修正点 1]: ダブルクリックハンドラの追加
-  const handleCellDoubleClick = (row: number, col: number) => {
-    const data = boardData[row][col];
-    onCellDoubleClick(data, row, col);
+  const handleCellDoubleClick = (loc: GridLocation) => {
+    const data = boardData[loc.row][loc.col];
+    onCellDoubleClick(data, loc);
   };
   
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
@@ -98,41 +85,37 @@ export default function Board({
       {boardData.map((rowArr, row) => (
         rowArr.map((originalCellData, col) => {
           
-          // ⭐ [探索済み状態の判定]
           const isChanged = changedCells.some(
             loc => loc.row === row && loc.col === col
           );
           
-          // ⭐ 修正ロジック: 探索状態に応じて content を切り替える
-          // changedContent (探索後) vs content (探索前)
           const effectiveContent = isChanged 
-            ? originalCellData.changedContent    // 探索済み: changedContent (例: '⚠️')を表示
-            : originalCellData.content;           // 未探索: content (例: "")を表示
+            ? originalCellData.changedContent
+            : originalCellData.content;
             
-          // ⭐ Cellとレンダラーに渡す、加工された CellData オブジェクト
           const cellDataForRenderer: CellData = { 
             ...originalCellData, 
-            // ⭐ content プロパティに有効なコンテンツを設定
             content: effectiveContent 
-            // changedContent はそのまま保持
           };
+          
+          // 💡 修正点 4: Location オブジェクトを生成
+          const loc: GridLocation = { row, col };
 
           return (
-            <Cell
+            // 💡 修正点 5: Cell にジェネリクス型 (GridLocation) を適用
+            <Cell<GridLocation> 
               key={originalCellData.id}
-              row={row}
-              col={col}
-              // ⭐ 加工された CellData を渡す
+              // 💡 修正点 6: Props名を 'locationData' に変更し、loc オブジェクトを渡す
+              locationData={loc} 
               cellData={cellDataForRenderer} 
-              onClick={() => handleCellClick(row, col)} // ⭐ 引数渡しを修正
-              // ⭐ [修正点 2]: Cellにダブルクリックハンドラを渡す
-              onDoubleClick={() => handleCellDoubleClick(row, col)}
+              // 💡 修正点 7: イベントハンドラは関数そのものを渡す (Cell側でlocを引数に実行される)
+              onClick={handleCellClick} 
+              onDoubleClick={handleCellDoubleClick}
               
               onDrop={(e) => onCellDrop(e, row, col)}
               onDragOver={(e) => e.preventDefault()}
-              changed={isChanged} // ⭐ Cellに探索済み状態を渡す
+              changed={isChanged}
             >
-              {/* ⭐ レンダラーも加工されたデータを参照する */}
               {renderCell(cellDataForRenderer, row, col)}
             </Cell>
           );
@@ -141,6 +124,7 @@ export default function Board({
 
       {/* 2. コマのレンダリング (変更なし) */}
       {pieces.map(piece => {
+        // ... (コマのロジックは変更なし)
         const sameLocationPieces = pieces.filter(
             p => p.location.row === piece.location.row && p.location.col === piece.location.col
         );

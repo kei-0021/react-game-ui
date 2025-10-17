@@ -1,4 +1,5 @@
 export { default as Board } from './components/Board.js';
+export { Cell } from './components/Cell.js';
 export { default as Deck } from './components/Deck.js';
 export { default as Dice } from './components/Dice.js';
 export { default as PlayField } from './components/PlayField.js';

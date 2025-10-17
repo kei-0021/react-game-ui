@@ -1,17 +1,19 @@
+// tests/components/MyBoard.tsx
 import * as React from 'react';
 import { DragEvent } from 'react';
 import { Socket } from "socket.io-client";
-import type { CellData } from "../../src/components/Board";
-import Board from "../../src/components/Board";
-import { PlayerId } from '../../src/types/definition';
+import type { CellData } from "../../src/components/Cell";
+import GridBoard from "../../src/components/GridBoard";
+import type { PlayerId } from '../../src/types/definition';
 import type { PieceData } from "../../src/types/piece";
 
-type Location = { row: number; col: number };
+// 💡 修正 1: LocationをGridLocationにリネームし、Boardコンポーネントとの整合性を高めます
+type GridLocation = { row: number; col: number };
 
 type GameBoardViewProps = {
   socket: Socket;
+  roomId: string;
   myPlayerId: PlayerId | null;
-  roomId: string; // ルームID
 }
 
 const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
@@ -65,7 +67,7 @@ type ServerPlayer = {
   cards: any[];
   score: number;
   resources: any[];
-  position: Location;
+  position: GridLocation; // 💡 Location を GridLocation に変更
 };
 
 const EMPTY_BOARD: CellData[][] = [[], []];
@@ -75,21 +77,23 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
   const [deepSeaCells, setDeepSeaCells] = React.useState<CellData[][]>(EMPTY_BOARD);
   const [isBoardReady, setIsBoardReady] = React.useState(false);
   const [serverPlayers, setServerPlayers] = React.useState<ServerPlayer[]>([]);
-  const [exploredCells, setExploredCells] = React.useState<Location[]>([]);
+  const [exploredCells, setExploredCells] = React.useState<GridLocation[]>([]); // 💡 Location を GridLocation に変更
 
   const rows = deepSeaCells.length;
   const cols = deepSeaCells[0]?.length || 0; 
 
-  const handleBoardClick = (celldata: CellData, row: number, col: number) => {
+  // 💡 修正 2: handleBoardClick の引数を (celldata, loc) に変更
+  const handleBoardClick = (celldata: CellData, loc: GridLocation) => {
     if (!isBoardReady || !socket || !myPlayerId) return;
-    console.log(`[Client] Sending EXPLORE request for player ${myPlayerId} to (${row},${col})`);
-    socket.emit("game:explore-cell", { playerId: myPlayerId, targetPosition: { row, col }, roomId });
+    console.log(`[Client] Sending EXPLORE request for player ${myPlayerId} to (${loc.row},${loc.col})`);
+    socket.emit("game:explore-cell", { playerId: myPlayerId, targetPosition: loc, roomId });
   };
 
-  const handleBoardDoubleClick = (celldata: CellData, row: number, col: number) => {
+  // 💡 修正 3: handleBoardDoubleClick の引数を (celldata, loc) に変更
+  const handleBoardDoubleClick = (celldata: CellData, loc: GridLocation) => {
     if (!isBoardReady || !socket) return;
-    console.log(`[Client] Sending UNEXPLORE request to (${row},${col})`);
-    socket.emit("game:unexplore-cell", { targetPosition: { row, col }, roomId });
+    console.log(`[Client] Sending UNEXPLORE request to (${loc.row},${loc.col})`);
+    socket.emit("game:unexplore-cell", { targetPosition: loc, roomId });
   };
 
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
@@ -106,6 +110,7 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
     if (draggedPieceId) {
       socket.emit("game:move-player", { 
         playerId: draggedPieceId, 
+        // 💡 修正 4: ドロップイベントは row/col で渡されますが、socketへの送信はLocation形式に変換します
         newPosition: { row: targetRow, col: targetCol },
         roomId
       });
@@ -114,9 +119,10 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
   };
 
   // ------------------- Socket Effects -------------------
+  // ... (Socket Effectsは変更なし) ...
   React.useEffect(() => {
     const handleInitBoard = (boardData: CellData[][]) => {
-      console.log("[Socket] Board initialized.");
+      console.log("[Socket] GridBoard initialized.");
       if (boardData.length > 0) {
         setDeepSeaCells(boardData);
         setIsBoardReady(true);
@@ -129,7 +135,7 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
   }, [socket]);
 
   React.useEffect(() => {
-    const handleExploredUpdate = (updatedExploredCells: Location[]) => {
+    const handleExploredUpdate = (updatedExploredCells: GridLocation[]) => { // 💡 GridLocation に変更
       console.log("[Socket] Explored cells updated.", updatedExploredCells);
       setExploredCells(updatedExploredCells);
     };
@@ -155,7 +161,7 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
       const newPieces: PieceData[] = [];
       serverPlayers.forEach(p => {
         const existingPiece = prevPieces.find(piece => piece.id === p.id);
-        const location: Location = p.position; 
+        const location: GridLocation = p.position; // 💡 GridLocation に変更
         if (existingPiece) {
           newPieces.push({ ...existingPiece, location });
         } else {
@@ -179,15 +185,19 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
   return (
     <div style={{ textAlign: 'center' }}>
       {rows > 0 && cols > 0 ? (
-        <Board 
+        // 💡 修正 5: GridBoard に GridLocation 型を渡す (型安全性のため)
+        <GridBoard
           rows={rows} 
           cols={cols} 
           boardData={deepSeaCells} 
           pieces={pieces} 
           changedCells={exploredCells} 
           renderCell={MyCustomCellRenderer} 
+          
+          // 💡 修正 6: イベントハンドラは関数そのものを渡します
           onCellClick={handleBoardClick}
           onCellDoubleClick={handleBoardDoubleClick} 
+          
           onPieceClick={handlePieceClick}
           allowPieceDrag={true}
           onPieceDragStart={handlePieceDragStart}

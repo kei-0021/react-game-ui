@@ -934,28 +934,26 @@ const styles$2 = {
   boardContainer,
   cell
 };
-function Cell({
-  row,
-  col,
+const Cell = ({
+  // ⭐ [修正 1]: ジェネリクスをコンポーネント定義時に適用 (Trailing Commaが必要)
+  locationData,
   cellData,
   onClick,
   onDoubleClick,
-  // ⭐ [修正点 2] propsとして受け取る
   children,
   onDrop,
   onDragOver,
   changed = false
-}) {
+}) => {
   const handleClick = () => {
-    onClick(row, col);
+    onClick(locationData);
   };
   const handleDoubleClick = () => {
-    onDoubleClick(row, col);
+    onDoubleClick(locationData);
   };
   const effectiveBackgroundColor = changed ? cellData.changedColor : cellData.backgroundColor;
   const cellStyle = {
     backgroundColor: effectiveBackgroundColor
-    // (clipPathなどの他のスタイルもここに追加できます)
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
@@ -969,7 +967,7 @@ function Cell({
       children
     }
   );
-}
+};
 const piece = "_piece_wi08l_3";
 const styles$1 = {
   piece
@@ -1016,19 +1014,18 @@ function Board({
   renderCell,
   onCellClick,
   onCellDoubleClick,
-  // ⭐ 追加
   onPieceClick,
   allowPieceDrag = false,
   onPieceDragStart,
   onCellDrop
 }) {
-  const handleCellClick = (row, col) => {
-    const data = boardData[row][col];
-    onCellClick(data, row, col);
+  const handleCellClick = (loc) => {
+    const data = boardData[loc.row][loc.col];
+    onCellClick(data, loc);
   };
-  const handleCellDoubleClick = (row, col) => {
-    const data = boardData[row][col];
-    onCellDoubleClick(data, row, col);
+  const handleCellDoubleClick = (loc) => {
+    const data = boardData[loc.row][loc.col];
+    onCellDoubleClick(data, loc);
   };
   const handlePieceDragStart = (e, piece2) => {
     onPieceDragStart(e, piece2);
@@ -1047,29 +1044,30 @@ function Board({
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.boardContainer, style: boardStyle, children: [
     boardData.map((rowArr, row) => rowArr.map((originalCellData, col) => {
       const isChanged = changedCells.some(
-        (loc) => loc.row === row && loc.col === col
+        (loc2) => loc2.row === row && loc2.col === col
       );
       const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
       const cellDataForRenderer = {
         ...originalCellData,
-        // ⭐ content プロパティに有効なコンテンツを設定
         content: effectiveContent
-        // changedContent はそのまま保持
       };
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Cell,
-        {
-          row,
-          col,
-          cellData: cellDataForRenderer,
-          onClick: () => handleCellClick(row, col),
-          onDoubleClick: () => handleCellDoubleClick(row, col),
-          onDrop: (e) => onCellDrop(e, row, col),
-          onDragOver: (e) => e.preventDefault(),
-          changed: isChanged,
-          children: renderCell(cellDataForRenderer, row, col)
-        },
-        originalCellData.id
+      const loc = { row, col };
+      return (
+        // 💡 修正点 5: Cell にジェネリクス型 (GridLocation) を適用
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Cell,
+          {
+            locationData: loc,
+            cellData: cellDataForRenderer,
+            onClick: handleCellClick,
+            onDoubleClick: handleCellDoubleClick,
+            onDrop: (e) => onCellDrop(e, row, col),
+            onDragOver: (e) => e.preventDefault(),
+            changed: isChanged,
+            children: renderCell(cellDataForRenderer, row, col)
+          },
+          originalCellData.id
+        )
       );
     })),
     pieces.map((piece2) => {
@@ -1913,6 +1911,7 @@ function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }) {
 }
 export {
   Board,
+  Cell,
   Deck,
   Dice,
   PlayField,
