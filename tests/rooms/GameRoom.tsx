@@ -397,12 +397,16 @@ export default function GameRoom() {
               roomId={roomId}
               deckId="deepSeaAction"
               name="アクションカード"
-            />
+              myPlayerId={myPlayerId}
+              players={players}
+              />
             <PlayField
               socket={socket}
               roomId={roomId}
               deckId="deepSeaSpecies"
               name="深海生物カード"
+              myPlayerId={myPlayerId}
+              players={players}
             />
           </div>
         </div>

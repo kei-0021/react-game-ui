@@ -4,6 +4,8 @@ import * as React from "react";
 import { Socket } from "socket.io-client";
 import type { Card } from "../types/card.js";
 import type { DeckId, RoomId } from "../types/definition.js";
+// 💡 追加: プレイヤーの型情報をインポート
+import type { PlayerWithResources } from "../types/playerWithResources.js";
 import { client_log } from "../utils/client-log.js";
 import styles from "./Card.module.css";
 
@@ -11,6 +13,7 @@ import styles from "./Card.module.css";
 // カード表面の内容をレンダリングするコンポーネント
 // =========================================================================
 const CardDisplayContent = ({ card, isFaceUp }: { card: Card; isFaceUp: boolean }) => {
+// ... (変更なし) ...
   if (!isFaceUp) {
     console.log(`[CardDisplayContent] Card ID: ${card.id}, Name: ${card.name} - isFaceUp is false. Not rendering.`);
     return null;
@@ -60,6 +63,10 @@ type PlayFieldProps = {
   deckId: DeckId;
   name: string;
   is_logging?: boolean;
+  // 💡 追加: プレイヤーリストを受け取る (名前表示のために必要)
+  players: PlayerWithResources[]; 
+  // 💡 追加: 自分のプレイヤーIDを受け取る
+  myPlayerId: string | null;
 };
 
 export default function PlayField({
@@ -68,6 +75,8 @@ export default function PlayField({
   deckId,
   name,
   is_logging = false,
+  players, // Propsからplayersを取得
+  myPlayerId, // 💡 PropsからmyPlayerIdを取得
 }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
 
@@ -116,6 +125,20 @@ export default function PlayField({
   console.log(`[PlayField] Deck ${deckId} - Start rendering ${playedCards.length} cards in the Play Area.`);
 
 
+  // 💡 関数: プレイヤーIDから色を取得する (カスタムロジックを適用)
+  // 💡 修正: ownerIdの型を string | null | undefined に変更
+  const getPlayerColor = (ownerId: string | null | undefined): string => {
+    if (!ownerId) return '#aaaaaa'; // 所有者不明/null の場合は灰色
+    
+    // 💡 修正: ownerIdが自分のIDと一致するかで色を分岐
+    if (ownerId === myPlayerId) {
+        return '#4fc3f7'; // 自分自身のカード: 明るい青
+    } else {
+        return '#242a2aff'; // 他のプレイヤーのカード: 暗い黒っぽい色
+    }
+  };
+  
+
   return (
     <section
       style={{
@@ -144,9 +167,15 @@ export default function PlayField({
         {playedCards.length === 0 && <div style={{ opacity: 0.6 }}>（まだカードが出ていません）</div>}
         {playedCards.map((card) => {
           const isFaceUp = true;
+          const ownerColor = getPlayerColor(card.ownerId); // 所有者IDから色を取得
           
+          // 💡 改善: ownerオブジェクトを先に取得し、名前やIDが存在しない場合に備える
+          const owner = card.ownerId ? players.find(p => p.id === card.ownerId) : null;
+          // 💡 修正: .toUpperCase() を削除し、大文字・小文字を維持する
+          const ownerNameInitial = owner?.name?.[0] || '?'; 
+
           // 個々のカードレンダリングのログ
-          console.log(`[PlayField] Deck ${deckId} - Rendering Card ID: ${card.id}, Name: ${card.name} (isFaceUp: ${isFaceUp})`);
+          console.log(`[PlayField] Deck ${deckId} - Rendering Card ID: ${card.id}, Name: ${card.name} (Owner: ${card.ownerId}, Color: ${ownerColor})`);
 
           return (
             <div
@@ -158,10 +187,40 @@ export default function PlayField({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                // 💡 relative を確保（すでに存在）
               }}
               onDoubleClick={() => returnCardToOwnerHand(card)}
             >
               <CardDisplayContent card={card} isFaceUp={isFaceUp} />
+              
+              {/* 💡 所有者アイコンの追加 (ownerIdがない場合は非表示) */}
+              {card.ownerId && (
+                <div
+                  // ツールチップにフルネームを表示するために players リストが必要
+                  title={`所有者: ${owner?.name || '不明'}`} 
+                  style={{
+                    position: 'absolute',
+                    top: '-5px', // 右上角より少し外側
+                    right: '-5px', // 右上角より少し外側
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    backgroundColor: ownerColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    color: 'white',
+                    border: '2px solid white', // カードの背景色との対比を強調
+                    boxShadow: '0 0 5px rgba(0, 0, 0, 0.5)',
+                    zIndex: 10,
+                  }}
+                >
+                  {ownerNameInitial}
+                </div>
+              )}
+
               {card.description && <span className={styles.tooltip}>{card.description}</span>}
             </div>
           );
