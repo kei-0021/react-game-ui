@@ -968,8 +968,232 @@ const Cell = ({
     }
   );
 };
-const piece = "_piece_wi08l_3";
+const card = "_card_1mv54_3";
+const tooltip = "_tooltip_1mv54_23";
+const cardBack = "_cardBack_1mv54_47";
+const deckContainer = "_deckContainer_1mv54_59";
+const deckCard = "_deckCard_1mv54_66";
+const deckCardFront = "_deckCardFront_1mv54_78";
+const deckSection = "_deckSection_1mv54_95";
+const discardPileWrapper = "_discardPileWrapper_1mv54_103";
+const discardTopCard = "_discardTopCard_1mv54_109";
 const styles$1 = {
+  card,
+  tooltip,
+  cardBack,
+  deckContainer,
+  deckCard,
+  deckCardFront,
+  deckSection,
+  discardPileWrapper,
+  discardTopCard
+};
+const CardContent = ({ card: card2 }) => {
+  if (!card2.isFaceUp) return null;
+  if (card2.frontImage) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "img",
+      {
+        src: card2.frontImage,
+        alt: card2.name,
+        style: {
+          width: "100%",
+          height: "100%",
+          objectFit: "contain"
+        }
+      }
+    );
+  } else {
+    console.log(`[CardContent] pngの描画失敗: ${card2.id}. Path: ${card2.frontImage}`);
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        width: "100%",
+        padding: "5px"
+      },
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" }, children: card2.name })
+    }
+  );
+};
+function Deck({ socket, roomId, deckId, name, playerId = null }) {
+  const [deckCards, setDeckCards] = React.useState([]);
+  const [drawnCards, setDrawnCards] = React.useState([]);
+  const [discardPile, setDiscardPile] = React.useState([]);
+  const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
+  React.useEffect(() => {
+    socket.on(`deck:init:${roomId}:${deckId}`, (data) => {
+      setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
+      setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
+      setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
+    });
+    socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
+      console.log(`[Deck Update:${roomId}]`, data);
+      setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
+      setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
+      setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
+    });
+    return () => {
+      socket.off(`deck:init:${roomId}:${deckId}`);
+      socket.off(`deck:update:${roomId}:${deckId}`);
+    };
+  }, [socket, roomId, deckId]);
+  const draw = () => {
+    if (deckCards.length === 0) return;
+    const cardToDraw = deckCards[0];
+    const drawLocation = cardToDraw?.drawLocation || "hand";
+    const requestData = {
+      roomId,
+      deckId,
+      drawLocation
+    };
+    if (drawLocation === "hand" && playerId) {
+      requestData.playerId = playerId;
+    }
+    socket.emit("deck:draw", requestData);
+  };
+  const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
+  const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$1.deckSection, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "6px" }, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$1.deckControls, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, children: "シャッフル" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$1.deckWrapper, style: { display: "flex", gap: "0px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          className: styles$1.deckCard,
+          style: {
+            zIndex: deckCards.length - i,
+            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
+            backgroundColor: c.backColor
+          }
+        },
+        c.id
+      )) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          className: styles$1.deckCardFront,
+          style: {
+            zIndex: i + 1,
+            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
+          },
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c })
+        },
+        c.id
+      )) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles$1.deckContainer} ${styles$1.discardPileWrapper}`, children: discardPile.length > 0 && (() => {
+        const topCard = discardPile[discardPile.length - 1];
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            className: `${styles$1.deckCardFront} ${styles$1.discardTopCard}`,
+            style: { pointerEvents: "auto" },
+            onMouseEnter: () => setIsDiscardHovered(true),
+            onMouseLeave: () => setIsDiscardHovered(false),
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: topCard }),
+              topCard.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "span",
+                {
+                  className: styles$1.tooltip,
+                  style: {
+                    visibility: isDiscardHovered ? "visible" : "hidden",
+                    opacity: isDiscardHovered ? 1 : 0,
+                    zIndex: 9999
+                  },
+                  children: topCard.description
+                }
+              )
+            ]
+          },
+          topCard.id
+        );
+      })() })
+    ] })
+  ] });
+}
+function Dice({ sides = 6, socket = null, diceId, roomId, onRoll }) {
+  const [value, setValue] = useState(null);
+  const [rolling, setRolling] = useState(false);
+  const animRef = useRef(null);
+  const rollEventName = useMemo(() => `dice:rolled:${roomId}:${diceId}`, [roomId, diceId]);
+  useEffect(() => {
+    if (!socket || !roomId) return;
+    const handleRoll = (rolledValue) => {
+      setRolling(true);
+      const rollDuration = 1e3;
+      const interval = 50;
+      let count = 0;
+      const times = rollDuration / interval;
+      animRef.current = setInterval(() => {
+        const animValue = Math.floor(Math.random() * sides) + 1;
+        setValue(animValue);
+        count++;
+        if (count >= times) {
+          clearInterval(animRef.current);
+          animRef.current = null;
+          setValue(rolledValue);
+          setRolling(false);
+          onRoll?.(rolledValue);
+        }
+      }, interval);
+    };
+    socket.on(rollEventName, handleRoll);
+    return () => {
+      socket.off(rollEventName, handleRoll);
+      if (animRef.current) clearInterval(animRef.current);
+    };
+  }, [socket, sides, diceId, roomId, onRoll, rollEventName]);
+  const roll = () => {
+    if (!socket || rolling) return;
+    socket.emit("dice:roll", {
+      roomId,
+      diceId,
+      sides
+    });
+  };
+  const diceStyle = {
+    width: "80px",
+    height: "80px",
+    border: "2px solid #333",
+    borderRadius: "8px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "2rem",
+    fontWeight: "bold",
+    cursor: rolling ? "not-allowed" : "pointer",
+    userSelect: "none",
+    backgroundColor: rolling ? "#ffeaa7" : "#fff",
+    color: "#333",
+    boxShadow: rolling ? "0 0 15px rgba(255, 107, 107, 0.7)" : "0 4px 6px rgba(0,0,0,0.3)",
+    transition: "all 0.2s",
+    fontFamily: "Inter, sans-serif"
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      style: diceStyle,
+      onClick: roll,
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "1em" }, children: value ?? "🎲" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "0.5rem", color: "#666" }, children: diceId })
+      ]
+    }
+  );
+}
+const piece = "_piece_wi08l_3";
+const styles = {
   piece
 };
 function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
@@ -986,8 +1210,8 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
     }
   };
   const pieceClasses = [
-    styles$1.piece,
-    isDraggable ? styles$1.draggable : styles$1.clickable
+    styles.piece,
+    isDraggable ? styles.draggable : styles.clickable
   ].join(" ");
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
@@ -1005,7 +1229,7 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
     }
   );
 }
-function Board({
+function GridBoard({
   rows,
   cols,
   boardData,
@@ -1104,230 +1328,6 @@ function Board({
       );
     })
   ] });
-}
-const card = "_card_1mv54_3";
-const tooltip = "_tooltip_1mv54_23";
-const cardBack = "_cardBack_1mv54_47";
-const deckContainer = "_deckContainer_1mv54_59";
-const deckCard = "_deckCard_1mv54_66";
-const deckCardFront = "_deckCardFront_1mv54_78";
-const deckSection = "_deckSection_1mv54_95";
-const discardPileWrapper = "_discardPileWrapper_1mv54_103";
-const discardTopCard = "_discardTopCard_1mv54_109";
-const styles = {
-  card,
-  tooltip,
-  cardBack,
-  deckContainer,
-  deckCard,
-  deckCardFront,
-  deckSection,
-  discardPileWrapper,
-  discardTopCard
-};
-const CardContent = ({ card: card2 }) => {
-  if (!card2.isFaceUp) return null;
-  if (card2.frontImage) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "img",
-      {
-        src: card2.frontImage,
-        alt: card2.name,
-        style: {
-          width: "100%",
-          height: "100%",
-          objectFit: "contain"
-        }
-      }
-    );
-  } else {
-    console.log(`[CardContent] pngの描画失敗: ${card2.id}. Path: ${card2.frontImage}`);
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      style: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100%",
-        width: "100%",
-        padding: "5px"
-      },
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" }, children: card2.name })
-    }
-  );
-};
-function Deck({ socket, roomId, deckId, name, playerId = null }) {
-  const [deckCards, setDeckCards] = React.useState([]);
-  const [drawnCards, setDrawnCards] = React.useState([]);
-  const [discardPile, setDiscardPile] = React.useState([]);
-  const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
-  React.useEffect(() => {
-    socket.on(`deck:init:${roomId}:${deckId}`, (data) => {
-      setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
-      setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
-      setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
-    });
-    socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
-      console.log(`[Deck Update:${roomId}]`, data);
-      setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
-      setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
-      setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
-    });
-    return () => {
-      socket.off(`deck:init:${roomId}:${deckId}`);
-      socket.off(`deck:update:${roomId}:${deckId}`);
-    };
-  }, [socket, roomId, deckId]);
-  const draw = () => {
-    if (deckCards.length === 0) return;
-    const cardToDraw = deckCards[0];
-    const drawLocation = cardToDraw?.drawLocation || "hand";
-    const requestData = {
-      roomId,
-      deckId,
-      drawLocation
-    };
-    if (drawLocation === "hand" && playerId) {
-      requestData.playerId = playerId;
-    }
-    socket.emit("deck:draw", requestData);
-  };
-  const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
-  const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles.deckSection, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "6px" }, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.deckControls, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, children: "シャッフル" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.deckWrapper, style: { display: "flex", gap: "0px" }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          className: styles.deckCard,
-          style: {
-            zIndex: deckCards.length - i,
-            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-            backgroundColor: c.backColor
-          }
-        },
-        c.id
-      )) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          className: styles.deckCardFront,
-          style: {
-            zIndex: i + 1,
-            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
-          },
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c })
-        },
-        c.id
-      )) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles.deckContainer} ${styles.discardPileWrapper}`, children: discardPile.length > 0 && (() => {
-        const topCard = discardPile[discardPile.length - 1];
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            className: `${styles.deckCardFront} ${styles.discardTopCard}`,
-            style: { pointerEvents: "auto" },
-            onMouseEnter: () => setIsDiscardHovered(true),
-            onMouseLeave: () => setIsDiscardHovered(false),
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: topCard }),
-              topCard.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "span",
-                {
-                  className: styles.tooltip,
-                  style: {
-                    visibility: isDiscardHovered ? "visible" : "hidden",
-                    opacity: isDiscardHovered ? 1 : 0,
-                    zIndex: 9999
-                  },
-                  children: topCard.description
-                }
-              )
-            ]
-          },
-          topCard.id
-        );
-      })() })
-    ] })
-  ] });
-}
-function Dice({ sides = 6, socket = null, diceId, roomId, onRoll }) {
-  const [value, setValue] = useState(null);
-  const [rolling, setRolling] = useState(false);
-  const animRef = useRef(null);
-  const rollEventName = useMemo(() => `dice:rolled:${roomId}:${diceId}`, [roomId, diceId]);
-  useEffect(() => {
-    if (!socket || !roomId) return;
-    const handleRoll = (rolledValue) => {
-      setRolling(true);
-      const rollDuration = 1e3;
-      const interval = 50;
-      let count = 0;
-      const times = rollDuration / interval;
-      animRef.current = setInterval(() => {
-        const animValue = Math.floor(Math.random() * sides) + 1;
-        setValue(animValue);
-        count++;
-        if (count >= times) {
-          clearInterval(animRef.current);
-          animRef.current = null;
-          setValue(rolledValue);
-          setRolling(false);
-          onRoll?.(rolledValue);
-        }
-      }, interval);
-    };
-    socket.on(rollEventName, handleRoll);
-    return () => {
-      socket.off(rollEventName, handleRoll);
-      if (animRef.current) clearInterval(animRef.current);
-    };
-  }, [socket, sides, diceId, roomId, onRoll, rollEventName]);
-  const roll = () => {
-    if (!socket || rolling) return;
-    socket.emit("dice:roll", {
-      roomId,
-      diceId,
-      sides
-    });
-  };
-  const diceStyle = {
-    width: "80px",
-    height: "80px",
-    border: "2px solid #333",
-    borderRadius: "8px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "2rem",
-    fontWeight: "bold",
-    cursor: rolling ? "not-allowed" : "pointer",
-    userSelect: "none",
-    backgroundColor: rolling ? "#ffeaa7" : "#fff",
-    color: "#333",
-    boxShadow: rolling ? "0 0 15px rgba(255, 107, 107, 0.7)" : "0 4px 6px rgba(0,0,0,0.3)",
-    transition: "all 0.2s",
-    fontFamily: "Inter, sans-serif"
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "div",
-    {
-      style: diceStyle,
-      onClick: roll,
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "1em" }, children: value ?? "🎲" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "0.5rem", color: "#666" }, children: diceId })
-      ]
-    }
-  );
 }
 function client_log(tag, ...args) {
   console.log(`[${tag}]`, ...args);
@@ -1444,7 +1444,7 @@ function PlayField({
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
-                className: styles.card,
+                className: styles$1.card,
                 style: {
                   cursor: "pointer",
                   position: "relative",
@@ -1455,7 +1455,7 @@ function PlayField({
                 onDoubleClick: () => returnCardToOwnerHand(card2),
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent$1, { card: card2, isFaceUp }),
-                  card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles.tooltip, children: card2.description })
+                  card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$1.tooltip, children: card2.description })
                 ]
               },
               card2.id
@@ -1605,7 +1605,7 @@ const PlayerListItem = React.memo(({
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }, children: player.cards.map((card2) => {
           const isFaceUp = !!card2.isFaceUp && player.id === myPlayerId;
           const isSelected = selectedCards.includes(card2.id);
-          const cardClassName = isFaceUp ? styles.card : styles.cardBack;
+          const cardClassName = isFaceUp ? styles$1.card : styles$1.cardBack;
           console.log(`[PlayerListItem] Player: ${player.name}, Card ID: ${card2.id}, Name: ${card2.name} - isFaceUp: ${isFaceUp}, Class: ${cardClassName}`);
           return /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "div",
@@ -1624,7 +1624,7 @@ const PlayerListItem = React.memo(({
               onClick: () => toggleCardSelection(card2.id, isFaceUp),
               children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, isFaceUp }),
-                isFaceUp && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles.tooltip, children: card2.description })
+                isFaceUp && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$1.tooltip, children: card2.description })
               ]
             },
             card2.id
@@ -1910,10 +1910,10 @@ function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }) {
   );
 }
 export {
-  Board,
   Cell,
   Deck,
   Dice,
+  GridBoard,
   PlayField,
   ScoreBoard,
   Timer,

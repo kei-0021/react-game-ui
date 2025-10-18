@@ -244,6 +244,22 @@ export function initGameServer(io, options = {}) {
         return true;
     }
 
+    /**
+     * ルーム内の全クライアントにポップアップ表示を要求
+     * @param {string} roomId 
+     * @param {string} message 
+     * @param {string} color 
+     */
+    function requirePopup(roomId, message, color = "blue") {
+        const popupContent = {
+            message: message,
+            color: color,
+            timestamp: Date.now()
+        };
+        server_log("popup", `[${roomId}] 全員にポップアップ要求: ${message} (色: ${color})`);
+        io.to(roomId).emit("client:show-popup", popupContent);
+    }
+
     // デッキをシャッフル
     function shuffleDeck(roomId, deckId) {
         const roomInfo = activeRooms.get(roomId);
@@ -433,7 +449,8 @@ export function initGameServer(io, options = {}) {
                     cellEffects, 
                     (pId, pts) => addScore(roomId, pId, pts), 
                     (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt),
-                    (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt) 
+                    (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt),
+                    (msg, color) => requirePopup(roomId, msg, color)
                 );
 
                 emitPlayerUpdate(roomId); 

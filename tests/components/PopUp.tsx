@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 // ポップアップのProps型定義
 interface PopupProps {
   visible: boolean;
-  color: 'red' | 'green' | 'yellow' | 'blue' | string;
+  color: 'red' | 'green' | 'yellow' | 'blue' | 'gold' | 'teal' | 'purple' | 'orange' | string; 
   children: React.ReactNode;
 }
 
@@ -15,34 +15,74 @@ interface PopupProps {
 export default function Popup({ visible, color, children }: PopupProps) {
   // ポップアップUIのスタイルをuseMemoで計算
   const popupContainerStyle: React.CSSProperties = useMemo(() => {
-    // 透過度 (Alpha) の値
-    const baseOpacity = 'cc'; // 204/255 -> 約80%の透過度
+    // 透過度 (Alpha) の値 (プリセット用)
+    const presetOpacity = 'cc'; // 約80%の透過度
 
     const getColors = (colorKey: string) => {
+      // 💡 修正箇所：colorKeyが16進数コード（#で始まり7文字）の場合
+      if (colorKey.startsWith('#') && (colorKey.length === 7 || colorKey.length === 9)) {
+        
+        // 1. カスタムカラーが指定された場合、プリセットと同じ透過度を適用
+        const baseColor = colorKey.substring(0, 7); // #RRGGBB 部分を抽出
+        const customOpacity = 'cc'; // 💡 透過度を 'ff' (不透明) から 'cc' (80%透明) に変更
+        
+        // 単色のグラデーションとして処理
+        return {
+            start: `${baseColor}${customOpacity}`, 
+            end: `${baseColor}${customOpacity}`,   
+            textShadow: `0 0 10px ${baseColor}`,
+        };
+      }
+
+      // プリセットカラーの処理 (透過度: cc)
       switch (colorKey) {
         case 'red':
           return {
-            start: `#ef4444${baseOpacity}`, // Red 500 (半透明)
-            end: `#b91c1c${baseOpacity}`,   // Red 700 (半透明)
+            start: `#ef4444${presetOpacity}`, 
+            end: `#b91c1c${presetOpacity}`,   
             textShadow: '0 0 10px #f87171',
           };
         case 'green':
           return {
-            start: `#10b981${baseOpacity}`, // Green 500
-            end: `#059669${baseOpacity}`,   // Green 700
+            start: `#10b981${presetOpacity}`, 
+            end: `#059669${presetOpacity}`,   
             textShadow: '0 0 10px #34d399',
           };
         case 'yellow':
           return {
-            start: `#facc15${baseOpacity}`, // Yellow 400
-            end: `#d97706${baseOpacity}`,   // Amber 700
+            start: `#facc15${presetOpacity}`, 
+            end: `#d97706${presetOpacity}`,   
             textShadow: '0 0 10px #fde047',
+          };
+        case 'gold':
+          return {
+            start: `#d97706${presetOpacity}`, 
+            end: `#b45309${presetOpacity}`,   
+            textShadow: '0 0 10px #fcd34d',
+          };
+        case 'teal':
+          return {
+            start: `#2dd4bf${presetOpacity}`, 
+            end: `#0d9488${presetOpacity}`,   
+            textShadow: '0 0 10px #5eead4',
+          };
+        case 'purple':
+          return {
+            start: `#a855f7${presetOpacity}`, 
+            end: `#7c3aed${presetOpacity}`,   
+            textShadow: '0 0 10px #c084fc',
+          };
+        case 'orange':
+          return {
+            start: `#f97316${presetOpacity}`, 
+            end: `#ea580c${presetOpacity}`,   
+            textShadow: '0 0 10px #fdba74',
           };
         case 'blue':
         default:
           return {
-            start: `#3b82f6${baseOpacity}`, // Blue 500
-            end: `#1d4ed8${baseOpacity}`,   // Blue 700
+            start: `#3b82f6${presetOpacity}`, 
+            end: `#1d4ed8${presetOpacity}`,   
             textShadow: '0 0 10px #60a5fa',
           };
       }

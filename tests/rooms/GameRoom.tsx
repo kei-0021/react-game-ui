@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import Deck from "../../src/components/Deck";
 import PlayField from "../../src/components/PlayField";
@@ -29,6 +29,7 @@ interface PopupState {
 export default function GameRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
+  const popupTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // ★ 1. ポップアップの状態を追加
   const [popup, setPopup] = useState<PopupState>({ message: '', color: 'blue', visible: false });
@@ -50,15 +51,25 @@ export default function GameRoom() {
 
   // ★ 汎用ポップアップ表示ロジック
   const showPopup = useCallback((message: string, color: string) => {
-    // 既存のポップアップがあれば非表示にする
+    
+    if (popupTimerRef.current) {
+        clearTimeout(popupTimerRef.current);
+    }
+    
+    // ポップアップを表示
     setPopup({ message, color, visible: true });
     
-    // 8秒後に自動的に非表示にする
-    setTimeout(() => {
+    // 2秒後に自動的に非表示にする
+    const newTimerId = setTimeout(() => {
         // メッセージと色はそのままで、可視性のみ変更
         setPopup(prev => ({ ...prev, visible: false }));
-    }, 8000);
+        popupTimerRef.current = null; // タイマー完了後、refをクリア
+    }, 2000);
+
+    popupTimerRef.current = newTimerId;
+
   }, []);
+
 
   // ★ 新しい参加ハンドラ
   const handleJoinRoom = useCallback(() => {
@@ -315,35 +326,7 @@ export default function GameRoom() {
       <h1 style={titleStyle}>ディープ・アビス (Deep Abyss) - Room ID: {roomId}</h1>
       <p style={subtitleStyle}>深海を調査して眠れる資源を見つけ出せ！</p>
 
-      {/* ★ ポップアップテストボタンの配置 */}
-      <div style={{ textAlign: 'center', marginBottom: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
-          <button 
-            style={{ ...joinButtonStyle, backgroundColor: '#3b82f6', color: 'white' }}
-            onClick={() => handleTestPopup("ソナーがフルチャージされました！", "blue")}
-          >
-            Blue Pop
-          </button>
-          <button 
-            style={{ ...joinButtonStyle, backgroundColor: '#10b981', color: 'white' }}
-            onClick={() => handleTestPopup("希少な遺物を発見！", "green")}
-          >
-            Green Pop
-          </button>
-          <button 
-            style={{ ...joinButtonStyle, backgroundColor: '#f59e0b', color: 'white' }}
-            onClick={() => handleTestPopup("酸素残量が危険域です。", "yellow")}
-          >
-            Yellow Pop
-          </button>
-          <button 
-            style={{ ...joinButtonStyle, backgroundColor: '#dc2626', color: 'white' }}
-            onClick={() => handleTestPopup("巨大深海生物に遭遇！", "red")}
-          >
-            Red Pop
-          </button>
-      </div>
       {/* ----------------------------- */}
-
 
       <div style={boardWrapperStyle}>
         <MyBoard socket={socket} roomId={roomId} myPlayerId={myPlayerId} />

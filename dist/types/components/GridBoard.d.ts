@@ -6,7 +6,7 @@ type GridLocation = {
     row: number;
     col: number;
 };
-type BoardProps = {
+type GridBoardProps = {
     rows: number;
     cols: number;
     boardData: CellData[][];
@@ -20,5 +20,5 @@ type BoardProps = {
     onPieceDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
     onCellDrop: (e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void;
 };
-export default function Board({ rows, cols, boardData, pieces, changedCells, renderCell, onCellClick, onCellDoubleClick, onPieceClick, allowPieceDrag, onPieceDragStart, onCellDrop }: BoardProps): import("react/jsx-runtime").JSX.Element;
+export default function GridBoard({ rows, cols, boardData, pieces, changedCells, renderCell, onCellClick, onCellDoubleClick, onPieceClick, allowPieceDrag, onPieceDragStart, onCellDrop }: GridBoardProps): import("react/jsx-runtime").JSX.Element;
 export {};

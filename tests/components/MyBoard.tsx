@@ -25,7 +25,7 @@ const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
     alignItems: 'center',
     color: '#e0e0e0', 
     fontWeight: 'bold',
-    fontSize: '16px',
+    fontSize: '26px',
     textAlign: 'center',
     lineHeight: '1.2',
   };
@@ -39,7 +39,6 @@ const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
       <div style={{ 
         ...baseStyle, 
         clipPath: celldata.customClip as string, 
-        border: '2px dashed rgba(255,255,255,0.4)', 
         backgroundColor: celldata.backgroundColor === '#ff8a8a' ? '#ff3b3b' : celldata.backgroundColor,
         color: 'white'
       }}>

@@ -209,8 +209,18 @@ export const createRandomBoard = (initialBoard) => {
  * @param {function(string, number): void} addScore - スコア加算ヘルパー関数 (playerId, points)
  * @param {function(string, string, number): void} updatePlayerResource - リソース更新ヘルパー関数 (playerId, resourceId, amount)
  * @param {function(string, string, number): void} updatePlayerToken - トークン更新ヘルパー関数 (playerId, tokenId, amount)
+ * @param {function(string, string, number): void} updatePlayerToken - トークン更新ヘルパー関数 (playerId, tokenId, amount)
  */
-export const applyCellEffect = (gameStateInstance, playerId, location, cellEffects, addScore, updatePlayerResource, updatePlayerToken) => {
+export const applyCellEffect = (
+    gameStateInstance,
+    playerId,
+    location,
+    cellEffects,
+    addScore,
+    updatePlayerResource,
+    updatePlayerToken,
+    requirePopup
+) => {
     const { row, col } = location;
     
     if (row < 0 || row >= gameStateInstance.board.length || col < 0 || col >= gameStateInstance.board[row].length) {
@@ -230,7 +240,8 @@ export const applyCellEffect = (gameStateInstance, playerId, location, cellEffec
             playerId, 
             addScore, 
             updateResource: updatePlayerResource, 
-            updateToken: updatePlayerToken
+            updateToken: updatePlayerToken,
+            requirePopup: requirePopup
           }); 
         } catch (e) {
             server_log("warn", `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
