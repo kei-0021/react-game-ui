@@ -1374,7 +1374,11 @@ function PlayField({
   roomId,
   deckId,
   name,
-  is_logging = false
+  is_logging = false,
+  players,
+  // Propsからplayersを取得
+  myPlayerId
+  // 💡 PropsからmyPlayerIdを取得
 }) {
   const [playedCards, setPlayedCards] = React.useState([]);
   React.useEffect(() => {
@@ -1407,6 +1411,14 @@ function PlayField({
     client_log("playField", `カード ${card2.name} を持ち主 ${card2.ownerId} の手札に戻すようリクエスト`);
   };
   console.log(`[PlayField] Deck ${deckId} - Start rendering ${playedCards.length} cards in the Play Area.`);
+  const getPlayerColor = (ownerId) => {
+    if (!ownerId) return "#aaaaaa";
+    if (ownerId === myPlayerId) {
+      return "#4fc3f7";
+    } else {
+      return "#242a2aff";
+    }
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "section",
     {
@@ -1440,7 +1452,10 @@ function PlayField({
           playedCards.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { opacity: 0.6 }, children: "（まだカードが出ていません）" }),
           playedCards.map((card2) => {
             const isFaceUp = true;
-            console.log(`[PlayField] Deck ${deckId} - Rendering Card ID: ${card2.id}, Name: ${card2.name} (isFaceUp: ${isFaceUp})`);
+            const ownerColor = getPlayerColor(card2.ownerId);
+            const owner = card2.ownerId ? players.find((p) => p.id === card2.ownerId) : null;
+            const ownerNameInitial = owner?.name?.[0] || "?";
+            console.log(`[PlayField] Deck ${deckId} - Rendering Card ID: ${card2.id}, Name: ${card2.name} (Owner: ${card2.ownerId}, Color: ${ownerColor})`);
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
@@ -1451,10 +1466,39 @@ function PlayField({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center"
+                  // 💡 relative を確保（すでに存在）
                 },
                 onDoubleClick: () => returnCardToOwnerHand(card2),
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent$1, { card: card2, isFaceUp }),
+                  card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "div",
+                    {
+                      title: `所有者: ${owner?.name || "不明"}`,
+                      style: {
+                        position: "absolute",
+                        top: "-5px",
+                        // 右上角より少し外側
+                        right: "-5px",
+                        // 右上角より少し外側
+                        width: "18px",
+                        height: "18px",
+                        borderRadius: "50%",
+                        backgroundColor: ownerColor,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "10px",
+                        fontWeight: "bold",
+                        color: "white",
+                        border: "2px solid white",
+                        // カードの背景色との対比を強調
+                        boxShadow: "0 0 5px rgba(0, 0, 0, 0.5)",
+                        zIndex: 10
+                      },
+                      children: ownerNameInitial
+                    }
+                  ),
                   card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$1.tooltip, children: card2.description })
                 ]
               },
