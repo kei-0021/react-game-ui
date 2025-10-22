@@ -20,15 +20,20 @@
       "import": "./dist/server-logic.js",
       "require": "./dist/server-logic.js"
     },
+    "./server-utils": {
+      "import": "./dist/server-utils.js",
+      "require": "./dist/server-utils.js"
+    },
     "./dist/react-game-ui.css": "./dist/react-game-ui.css"
   },
   "files": [
     "dist",
-    "src/server.js",
-    "src/server-logic.js"
+    "src/server/server.js",
+    "src/server/server-logic.js",
+    "src/server/server-utils.js"
   ],
   "scripts": {
-    "build": "NODE_ENV=production vite build && tsc --project tsconfig.json && node -e \"require('fs').copyFileSync('src/server.js', 'dist/server.js'); require('fs').copyFileSync('src/server-logic.js', 'dist/server-logic.js');\"",
+    "build": "NODE_ENV=production vite build && tsc --project tsconfig.json && node -e \"require('fs').copyFileSync('src/server/server.js', 'dist/server.js'); require('fs').copyFileSync('src/server/server-logic.js', 'dist/server-logic.js'); require('fs').copyFileSync('src/server/server-utils.js', 'dist/server-utils.js');\"",
     "preview": "vite preview",
     "server": "node --loader ts-node/esm tests/server.js",
     "dev:multi": "concurrently \"npm run server\" \"vite\"",
@@ -40,6 +45,7 @@
   },
   "dependencies": {
     "express": "^5.1.0",
+    "react-router-dom": "^7.9.4",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
   },

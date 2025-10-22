@@ -1,5 +1,5 @@
 import * as React from "react";
-import React__default, { useState, useRef, useEffect } from "react";
+import React__default, { useState, useRef, useMemo, useEffect, useCallback } from "react";
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production_min = {};
 /**
@@ -928,82 +928,206 @@ function requireJsxRuntime() {
   return jsxRuntime.exports;
 }
 var jsxRuntimeExports = requireJsxRuntime();
-const card = "_card_12yoz_4";
-const tooltip = "_tooltip_12yoz_25";
-const cardBack = "_cardBack_12yoz_48";
-const deckContainer = "_deckContainer_12yoz_61";
-const deckCard = "_deckCard_12yoz_69";
-const deckCardFront = "_deckCardFront_12yoz_82";
-const deckSection = "_deckSection_12yoz_98";
-const styles = {
+const boardContainer = "_boardContainer_1laip_8";
+const cell = "_cell_1laip_28";
+const styles$2 = {
+  boardContainer,
+  cell
+};
+const Cell = ({
+  // ⭐ [修正 1]: ジェネリクスをコンポーネント定義時に適用 (Trailing Commaが必要)
+  locationData,
+  cellData,
+  onClick,
+  onDoubleClick,
+  children,
+  onDrop,
+  onDragOver,
+  changed = false
+}) => {
+  const handleClick = () => {
+    onClick(locationData);
+  };
+  const handleDoubleClick = () => {
+    onDoubleClick(locationData);
+  };
+  const effectiveBackgroundColor = changed ? cellData.changedColor : cellData.backgroundColor;
+  const cellStyle = {
+    backgroundColor: effectiveBackgroundColor
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: styles$2.cell,
+      onClick: handleClick,
+      onDoubleClick: handleDoubleClick,
+      onDrop,
+      onDragOver,
+      style: cellStyle,
+      children
+    }
+  );
+};
+const card = "_card_1mv54_3";
+const tooltip = "_tooltip_1mv54_23";
+const cardBack = "_cardBack_1mv54_47";
+const deckContainer = "_deckContainer_1mv54_59";
+const deckCard = "_deckCard_1mv54_66";
+const deckCardFront = "_deckCardFront_1mv54_78";
+const deckSection = "_deckSection_1mv54_95";
+const discardPileWrapper = "_discardPileWrapper_1mv54_103";
+const discardTopCard = "_discardTopCard_1mv54_109";
+const styles$1 = {
   card,
   tooltip,
   cardBack,
   deckContainer,
   deckCard,
   deckCardFront,
-  deckSection
+  deckSection,
+  discardPileWrapper,
+  discardTopCard
 };
-function Deck({ socket, deckId, name, playerId = null }) {
+const CardContent = ({ card: card2 }) => {
+  if (!card2.isFaceUp) return null;
+  if (card2.frontImage) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "img",
+      {
+        src: card2.frontImage,
+        alt: card2.name,
+        style: {
+          width: "100%",
+          height: "100%",
+          objectFit: "contain"
+        }
+      }
+    );
+  } else {
+    console.log(`[CardContent] pngの描画失敗: ${card2.id}. Path: ${card2.frontImage}`);
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        width: "100%",
+        padding: "5px"
+      },
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" }, children: card2.name })
+    }
+  );
+};
+function Deck({ socket, roomId, deckId, name, playerId = null }) {
   const [deckCards, setDeckCards] = React.useState([]);
   const [drawnCards, setDrawnCards] = React.useState([]);
+  const [discardPile, setDiscardPile] = React.useState([]);
+  const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
   React.useEffect(() => {
-    socket.on(`deck:init:${deckId}`, (data) => {
+    socket.on(`deck:init:${roomId}:${deckId}`, (data) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
       setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
+      setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
     });
-    socket.on(`deck:update:${deckId}`, (data) => {
+    socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
+      console.log(`[Deck Update:${roomId}]`, data);
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
       setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
+      setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
     });
     return () => {
-      socket.off(`deck:init:${deckId}`);
-      socket.off(`deck:update:${deckId}`);
+      socket.off(`deck:init:${roomId}:${deckId}`);
+      socket.off(`deck:update:${roomId}:${deckId}`);
     };
-  }, [socket, deckId]);
+  }, [socket, roomId, deckId]);
   const draw = () => {
     if (deckCards.length === 0) return;
-    socket.emit("deck:draw", { deckId, playerId });
+    const cardToDraw = deckCards[0];
+    const drawLocation = cardToDraw?.drawLocation || "hand";
+    const requestData = {
+      roomId,
+      deckId,
+      drawLocation
+    };
+    if (drawLocation === "hand" && playerId) {
+      requestData.playerId = playerId;
+    }
+    socket.emit("deck:draw", requestData);
   };
-  const shuffle = () => socket.emit("deck:shuffle", { deckId });
-  const resetDeck = () => socket.emit("deck:reset", { deckId });
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles.deckSection, children: [
+  const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
+  const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$1.deckSection, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "6px" }, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.deckControls, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$1.deckControls, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, children: "シャッフル" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.deckWrapper, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$1.deckWrapper, style: { display: "flex", gap: "0px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
-          className: styles.deckCard,
+          className: styles$1.deckCard,
           style: {
             zIndex: deckCards.length - i,
-            transform: `translate(${i * 0.5}px, ${i * 0.5}px)`,
+            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
             backgroundColor: c.backColor
           }
         },
         c.id
       )) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
-          className: styles.deckCardFront,
-          style: { zIndex: i + 1, transform: `translate(${i * 0.5}px, ${i * 0.5}px)` },
-          children: c.isFaceUp && c.name
+          className: styles$1.deckCardFront,
+          style: {
+            zIndex: i + 1,
+            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
+          },
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c })
         },
         c.id
-      )) })
+      )) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles$1.deckContainer} ${styles$1.discardPileWrapper}`, children: discardPile.length > 0 && (() => {
+        const topCard = discardPile[discardPile.length - 1];
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            className: `${styles$1.deckCardFront} ${styles$1.discardTopCard}`,
+            style: { pointerEvents: "auto" },
+            onMouseEnter: () => setIsDiscardHovered(true),
+            onMouseLeave: () => setIsDiscardHovered(false),
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: topCard }),
+              topCard.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "span",
+                {
+                  className: styles$1.tooltip,
+                  style: {
+                    visibility: isDiscardHovered ? "visible" : "hidden",
+                    opacity: isDiscardHovered ? 1 : 0,
+                    zIndex: 9999
+                  },
+                  children: topCard.description
+                }
+              )
+            ]
+          },
+          topCard.id
+        );
+      })() })
     ] })
   ] });
 }
-function Dice({ sides = 6, socket = null, diceId, onRoll }) {
+function Dice({ sides = 6, socket = null, diceId, roomId, onRoll }) {
   const [value, setValue] = useState(null);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef(null);
+  const rollEventName = useMemo(() => `dice:rolled:${roomId}:${diceId}`, [roomId, diceId]);
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !roomId) return;
     const handleRoll = (rolledValue) => {
       setRolling(true);
       const rollDuration = 1e3;
@@ -1023,202 +1147,612 @@ function Dice({ sides = 6, socket = null, diceId, onRoll }) {
         }
       }, interval);
     };
-    socket.on(`dice:rolled:${diceId}`, handleRoll);
+    socket.on(rollEventName, handleRoll);
     return () => {
-      socket.off(`dice:rolled:${diceId}`, handleRoll);
+      socket.off(rollEventName, handleRoll);
       if (animRef.current) clearInterval(animRef.current);
     };
-  }, [socket, sides, diceId, onRoll]);
+  }, [socket, sides, diceId, roomId, onRoll, rollEventName]);
   const roll = () => {
     if (!socket || rolling) return;
-    socket.emit("dice:roll", { diceId, sides });
+    socket.emit("dice:roll", {
+      roomId,
+      diceId,
+      sides
+    });
   };
+  const diceStyle = {
+    width: "80px",
+    height: "80px",
+    border: "2px solid #333",
+    borderRadius: "8px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "2rem",
+    fontWeight: "bold",
+    cursor: rolling ? "not-allowed" : "pointer",
+    userSelect: "none",
+    backgroundColor: rolling ? "#ffeaa7" : "#fff",
+    color: "#333",
+    boxShadow: rolling ? "0 0 15px rgba(255, 107, 107, 0.7)" : "0 4px 6px rgba(0,0,0,0.3)",
+    transition: "all 0.2s",
+    fontFamily: "Inter, sans-serif"
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      style: diceStyle,
+      onClick: roll,
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "1em" }, children: value ?? "🎲" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "0.5rem", color: "#666" }, children: diceId })
+      ]
+    }
+  );
+}
+const piece = "_piece_wi08l_3";
+const styles = {
+  piece
+};
+function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
+  const handleClick = (e) => {
+    e.stopPropagation();
+    onClick(piece2.id);
+  };
+  const handleDragStart = (e) => {
+    if (isDraggable) {
+      e.stopPropagation();
+      e.dataTransfer.setData("text/plain", piece2.id);
+      e.dataTransfer.effectAllowed = "move";
+      onDragStart(e, piece2);
+    }
+  };
+  const pieceClasses = [
+    styles.piece,
+    isDraggable ? styles.draggable : styles.clickable
+  ].join(" ");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: pieceClasses,
+      style: {
+        ...style,
+        backgroundColor: piece2.color
+      },
+      onClick: handleClick,
+      draggable: isDraggable,
+      onDragStart: handleDragStart,
+      title: piece2.name,
+      children: piece2.name.substring(0, 1)
+    }
+  );
+}
+function GridBoard({
+  rows,
+  cols,
+  boardData,
+  pieces,
+  changedCells,
+  renderCell,
+  onCellClick,
+  onCellDoubleClick,
+  onPieceClick,
+  allowPieceDrag = false,
+  onPieceDragStart,
+  onCellDrop
+}) {
+  const handleCellClick = (loc) => {
+    const data = boardData[loc.row][loc.col];
+    onCellClick(data, loc);
+  };
+  const handleCellDoubleClick = (loc) => {
+    const data = boardData[loc.row][loc.col];
+    onCellDoubleClick(data, loc);
+  };
+  const handlePieceDragStart = (e, piece2) => {
+    onPieceDragStart(e, piece2);
+  };
+  const boardStyle = {
+    "--board-rows": rows,
+    "--board-cols": cols,
+    display: "grid",
+    gridTemplateRows: `repeat(${rows}, 1fr)`,
+    gridTemplateColumns: `repeat(${cols}, 1fr)`,
+    gap: "4px",
+    width: "600px",
+    height: "600px",
+    position: "relative"
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.boardContainer, style: boardStyle, children: [
+    boardData.map((rowArr, row) => rowArr.map((originalCellData, col) => {
+      const isChanged = changedCells.some(
+        (loc2) => loc2.row === row && loc2.col === col
+      );
+      const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
+      const cellDataForRenderer = {
+        ...originalCellData,
+        content: effectiveContent
+      };
+      const loc = { row, col };
+      return (
+        // 💡 修正点 5: Cell にジェネリクス型 (GridLocation) を適用
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Cell,
+          {
+            locationData: loc,
+            cellData: cellDataForRenderer,
+            onClick: handleCellClick,
+            onDoubleClick: handleCellDoubleClick,
+            onDrop: (e) => onCellDrop(e, row, col),
+            onDragOver: (e) => e.preventDefault(),
+            changed: isChanged,
+            children: renderCell(cellDataForRenderer, row, col)
+          },
+          originalCellData.id
+        )
+      );
+    })),
+    pieces.map((piece2) => {
+      const sameLocationPieces = pieces.filter(
+        (p) => p.location.row === piece2.location.row && p.location.col === piece2.location.col
+      );
+      const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece2.id);
+      const groupCount = sameLocationPieces.length;
+      let offsetX = 0;
+      let offsetY = 0;
+      if (groupCount > 1) {
+        const radius = 18;
+        const angle = 2 * Math.PI / groupCount * groupIndex;
+        offsetX = radius * Math.cos(angle);
+        offsetY = radius * Math.sin(angle);
+      }
+      const pieceStyle = {
+        gridArea: `${piece2.location.row + 1} / ${piece2.location.col + 1} / span 1 / span 1`,
+        alignSelf: "center",
+        justifySelf: "center",
+        transform: `translate(${offsetX}px, ${offsetY}px)`,
+        transition: "transform 0.3s ease-in-out"
+      };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Piece,
+        {
+          piece: piece2,
+          style: pieceStyle,
+          onClick: onPieceClick,
+          isDraggable: allowPieceDrag,
+          onDragStart: (e) => handlePieceDragStart(e, piece2)
+        },
+        piece2.id
+      );
+    })
+  ] });
+}
+function client_log(tag, ...args) {
+  console.log(`[${tag}]`, ...args);
+}
+const CardDisplayContent$1 = ({ card: card2, isFaceUp }) => {
+  if (!isFaceUp) {
+    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - isFaceUp is false. Not rendering.`);
+    return null;
+  }
+  if (card2.frontImage) {
+    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with frontImage: ${card2.frontImage}`);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "img",
+      {
+        src: card2.frontImage,
+        alt: card2.name,
+        style: {
+          width: "100%",
+          height: "100%",
+          objectFit: "contain"
+        }
+      }
+    );
+  }
+  console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with card.name (No frontImage).`);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
       style: {
-        width: "80px",
-        height: "80px",
-        border: "2px solid #333",
-        borderRadius: "8px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: "2rem",
-        fontWeight: "bold",
-        cursor: rolling ? "not-allowed" : "pointer",
-        userSelect: "none",
-        backgroundColor: "#fff",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-        transition: "transform 0.2s"
+        height: "100%",
+        width: "100%",
+        padding: "5px",
+        color: "#333"
       },
-      onClick: roll,
-      children: value ?? "🎲"
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "0.8em", wordBreak: "break-all", textAlign: "center" }, children: card2.name })
     }
   );
-}
-function PlayField({ socket, deckId }) {
+};
+function PlayField({
+  socket,
+  roomId,
+  deckId,
+  name,
+  is_logging = false,
+  players,
+  // Propsからplayersを取得
+  myPlayerId
+  // 💡 PropsからmyPlayerIdを取得
+}) {
   const [playedCards, setPlayedCards] = React.useState([]);
   React.useEffect(() => {
     const handleUpdate = (data) => {
-      setPlayedCards(data.playFieldCards || []);
+      const newCards = data.playFieldCards || [];
+      if (is_logging) {
+        client_log("playField", `[${deckId}] 場の状態を更新`);
+        client_log("playField", `[${deckId}] 古いカード数: ${playedCards.length}, 新しいカード数: ${newCards.length}`);
+        client_log("playField", `[${deckId}] 受信したカードリスト:`, newCards.map((c) => c.name));
+      }
+      console.log(`[PlayField] Deck ${deckId} - Received ${newCards.length} cards for rendering.`);
+      setPlayedCards(newCards);
     };
-    socket.on(`deck:update:${deckId}`, handleUpdate);
+    socket.on(`deck:update:${roomId}:${deckId}`, handleUpdate);
     return () => {
-      socket.off(`deck:update:${deckId}`, handleUpdate);
+      socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
     };
-  }, [socket, deckId]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { style: { border: "2px dashed #ccc", borderRadius: "10px", padding: "12px", margin: "12px 0", background: "#fafafa" }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "8px" }, children: "プレイエリア" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px", minHeight: "120px" }, children: [
-      playedCards.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { opacity: 0.6 }, children: "（まだカードが出ていません）" }),
-      playedCards.map((card2) => {
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            style: {
-              width: "80px",
-              height: "120px",
-              border: "1px solid #999",
-              borderRadius: "6px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "white",
-              boxShadow: "2px 2px 4px rgba(0,0,0,0.1)",
-              cursor: "pointer",
-              position: "relative"
-            },
-            onMouseEnter: (e) => {
-              const tooltip2 = e.currentTarget.querySelector(".tooltip");
-              if (!tooltip2) return;
-              tooltip2.style.display = "block";
-            },
-            onMouseLeave: (e) => {
-              const tooltip2 = e.currentTarget.querySelector(".tooltip");
-              if (!tooltip2) return;
-              tooltip2.style.display = "none";
-            },
-            children: [
-              card2.name,
-              card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "span",
-                {
-                  className: "tooltip",
-                  style: {
-                    display: "none",
-                    position: "absolute",
-                    bottom: "110%",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    padding: "6px 10px",
-                    background: "#333",
-                    color: "white",
-                    borderRadius: "4px",
-                    whiteSpace: "nowrap",
-                    zIndex: 1e3,
-                    fontSize: "12px"
-                  },
-                  children: card2.description
-                }
-              )
-            ]
-          },
-          card2.id
-        );
-      })
-    ] })
-  ] });
+  }, [socket, roomId, deckId, playedCards.length]);
+  const returnCardToOwnerHand = (card2) => {
+    if (!card2.ownerId) {
+      client_log("playField", `警告: ${card2.name} には所有者IDが設定されていません。手札に戻せません。`);
+      return;
+    }
+    socket.emit("card:return-to-hand", {
+      roomId,
+      deckId: card2.deckId,
+      cardId: card2.id,
+      targetPlayerId: card2.ownerId
+    });
+    client_log("playField", `カード ${card2.name} を持ち主 ${card2.ownerId} の手札に戻すようリクエスト`);
+  };
+  console.log(`[PlayField] Deck ${deckId} - Start rendering ${playedCards.length} cards in the Play Area.`);
+  const getPlayerColor = (ownerId) => {
+    if (!ownerId) return "#aaaaaa";
+    if (ownerId === myPlayerId) {
+      return "#4fc3f7";
+    } else {
+      return "#242a2aff";
+    }
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "section",
+    {
+      style: {
+        border: "2px dashed #ccc",
+        borderRadius: "10px",
+        padding: "12px",
+        background: "#fafafa"
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { style: { marginBottom: "8px" }, children: [
+          "プレイエリア",
+          name && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "span",
+            {
+              style: {
+                marginLeft: "10px",
+                fontWeight: "normal",
+                fontSize: "0.9em",
+                color: "#666"
+              },
+              children: [
+                "（",
+                name,
+                "）"
+              ]
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px", minHeight: "120px" }, children: [
+          playedCards.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { opacity: 0.6 }, children: "（まだカードが出ていません）" }),
+          playedCards.map((card2) => {
+            const isFaceUp = true;
+            const ownerColor = getPlayerColor(card2.ownerId);
+            const owner = card2.ownerId ? players.find((p) => p.id === card2.ownerId) : null;
+            const ownerNameInitial = owner?.name?.[0] || "?";
+            console.log(`[PlayField] Deck ${deckId} - Rendering Card ID: ${card2.id}, Name: ${card2.name} (Owner: ${card2.ownerId}, Color: ${ownerColor})`);
+            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "div",
+              {
+                className: styles$1.card,
+                style: {
+                  cursor: "pointer",
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                  // 💡 relative を確保（すでに存在）
+                },
+                onDoubleClick: () => returnCardToOwnerHand(card2),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent$1, { card: card2, isFaceUp }),
+                  card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "div",
+                    {
+                      title: `所有者: ${owner?.name || "不明"}`,
+                      style: {
+                        position: "absolute",
+                        top: "-5px",
+                        // 右上角より少し外側
+                        right: "-5px",
+                        // 右上角より少し外側
+                        width: "18px",
+                        height: "18px",
+                        borderRadius: "50%",
+                        backgroundColor: ownerColor,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "10px",
+                        fontWeight: "bold",
+                        color: "white",
+                        border: "2px solid white",
+                        // カードの背景色との対比を強調
+                        boxShadow: "0 0 5px rgba(0, 0, 0, 0.5)",
+                        zIndex: 10
+                      },
+                      children: ownerNameInitial
+                    }
+                  ),
+                  card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$1.tooltip, children: card2.description })
+                ]
+              },
+              card2.id
+            );
+          })
+        ] })
+      ]
+    }
+  );
 }
+const CardDisplayContent = React.memo(({ card: card2, isFaceUp }) => {
+  if (!isFaceUp) {
+    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Not FaceUp. Rendering nothing.`);
+    return null;
+  }
+  if (card2.frontImage) {
+    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with frontImage: ${card2.frontImage}`);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "img",
+      {
+        src: card2.frontImage,
+        alt: card2.name,
+        style: { width: "100%", height: "100%", objectFit: "contain" }
+      }
+    );
+  }
+  console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with card.name (No frontImage).`);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    width: "100%",
+    padding: "5px",
+    color: "#333"
+  }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "0.8em", wordBreak: "break-all", textAlign: "center" }, children: card2.name }) });
+});
+const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
+  const isMyToken = myPlayerId === playerIdBeingDisplayed;
+  if (!tokens || tokens.length === 0) return null;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    marginTop: "8px",
+    paddingTop: "8px",
+    borderTop: "1px solid #ddd"
+  }, children: tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      title: isMyToken ? `クリックして再獲得: ${token.name}` : token.name,
+      style: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#fff",
+        borderRadius: "50%",
+        width: "48px",
+        height: "48px",
+        fontSize: "0.75em",
+        fontWeight: "bold",
+        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+        cursor: isMyToken ? "pointer" : "default",
+        opacity: isMyToken ? 1 : 0.7,
+        flexShrink: 0,
+        padding: "2px"
+      },
+      onClick: () => {
+        if (!isMyToken) return;
+        socket.emit("token:reclaim", {
+          roomId,
+          playerId: myPlayerId,
+          tokenId: token.id
+        });
+      },
+      children: token.name
+    },
+    token.id
+  )) });
+});
+const PlayerListItem = React.memo(({
+  player,
+  currentPlayerId,
+  myPlayerId,
+  selectedCards,
+  toggleCardSelection,
+  socket,
+  roomId
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "li",
+    {
+      style: {
+        padding: "6px 12px",
+        marginBottom: "6px",
+        borderRadius: "4px",
+        backgroundColor: player.id === currentPlayerId ? "#a0e7ff" : "#f5f5f5",
+        fontWeight: player.id === currentPlayerId ? "bold" : "normal"
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontSize: "1.1em", color: "#333" }, children: [
+            player.id === currentPlayerId && "ᐅ ",
+            player.id === myPlayerId && "★ ME ",
+            player.name
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontSize: "1.2em" }, children: [
+            "スコア: ",
+            player.score
+          ] })
+        ] }),
+        player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "4px", marginBottom: "8px", fontSize: "0.9em", color: "#333" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { display: "block", marginBottom: "4px" }, children: "リソース:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", flexWrap: "wrap", gap: "10px" }, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "span",
+            {
+              title: resource.name,
+              style: {
+                padding: "4px 8px",
+                backgroundColor: "#f0f0f0",
+                borderRadius: "4px",
+                whiteSpace: "nowrap"
+              },
+              children: [
+                resource.icon,
+                " ",
+                resource.name,
+                ": ",
+                resource.currentValue,
+                " / ",
+                resource.maxValue
+              ]
+            },
+            resource.id
+          )) })
+        ] }),
+        player.tokens?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          TokenDisplayContent,
+          {
+            tokens: player.tokens,
+            socket,
+            roomId,
+            myPlayerId,
+            playerIdBeingDisplayed: player.id
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }, children: player.cards.map((card2) => {
+          const isFaceUp = !!card2.isFaceUp && player.id === myPlayerId;
+          const isSelected = selectedCards.includes(card2.id);
+          const cardClassName = isFaceUp ? styles$1.card : styles$1.cardBack;
+          console.log(`[PlayerListItem] Player: ${player.name}, Card ID: ${card2.id}, Name: ${card2.name} - isFaceUp: ${isFaceUp}, Class: ${cardClassName}`);
+          return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "div",
+            {
+              className: cardClassName,
+              style: {
+                position: "relative",
+                cursor: isFaceUp ? "pointer" : "default",
+                backgroundColor: isFaceUp ? void 0 : card2.backColor,
+                border: isSelected ? "2px solid gold" : "none",
+                boxSizing: "border-box",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center"
+              },
+              onClick: () => toggleCardSelection(card2.id, isFaceUp),
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, isFaceUp }),
+                isFaceUp && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$1.tooltip, children: card2.description })
+              ]
+            },
+            card2.id
+          );
+        }) })
+      ]
+    },
+    player.id
+  );
+});
 function ScoreBoard({
   socket,
   players,
   currentPlayerId,
   myPlayerId,
+  roomId,
   backColor = "#000000ff"
 }) {
-  const nextTurn = () => socket.emit("game:next-turn");
+  const displayedPlayers = React.useMemo(() => {
+    return (players || []).map((p) => ({
+      ...p,
+      score: p.score ?? 0,
+      cards: p.cards ?? [],
+      resources: p.resources ?? [],
+      tokens: p.tokens ?? []
+    }));
+  }, [players]);
   const [selectedCards, setSelectedCards] = React.useState([]);
-  const displayedPlayers = (players || []).map((p) => ({
-    ...p,
-    score: p.score ?? 0,
-    cards: p.cards ?? []
-  }));
-  const toggleCardSelection = (cardId, isFaceUp) => {
+  const toggleCardSelection = React.useCallback((cardId, isFaceUp) => {
     if (!isFaceUp) return;
     setSelectedCards(
       (prev) => prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
     );
-  };
-  const playSelectedCards = () => {
+  }, []);
+  const playSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
     const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
     if (!myPlayer) return;
     const cardsByDeck = {};
+    let targetPlayLocation;
     selectedCards.forEach((cardId) => {
       const card2 = myPlayer.cards.find((c) => c.id === cardId);
       if (!card2) return;
+      if (!targetPlayLocation) {
+        targetPlayLocation = card2.playLocation;
+      }
       if (!cardsByDeck[card2.deckId]) cardsByDeck[card2.deckId] = [];
       cardsByDeck[card2.deckId].push(card2.id);
     });
+    if (!targetPlayLocation) return;
     Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
       socket.emit("card:play", {
+        roomId,
         deckId,
         cardIds,
-        // そのデッキ内の複数カード
         playerId: myPlayerId,
-        playLocation: "field"
+        playLocation: targetPlayLocation
       });
     });
     setSelectedCards([]);
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { padding: "12px", border: "1px solid #ccc", borderRadius: "8px" }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { children: "Scoreboard" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { style: { listStyle: "none", padding: 0 }, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "li",
+  }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId]);
+  const nextTurn = React.useCallback(() => {
+    socket.emit("game:next-turn", { roomId });
+  }, [socket, roomId]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: {
+    padding: "16px",
+    border: "1px solid #333",
+    borderRadius: "12px",
+    backgroundColor: "#f9f9f9",
+    maxWidth: "900px",
+    margin: "0 auto",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+  }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { style: { fontSize: "1.5em", marginBottom: "12px", borderBottom: "2px solid #ddd", paddingBottom: "8px" }, children: "ゲームスコアボード" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { style: { listStyle: "none", padding: 0 }, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      PlayerListItem,
       {
-        style: {
-          padding: "6px 12px",
-          marginBottom: "6px",
-          borderRadius: "4px",
-          backgroundColor: player.id === currentPlayerId ? "#a0e7ff" : "#f5f5f5",
-          fontWeight: player.id === currentPlayerId ? "bold" : "normal"
-        },
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", justifyContent: "space-between" }, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-              player.id === myPlayerId && "⭐️",
-              " ",
-              player.name
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: player.score })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }, children: player.cards.map((card2) => {
-            const isFaceUp = !!card2.isFaceUp && player.id === myPlayerId;
-            const isSelected = selectedCards.includes(card2.id);
-            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "div",
-              {
-                className: isFaceUp ? styles.card : styles.cardBack,
-                style: {
-                  position: "relative",
-                  cursor: isFaceUp ? "pointer" : "default",
-                  width: "60px",
-                  height: "80px",
-                  backgroundColor: isFaceUp ? void 0 : card2.backColor,
-                  border: isSelected ? "2px solid gold" : "none",
-                  boxSizing: "border-box"
-                },
-                onClick: () => toggleCardSelection(card2.id, isFaceUp),
-                children: [
-                  isFaceUp && card2.name,
-                  isFaceUp && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles.tooltip, children: card2.description })
-                ]
-              },
-              card2.id
-            );
-          }) })
-        ]
+        player,
+        currentPlayerId,
+        myPlayerId,
+        selectedCards,
+        toggleCardSelection,
+        socket,
+        roomId
       },
       player.id
     )) }),
@@ -1228,16 +1762,18 @@ function ScoreBoard({
     ] })
   ] });
 }
-function Timer({ socket = null, onFinish }) {
+function Timer({ socket = null, onFinish, roomId }) {
   const [timeLeft, setTimeLeft] = useState(null);
   useEffect(() => {
-    if (!socket) return;
-    const handleStart = (duration) => {
-      setTimeLeft(duration);
+    if (!socket || !roomId) return;
+    const handleStart = (data) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(data.duration);
     };
-    const handleUpdate = (remaining) => {
-      setTimeLeft(remaining);
-      if (remaining <= 0) onFinish?.();
+    const handleUpdate = (data) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(data.remaining);
+      if (data.remaining <= 0) onFinish?.();
     };
     socket.on("timer:start", handleStart);
     socket.on("timer:update", handleUpdate);
@@ -1245,10 +1781,10 @@ function Timer({ socket = null, onFinish }) {
       socket.off("timer:start", handleStart);
       socket.off("timer:update", handleUpdate);
     };
-  }, [socket, onFinish]);
+  }, [socket, roomId, onFinish]);
   const start = () => {
-    if (!socket) return;
-    socket.emit("timer:start", 30);
+    if (!socket || !roomId) return;
+    socket.emit("timer:start", { duration: 30, roomId });
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
@@ -1289,10 +1825,141 @@ function Timer({ socket = null, onFinish }) {
     }
   );
 }
+const TokenContent = React__default.memo(({ token }) => {
+  if (token.imageSrc) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "img",
+      {
+        src: token.imageSrc,
+        alt: token.name,
+        style: {
+          width: "100%",
+          height: "100%",
+          objectFit: "contain"
+        }
+      }
+    );
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    width: "100%",
+    padding: "5px"
+  }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" }, children: token.name }) });
+});
+function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }) {
+  const [tokens, setTokens] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const handleInitTokens = useCallback((initialTokens) => {
+    console.log(`TokenStore (${tokenStoreId}): 初期情報を受信しました。`, initialTokens);
+    setTokens(initialTokens && initialTokens.length > 0 ? initialTokens : []);
+  }, [tokenStoreId]);
+  const handleUpdateTokens = useCallback((updatedTokens) => {
+    console.log(`TokenStore (${tokenStoreId}): 更新情報を受信しました。`, updatedTokens);
+    setTokens(updatedTokens || []);
+  }, [tokenStoreId]);
+  useEffect(() => {
+    if (!socket) {
+      console.warn("TokenStore: Socket connection is not available. UI remains empty.");
+      return;
+    }
+    const INIT_EVENT = `token-store:init:${roomId}:${tokenStoreId}`;
+    const UPDATE_EVENT = `token-store:update:${roomId}:${tokenStoreId}`;
+    socket.on(INIT_EVENT, handleInitTokens);
+    socket.on(UPDATE_EVENT, handleUpdateTokens);
+    console.log(`TokenStore (${tokenStoreId}): リスナーを登録しました。`);
+    return () => {
+      socket.off(INIT_EVENT, handleInitTokens);
+      socket.off(UPDATE_EVENT, handleUpdateTokens);
+      console.log(`TokenStore (${tokenStoreId}): リスナーを解除しました。`);
+    };
+  }, [socket, roomId, tokenStoreId, handleInitTokens, handleUpdateTokens]);
+  const getTokenById = useMemo(
+    () => (id) => tokens.find((t) => t.id === id),
+    [tokens]
+  );
+  const handleClick = (id) => {
+    const token = getTokenById(id);
+    if (!token) return;
+    setSelectedId(id);
+    onSelect?.(token);
+  };
+  const handleDoubleClick = (id) => {
+    const token = getTokenById(id);
+    if (!token) return;
+    const payload = {
+      roomId,
+      // ⭐ 追加
+      tokenStoreId,
+      tokenId: id,
+      tokenName: token.name
+    };
+    console.log(`[TokenStore] ダブルクリック: トークン獲得イベント 'game:acquire-token' を送信`, payload);
+    socket.emit("game:acquire-token", payload);
+    setSelectedId(null);
+  };
+  const TOKEN_SIZE = "40px";
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "section",
+    {
+      style: {
+        backgroundColor: "#dededeff",
+        padding: "10px",
+        margin: "15px",
+        borderRadius: "10px",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "10px", color: "#333" }, children: name }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", gap: "12px", flexWrap: "wrap" }, children: tokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            onClick: () => handleClick(t.id),
+            onDoubleClick: () => handleDoubleClick(t.id),
+            style: {
+              padding: "8px",
+              width: TOKEN_SIZE,
+              height: TOKEN_SIZE,
+              borderRadius: "50%",
+              border: selectedId === t.id ? "2px solid #f6fbd1ff" : "2px solid #ccc",
+              backgroundColor: "#4f4848ff",
+              cursor: "pointer",
+              textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-around",
+              alignItems: "center",
+              boxShadow: "0 4px 8px rgba(0,0,0,0.2)"
+            },
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                style: {
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                },
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenContent, { token: t })
+              }
+            )
+          },
+          t.id
+        )) })
+      ]
+    }
+  );
+}
 export {
+  Cell,
   Deck,
   Dice,
+  GridBoard,
   PlayField,
   ScoreBoard,
-  Timer
+  Timer,
+  TokenStore
 };

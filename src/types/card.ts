@@ -1,8 +1,7 @@
-import { CardLocation } from "./cardLocation.js";
+// src/types/card.ts
 
-// ID のタイプエイリアス
-export type CardId = string;
-export type DeckId = string;
+import { CardLocation } from "./cardLocation.js";
+import { CardId, DeckId, PlayerId } from "./definition.js";
 
 export type Card = {
   id: CardId;
@@ -10,9 +9,12 @@ export type Card = {
   name: string;
   description?: string;
   onPlay?: (...args: any[]) => void;
-  backColor: string;
+  ownerId: PlayerId | null; 
   location: CardLocation;
   drawLocation: CardLocation;
   playLocation: CardLocation;
+  playBackLocation: CardLocation;
   isFaceUp?: boolean;
+  frontImage?: string; 
+  backColor: string;
 };

@@ -1,0 +1,26 @@
+/* src/components/Piece.module.css */
+
+.piece {
+  position: absolute; /* ボードコンテナ内で絶対配置 */
+  width: 40px;      /* コマのサイズ（任意） */
+  height: 40px;
+  border-radius: 50%; /* 円形のコマ */
+  border: 3px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  z-index: 10; /* ボードのマス目よりも手前に表示 */
+  
+  /* 中身のテキストを中央に配置 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  
+  cursor: grab;
+  transition: transform 0.3s ease-in-out; /* 移動アニメーション */
+}
+
+.piece:active {
+    cursor: grabbing;
+}

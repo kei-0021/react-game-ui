@@ -1,3 +1,1 @@
-export type CardLocation = {
-    hand: string;
-} | "field" | "deck" | "discard";
+export type CardLocation = "hand" | "field" | "deck" | "discard";

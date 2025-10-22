@@ -1,104 +1,126 @@
 /* Card.module.css */
 
-/* 通常のカード */
 .card {
-  width: 60px;
-  height: 80px;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  cursor: pointer;
-  position: relative;
-  transition: transform 0.2s, box-shadow 0.2s;
+width: 90px;
+height: 120px;
+background-color: #fff;
+border: 1px solid #ccc;
+border-radius: 4px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 0.8rem;
+cursor: pointer;
+position: relative;
+transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+transform: translateY(-2px);
+box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* ホバーツールチップ */
 .tooltip {
-  visibility: hidden;
-  opacity: 0;
+  visibility: hidden; /* ⭐ 追記: デフォルトで非表示に戻す */
+  opacity: 0;         /* ⭐ 追記: デフォルトで透明に戻す */
   position: absolute;
-  bottom: 120%;
+  top: -10px;
   left: 50%;
-  transform: translateX(-50%);
-  background-color: black;
-  color: white;
+  transform: translateX(-50%) translateY(-100%);
+  width: 150px;
   padding: 4px 6px;
+  background-color: rgba(0, 0, 0, 0.60);
+  color: white;
   border-radius: 4px;
   font-size: 0.7rem;
-  white-space: nowrap;
+  white-space: pre-wrap;
+  text-align: left;
   transition: opacity 0.2s;
-  z-index: 10;
+  z-index: 1000;
 }
 
 .card:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
+visibility: visible;
+opacity: 1;
 }
 
-/* カード裏面 */
 .cardBack {
-  width: 60px;
-  height: 80px;
-  background-color: #444;
-  border: 1px solid #222;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+width: 90px;
+height: 120px;
+background-color: #444;
+border: 1px solid #222;
+border-radius: 4px;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
 }
 
-/* 山札コンテナ */
 .deckContainer {
-  position: relative;
-  width: 60px;
-  height: 80px;
-  cursor: pointer;
+position: relative;
+width: 90px;
+height: 120px;
+cursor: pointer;
 }
 
-/* 山札のカード（裏面） */
 .deckCard {
-  position: absolute;
-  width: 60px;
-  height: 80px;
-  background-color: #333;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  top: 0;
-  left: 0;
-  transition: transform 0.2s;
+position: absolute;
+width: 90px;
+height: 120px;
+background-color: #333;
+border-radius: 4px;
+border: 1px solid #ccc;
+top: 0;
+left: 0;
+transition: transform 0.2s;
 }
 
-/* 山札のカード（表面） */
 .deckCardFront {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 60px;
-  height: 80px;
-  background-color: #fff;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  pointer-events: none; /* 上に置いてもクリックを通す */
+position: absolute;
+top: 0;
+left: 0;
+width: 90px;
+height: 120px;
+background-color: #fff;
+border-radius: 4px;
+border: 1px solid #ccc;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 0.8rem;
+overflow: visible;
+padding: 0;
 }
 
 .deckSection {
-  padding: 16px;
-  border: 2px solid #888;
-  border-radius: 8px;
-  display: inline-block; /* コンテンツに合わせる */
-  background-color: #f9f9f9;
+padding: 16px;
+border: 2px solid #888;
+border-radius: 8px;
+display: inline-block;
+background-color: #f9f9f9;
+}
+
+.discardPileWrapper {
+border: 1px solid #777;
+background-color: #e0e0e0;
+overflow: visible;
+}
+
+.deckCardFront.discardTopCard:hover .tooltip {
+visibility: visible !important;
+opacity: 1 !important;
+}
+
+.discardTopCard {
+position: relative;
+pointer-events: auto;
+overflow: visible;
+z-index: 1;
+background-color: white;
+border-color: #aaa;
+display: flex;
+justify-content: center;
+align-items: center;
+text-align: center;
+padding: 0px;
 }

@@ -1,11 +1,13 @@
 import { Socket } from "socket.io-client";
-import { Player, PlayerId } from "../types/player.js";
+import { PlayerId, RoomId } from "../types/definition.js";
+import { PlayerWithResources } from "../types/playerWithResources.js";
 type ScoreboardProps = {
     socket: Socket;
-    players: Player[];
+    players: PlayerWithResources[];
     currentPlayerId?: PlayerId | null;
     myPlayerId: PlayerId | null;
+    roomId: RoomId;
     backColor?: string;
 };
-export default function ScoreBoard({ socket, players, currentPlayerId, myPlayerId, backColor, }: ScoreboardProps): import("react/jsx-runtime").JSX.Element;
+export default function ScoreBoard({ socket, players, currentPlayerId, myPlayerId, roomId, backColor, }: ScoreboardProps): import("react/jsx-runtime").JSX.Element;
 export {};
