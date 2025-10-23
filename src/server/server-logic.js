@@ -32,13 +32,13 @@ function getRoomMeta(roomId) {
     
     return {
         id: roomId,
-        name: `Room ${roomId.substring(0, 4)}`,
+        // ★ 修正点: activeRooms に保存されている roomInfo.name を使用
+        name: roomInfo.name, 
         playerCount: gameStateInstance.players.length,
         maxPlayers: 4, 
         createdAt: roomInfo.createdAt,
     };
 }
-
 
 /**
  * ルームのゲームロジックを初期化する
@@ -300,8 +300,7 @@ export function initGameServer(io, options = {}) {
         });
 
         // 2. ルーム参加処理 
-        // ★ 修正1: 引数を { roomId, playerName } オブジェクトで受け取る
-        socket.on("room:join", async ({ roomId, playerName }) => {
+        socket.on("room:join", async ({ roomId, playerName, roomName }) => {
             // 💡 修正点: 不正なroomId、またはロビー接続時に誤って送信されたroomIdを厳しくチェック
             if (!roomId || typeof roomId !== 'string') {
                  server_log("warn", `Client ${socket.id} が不正な roomId: ${roomId} で join を試行しました。初期化をスキップします。`);
@@ -316,7 +315,15 @@ export function initGameServer(io, options = {}) {
             let roomInfo = activeRooms.get(roomId);
 
             if (!roomInfo) {
+                // ★ 新規ルーム作成
                 roomInfo = initializeRoom(roomId, options);
+                
+                // ★ 修正2: ルーム情報を直接更新して name を設定
+                // クライアントから提供された name を使用し、なければデフォルト名を適用
+                roomInfo.name = (typeof roomName === 'string' && roomName.trim().length > 0) ? roomName.trim() : `Room ${roomId.substring(0, 4)}`;
+                
+                activeRooms.set(roomId, roomInfo); // name 設定後に Map を更新（安全策）
+                
                 // 新規ルーム作成時にロビーリストの更新を通知
                 io.emit('lobby:room-update'); 
             }
