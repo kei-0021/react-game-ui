@@ -33,6 +33,7 @@
     "src/server/server-utils.js"
   ],
   "scripts": {
+    "clean": "rm -rf dist",
     "build": "NODE_ENV=production vite build && tsc --project tsconfig.json && node -e \"require('fs').copyFileSync('src/server/server.js', 'dist/server.js'); require('fs').copyFileSync('src/server/server-logic.js', 'dist/server-logic.js'); require('fs').copyFileSync('src/server/server-utils.js', 'dist/server-utils.js');\"",
     "preview": "vite preview",
     "server": "node --loader ts-node/esm tests/server.js",
