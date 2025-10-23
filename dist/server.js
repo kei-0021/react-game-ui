@@ -29,6 +29,7 @@ export class GameServer {
     this.initialResources = options.initialResources || [];
     this.initialBoard = options.initialBoard || [];
     this.cellEffects = options.cellEffects || [];
+    this.customEvents = options.customEvents || [];
 
     this.initialLogCategories = options.initialLogCategories || null;
 
@@ -87,6 +88,7 @@ export class GameServer {
         initialTokens: this.initialTokens,
         initialBoard: this.initialBoard,
         cellEffects: this.cellEffects,
+        customEvents: this.customEvents,
         initialLogCategories: this.initialLogCategories,
       });
     } catch (err) {

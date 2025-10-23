@@ -288,8 +288,6 @@ export function initGameServer(io, options = {}) {
     // Socket.IO 接続
     // --------------------
     io.on("connection", socket => {
-        server_log("connection", `クライアント接続: ${socket.id}`);
-
         // 1. ロビー機能: アクティブルームリストの取得
         socket.on('lobby:get-rooms', () => {
             server_log('lobby', `クライアント ${socket.id} からルームリスト要求を受信。`);
@@ -426,6 +424,19 @@ export function initGameServer(io, options = {}) {
 
             updatePlayerResource(roomId, playerId, resourceId, amount);
         });
+
+        // 2.5. カスタムイベントの登録
+        const events = options.customEvents ? options.customEvents() : {};
+        for (const [event, handler] of Object.entries(events)) {
+            socket.on(event, (data) => {
+                console.log(`[CustomEvent] ${event} received from ${socket.id}`, data);
+                try {
+                    handler(socket, data);
+                } catch (err) {
+                    console.error(`[CustomEvent] ${event} handler error:`, err);
+                }
+            });
+        }
 
         // 3. プレイヤーの移動処理
         socket.on('game:move-player', ({ roomId, playerId, newPosition }) => {

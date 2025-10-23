@@ -26,37 +26,32 @@ export default function RoomLobby() {
 
     // ... (Socket.IO接続のロジックは変更なし) ...
     useEffect(() => {
-        // ロビー接続を確立
         const lobbySocket = io(SERVER_URL);
         setSocket(lobbySocket);
 
         lobbySocket.on('connect', () => {
             console.log("Lobby connected. Requesting room list.");
             lobbySocket.emit('lobby:get-rooms');
-            console.log("Emit 'lobby:get-rooms'.");
+
+            // --- テストとして、カスタムイベント1を強制発動 ---
+            lobbySocket.emit("custom:events:1");
         });
 
+        // ルームリスト受信
         lobbySocket.on('lobby:rooms-list', (fetchedRooms: Room[]) => {
-            console.log("Received room list:", fetchedRooms);
             fetchedRooms.sort((a, b) => b.createdAt - a.createdAt);
             setRooms(fetchedRooms);
             setIsLoading(false);
         });
-        
+
         lobbySocket.on('lobby:room-update', () => {
             lobbySocket.emit('lobby:get-rooms');
-        });
-
-        lobbySocket.on('connect_error', (err) => {
-            console.error("Lobby connection error:", err);
-            setIsLoading(false);
         });
 
         return () => {
             lobbySocket.off('connect');
             lobbySocket.off('lobby:rooms-list');
             lobbySocket.off('lobby:room-update');
-            lobbySocket.off('connect_error');
             lobbySocket.disconnect();
         };
     }, []);
