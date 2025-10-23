@@ -20,6 +20,7 @@ export let LOG_CATEGORIES = {
   disconnect: true,
   warn: true,
   popup: true,
+  custom_event: true
 };
 
 const ANSI_RED = '\x1b[31m';

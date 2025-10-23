@@ -436,11 +436,11 @@ export function initGameServer(io, options = {}) {
         const events = options.customEvents ? options.customEvents() : {};
         for (const [event, handler] of Object.entries(events)) {
             socket.on(event, (data) => {
-                console.log(`[CustomEvent] ${event} received from ${socket.id}`, data);
+                server_log("custom_event", `${event} received from ${socket.id}`, data);
                 try {
                     handler(socket, data);
                 } catch (err) {
-                    console.error(`[CustomEvent] ${event} handler error:`, err);
+                    server_log("warning", `${event} handler error:`, err);
                 }
             });
         }
