@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Dice from "../../src/components/Dice";
 import ScoreBoard from "../../src/components/ScoreBoard";
+import Timer from "../../src/components/Timer";
 import { useSocket } from "../../src/hooks/useSocket";
 import type { PlayerWithResources } from "../../src/types/playerWithResources";
 
@@ -19,7 +20,7 @@ export default function GameRoom() {
   const [players, setPlayers] = useState<PlayerWithResources[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   
-  const GAME_PRESET_ID = 'dice-only';
+  const GAME_PRESET_ID = 'sample';
 
   const handleJoinRoom = useCallback(() => {
     if (!socket || !roomId || userName.trim() === '' || isJoining) return;
@@ -97,6 +98,7 @@ export default function GameRoom() {
         myPlayerId={myPlayerId}
       />
       <Dice socket={socket} diceId="1" roomId={roomId}/>
+      <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>
     </div>
   );
 }

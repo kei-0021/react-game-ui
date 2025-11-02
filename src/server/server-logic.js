@@ -248,6 +248,12 @@ export function initGameServer(io, options = {}) {
         return true;
     }
 
+    // ------------------------------------
+    // サーバー全体でルームごとのタイマーを管理
+    // ------------------------------------
+    /** @type {Map<string, NodeJS.Timeout>} */
+    const roomTimers = new Map();
+
     /**
      * ルーム内の全クライアントにポップアップ表示を要求
      * @param {string} roomId 
@@ -797,6 +803,65 @@ export function initGameServer(io, options = {}) {
                     socket.emit(`token-store:update:${roomId}:${tokenStoreId}`, currentTokens);
                 }
             }
+        });
+
+        // ------------------------------------
+        // 3. タイマー機能
+        // ------------------------------------
+
+        /**
+         * ルームのタイマーを停止・クリアする
+         * @param {string} roomId
+         */
+        function stopTimer(roomId) {
+            if (roomTimers.has(roomId)) {
+                clearTimeout(roomTimers.get(roomId));
+                roomTimers.delete(roomId);
+                server_log("timer", `[${roomId}] タイマーを停止しました。`);
+            }
+        }
+
+        /**
+         * クライアントからのタイマー開始リクエスト
+         * @param {{ duration: number, roomId: string }} data
+         */
+        socket.on("timer:start", ({ duration, roomId }) => {
+            if (!activeRooms.has(roomId)) {
+                server_log("warn", `[${roomId}] 存在しないルームでタイマー開始リクエストを受信。`);
+                return;
+            }
+
+            server_log("timer", `[${roomId}] ${duration}秒のタイマーを開始します。`);
+
+            // 既存のタイマーをクリア
+            stopTimer(roomId);
+
+            let remainingTime = duration;
+
+            // ルーム内の全クライアントに開始を通知
+            io.to(roomId).emit("timer:start", { duration, roomId });
+
+            function tick() {
+                if (remainingTime <= 0) {
+                    // 終了処理
+                    stopTimer(roomId);
+                    io.to(roomId).emit("timer:update", { remaining: 0, roomId });
+                    io.to(roomId).emit("timer:finish", { roomId });
+                    server_log("timer", `[${roomId}] タイマーが終了しました。`);
+                    return;
+                }
+
+                // 1秒ごとの更新をクライアントにブロードキャスト
+                io.to(roomId).emit("timer:update", { remaining: remainingTime, roomId });
+                remainingTime--;
+
+                // 1秒後に次のティックを予約
+                const timeoutId = setTimeout(tick, 1000);
+                roomTimers.set(roomId, timeoutId);
+            }
+
+            // 即座に最初のティックを実行
+            tick();
         });
 
         // 次のターン

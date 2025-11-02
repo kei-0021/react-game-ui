@@ -13,9 +13,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         {/* ルートパス (/) をロビーに設定 */}
         <Route path="/" element={<LobbyRoom />} /> 
         
+        <Route path="/game/sample/:roomId" element={<SampleRoom />} /> 
         <Route path="/game/deepsea/:roomId" element={<GameRoom />} /> 
-        
-        <Route path="/game/dice/:roomId" element={<SampleRoom />} /> 
         
       </Routes>
     </BrowserRouter>

@@ -10,8 +10,8 @@ const SERVER_URL = "http://127.0.0.1:4000";
 // サーバーで定義されたゲームプリセットIDのリスト
 // 💡 修正1: pathSegment を追加。遷移先のURLのセグメントとして使用します。
 const GAME_PRESETS = [
+    { id: 'sample', name: 'サンプル', pathSegment: 'sample', buttonClass: 'primary-button' },
     { id: 'deep-sea', name: '深海大冒険', pathSegment: 'deepsea', buttonClass: 'primary-button' },
-    { id: 'dice-only', name: 'シンプルダイス', pathSegment: 'dice', buttonClass: 'primary-button' },
 ];
 
 // ルームデータの型定義 (サーバーから受信するデータを想定)

@@ -4,11 +4,13 @@ import { Socket } from "socket.io-client";
 
 type TimerProps = {
   socket?: Socket | null;
+  initialDuration: number; 
   onFinish?: () => void;
   roomId?: string; // ルーム対応用
 };
 
-export default function Timer({ socket = null, onFinish, roomId }: TimerProps) {
+export default function Timer({ socket = null, initialDuration, onFinish, roomId }: TimerProps) {
+  // 💡 修正2: 初期状態を null ではなく initialDuration に基づいて設定
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
@@ -22,21 +24,33 @@ export default function Timer({ socket = null, onFinish, roomId }: TimerProps) {
     const handleUpdate = (data: { remaining: number; roomId: string }) => {
       if (data.roomId !== roomId) return;
       setTimeLeft(data.remaining);
-      if (data.remaining <= 0) onFinish?.();
+      // クライアント側で 0 になったことを検出しても、onFinish はサーバーからの終了通知に任せる
+      // if (data.remaining <= 0) onFinish?.(); 
+    };
+
+    // 💡 修正3: サーバーから終了通知を受け取った場合のハンドラを追加
+    const handleFinish = (data: { roomId: string }) => {
+        if (data.roomId !== roomId) return;
+        setTimeLeft(0);
+        onFinish?.(); // サーバーの終了通知に基づいてコールバックを発火
     };
 
     socket.on("timer:start", handleStart);
     socket.on("timer:update", handleUpdate);
+    socket.on("timer:finish", handleFinish); // 💡 終了イベントのリスナーを追加
 
     return () => {
       socket.off("timer:start", handleStart);
       socket.off("timer:update", handleUpdate);
+      socket.off("timer:finish", handleFinish); // 💡 クリーンアップ
     };
   }, [socket, roomId, onFinish]);
 
   const start = () => {
-    if (!socket || !roomId) return;
-    socket.emit("timer:start", { duration: 30, roomId }); // ルームID付き
+    if (!socket || !roomId || initialDuration <= 0) return;
+    
+    // 💡 修正4: プロパティで受け取った initialDuration をサーバーに送信
+    socket.emit("timer:start", { duration: initialDuration, roomId }); // ルームIDと初期時間付き
   };
 
   return (
@@ -71,11 +85,11 @@ export default function Timer({ socket = null, onFinish, roomId }: TimerProps) {
           transition: "color 0.5s ease",
         }}
       >
-        残り時間: {timeLeft ?? "-"}s
+        残り時間: {timeLeft === 0 ? "終了" : timeLeft ?? "-"}s
       </div>
 
       <div style={{ marginTop: "6px" }}>
-        <button onClick={start} style={{ marginRight: "4px" }}>開始</button>
+        <button onClick={start} style={{ marginRight: "4px" }}>タイマー開始 ({initialDuration}s)</button>
       </div>
     </div>
   );

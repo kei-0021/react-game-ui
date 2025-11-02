@@ -1773,7 +1773,7 @@ function ScoreBoard({
     ] })
   ] });
 }
-function Timer({ socket = null, onFinish, roomId }) {
+function Timer({ socket = null, initialDuration, onFinish, roomId }) {
   const [timeLeft, setTimeLeft] = useState(null);
   useEffect(() => {
     if (!socket || !roomId) return;
@@ -1784,18 +1784,24 @@ function Timer({ socket = null, onFinish, roomId }) {
     const handleUpdate = (data) => {
       if (data.roomId !== roomId) return;
       setTimeLeft(data.remaining);
-      if (data.remaining <= 0) onFinish?.();
+    };
+    const handleFinish = (data) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(0);
+      onFinish?.();
     };
     socket.on("timer:start", handleStart);
     socket.on("timer:update", handleUpdate);
+    socket.on("timer:finish", handleFinish);
     return () => {
       socket.off("timer:start", handleStart);
       socket.off("timer:update", handleUpdate);
+      socket.off("timer:finish", handleFinish);
     };
   }, [socket, roomId, onFinish]);
   const start = () => {
-    if (!socket || !roomId) return;
-    socket.emit("timer:start", { duration: 30, roomId });
+    if (!socket || !roomId || initialDuration <= 0) return;
+    socket.emit("timer:start", { duration: initialDuration, roomId });
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
@@ -1826,12 +1832,16 @@ function Timer({ socket = null, onFinish, roomId }) {
             },
             children: [
               "残り時間: ",
-              timeLeft ?? "-",
+              timeLeft === 0 ? "終了" : timeLeft ?? "-",
               "s"
             ]
           }
         ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "6px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: start, style: { marginRight: "4px" }, children: "開始" }) })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "6px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { onClick: start, style: { marginRight: "4px" }, children: [
+          "タイマー開始 (",
+          initialDuration,
+          "s)"
+        ] }) })
       ]
     }
   );

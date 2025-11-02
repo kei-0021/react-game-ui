@@ -90,8 +90,18 @@ async function startServer() {
     {deckId:"deepSeaAction",name:"アクションカード",cards:deepSeaActionCardsTwoSets,backColor:"#0d8999ff"}
   ];
 
+  const SAMPLE_PRESET = {
+    initialDecks: [], // デッキなし
+    cardEffects: {},  // カード効果なし
+    initialTokenStore: [],
+    initialHand: {}, // 初期手札なし
+    initialBoard: [
+        [{id: 'start', type: 'START', position: {row: 0, col: 0}, effect: 'start'}]
+    ], // 最小限のボード
+    cellEffects: {},
+  };
+  
 
-  // 💡 修正1: 既存の設定を 'deep-sea' プリセットとして定義
   const DEEP_SEA_ADVENTURE_PRESET = {
     initialDecks,
     cardEffects,
@@ -102,23 +112,10 @@ async function startServer() {
     cellEffects,
   };
   
-  // 💡 修正2: カードを使わないゲームのプリセットを例として定義
-  const DICE_ONLY_PRESET = {
-    initialDecks: [], // デッキなし
-    cardEffects: {},  // カード効果なし
-    initialResources: [{ id:'DIE', name:'サイコロ', icon:'🎲', currentValue:10, maxValue:10, type:'CONSUMABLE'}],
-    initialTokenStore: [],
-    initialHand: {}, // 初期手札なし
-    initialBoard: [
-        [{id: 'start', type: 'START', position: {row: 0, col: 0}, effect: 'start'}]
-    ], // 最小限のボード
-    cellEffects: {},
-  };
-  
   // 💡 修正3: 全てのプリセットを GameServer に渡すためのオブジェクト
   const GAME_PRESETS_COLLECTION = {
-      'deep-sea': DEEP_SEA_ADVENTURE_PRESET,
-      'dice-only': DICE_ONLY_PRESET,
+    'sample': SAMPLE_PRESET,
+    'deep-sea': DEEP_SEA_ADVENTURE_PRESET,
   };
 
 
