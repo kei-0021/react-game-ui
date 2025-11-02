@@ -314,8 +314,7 @@ export function initGameServer(io, options = {}) {
             // ★ 修正2: プレイヤー名が提供されているかチェック
             const providedName = (typeof playerName === 'string' && playerName.trim().length > 0) ? playerName.trim() : null;
 
-            server_log("room", `[${roomId}] Client ${socket.id} が join リクエストを送信 (Name: ${providedName || 'N/A'})`);
-            server_log("room", `[${gamePresetId}]`);
+            server_log("room", `[${roomId}][${gamePresetId}] Client ${socket.id} が join リクエストを送信 (Name: ${providedName || 'N/A'})`);
 
             let roomInfo = activeRooms.get(roomId);
 

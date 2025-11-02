@@ -2,10 +2,17 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 // ★★★ CSSのインポートを追加 ★★★
-import './RoomLobby.css';
+import './LobbyRoom.css';
 
 // 仮のSocket.IOサーバーURL (GameRoom.tsxと合わせる)
 const SERVER_URL = "http://127.0.0.1:4000"; 
+
+// サーバーで定義されたゲームプリセットIDのリスト
+// 💡 修正1: pathSegment を追加。遷移先のURLのセグメントとして使用します。
+const GAME_PRESETS = [
+    { id: 'deep-sea', name: '深海大冒険', pathSegment: 'deepsea', buttonClass: 'primary-button' },
+    { id: 'dice-only', name: 'シンプルダイス', pathSegment: 'dice', buttonClass: 'primary-button' },
+];
 
 // ルームデータの型定義 (サーバーから受信するデータを想定)
 interface Room {
@@ -16,9 +23,7 @@ interface Room {
     createdAt: number; // タイムスタンプ
 }
 
-// Tailwndクラスをカスタムクラスに置換
-export default function RoomLobby() {
-    const [roomIdInput, setRoomIdInput] = useState("");
+export default function LobbyRoom() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [socket, setSocket] = useState<Socket | null>(null);
@@ -56,18 +61,26 @@ export default function RoomLobby() {
         };
     }, []);
 
-    // 2. ルームに参加
+    // 2. ルームに参加 (既存ルーム参加時は、GameRoom側でパスからコンポーネントが決定されている)
     const handleJoinRoom = (id: string) => {
         if (id.trim()) {
+            // 既存ルームの参加時は、既にロビーリストやID入力欄でルームのURLパスが特定されている前提
+            // 今回は、最も汎用的な `/room/:roomId` パスへの遷移を維持するか、
+            // ユーザーが完全なパスを入力/選択することを要求する設計が必要です。
+            // シンプルにするため、ここではID入力からの遷移は `/room/:roomId` (main.jsの最も一般的なルート) に導きます。
             navigate(`/room/${id.trim()}`);
         }
     };
 
-    // 3. 新しいルームを作成
-    const handleCreateRoom = () => {
+    // 3. 新しいルームを作成 (プリセットオブジェクト全体を引数で受け取る)
+    // 💡 修正2: 遷移パスを gamePresetId に基づいて動的に決定
+    const handleCreateRoom = (preset: typeof GAME_PRESETS[0]) => {
         const newRoomId = Math.random().toString(36).substring(2, 8); 
-        console.log(`新しいルームを作成: ${newRoomId}`);
-        handleJoinRoom(newRoomId);
+        console.log(`新しいルームを作成: ${newRoomId}, プリセット: ${preset.id}`);
+        
+        // パスセグメントとルームID、そしてクエリパラメータでプリセットIDを渡す
+        // 例: /game/deepsea/abcde1?presetId=deep-sea
+        navigate(`/game/${preset.pathSegment}/${newRoomId}?presetId=${preset.id}`);
     };
 
     // 4. UIレンダリング
@@ -77,36 +90,32 @@ export default function RoomLobby() {
             
             {/* --- 新しいルームを作成 --- */}
             <div className="section create-room-section">
-                <h2 className="section-title">新しいルームを作成</h2>
-                <button 
-                    onClick={handleCreateRoom}
-                    className="button primary-button" // primary-buttonに変更
-                    disabled={!socket || !socket.connected}
-                >
-                    ルームを作成
-                </button>
+                <h2 className="section-title">新しいゲームを始める</h2>
+                
+                {/* 💡 修正3: プリセット選択ボタンを横に並べる */}
+                <div className="preset-button-group" style={{ 
+                        display: 'flex', 
+                        height: '130px', 
+                        gap: '15px', 
+                        justifyContent: 'center' 
+                    }}>
+                    {GAME_PRESETS.map((preset) => (
+                        <button 
+                            key={preset.id}
+                            // 💡 修正4: プリセットオブジェクト全体を渡す
+                            onClick={() => handleCreateRoom(preset)}
+                            className={`button ${preset.buttonClass}`}
+                            disabled={!socket || !socket.connected}
+                            title={preset.name}
+                        >
+                            {preset.name}
+                        </button>
+                    ))}
+                </div>
+                
                 {!socket?.connected && (
                     <p className="status-message loading">サーバー接続中...</p>
                 )}
-            </div>
-
-            {/* --- 既存のルームに参加 (ID入力) --- */}
-            <div className="section join-id-section">
-                <h2 className="section-title">IDで参加</h2>
-                <input
-                    type="text"
-                    placeholder="ルームIDを入力 (例: abcde1)"
-                    value={roomIdInput}
-                    onChange={(e) => setRoomIdInput(e.target.value)}
-                    className="input-field"
-                />
-                <button 
-                    onClick={() => handleJoinRoom(roomIdInput)}
-                    className="button success-button" // success-buttonに変更
-                    disabled={!roomIdInput.trim()}
-                >
-                    ルームに参加
-                </button>
             </div>
 
             {/* --- 既存ルーム一覧 --- */}
@@ -123,6 +132,7 @@ export default function RoomLobby() {
                             <li 
                                 key={room.id} 
                                 className={`room-item ${room.playerCount >= room.maxPlayers ? 'room-item-full' : 'room-item-available'}`}
+                                // 💡 既存ルームへの参加も汎用的な handleJoinRoom を利用
                                 onClick={() => room.playerCount < room.maxPlayers && handleJoinRoom(room.id)}
                             >
                                 <div className="room-info">

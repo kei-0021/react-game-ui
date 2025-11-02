@@ -70,6 +70,7 @@ export default function GameRoom() {
 
   }, []);
 
+  const GAME_PRESET_ID = 'deep-sea';
 
   // ★ 新しい参加ハンドラ
   const handleJoinRoom = useCallback(() => {
@@ -78,7 +79,12 @@ export default function GameRoom() {
     setIsJoining(true);
 
     // サーバーの `room:join` イベントのペイロードをオブジェクトに変更
-    socket.emit("room:join", { roomId, playerName: userName.trim() });
+    socket.emit("room:join", { 
+      roomId, 
+      playerName: userName.trim(),
+      gamePresetId: GAME_PRESET_ID
+    });
+
     console.log(`[CLIENT] Attempting to join room: ${roomId} as ${userName.trim()}`);
   }, [socket, roomId, userName, isJoining]);
 

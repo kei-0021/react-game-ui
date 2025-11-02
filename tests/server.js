@@ -91,7 +91,7 @@ async function startServer() {
   ];
 
 
-  // 💡 修正1: 既存の設定を 'deep-sea-adventure' プリセットとして定義
+  // 💡 修正1: 既存の設定を 'deep-sea' プリセットとして定義
   const DEEP_SEA_ADVENTURE_PRESET = {
     initialDecks,
     cardEffects,
@@ -117,7 +117,7 @@ async function startServer() {
   
   // 💡 修正3: 全てのプリセットを GameServer に渡すためのオブジェクト
   const GAME_PRESETS_COLLECTION = {
-      'deep-sea-adventure': DEEP_SEA_ADVENTURE_PRESET,
+      'deep-sea': DEEP_SEA_ADVENTURE_PRESET,
       'dice-only': DICE_ONLY_PRESET,
   };
 

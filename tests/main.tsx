@@ -1,8 +1,9 @@
+// main.js
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-// import GameRoom from "./rooms/GameRoom.js";
-import RoomLobby from "./rooms/RoomLobby.js";
+import GameRoom from "./rooms/GameRoom.js";
+import LobbyRoom from "./rooms/LobbyRoom.js";
 import SampleRoom from "./rooms/SampleRoom.js";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -10,10 +11,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <Routes>
         {/* ルートパス (/) をロビーに設定 */}
-        <Route path="/" element={<RoomLobby />} /> 
+        <Route path="/" element={<LobbyRoom />} /> 
         
-        {/* /room/:roomId にアクセスした時だけゲームルーム（Socket接続を含む）を表示 */}
-        <Route path="/room/:roomId" element={<SampleRoom />} /> 
+        <Route path="/game/deepsea/:roomId" element={<GameRoom />} /> 
+        
+        <Route path="/game/dice/:roomId" element={<SampleRoom />} /> 
         
       </Routes>
     </BrowserRouter>

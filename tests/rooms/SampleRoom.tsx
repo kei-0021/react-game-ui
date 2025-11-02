@@ -19,8 +19,7 @@ export default function GameRoom() {
   const [players, setPlayers] = useState<PlayerWithResources[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   
-  // const GAME_PRESET_ID = 'dice-only';
-  const GAME_PRESET_ID = 'deep-sea-adventure';
+  const GAME_PRESET_ID = 'dice-only';
 
   const handleJoinRoom = useCallback(() => {
     if (!socket || !roomId || userName.trim() === '' || isJoining) return;
