@@ -354,8 +354,12 @@ export function initGameServer(io, options = {}) {
             const existingPlayer = gameStateInstance.players.find(p => p.socketId === socket.id);
             
             if (!existingPlayer) {
-                const initialTokensCopy = Array.isArray(options.initialTokens) 
+                const initialTokensCopy = Array.isArray(roomSettings.initialTokens) 
                     ? JSON.parse(JSON.stringify(options.initialTokens))
+                    : [];
+
+                const initialResourcesCopy = Array.isArray(roomSettings.initialResources)
+                    ? JSON.parse(JSON.stringify(roomSettings.initialResources))
                     : [];
                 
                 // ★ 修正3: playerIdの定義をnewPlayerオブジェクト定義の前に移動
@@ -368,7 +372,7 @@ export function initGameServer(io, options = {}) {
                     socketId: socket.id, 
                     cards: [], 
                     score: 0,
-                    resources: JSON.parse(JSON.stringify(options.initialResources)),
+                    resources: initialResourcesCopy,
                     tokens: initialTokensCopy, 
                     position: { row: 0, col: 0 } 
                 };
