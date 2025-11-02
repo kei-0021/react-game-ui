@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Dice from "../../src/components/Dice";
 import { useSocket } from "../../src/hooks/useSocket";
-import Board from "../components/Board";
 
 const SERVER_URL = "http://127.0.0.1:4000";
 
@@ -63,7 +63,7 @@ export default function GameRoom() {
   return (
     <div style={{ padding: "20px" }}>
       <h1>Room ID: {roomId}</h1>
-      <Board />
+      <Dice socket={socket} diceId="1" roomId={roomId}/>
     </div>
   );
 }

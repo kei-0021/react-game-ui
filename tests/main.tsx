@@ -1,8 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import GameRoom from "./rooms/GameRoom.js";
+// import GameRoom from "./rooms/GameRoom.js";
 import RoomLobby from "./rooms/RoomLobby.js";
+import SampleRoom from "./rooms/SampleRoom.js";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -12,7 +13,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/" element={<RoomLobby />} /> 
         
         {/* /room/:roomId にアクセスした時だけゲームルーム（Socket接続を含む）を表示 */}
-        <Route path="/room/:roomId" element={<GameRoom />} /> 
+        <Route path="/room/:roomId" element={<SampleRoom />} /> 
         
       </Routes>
     </BrowserRouter>

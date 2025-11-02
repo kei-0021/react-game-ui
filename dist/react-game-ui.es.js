@@ -1172,23 +1172,23 @@ function Dice({ sides = 6, socket = null, diceId, roomId, onRoll }) {
     justifyContent: "center",
     fontSize: "2rem",
     fontWeight: "bold",
+    // 💡 ロール中はカーソルを変更
     cursor: rolling ? "not-allowed" : "pointer",
     userSelect: "none",
-    backgroundColor: rolling ? "#ffeaa7" : "#fff",
+    // 💡 ロール中も背景色を白に固定
+    backgroundColor: "#fff",
     color: "#333",
-    boxShadow: rolling ? "0 0 15px rgba(255, 107, 107, 0.7)" : "0 4px 6px rgba(0,0,0,0.3)",
+    // 💡 ロール中も影を固定
+    boxShadow: "0 4px 6px rgba(0,0,0,0.3)",
     transition: "all 0.2s",
     fontFamily: "Inter, sans-serif"
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
       style: diceStyle,
       onClick: roll,
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "1em" }, children: value ?? "🎲" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "0.5rem", color: "#666" }, children: diceId })
-      ]
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "1em" }, children: value ?? "🎲" })
     }
   );
 }
