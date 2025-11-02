@@ -49,7 +49,9 @@ function getRoomMeta(roomId) {
 function initializeRoom(roomId, options) {
     const initialDecks = options.initialDecks || [];
     const initialResources = options.initialResources || []; 
-    const initialTokenStores = options.initialTokenStore || []; 
+    const initialTokenStores = Array.isArray(options.initialTokenStore) 
+        ? options.initialTokenStore 
+        : []; 
     const initialTokens = options.initialTokens || [];
     const initialBoard = options.initialBoard || []; 
 
@@ -59,7 +61,7 @@ function initializeRoom(roomId, options) {
     const initialState = {
         players: [], 
         initialResources: initialResources,
-        initialTokenStores: initialTokenStores, 
+        initialTokenStores: initialTokenStores,
         initialTokens: initialTokens,
         board: Cells, 
         exploredCells: [], 
@@ -106,6 +108,8 @@ function initializeRoom(roomId, options) {
 
 
 export function initGameServer(io, options = {}) {
+    const gamePresets = options.gamePresets || {};
+
     // === ログ設定の初期化 ===
     if (options.initialLogCategories) {
         // server-utils.js の LOG_CATEGORIES を更新
@@ -300,7 +304,7 @@ export function initGameServer(io, options = {}) {
         });
 
         // 2. ルーム参加処理 
-        socket.on("room:join", async ({ roomId, playerName, roomName }) => {
+        socket.on("room:join", async ({ roomId, playerName, gamePresetId }) => {
             // 💡 修正点: 不正なroomId、またはロビー接続時に誤って送信されたroomIdを厳しくチェック
             if (!roomId || typeof roomId !== 'string') {
                  server_log("warn", `Client ${socket.id} が不正な roomId: ${roomId} で join を試行しました。初期化をスキップします。`);
@@ -311,8 +315,23 @@ export function initGameServer(io, options = {}) {
             const providedName = (typeof playerName === 'string' && playerName.trim().length > 0) ? playerName.trim() : null;
 
             server_log("room", `[${roomId}] Client ${socket.id} が join リクエストを送信 (Name: ${providedName || 'N/A'})`);
+            server_log("room", `[${gamePresetId}]`);
 
             let roomInfo = activeRooms.get(roomId);
+
+            // 💡 修正3: プリセットIDに基づいてルーム固有の設定を決定
+            const roomSettings = gamePresets[gamePresetId] || {
+                // プリセットが見つからない場合は、initGameServerに渡されたグローバルなフォールバック設定を使用
+                initialDecks: options.initialDecks,
+                initialResources: options.initialResources,
+                initialTokenStore: options.initialTokenStore,
+                initialTokens: options.initialTokens,
+                initialBoard: options.initialBoard,
+                cardEffects: options.cardEffects,
+                initialHand: options.initialHand,
+                cellEffects: options.cellEffects,
+                customEvents: options.customEvents,
+            };
 
             if (!roomInfo) {
                 // ★ 新規ルーム作成
@@ -320,7 +339,7 @@ export function initGameServer(io, options = {}) {
                 
                 // ★ 修正2: ルーム情報を直接更新して name を設定
                 // クライアントから提供された name を使用し、なければデフォルト名を適用
-                roomInfo.name = (typeof roomName === 'string' && roomName.trim().length > 0) ? roomName.trim() : `Room ${roomId.substring(0, 4)}`;
+                roomInfo = initializeRoom(roomId, roomSettings);
                 
                 activeRooms.set(roomId, roomInfo); // name 設定後に Map を更新（安全策）
                 
@@ -359,6 +378,7 @@ export function initGameServer(io, options = {}) {
                 server_log("room", `[${roomId}] 新規プレイヤー追加: ${newPlayer.name} (${newPlayer.id})`);
                 socket.emit("player:assign-id", newPlayer.id);
 
+                const initialHand = roomSettings.initialHand || {};
                 const { deckId: startDeckId, count: startCount } = initialHand;
 
                 if (startDeckId && startCount > 0 && decks[startDeckId]) {

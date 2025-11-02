@@ -19,11 +19,18 @@ export default function GameRoom() {
   const [players, setPlayers] = useState<PlayerWithResources[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   
+  // const GAME_PRESET_ID = 'dice-only';
+  const GAME_PRESET_ID = 'deep-sea-adventure';
+
   const handleJoinRoom = useCallback(() => {
     if (!socket || !roomId || userName.trim() === '' || isJoining) return;
 
     setIsJoining(true);
-    socket.emit("room:join", { roomId, playerName: userName.trim() });
+    socket.emit("room:join", { 
+      roomId, 
+      playerName: userName.trim(),
+      gamePresetId: GAME_PRESET_ID
+    });
   }, [socket, roomId, userName, isJoining]);
 
   useEffect(() => {
@@ -41,12 +48,19 @@ export default function GameRoom() {
       setPlayers(updatedPlayers);
     };
 
+    const handleGameTurn = (id: string) => {
+      console.log("[CLIENT] game:turn:", id);
+      setCurrentPlayerId(id);
+    };
+
     socket.on("player:assign-id", handleAssignId);
     socket.on("players:update", handlePlayersUpdate);
+    socket.on("game:turn", handleGameTurn);
 
     return () => {
       socket.off("player:assign-id", handleAssignId);
       socket.off("players:update", handlePlayersUpdate);
+      socket.off("game:turn", handleGameTurn);
     };
   }, [socket, roomId]);
 

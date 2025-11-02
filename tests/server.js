@@ -90,6 +90,38 @@ async function startServer() {
     {deckId:"deepSeaAction",name:"アクションカード",cards:deepSeaActionCardsTwoSets,backColor:"#0d8999ff"}
   ];
 
+
+  // 💡 修正1: 既存の設定を 'deep-sea-adventure' プリセットとして定義
+  const DEEP_SEA_ADVENTURE_PRESET = {
+    initialDecks,
+    cardEffects,
+    initialResources: DEEP_SEA_RESOURCES,
+    initialTokenStore: initTokenStores,
+    initialHand: {deckId: "deepSeaAction", count: 6},
+    initialBoard: completeDeepSeaCells2D,
+    cellEffects,
+  };
+  
+  // 💡 修正2: カードを使わないゲームのプリセットを例として定義
+  const DICE_ONLY_PRESET = {
+    initialDecks: [], // デッキなし
+    cardEffects: {},  // カード効果なし
+    initialResources: [{ id:'DIE', name:'サイコロ', icon:'🎲', currentValue:10, maxValue:10, type:'CONSUMABLE'}],
+    initialTokenStore: [],
+    initialHand: {}, // 初期手札なし
+    initialBoard: [
+        [{id: 'start', type: 'START', position: {row: 0, col: 0}, effect: 'start'}]
+    ], // 最小限のボード
+    cellEffects: {},
+  };
+  
+  // 💡 修正3: 全てのプリセットを GameServer に渡すためのオブジェクト
+  const GAME_PRESETS_COLLECTION = {
+      'deep-sea-adventure': DEEP_SEA_ADVENTURE_PRESET,
+      'dice-only': DICE_ONLY_PRESET,
+  };
+
+
   // --- GameServer 初期化 ---
   const demoServer = new GameServer({
     port:4000,
@@ -99,13 +131,11 @@ async function startServer() {
     onServerStart: (url) => {
       console.log(`🎮 Demo server running at: ${url}`);
     },
-    initialDecks,
-    cardEffects,
-    initialResources:DEEP_SEA_RESOURCES,
-    initialTokenStore:initTokenStores,
-    initialHand:{deckId:"deepSeaAction",count:6},
-    initialBoard:completeDeepSeaCells2D,
-    cellEffects,
+    
+    // 💡 修正4: 全てのグローバル設定を削除し、gamePresetsに置き換える
+    gamePresets: GAME_PRESETS_COLLECTION,
+    
+    // プリセットに含まれない、サーバー全体の設定は残す
     customEvents,
     initialLogCategories:{connection:true,deck:true, room:true, lobby:true}
   });

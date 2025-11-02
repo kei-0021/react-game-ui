@@ -1600,7 +1600,12 @@ const PlayerListItem = React.memo(({
         fontWeight: player.id === currentPlayerId ? "bold" : "normal"
       },
       children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: {
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          color: "#333"
+        }, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontSize: "1.1em", color: "#333" }, children: [
             player.id === currentPlayerId && "ᐅ ",
             player.id === myPlayerId && "★ ME ",
@@ -1742,7 +1747,13 @@ function ScoreBoard({
     margin: "0 auto",
     boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
   }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { style: { fontSize: "1.5em", marginBottom: "12px", borderBottom: "2px solid #ddd", paddingBottom: "8px" }, children: "ゲームスコアボード" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { style: {
+      fontSize: "1.5em",
+      marginBottom: "12px",
+      borderBottom: "2px solid #ddd",
+      paddingBottom: "8px",
+      color: "#333"
+    }, children: "ゲームスコアボード" }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { style: { listStyle: "none", padding: 0 }, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       PlayerListItem,
       {

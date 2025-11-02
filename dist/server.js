@@ -16,11 +16,18 @@ const defaultClientDist = path.resolve(__dirname, "../tests");
 
 export class GameServer {
   constructor(options = {}) {
-    this.port = Number(process.env.PORT) || options.port || 3000; // 0ではなく3000をデフォルトに設定変更
+    this.port = Number(process.env.PORT) || options.port || 3000;
     this.libDistPath = options.libDistPath || defaultLibDist;
     this.clientDistPath = options.clientDistPath || defaultClientDist;
     this.corsOrigins = options.corsOrigins || ["http://localhost:5173"];
     this.onServerStart = options.onServerStart;
+    
+    // 💡 修正: ルームごとの設定を可能にするため、gamePresetsを追加
+    // key: プリセットID, value: 初期デッキ、カード効果などの設定オブジェクト
+    this.gamePresets = options.gamePresets || {}; 
+    
+    // 💡 修正: ルーム設定に含まれるべきグローバル設定を削除（またはプリセットがない場合のフォールバックとして残す）
+    // 今回は、initGameServer のフォールバックロジックに任せるため、これらはオプションとして保持します
     this.initialDecks = options.initialDecks || []; 
     this.cardEffects = options.cardEffects || {};
     this.initialTokenStore = options.initialTokenStore || {};
@@ -58,8 +65,6 @@ export class GameServer {
       const indexPath = path.join(this.clientDistPath, "index.html");
       if (fs.existsSync(indexPath)) {
         this.app.get("/", (_req, res) => {
-          // ポート情報の動的挿入ロジックを完全に削除
-          // Render環境ではポート取得のタイミングが不安定なため
           res.sendFile(indexPath); 
         });
       } else {
@@ -78,8 +83,12 @@ export class GameServer {
 
   initSocketLogic() {
     try {
-      // === initGameServer にログ設定を渡す (修正) ===
+      // 💡 修正: initGameServer に渡すオブジェクトに gamePresets を追加
+      // また、initGameServerがフォールバックできるように、元のグローバル設定も渡します
       initGameServer(this.io, {
+        gamePresets: this.gamePresets, // 💡 これが新しいルームごとの設定源
+        
+        // 既存のグローバル設定も引き続き渡します (プリセットがない場合のフォールバック用)
         initialDecks: this.initialDecks,
         cardEffects: this.cardEffects,
         initialResources: this.initialResources,
@@ -89,6 +98,7 @@ export class GameServer {
         initialBoard: this.initialBoard,
         cellEffects: this.cellEffects,
         customEvents: this.customEvents,
+        
         initialLogCategories: this.initialLogCategories,
       });
     } catch (err) {
