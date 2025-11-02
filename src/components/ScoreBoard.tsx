@@ -125,7 +125,12 @@ const PlayerListItem = React.memo(({
                 fontWeight: player.id === currentPlayerId ? "bold" : "normal",
             }}
         >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    color: "#333"
+                }}>
                 <span style={{ fontSize: "1.1em", color: "#333" }}>
                     {player.id === currentPlayerId && "ᐅ "} 
                     {player.id === myPlayerId && "★ ME "} 
@@ -290,7 +295,13 @@ export default function ScoreBoard({
             backgroundColor: "#f9f9f9", maxWidth: "900px", margin: "0 auto",
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
         }}>
-            <h2 style={{ fontSize: "1.5em", marginBottom: "12px", borderBottom: "2px solid #ddd", paddingBottom: "8px" }}>
+            <h2 style={{ 
+                fontSize: "1.5em", 
+                marginBottom: "12px", 
+                borderBottom: "2px solid #ddd", 
+                paddingBottom: "8px",
+                color: "#333" 
+            }}>
                 ゲームスコアボード
             </h2>
             <ul style={{ listStyle: "none", padding: 0 }}>

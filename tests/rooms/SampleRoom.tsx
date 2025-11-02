@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Dice from "../../src/components/Dice";
+import ScoreBoard from "../../src/components/ScoreBoard";
 import { useSocket } from "../../src/hooks/useSocket";
+import type { PlayerWithResources } from "../../src/types/playerWithResources";
 
 const SERVER_URL = "http://127.0.0.1:4000";
 
@@ -12,8 +14,11 @@ export default function GameRoom() {
   const [userName, setUserName] = useState<string>('');
   const [isJoining, setIsJoining] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
-  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
 
+  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
+  const [players, setPlayers] = useState<PlayerWithResources[]>([]);
+  const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
+  
   const handleJoinRoom = useCallback(() => {
     if (!socket || !roomId || userName.trim() === '' || isJoining) return;
 
@@ -28,12 +33,20 @@ export default function GameRoom() {
       setMyPlayerId(id);
       setHasJoined(true);
       setIsJoining(false);
+      console.log(`プレイヤーID: ${id} が渡されました`)
+    };
+
+    const handlePlayersUpdate = (updatedPlayers: PlayerWithResources[]) => {
+      console.log("[CLIENT] players:update", updatedPlayers);
+      setPlayers(updatedPlayers);
     };
 
     socket.on("player:assign-id", handleAssignId);
+    socket.on("players:update", handlePlayersUpdate);
 
     return () => {
       socket.off("player:assign-id", handleAssignId);
+      socket.off("players:update", handlePlayersUpdate);
     };
   }, [socket, roomId]);
 
@@ -63,6 +76,13 @@ export default function GameRoom() {
   return (
     <div style={{ padding: "20px" }}>
       <h1>Room ID: {roomId}</h1>
+      <ScoreBoard
+        socket={socket}
+        roomId={roomId}
+        players={players}
+        currentPlayerId={currentPlayerId}
+        myPlayerId={myPlayerId}
+      />
       <Dice socket={socket} diceId="1" roomId={roomId}/>
     </div>
   );
