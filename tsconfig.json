@@ -15,13 +15,22 @@
     "declarationDir": "dist/types",
     "emitDeclarationOnly": true,
     "typeRoots": ["./node_modules/@types", "./node_modules"],
-    "types": ["node", "react", "react-dom"]
+    "types": ["node", "react", "react-dom"],
+    
+    // 💡 エイリアス解決のために追加
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+    // 💡 エイリアス解決のために追加
   },
   "include": [
     "src/components",
     "src/types",
     "src/global.d.ts",
-    "src/index.ts"  
+    "src/index.ts",
+    "src/hooks", // ⚠️ hooksフォルダがexcludeされているため、TypeScriptでhooksを使うにはincludeが必要
+    "src/server" // ⚠️ serverフォルダの型定義も必要であれば追加
   ],
   "exclude": [
     "node_modules",
@@ -29,6 +38,6 @@
     "src/setupTests.ts",
     "src/components/__tests__",
     "tests/data",
-    "src/hooks"
+    // ⚠️ src/hooks を include に移動したので、ここから削除
   ]
 }

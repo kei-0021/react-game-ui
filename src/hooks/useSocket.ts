@@ -1,21 +1,19 @@
 // src/hooks/useSocket.ts
 import { useEffect, useState } from "react";
-import { io, type Socket } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
-export function useSocket(url: string) {
+// 戻り値の型を明示的に `Socket | null` に指定する
+export function useSocket(url: string): Socket | null {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const s = io(url);
-    setSocket(s);
-
-    s.on("connect", () => console.log("socket connected!", s.id));
-    s.on("connect_error", (err) => console.log("connect_error", err));
+    const newSocket = io(url, { transports: ['websocket', 'polling'] });
+    setSocket(newSocket);
 
     return () => {
-      s.disconnect();
+      newSocket.close();
     };
   }, [url]);
 
-  return socket!;
+  return socket;
 }
