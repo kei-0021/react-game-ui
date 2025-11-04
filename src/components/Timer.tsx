@@ -1,4 +1,3 @@
-// src/components/Timer.tsx
 import { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 
@@ -10,8 +9,9 @@ type TimerProps = {
 };
 
 export default function Timer({ socket = null, initialDuration, onFinish, roomId }: TimerProps) {
-  // 💡 修正2: 初期状態を null ではなく initialDuration に基づいて設定
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  // 💡 修正1: 初期状態を null ではなく initialDuration の値に設定する。
+  // これにより、開始前は設定された秒数が表示される。
+  const [timeLeft, setTimeLeft] = useState<number>(initialDuration);
 
   useEffect(() => {
     if (!socket || !roomId) return;
@@ -24,11 +24,8 @@ export default function Timer({ socket = null, initialDuration, onFinish, roomId
     const handleUpdate = (data: { remaining: number; roomId: string }) => {
       if (data.roomId !== roomId) return;
       setTimeLeft(data.remaining);
-      // クライアント側で 0 になったことを検出しても、onFinish はサーバーからの終了通知に任せる
-      // if (data.remaining <= 0) onFinish?.(); 
     };
 
-    // 💡 修正3: サーバーから終了通知を受け取った場合のハンドラを追加
     const handleFinish = (data: { roomId: string }) => {
         if (data.roomId !== roomId) return;
         setTimeLeft(0);
@@ -37,22 +34,26 @@ export default function Timer({ socket = null, initialDuration, onFinish, roomId
 
     socket.on("timer:start", handleStart);
     socket.on("timer:update", handleUpdate);
-    socket.on("timer:finish", handleFinish); // 💡 終了イベントのリスナーを追加
+    socket.on("timer:finish", handleFinish);
 
     return () => {
       socket.off("timer:start", handleStart);
       socket.off("timer:update", handleUpdate);
-      socket.off("timer:finish", handleFinish); // 💡 クリーンアップ
+      socket.off("timer:finish", handleFinish);
     };
-  }, [socket, roomId, onFinish]);
+  }, [socket, roomId, onFinish, initialDuration]); // initialDuration を依存配列に追加
 
   const start = () => {
     if (!socket || !roomId || initialDuration <= 0) return;
     
-    // 💡 修正4: プロパティで受け取った initialDuration をサーバーに送信
+    // サーバーに開始を依頼する前に、ローカルでも初期値を設定しておくと見た目がスムーズ
+    setTimeLeft(initialDuration); 
+    
+    // initialDuration をサーバーに送信
     socket.emit("timer:start", { duration: initialDuration, roomId }); // ルームIDと初期時間付き
   };
 
+  // 💡 修正2: timeLeft が null になる可能性がないため、null合体演算子 (??) を削除
   return (
     <div
       style={{
@@ -75,17 +76,15 @@ export default function Timer({ socket = null, initialDuration, onFinish, roomId
           fontSize: "1.5rem",
           fontWeight: "bold",
           color:
-            timeLeft !== null
-              ? timeLeft <= 6
-                ? "red"
-                : timeLeft <= 15
-                ? "orange"
-                : "green"
-              : "gray",
+            timeLeft <= 6
+              ? "red"
+              : timeLeft <= 15
+              ? "orange"
+              : "green",
           transition: "color 0.5s ease",
         }}
       >
-        残り時間: {timeLeft === 0 ? "終了" : timeLeft ?? "-"}s
+        残り時間: {timeLeft}s
       </div>
 
       <div style={{ marginTop: "6px" }}>
