@@ -1,4 +1,4 @@
-// src/components/Deck.tsx (roomId対応版)
+// src/components/Deck.tsx
 import * as React from "react";
 import { Socket } from "socket.io-client";
 import type { Card } from "../types/card.js";
@@ -15,10 +15,10 @@ type DeckProps = {
 };
 
 // サーバーから受信するデータ型
-type DeckUpdateData = { 
-  currentDeck: Card[], 
-  drawnCards: Card[], 
-  discardPile: Card[] 
+type DeckUpdateData = {
+  currentDeck: Card[];
+  drawnCards: Card[];
+  discardPile: Card[];
 };
 
 // =========================================================================
@@ -40,7 +40,10 @@ const CardContent = ({ card }: { card: Card }) => {
       />
     );
   } else {
-    console.log(`[CardContent] pngの描画失敗: ${card.id}. Path: ${card.frontImage}`);
+    // 画像URLがない場合やエラーの場合のデバッグログ
+    console.log(
+      `[CardContent] pngの描画失敗: ${card.id}. Path: ${card.frontImage}`
+    );
   }
 
   return (
@@ -54,7 +57,9 @@ const CardContent = ({ card }: { card: Card }) => {
         padding: "5px",
       }}
     >
-      <strong style={{ fontSize: "1em", wordBreak: "break-all", textAlign: "center" }}>
+      <strong
+        style={{ fontSize: "1em", wordBreak: "break-all", textAlign: "center" }}
+      >
         {card.name}
       </strong>
     </div>
@@ -64,7 +69,13 @@ const CardContent = ({ card }: { card: Card }) => {
 // =========================================================================
 // Deck コンポーネント
 // =========================================================================
-export default function Deck({ socket, roomId, deckId, name, playerId = null }: DeckProps) {
+export default function Deck({
+  socket,
+  roomId,
+  deckId,
+  name,
+  playerId = null,
+}: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
   const [drawnCards, setDrawnCards] = React.useState<Card[]>([]);
   const [discardPile, setDiscardPile] = React.useState<Card[]>([]);
@@ -97,7 +108,12 @@ export default function Deck({ socket, roomId, deckId, name, playerId = null }: 
     const cardToDraw = deckCards[0];
     const drawLocation = cardToDraw?.drawLocation || "hand";
 
-    const requestData: { roomId: RoomId; deckId: DeckId; playerId?: PlayerId | null; drawLocation: CardLocation } = {
+    const requestData: {
+      roomId: RoomId;
+      deckId: DeckId;
+      playerId?: PlayerId | null;
+      drawLocation: CardLocation;
+    } = {
       roomId,
       deckId,
       drawLocation,
@@ -115,14 +131,17 @@ export default function Deck({ socket, roomId, deckId, name, playerId = null }: 
 
   return (
     <section className={styles.deckSection}>
-      <h3 style={{ marginBottom: "6px" }}>{name}</h3>
+      <h3 style={{ marginBottom: "6px", color: "#333" }}>{name}</h3>
 
       <div className={styles.deckControls}>
         <button onClick={shuffle}>シャッフル</button>
         <button onClick={resetDeck}>山札に戻す</button>
       </div>
 
-      <div className={styles.deckWrapper} style={{ display: "flex", gap: "0px" }}>
+      <div
+        className={styles.deckWrapper}
+        style={{ display: "flex", gap: "0px" }}
+      >
         {/* 山札 */}
         <div className={styles.deckContainer} onClick={draw}>
           {deckCards.map((c, i) => (
@@ -156,32 +175,39 @@ export default function Deck({ socket, roomId, deckId, name, playerId = null }: 
 
         {/* 捨て札 */}
         <div className={`${styles.deckContainer} ${styles.discardPileWrapper}`}>
-          {discardPile.length > 0 && (() => {
-            const topCard = discardPile[discardPile.length - 1];
-            return (
-              <div
-                key={topCard.id}
-                className={`${styles.deckCardFront} ${styles.discardTopCard}`}
-                style={{ pointerEvents: "auto" }}
-                onMouseEnter={() => setIsDiscardHovered(true)}
-                onMouseLeave={() => setIsDiscardHovered(false)}
-              >
-                <CardContent card={topCard} />
-                {topCard.description && (
-                  <span
-                    className={styles.tooltip}
-                    style={{
-                      visibility: isDiscardHovered ? "visible" : "hidden",
-                      opacity: isDiscardHovered ? 1 : 0,
-                      zIndex: 9999,
-                    }}
-                  >
-                    {topCard.description}
-                  </span>
-                )}
-              </div>
-            );
-          })()}
+          {discardPile.length > 0 &&
+            (() => {
+              const topCard = discardPile[discardPile.length - 1];
+              return (
+                <div
+                  key={topCard.id}
+                  className={`${styles.deckCardFront} ${styles.discardTopCard}`}
+                  style={{ pointerEvents: "auto" }}
+                  onMouseEnter={() => setIsDiscardHovered(true)}
+                  onMouseLeave={() => setIsDiscardHovered(false)}
+                >
+                  <CardContent card={topCard} />
+                  {topCard.description && (
+                    <span
+                      className={styles.tooltip}
+                      style={{
+                        visibility: isDiscardHovered ? "visible" : "hidden",
+                        opacity: isDiscardHovered ? 1 : 0,
+                        zIndex: 9999,
+                        // 💡 修正後の文字色が黒になるようにスタイルを追加
+                        color: "#333",
+                        backgroundColor: "white",
+                        border: "1px solid #ccc",
+                        padding: "4px",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      {topCard.description}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
         </div>
       </div>
     </section>

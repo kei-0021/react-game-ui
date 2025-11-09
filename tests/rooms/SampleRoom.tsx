@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Deck from "../../src/components/Deck";
 import Dice from "../../src/components/Dice";
 import ScoreBoard from "../../src/components/ScoreBoard";
 import Timer from "../../src/components/Timer";
@@ -12,24 +13,24 @@ export default function GameRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
 
-  const [userName, setUserName] = useState<string>('');
+  const [userName, setUserName] = useState<string>("");
   const [isJoining, setIsJoining] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
 
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<PlayerWithResources[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
-  
-  const GAME_PRESET_ID = 'sample';
+
+  const GAME_PRESET_ID = "sample";
 
   const handleJoinRoom = useCallback(() => {
-    if (!socket || !roomId || userName.trim() === '' || isJoining) return;
+    if (!socket || !roomId || userName.trim() === "" || isJoining) return;
 
     setIsJoining(true);
-    socket.emit("room:join", { 
-      roomId, 
+    socket.emit("room:join", {
+      roomId,
       playerName: userName.trim(),
-      gamePresetId: GAME_PRESET_ID
+      gamePresetId: GAME_PRESET_ID,
     });
   }, [socket, roomId, userName, isJoining]);
 
@@ -40,7 +41,7 @@ export default function GameRoom() {
       setMyPlayerId(id);
       setHasJoined(true);
       setIsJoining(false);
-      console.log(`プレイヤーID: ${id} が渡されました`)
+      console.log(`プレイヤーID: ${id} が渡されました`);
     };
 
     const handlePlayersUpdate = (updatedPlayers: PlayerWithResources[]) => {
@@ -79,8 +80,11 @@ export default function GameRoom() {
           onChange={(e) => setUserName(e.target.value)}
           disabled={isJoining}
         />
-        <button onClick={handleJoinRoom} disabled={userName.trim() === '' || isJoining}>
-          {isJoining ? '参加中...' : 'ルームに参加'}
+        <button
+          onClick={handleJoinRoom}
+          disabled={userName.trim() === "" || isJoining}
+        >
+          {isJoining ? "参加中..." : "ルームに参加"}
         </button>
       </div>
     );
@@ -97,8 +101,14 @@ export default function GameRoom() {
         currentPlayerId={currentPlayerId}
         myPlayerId={myPlayerId}
       />
-      <Dice socket={socket} diceId="1" roomId={roomId}/>
+      <Dice socket={socket} diceId="1" roomId={roomId} />
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>
+      <Deck
+        socket={socket}
+        roomId={roomId}
+        deckId="numberDeck"
+        name="数字カード"
+      ></Deck>
     </div>
   );
 }
