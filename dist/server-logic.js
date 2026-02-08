@@ -45,18 +45,17 @@ function getRoomMeta(roomId) {
  * @param {object} options
  * @returns {RoomGameInfo}
  */
-function initializeRoom(roomId, options) {
-  const initialDecks = options.initialDecks || [];
-  const initialResources = options.initialResources || [];
-  const initialTokenStores = Array.isArray(options.initialTokenStore)
-    ? options.initialTokenStore
+function initializeRoom(roomId, settings) {
+  const initialDecks = settings.initialDecks || [];
+  const initialResources = settings.initialResources || [];
+  const initialTokenStores = Array.isArray(settings.initialTokenStore)
+    ? settings.initialTokenStore
     : [];
-  const initialTokens = options.initialTokens || [];
-  const initialBoard = options.initialBoard || [];
+  const initialTokens = settings.initialTokens || [];
+  const initialBoard = settings.initialBoard || [];
 
   const Cells = createRandomBoard(initialBoard);
 
-  /** @type {GameState} */
   const initialState = {
     players: [],
     initialResources: initialResources,
@@ -74,18 +73,25 @@ function initializeRoom(roomId, options) {
   const playFieldCards = {};
   const discardPile = {};
 
-  initialDecks.forEach(({ deckId, name, cards, backColor }) => {
-    decks[deckId] = cards.map((c) => ({
+  // デッキの初期化ループ
+  initialDecks.forEach((deckConfig) => {
+    // deckConfig.cards が正しく渡ってきているか
+    const cards = (deckConfig.cards || []).map((c, index) => ({
       ...c,
-      deckId,
-      backColor: backColor,
-      onPlay: options.cardEffects[c.name] || (() => {}),
+      instanceId: `${roomId}_${deckConfig.deckId}_${index}`,
       location: "deck",
+      ownerId: null,
     }));
-    drawnCards[deckId] = [];
-    playFieldCards[deckId] = [];
-    discardPile[deckId] = [];
-    server_log("deck", `[${roomId}] デッキ "${name}" (${deckId}) 初期化完了`);
+
+    decks[deckConfig.deckId] = cards;
+    drawnCards[deckConfig.deckId] = [];
+    playFieldCards[deckConfig.deckId] = [];
+    discardPile[deckConfig.deckId] = [];
+
+    server_log(
+      "deck",
+      `[${roomId}] デッキ "${deckConfig.name}" (${deckConfig.deckId}) 初期化完了`
+    );
   });
 
   const roomInfo = {
