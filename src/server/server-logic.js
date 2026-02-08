@@ -83,7 +83,6 @@ function initializeRoom(roomId, settings) {
       instanceId: `${roomId}_${deckConfig.deckId}_${index}`,
       location: "deck",
       ownerId: null,
-      onPlay: options.cardEffects[c.name] || (() => {}),
     }));
 
     decks[deckConfig.deckId] = cards;
