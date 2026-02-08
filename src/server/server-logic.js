@@ -346,7 +346,6 @@ export function initGameServer(io, options = {}) {
 
     // 2. ルーム参加処理
     socket.on("room:join", async ({ roomId, playerName, gamePresetId }) => {
-      // 💡 修正点: 不正なroomId、またはロビー接続時に誤って送信されたroomIdを厳しくチェック
       if (!roomId || typeof roomId !== "string") {
         server_log(
           "warn",
@@ -355,7 +354,6 @@ export function initGameServer(io, options = {}) {
         return;
       }
 
-      // ★ 修正2: プレイヤー名が提供されているかチェック
       const providedName =
         typeof playerName === "string" && playerName.trim().length > 0
           ? playerName.trim()
@@ -370,142 +368,97 @@ export function initGameServer(io, options = {}) {
 
       let roomInfo = activeRooms.get(roomId);
 
-      // 💡 修正3: プリセットIDに基づいてルーム固有の設定を決定
-      const roomSettings = gamePresets[gamePresetId] || {
-        // プリセットが見つからない場合は、initGameServerに渡されたグローバルなフォールバック設定を使用
-        initialDecks: options.initialDecks,
-        initialResources: options.initialResources,
-        initialTokenStore: options.initialTokenStore,
-        initialTokens: options.initialTokens,
-        initialBoard: options.initialBoard,
-        cardEffects: options.cardEffects,
-        initialHand: options.initialHand,
-        cellEffects: options.cellEffects,
-        customEvents: options.customEvents,
-      };
+      // プリセットIDに基づいて設定を取得（未定義ならデフォルトのoptionsを使用）
+      const roomSettings = gamePresets[gamePresetId] || options;
 
       if (!roomInfo) {
-        // ★ 新規ルーム作成
-        roomInfo = initializeRoom(roomId, options);
-
-        // ★ 修正2: ルーム情報を直接更新して name を設定
-        // クライアントから提供された name を使用し、なければデフォルト名を適用
+        // 適切な roomSettings で初期化
         roomInfo = initializeRoom(roomId, roomSettings);
-
-        activeRooms.set(roomId, roomInfo); // name 設定後に Map を更新（安全策）
-
-        // 新規ルーム作成時にロビーリストの更新を通知
+        activeRooms.set(roomId, roomInfo);
         io.emit("lobby:room-update");
       }
 
       await socket.join(roomId);
-      server_log(
-        "room",
-        `クライアント ${socket.id} がルーム ${roomId} に参加しました。`
-      );
 
       const { gameStateInstance, decks, currentTurnIndex } = roomInfo;
-
       const existingPlayer = gameStateInstance.players.find(
         (p) => p.socketId === socket.id
       );
 
       if (!existingPlayer) {
-        const initialTokensCopy = Array.isArray(roomSettings.initialTokens)
-          ? JSON.parse(JSON.stringify(options.initialTokens))
-          : [];
-
-        const initialResourcesCopy = Array.isArray(
-          roomSettings.initialResources
-        )
-          ? JSON.parse(JSON.stringify(roomSettings.initialResources))
-          : [];
-
-        // ★ 修正3: playerIdの定義をnewPlayerオブジェクト定義の前に移動
+        // --- 新規プレイヤー作成 ---
         const playerId = `${roomId}_p${gameStateInstance.players.length + 1}`;
 
         const newPlayer = {
-          id: playerId, // 定義済みの playerId を使用
-          // ★ providedNameが提供されていればそれを使用し、なければ自動生成名を使う
+          id: playerId,
           name:
             providedName || `Player ${gameStateInstance.players.length + 1}`,
           socketId: socket.id,
           cards: [],
           score: 0,
-          resources: initialResourcesCopy,
-          tokens: initialTokensCopy,
+          resources: Array.isArray(roomSettings.initialResources)
+            ? JSON.parse(JSON.stringify(roomSettings.initialResources))
+            : [],
+          tokens: Array.isArray(roomSettings.initialTokens)
+            ? JSON.parse(JSON.stringify(roomSettings.initialTokens))
+            : [],
           position: { row: 0, col: 0 },
         };
 
         gameStateInstance.players.push(newPlayer);
-        server_log(
-          "room",
-          `[${roomId}] 新規プレイヤー追加: ${newPlayer.name} (${newPlayer.id})`
-        );
         socket.emit("player:assign-id", newPlayer.id);
 
-        const initialHand = roomSettings.initialHand || {};
-        const { deckId: startDeckId, count: startCount } = initialHand;
+        // ★ 修正：配布の判定をロジック（プリセット設定の有無）のみに依存させる
+        // roomSettings.initialHand が存在し、かつそのデッキがこの部屋に存在する場合のみ実行
+        const handConfig = roomSettings.initialHand;
 
-        if (startDeckId && startCount > 0 && decks[startDeckId]) {
-          const deckTotalCards = decks[startDeckId]; // 全てのカードリスト
-          let cardsDealt = 0; // 実際に配った枚数をカウントする
+        if (
+          handConfig &&
+          handConfig.deckId &&
+          handConfig.count > 0 &&
+          decks[handConfig.deckId]
+        ) {
+          const targetDeck = decks[handConfig.deckId];
+          let cardsDealt = 0;
 
-          for (let i = 0; i < startCount; i++) {
-            // デッキの先頭（locationが"deck"）にあるカードを検索
-            const cardIndex = deckTotalCards.findIndex(
+          for (let i = 0; i < handConfig.count; i++) {
+            // デッキ（location="deck"）の状態にあるカードを上から探す
+            const cardIndex = targetDeck.findIndex(
               (c) => c.location === "deck"
             );
+            if (cardIndex === -1) break;
 
-            if (cardIndex === -1) {
-              server_log(
-                "warn",
-                `[${roomId}] 初期手札配布中にデッキ ${startDeckId} のカードが不足しました。`
-              );
-              break;
-            }
-
-            const card = deckTotalCards[cardIndex];
+            const card = targetDeck[cardIndex];
             card.location = "hand";
             card.isFaceUp = true;
             card.ownerId = newPlayer.id;
             newPlayer.cards.push(card);
             cardsDealt++;
           }
-
-          if (cardsDealt < startCount) {
-            server_log(
-              "warn",
-              `[${roomId}] 初期手札配布中にデッキ ${startDeckId} のカードが不足しました。実際に配布された枚数: ${cardsDealt}/${startCount}`
-            );
-          } else {
-            server_log(
-              "deck",
-              `[${roomId}] 初期手札 ${startDeckId} から ${cardsDealt} 枚を ${newPlayer.name} に配布しました。`
-            );
-          }
+          server_log(
+            "deck",
+            `[${roomId}] 初期手札を ${cardsDealt}枚 配布しました (Preset: ${gamePresetId})`
+          );
         }
       } else {
         existingPlayer.socketId = socket.id;
-        server_log(
-          "room",
-          `[${roomId}] プレイヤー ${existingPlayer.name} (${existingPlayer.id}) がソケット ${socket.id} で再接続しました。`
-        );
         socket.emit("player:assign-id", existingPlayer.id);
       }
 
-      // ルーム内の全クライアントに初期状態を送信
-      if (roomInfo.gameStateInstance.board.length > 0) {
-        io.to(roomId).emit("game:init-board", roomInfo.gameStateInstance.board);
+      // --- 同期処理（本人のみに送信） ---
+      if (gameStateInstance.board && gameStateInstance.board.length > 0) {
+        socket.emit("game:init-board", gameStateInstance.board);
       }
+
       gameStateInstance.tokenStores.forEach((store) => {
-        io.to(roomId).emit(
+        socket.emit(
           `token-store:init:${roomId}:${store.id}`,
           store.getTokens()
         );
       });
+
       Object.keys(decks).forEach((deckId) => {
-        io.to(roomId).emit(`deck:init:${deckId}`, {
+        socket.emit(`deck:init:${deckId}`, {
           currentDeck: decks[deckId].filter((c) => c.location === "deck"),
           drawnCards: roomInfo.drawnCards[deckId],
         });
@@ -517,8 +470,9 @@ export function initGameServer(io, options = {}) {
         "game:turn",
         gameStateInstance.players[currentTurnIndex]?.id
       );
+
       if (gameStateInstance.exploredCells.length > 0) {
-        io.to(roomId).emit("board-update", gameStateInstance.exploredCells);
+        socket.emit("board-update", gameStateInstance.exploredCells);
       }
     });
 
