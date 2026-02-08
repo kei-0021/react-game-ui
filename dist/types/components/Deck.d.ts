@@ -7,5 +7,5 @@ type DeckProps = {
     name: string;
     playerId?: PlayerId | null;
 };
-export default function Deck({ socket, roomId, deckId, name, playerId }: DeckProps): import("react/jsx-runtime").JSX.Element;
+export default function Deck({ socket, roomId, deckId, name, playerId, }: DeckProps): import("react/jsx-runtime").JSX.Element;
 export {};

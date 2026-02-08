@@ -1004,7 +1004,9 @@ const CardContent = ({ card: card2 }) => {
       }
     );
   } else {
-    console.log(`[CardContent] pngの描画失敗: ${card2.id}. Path: ${card2.frontImage}`);
+    console.log(
+      `[CardContent] pngの描画失敗: ${card2.id}. Path: ${card2.frontImage}`
+    );
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
@@ -1017,11 +1019,23 @@ const CardContent = ({ card: card2 }) => {
         width: "100%",
         padding: "5px"
       },
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" }, children: card2.name })
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "strong",
+        {
+          style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" },
+          children: card2.name
+        }
+      )
     }
   );
 };
-function Deck({ socket, roomId, deckId, name, playerId = null }) {
+function Deck({
+  socket,
+  roomId,
+  deckId,
+  name,
+  playerId = null
+}) {
   const [deckCards, setDeckCards] = React.useState([]);
   const [drawnCards, setDrawnCards] = React.useState([]);
   const [discardPile, setDiscardPile] = React.useState([]);
@@ -1060,65 +1074,78 @@ function Deck({ socket, roomId, deckId, name, playerId = null }) {
   const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$1.deckSection, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "6px" }, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "6px", color: "#333" }, children: name }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$1.deckControls, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, children: "シャッフル" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$1.deckWrapper, style: { display: "flex", gap: "0px" }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          className: styles$1.deckCard,
-          style: {
-            zIndex: deckCards.length - i,
-            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-            backgroundColor: c.backColor
-          }
-        },
-        c.id
-      )) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          className: styles$1.deckCardFront,
-          style: {
-            zIndex: i + 1,
-            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
-          },
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c })
-        },
-        c.id
-      )) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles$1.deckContainer} ${styles$1.discardPileWrapper}`, children: discardPile.length > 0 && (() => {
-        const topCard = discardPile[discardPile.length - 1];
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            className: `${styles$1.deckCardFront} ${styles$1.discardTopCard}`,
-            style: { pointerEvents: "auto" },
-            onMouseEnter: () => setIsDiscardHovered(true),
-            onMouseLeave: () => setIsDiscardHovered(false),
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: topCard }),
-              topCard.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "span",
-                {
-                  className: styles$1.tooltip,
-                  style: {
-                    visibility: isDiscardHovered ? "visible" : "hidden",
-                    opacity: isDiscardHovered ? 1 : 0,
-                    zIndex: 9999
-                  },
-                  children: topCard.description
-                }
-              )
-            ]
-          },
-          topCard.id
-        );
-      })() })
-    ] })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: styles$1.deckWrapper,
+        style: { display: "flex", gap: "0px" },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: styles$1.deckCard,
+              style: {
+                zIndex: deckCards.length - i,
+                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
+                backgroundColor: c.backColor
+              }
+            },
+            c.id
+          )) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: styles$1.deckCardFront,
+              style: {
+                zIndex: i + 1,
+                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
+              },
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c })
+            },
+            c.id
+          )) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles$1.deckContainer} ${styles$1.discardPileWrapper}`, children: discardPile.length > 0 && (() => {
+            const topCard = discardPile[discardPile.length - 1];
+            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "div",
+              {
+                className: `${styles$1.deckCardFront} ${styles$1.discardTopCard}`,
+                style: { pointerEvents: "auto" },
+                onMouseEnter: () => setIsDiscardHovered(true),
+                onMouseLeave: () => setIsDiscardHovered(false),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: topCard }),
+                  topCard.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "span",
+                    {
+                      className: styles$1.tooltip,
+                      style: {
+                        visibility: isDiscardHovered ? "visible" : "hidden",
+                        opacity: isDiscardHovered ? 1 : 0,
+                        zIndex: 9999,
+                        // 💡 修正後の文字色が黒になるようにスタイルを追加
+                        color: "#333",
+                        backgroundColor: "white",
+                        border: "1px solid #ccc",
+                        padding: "4px",
+                        borderRadius: "4px"
+                      },
+                      children: topCard.description
+                    }
+                  )
+                ]
+              },
+              topCard.id
+            );
+          })() })
+        ]
+      }
+    )
   ] });
 }
 const dice1Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAADL1t+KAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAEsGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI1LTA2LTA0PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkV4dElkPjE5NTczMDkzLWQ2ODktNDQ4MC1hZDY3LTBjMWY0Mzg4OGNhZDwvQXR0cmliOkV4dElkPgogICAgIDxBdHRyaWI6RmJJZD41MjUyNjU5MTQxNzk1ODA8L0F0dHJpYjpGYklkPgogICAgIDxBdHRyaWI6VG91Y2hUeXBlPjI8L0F0dHJpYjpUb3VjaFR5cGU+CiAgICA8L3JkZjpsaT4KICAgPC9yZGY6U2VxPgogIDwvQXR0cmliOkFkcz4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6ZGM9J2h0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvJz4KICA8ZGM6dGl0bGU+CiAgIDxyZGY6QWx0PgogICAgPHJkZjpsaSB4bWw6bGFuZz0neC1kZWZhdWx0Jz5kaWNlIC0gMTwvcmRmOmxpPgogICA8L3JkZjpBbHQ+CiAgPC9kYzp0aXRsZT4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0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";
@@ -1804,7 +1831,7 @@ function ScoreBoard({
   ] });
 }
 function Timer({ socket = null, initialDuration, onFinish, roomId }) {
-  const [timeLeft, setTimeLeft] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(initialDuration);
   useEffect(() => {
     if (!socket || !roomId) return;
     const handleStart = (data) => {
@@ -1828,9 +1855,10 @@ function Timer({ socket = null, initialDuration, onFinish, roomId }) {
       socket.off("timer:update", handleUpdate);
       socket.off("timer:finish", handleFinish);
     };
-  }, [socket, roomId, onFinish]);
+  }, [socket, roomId, onFinish, initialDuration]);
   const start = () => {
     if (!socket || !roomId || initialDuration <= 0) return;
+    setTimeLeft(initialDuration);
     socket.emit("timer:start", { duration: initialDuration, roomId });
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -1857,12 +1885,12 @@ function Timer({ socket = null, initialDuration, onFinish, roomId }) {
             style: {
               fontSize: "1.5rem",
               fontWeight: "bold",
-              color: timeLeft !== null ? timeLeft <= 6 ? "red" : timeLeft <= 15 ? "orange" : "green" : "gray",
+              color: timeLeft <= 6 ? "red" : timeLeft <= 15 ? "orange" : "green",
               transition: "color 0.5s ease"
             },
             children: [
               "残り時間: ",
-              timeLeft === 0 ? "終了" : timeLeft ?? "-",
+              timeLeft,
               "s"
             ]
           }
