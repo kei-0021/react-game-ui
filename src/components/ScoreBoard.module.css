@@ -1,0 +1,161 @@
+.container {
+  padding: 16px;
+  border: 1px solid #333;
+  border-radius: 12px;
+  background-color: #f9f9f9;
+  max-width: 900px;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 1.5em;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 8px;
+  color: #333;
+}
+
+.playerList {
+  list-style: none;
+  padding: 0;
+}
+
+.playerItem {
+  padding: 6px 12px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+}
+
+.activePlayer {
+  background-color: #a0e7ff !important;
+  font-weight: bold !important;
+}
+
+.playerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #333;
+}
+
+.playerName {
+  font-size: 1.1em;
+}
+
+.playerScore {
+  font-size: 1.2em;
+}
+
+.resourceSection {
+  margin: 4px 0 8px;
+  font-size: 0.9em;
+  color: #333;
+}
+
+.resourceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.resourceBadge {
+  padding: 4px 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.tokenList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #ddd;
+}
+
+.tokenBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font-size: 0.75em;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.cardList {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  /* ツールチップが親要素に切り取られないよう visible に */
+  overflow: visible !important;
+}
+
+.cardBase {
+  position: relative;
+  width: 80px;
+  height: 110px;
+  border-radius: 4px;
+  color: black;
+  font-size: 10px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* ★ 折り返し設定 */
+  white-space: normal;
+  word-break: break-all;
+  text-align: center;
+  padding: 4px;
+
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+/* ★ 選択時の色と演出 */
+.cardSelected {
+  border: 3px solid gold !important;
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  z-index: 1000;
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+  word-break: break-all;
+  white-space: normal;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.cardBase:hover .tooltip {
+  display: block;
+}
+
+.buttonGroup {
+  margin-top: 12px;
+  display: flex;
+  gap: 6px;
+}

@@ -930,7 +930,7 @@ function requireJsxRuntime() {
 var jsxRuntimeExports = requireJsxRuntime();
 const boardContainer = "_boardContainer_1laip_8";
 const cell = "_cell_1laip_28";
-const styles$2 = {
+const styles$3 = {
   boardContainer,
   cell
 };
@@ -958,7 +958,7 @@ const Cell = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
-      className: styles$2.cell,
+      className: styles$3.cell,
       onClick: handleClick,
       onDoubleClick: handleDoubleClick,
       onDrop,
@@ -969,18 +969,16 @@ const Cell = ({
   );
 };
 const card = "_card_1mv54_3";
-const tooltip = "_tooltip_1mv54_23";
-const cardBack = "_cardBack_1mv54_47";
+const tooltip$1 = "_tooltip_1mv54_23";
 const deckContainer = "_deckContainer_1mv54_59";
 const deckCard = "_deckCard_1mv54_66";
 const deckCardFront = "_deckCardFront_1mv54_78";
 const deckSection = "_deckSection_1mv54_95";
 const discardPileWrapper = "_discardPileWrapper_1mv54_103";
 const discardTopCard = "_discardTopCard_1mv54_109";
-const styles$1 = {
+const styles$2 = {
   card,
-  tooltip,
-  cardBack,
+  tooltip: tooltip$1,
   deckContainer,
   deckCard,
   deckCardFront,
@@ -1073,22 +1071,22 @@ function Deck({
   };
   const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$1.deckSection, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$2.deckSection, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "6px", color: "#333" }, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$1.deckControls, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.deckControls, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, children: "シャッフル" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
-        className: styles$1.deckWrapper,
+        className: styles$2.deckWrapper,
         style: { display: "flex", gap: "0px" },
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
-              className: styles$1.deckCard,
+              className: styles$2.deckCard,
               style: {
                 zIndex: deckCards.length - i,
                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
@@ -1097,10 +1095,10 @@ function Deck({
             },
             c.id
           )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
-              className: styles$1.deckCardFront,
+              className: styles$2.deckCardFront,
               style: {
                 zIndex: i + 1,
                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
@@ -1109,12 +1107,12 @@ function Deck({
             },
             c.id
           )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles$1.deckContainer} ${styles$1.discardPileWrapper}`, children: discardPile.length > 0 && (() => {
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles$2.deckContainer} ${styles$2.discardPileWrapper}`, children: discardPile.length > 0 && (() => {
             const topCard = discardPile[discardPile.length - 1];
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
-                className: `${styles$1.deckCardFront} ${styles$1.discardTopCard}`,
+                className: `${styles$2.deckCardFront} ${styles$2.discardTopCard}`,
                 style: { pointerEvents: "auto" },
                 onMouseEnter: () => setIsDiscardHovered(true),
                 onMouseLeave: () => setIsDiscardHovered(false),
@@ -1123,7 +1121,7 @@ function Deck({
                   topCard.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
                     "span",
                     {
-                      className: styles$1.tooltip,
+                      className: styles$2.tooltip,
                       style: {
                         visibility: isDiscardHovered ? "visible" : "hidden",
                         opacity: isDiscardHovered ? 1 : 0,
@@ -1250,7 +1248,7 @@ function Dice({ sides = 6, socket = null, diceId, roomId, onRoll }) {
   );
 }
 const piece = "_piece_wi08l_3";
-const styles = {
+const styles$1 = {
   piece
 };
 function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
@@ -1267,8 +1265,8 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
     }
   };
   const pieceClasses = [
-    styles.piece,
-    isDraggable ? styles.draggable : styles.clickable
+    styles$1.piece,
+    isDraggable ? styles$1.draggable : styles$1.clickable
   ].join(" ");
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
@@ -1322,7 +1320,7 @@ function GridBoard({
     height: "600px",
     position: "relative"
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.boardContainer, style: boardStyle, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$3.boardContainer, style: boardStyle, children: [
     boardData.map((rowArr, row) => rowArr.map((originalCellData, col) => {
       const isChanged = changedCells.some(
         (loc2) => loc2.row === row && loc2.col === col
@@ -1497,7 +1495,7 @@ function PlayField({
         return /* @__PURE__ */ jsxRuntimeExports.jsxs(
           "div",
           {
-            className: `${styles$1.card} rg-playfield-card-wrapper`,
+            className: `${styles$2.card} rg-playfield-card-wrapper`,
             style: { "--owner-color": ownerColor },
             onDoubleClick: () => returnCardToOwnerHand(card2),
             children: [
@@ -1510,7 +1508,7 @@ function PlayField({
                   children: ownerNameInitial
                 }
               ),
-              card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$1.tooltip, children: card2.description })
+              card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$2.tooltip, children: card2.description })
             ]
           },
           card2.id
@@ -1519,187 +1517,167 @@ function PlayField({
     ] })
   ] });
 }
-const CardDisplayContent = React.memo(({ card: card2, isFaceUp }) => {
-  if (!isFaceUp) {
-    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Not FaceUp. Rendering nothing.`);
-    return null;
+const container = "_container_w3fd9_1";
+const title = "_title_w3fd9_11";
+const playerList = "_playerList_w3fd9_19";
+const playerItem = "_playerItem_w3fd9_24";
+const activePlayer = "_activePlayer_w3fd9_31";
+const playerHeader = "_playerHeader_w3fd9_36";
+const playerName = "_playerName_w3fd9_43";
+const playerScore = "_playerScore_w3fd9_47";
+const resourceSection = "_resourceSection_w3fd9_51";
+const resourceList = "_resourceList_w3fd9_57";
+const resourceBadge = "_resourceBadge_w3fd9_63";
+const tokenList = "_tokenList_w3fd9_70";
+const tokenBadge = "_tokenBadge_w3fd9_79";
+const cardList = "_cardList_w3fd9_93";
+const cardBase = "_cardBase_w3fd9_102";
+const cardSelected = "_cardSelected_w3fd9_127";
+const tooltip = "_tooltip_w3fd9_133";
+const buttonGroup = "_buttonGroup_w3fd9_157";
+const styles = {
+  container,
+  title,
+  playerList,
+  playerItem,
+  activePlayer,
+  playerHeader,
+  playerName,
+  playerScore,
+  resourceSection,
+  resourceList,
+  resourceBadge,
+  tokenList,
+  tokenBadge,
+  cardList,
+  cardBase,
+  cardSelected,
+  tooltip,
+  buttonGroup
+};
+const CardDisplayContent = React.memo(
+  ({ card: card2, isFaceUp }) => {
+    if (!isFaceUp) return null;
+    if (card2.frontImage) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "img",
+        {
+          src: card2.frontImage,
+          alt: card2.name,
+          style: { width: "100%", height: "100%", objectFit: "contain" }
+        }
+      );
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { width: "100%" }, children: card2.name });
   }
-  if (card2.frontImage) {
-    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with frontImage: ${card2.frontImage}`);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "img",
+);
+const TokenDisplayContent = React.memo(
+  ({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
+    const isMyToken = myPlayerId === playerIdBeingDisplayed;
+    if (!tokens || tokens.length === 0) return null;
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.tokenList, children: tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
       {
-        src: card2.frontImage,
-        alt: card2.name,
-        style: { width: "100%", height: "100%", objectFit: "contain" }
+        className: styles.tokenBadge,
+        style: {
+          cursor: isMyToken ? "pointer" : "default",
+          opacity: isMyToken ? 1 : 0.7
+        },
+        onClick: () => {
+          if (!isMyToken) return;
+          socket.emit("token:reclaim", {
+            roomId,
+            playerId: myPlayerId,
+            tokenId: token.id
+          });
+        },
+        children: token.name
+      },
+      token.id
+    )) });
+  }
+);
+const PlayerListItem = React.memo(
+  ({
+    player,
+    currentPlayerId,
+    myPlayerId,
+    selectedCards,
+    toggleCardSelection,
+    socket,
+    roomId
+  }) => {
+    const isActive = player.id === currentPlayerId;
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "li",
+      {
+        className: `${styles.playerItem} ${isActive ? styles.activePlayer : ""}`,
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.playerHeader, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.playerName, children: [
+              isActive && "ᐅ ",
+              player.id === myPlayerId && "★ ME ",
+              player.name
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.playerScore, children: [
+              "スコア: ",
+              player.score
+            ] })
+          ] }),
+          player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.resourceSection, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.resourceList, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.resourceBadge, children: [
+            resource.icon,
+            " ",
+            resource.name,
+            ": ",
+            resource.currentValue,
+            " /",
+            " ",
+            resource.maxValue
+          ] }, resource.id)) }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            TokenDisplayContent,
+            {
+              tokens: player.tokens,
+              socket,
+              roomId,
+              myPlayerId,
+              playerIdBeingDisplayed: player.id
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.cardList, children: player.cards.map((card2) => {
+            const isFaceUp = !!card2.isFaceUp && player.id === myPlayerId;
+            const isSelected = selectedCards.includes(card2.id);
+            player.name ? player.name.substring(0, 1).toUpperCase() : "?";
+            const ownerColor = player.color || "#333";
+            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "div",
+              {
+                className: `${styles.cardBase} rg-playfield-card-wrapper ${isSelected ? styles.cardSelected : ""}`,
+                style: {
+                  "--owner-color": ownerColor,
+                  "backgroundColor": isFaceUp ? "#fff" : card2.backColor,
+                  "cursor": isFaceUp ? "pointer" : "default"
+                },
+                onClick: () => toggleCardSelection(card2.id, isFaceUp),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, isFaceUp }),
+                  isFaceUp && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles.tooltip, children: card2.description })
+                ]
+              },
+              card2.id
+            );
+          }) })
+        ]
       }
     );
   }
-  console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with card.name (No frontImage).`);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    height: "100%",
-    width: "100%",
-    padding: "5px",
-    color: "#333"
-  }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "0.8em", wordBreak: "break-all", textAlign: "center" }, children: card2.name }) });
-});
-const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
-  const isMyToken = myPlayerId === playerIdBeingDisplayed;
-  if (!tokens || tokens.length === 0) return null;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "8px",
-    marginTop: "8px",
-    paddingTop: "8px",
-    borderTop: "1px solid #ddd"
-  }, children: tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      title: isMyToken ? `クリックして再獲得: ${token.name}` : token.name,
-      style: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#fff",
-        borderRadius: "50%",
-        width: "48px",
-        height: "48px",
-        fontSize: "0.75em",
-        fontWeight: "bold",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-        cursor: isMyToken ? "pointer" : "default",
-        opacity: isMyToken ? 1 : 0.7,
-        flexShrink: 0,
-        padding: "2px"
-      },
-      onClick: () => {
-        if (!isMyToken) return;
-        socket.emit("token:reclaim", {
-          roomId,
-          playerId: myPlayerId,
-          tokenId: token.id
-        });
-      },
-      children: token.name
-    },
-    token.id
-  )) });
-});
-const PlayerListItem = React.memo(({
-  player,
-  currentPlayerId,
-  myPlayerId,
-  selectedCards,
-  toggleCardSelection,
-  socket,
-  roomId
-}) => {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "li",
-    {
-      style: {
-        padding: "6px 12px",
-        marginBottom: "6px",
-        borderRadius: "4px",
-        backgroundColor: player.id === currentPlayerId ? "#a0e7ff" : "#f5f5f5",
-        fontWeight: player.id === currentPlayerId ? "bold" : "normal"
-      },
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: {
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          color: "#333"
-        }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontSize: "1.1em", color: "#333" }, children: [
-            player.id === currentPlayerId && "ᐅ ",
-            player.id === myPlayerId && "★ ME ",
-            player.name
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontSize: "1.2em" }, children: [
-            "スコア: ",
-            player.score
-          ] })
-        ] }),
-        player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "4px", marginBottom: "8px", fontSize: "0.9em", color: "#333" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { display: "block", marginBottom: "4px" }, children: "リソース:" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", flexWrap: "wrap", gap: "10px" }, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "span",
-            {
-              title: resource.name,
-              style: {
-                padding: "4px 8px",
-                backgroundColor: "#f0f0f0",
-                borderRadius: "4px",
-                whiteSpace: "nowrap"
-              },
-              children: [
-                resource.icon,
-                " ",
-                resource.name,
-                ": ",
-                resource.currentValue,
-                " / ",
-                resource.maxValue
-              ]
-            },
-            resource.id
-          )) })
-        ] }),
-        player.tokens?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(
-          TokenDisplayContent,
-          {
-            tokens: player.tokens,
-            socket,
-            roomId,
-            myPlayerId,
-            playerIdBeingDisplayed: player.id
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }, children: player.cards.map((card2) => {
-          const isFaceUp = !!card2.isFaceUp && player.id === myPlayerId;
-          const isSelected = selectedCards.includes(card2.id);
-          const cardClassName = isFaceUp ? styles$1.card : styles$1.cardBack;
-          console.log(`[PlayerListItem] Player: ${player.name}, Card ID: ${card2.id}, Name: ${card2.name} - isFaceUp: ${isFaceUp}, Class: ${cardClassName}`);
-          return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "div",
-            {
-              className: cardClassName,
-              style: {
-                position: "relative",
-                cursor: isFaceUp ? "pointer" : "default",
-                backgroundColor: isFaceUp ? void 0 : card2.backColor,
-                border: isSelected ? "2px solid gold" : "none",
-                boxSizing: "border-box",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center"
-              },
-              onClick: () => toggleCardSelection(card2.id, isFaceUp),
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, isFaceUp }),
-                isFaceUp && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$1.tooltip, children: card2.description })
-              ]
-            },
-            card2.id
-          );
-        }) })
-      ]
-    },
-    player.id
-  );
-});
+);
 function ScoreBoard({
   socket,
   players,
   currentPlayerId,
   myPlayerId,
-  roomId,
-  backColor = "#000000ff"
+  roomId
 }) {
   const displayedPlayers = React.useMemo(() => {
     return (players || []).map((p) => ({
@@ -1711,12 +1689,15 @@ function ScoreBoard({
     }));
   }, [players]);
   const [selectedCards, setSelectedCards] = React.useState([]);
-  const toggleCardSelection = React.useCallback((cardId, isFaceUp) => {
-    if (!isFaceUp) return;
-    setSelectedCards(
-      (prev) => prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
-    );
-  }, []);
+  const toggleCardSelection = React.useCallback(
+    (cardId, isFaceUp) => {
+      if (!isFaceUp) return;
+      setSelectedCards(
+        (prev) => prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
+      );
+    },
+    []
+  );
   const playSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
     const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
@@ -1726,9 +1707,7 @@ function ScoreBoard({
     selectedCards.forEach((cardId) => {
       const card2 = myPlayer.cards.find((c) => c.id === cardId);
       if (!card2) return;
-      if (!targetPlayLocation) {
-        targetPlayLocation = card2.playLocation;
-      }
+      if (!targetPlayLocation) targetPlayLocation = card2.playLocation;
       if (!cardsByDeck[card2.deckId]) cardsByDeck[card2.deckId] = [];
       cardsByDeck[card2.deckId].push(card2.id);
     });
@@ -1744,26 +1723,10 @@ function ScoreBoard({
     });
     setSelectedCards([]);
   }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId]);
-  const nextTurn = React.useCallback(() => {
-    socket.emit("game:next-turn", { roomId });
-  }, [socket, roomId]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: {
-    padding: "16px",
-    border: "1px solid #333",
-    borderRadius: "12px",
-    backgroundColor: "#f9f9f9",
-    maxWidth: "900px",
-    margin: "0 auto",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-  }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { style: {
-      fontSize: "1.5em",
-      marginBottom: "12px",
-      borderBottom: "2px solid #ddd",
-      paddingBottom: "8px",
-      color: "#333"
-    }, children: "ゲームスコアボード" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { style: { listStyle: "none", padding: 0 }, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+  const nextTurn = () => socket.emit("game:next-turn", { roomId });
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.container, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: styles.title, children: "ゲームスコアボード" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: styles.playerList, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       PlayerListItem,
       {
         player,
@@ -1776,8 +1739,15 @@ function ScoreBoard({
       },
       player.id
     )) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "12px", display: "flex", gap: "6px" }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: playSelectedCards, disabled: selectedCards.length === 0, children: "選択カードを出す" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.buttonGroup, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          onClick: playSelectedCards,
+          disabled: selectedCards.length === 0,
+          children: "選択カードを出す"
+        }
+      ),
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "次のターン" })
     ] })
   ] });
