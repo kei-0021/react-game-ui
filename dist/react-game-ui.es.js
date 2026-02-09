@@ -1465,14 +1465,6 @@ function PlayField({
   console.log(
     `[PlayField] Deck ${deckId} - Start rendering ${playedCards.length} cards in the Play Area.`
   );
-  const getPlayerColor = (ownerId) => {
-    if (!ownerId) return "#aaaaaa";
-    if (ownerId === myPlayerId) {
-      return "#4fc3f7";
-    } else {
-      return "#242a2aff";
-    }
-  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "rg-playfield", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "rg-playfield-title", children: [
       "プレイエリア",
@@ -1486,8 +1478,8 @@ function PlayField({
       playedCards.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-playfield-empty", children: "（まだカードが出ていません）" }),
       playedCards.map((card2) => {
         const isFaceUp = true;
-        const ownerColor = getPlayerColor(card2.ownerId);
         const owner = card2.ownerId ? players.find((p) => p.id === card2.ownerId) : null;
+        const ownerColor = owner?.color || "#aaaaaa";
         const ownerNameInitial = owner?.name?.[0] || "?";
         console.log(
           `[PlayField] Deck ${deckId} - Rendering Card ID: ${card2.id}, Name: ${card2.name} (Owner: ${card2.ownerId}, Color: ${ownerColor})`

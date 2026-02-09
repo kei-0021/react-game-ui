@@ -119,15 +119,6 @@ export default function PlayField({
     `[PlayField] Deck ${deckId} - Start rendering ${playedCards.length} cards in the Play Area.`,
   );
 
-  const getPlayerColor = (ownerId: string | null | undefined): string => {
-    if (!ownerId) return "#aaaaaa";
-    if (ownerId === myPlayerId) {
-      return "#4fc3f7";
-    } else {
-      return "#242a2aff";
-    }
-  };
-
   return (
     <section className="rg-playfield">
       <h3 className="rg-playfield-title">
@@ -140,10 +131,11 @@ export default function PlayField({
         )}
         {playedCards.map((card) => {
           const isFaceUp = true;
-          const ownerColor = getPlayerColor(card.ownerId);
           const owner = card.ownerId
             ? players.find((p) => p.id === card.ownerId)
             : null;
+          // 自動生成された color があればそれを使う。なければデフォルト色。
+          const ownerColor = owner?.color || "#aaaaaa";
           const ownerNameInitial = owner?.name?.[0] || "?";
 
           console.log(

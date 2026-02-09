@@ -5,6 +5,7 @@ import type { Token } from "./token.js";
 export type Player = {
     id: PlayerId;
     name: string;
+    color: string;
     score?: number;
     cards?: Card[];
     tokens?: Token[];

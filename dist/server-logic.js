@@ -1,6 +1,7 @@
 import {
   applyCellEffect,
   createRandomBoard,
+  generateColorFromId,
   LOG_CATEGORIES,
   markCellAsExplored,
   MockGameState,
@@ -396,11 +397,13 @@ export function initGameServer(io, options = {}) {
       if (!existingPlayer) {
         // --- 新規プレイヤー作成 ---
         const playerId = `${roomId}_p${gameStateInstance.players.length + 1}`;
+        const playerColor = generateColorFromId(playerId);
 
         const newPlayer = {
           id: playerId,
           name:
             providedName || `Player ${gameStateInstance.players.length + 1}`,
+          color: playerColor,
           socketId: socket.id,
           cards: [],
           score: 0,

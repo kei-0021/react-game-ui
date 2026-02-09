@@ -8,8 +8,9 @@ import type { Token } from "./token.js";
 export type Player = {
   id: PlayerId;
   name: string;
+  color: string; // HSL形式やHEX形式の文字列
   score?: number;
   cards?: Card[];
   tokens?: Token[];
-  resources?: Resource[]; 
+  resources?: Resource[];
 };
