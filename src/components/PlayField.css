@@ -1,0 +1,79 @@
+/* src/components/PlayField.css */
+
+.rg-playfield {
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fafafa;
+}
+
+.rg-playfield-title {
+  margin-bottom: 8px;
+}
+
+.rg-playfield-subtitle {
+  margin-left: 10px;
+  font-weight: normal;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.rg-playfield-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 120px;
+}
+
+.rg-playfield-empty {
+  opacity: 0.6;
+}
+
+.rg-playfield-card-wrapper {
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rg-playfield-owner-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--owner-color, #aaaaaa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: white;
+  border: 2px solid white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.rg-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.rg-card-text-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 5px;
+  color: #333;
+}
+
+.rg-card-name-label {
+  font-size: 0.8em;
+  word-break: break-all;
+  text-align: center;
+}
