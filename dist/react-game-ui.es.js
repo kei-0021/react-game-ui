@@ -1389,42 +1389,26 @@ function GridBoard({
 function client_log(tag, ...args) {
   console.log(`[${tag}]`, ...args);
 }
-const CardDisplayContent$1 = ({ card: card2, isFaceUp }) => {
+const CardDisplayContent$1 = ({
+  card: card2,
+  isFaceUp
+}) => {
   if (!isFaceUp) {
-    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - isFaceUp is false. Not rendering.`);
+    console.log(
+      `[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - isFaceUp is false. Not rendering.`
+    );
     return null;
   }
   if (card2.frontImage) {
-    console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with frontImage: ${card2.frontImage}`);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "img",
-      {
-        src: card2.frontImage,
-        alt: card2.name,
-        style: {
-          width: "100%",
-          height: "100%",
-          objectFit: "contain"
-        }
-      }
+    console.log(
+      `[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with frontImage: ${card2.frontImage}`
     );
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: "rg-card-image" });
   }
-  console.log(`[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with card.name (No frontImage).`);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      style: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100%",
-        width: "100%",
-        padding: "5px",
-        color: "#333"
-      },
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "0.8em", wordBreak: "break-all", textAlign: "center" }, children: card2.name })
-    }
+  console.log(
+    `[CardDisplayContent] Card ID: ${card2.id}, Name: ${card2.name} - Rendering with card.name (No frontImage).`
   );
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-card-text-content", children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: "rg-card-name-label", children: card2.name }) });
 };
 function PlayField({
   socket,
@@ -1433,9 +1417,7 @@ function PlayField({
   name,
   is_logging = false,
   players,
-  // Propsからplayersを取得
   myPlayerId
-  // 💡 PropsからmyPlayerIdを取得
 }) {
   const [playedCards, setPlayedCards] = React.useState([]);
   React.useEffect(() => {
@@ -1443,10 +1425,19 @@ function PlayField({
       const newCards = data.playFieldCards || [];
       if (is_logging) {
         client_log("playField", `[${deckId}] 場の状態を更新`);
-        client_log("playField", `[${deckId}] 古いカード数: ${playedCards.length}, 新しいカード数: ${newCards.length}`);
-        client_log("playField", `[${deckId}] 受信したカードリスト:`, newCards.map((c) => c.name));
+        client_log(
+          "playField",
+          `[${deckId}] 古いカード数: ${playedCards.length}, 新しいカード数: ${newCards.length}`
+        );
+        client_log(
+          "playField",
+          `[${deckId}] 受信したカードリスト:`,
+          newCards.map((c) => c.name)
+        );
       }
-      console.log(`[PlayField] Deck ${deckId} - Received ${newCards.length} cards for rendering.`);
+      console.log(
+        `[PlayField] Deck ${deckId} - Received ${newCards.length} cards for rendering.`
+      );
       setPlayedCards(newCards);
     };
     socket.on(`deck:update:${roomId}:${deckId}`, handleUpdate);
@@ -1456,7 +1447,10 @@ function PlayField({
   }, [socket, roomId, deckId, playedCards.length]);
   const returnCardToOwnerHand = (card2) => {
     if (!card2.ownerId) {
-      client_log("playField", `警告: ${card2.name} には所有者IDが設定されていません。手札に戻せません。`);
+      client_log(
+        "playField",
+        `警告: ${card2.name} には所有者IDが設定されていません。手札に戻せません。`
+      );
       return;
     }
     socket.emit("card:return-to-hand", {
@@ -1465,9 +1459,14 @@ function PlayField({
       cardId: card2.id,
       targetPlayerId: card2.ownerId
     });
-    client_log("playField", `カード ${card2.name} を持ち主 ${card2.ownerId} の手札に戻すようリクエスト`);
+    client_log(
+      "playField",
+      `カード ${card2.name} を持ち主 ${card2.ownerId} の手札に戻すようリクエスト`
+    );
   };
-  console.log(`[PlayField] Deck ${deckId} - Start rendering ${playedCards.length} cards in the Play Area.`);
+  console.log(
+    `[PlayField] Deck ${deckId} - Start rendering ${playedCards.length} cards in the Play Area.`
+  );
   const getPlayerColor = (ownerId) => {
     if (!ownerId) return "#aaaaaa";
     if (ownerId === myPlayerId) {
@@ -1476,96 +1475,49 @@ function PlayField({
       return "#242a2aff";
     }
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "section",
-    {
-      style: {
-        border: "2px dashed #ccc",
-        borderRadius: "10px",
-        padding: "12px",
-        background: "#fafafa"
-      },
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { style: { marginBottom: "8px" }, children: [
-          "プレイエリア",
-          name && /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "span",
-            {
-              style: {
-                marginLeft: "10px",
-                fontWeight: "normal",
-                fontSize: "0.9em",
-                color: "#666"
-              },
-              children: [
-                "（",
-                name,
-                "）"
-              ]
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", flexWrap: "wrap", gap: "8px", minHeight: "120px" }, children: [
-          playedCards.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { opacity: 0.6 }, children: "（まだカードが出ていません）" }),
-          playedCards.map((card2) => {
-            const isFaceUp = true;
-            const ownerColor = getPlayerColor(card2.ownerId);
-            const owner = card2.ownerId ? players.find((p) => p.id === card2.ownerId) : null;
-            const ownerNameInitial = owner?.name?.[0] || "?";
-            console.log(`[PlayField] Deck ${deckId} - Rendering Card ID: ${card2.id}, Name: ${card2.name} (Owner: ${card2.ownerId}, Color: ${ownerColor})`);
-            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "div",
-              {
-                className: styles$1.card,
-                style: {
-                  cursor: "pointer",
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                  // 💡 relative を確保（すでに存在）
-                },
-                onDoubleClick: () => returnCardToOwnerHand(card2),
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent$1, { card: card2, isFaceUp }),
-                  card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    "div",
-                    {
-                      title: `所有者: ${owner?.name || "不明"}`,
-                      style: {
-                        position: "absolute",
-                        top: "-5px",
-                        // 右上角より少し外側
-                        right: "-5px",
-                        // 右上角より少し外側
-                        width: "18px",
-                        height: "18px",
-                        borderRadius: "50%",
-                        backgroundColor: ownerColor,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "10px",
-                        fontWeight: "bold",
-                        color: "white",
-                        border: "2px solid white",
-                        // カードの背景色との対比を強調
-                        boxShadow: "0 0 5px rgba(0, 0, 0, 0.5)",
-                        zIndex: 10
-                      },
-                      children: ownerNameInitial
-                    }
-                  ),
-                  card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$1.tooltip, children: card2.description })
-                ]
-              },
-              card2.id
-            );
-          })
-        ] })
-      ]
-    }
-  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "rg-playfield", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "rg-playfield-title", children: [
+      "プレイエリア",
+      name && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "rg-playfield-subtitle", children: [
+        "（",
+        name,
+        "）"
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rg-playfield-container", children: [
+      playedCards.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-playfield-empty", children: "（まだカードが出ていません）" }),
+      playedCards.map((card2) => {
+        const isFaceUp = true;
+        const ownerColor = getPlayerColor(card2.ownerId);
+        const owner = card2.ownerId ? players.find((p) => p.id === card2.ownerId) : null;
+        const ownerNameInitial = owner?.name?.[0] || "?";
+        console.log(
+          `[PlayField] Deck ${deckId} - Rendering Card ID: ${card2.id}, Name: ${card2.name} (Owner: ${card2.ownerId}, Color: ${ownerColor})`
+        );
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            className: `${styles$1.card} rg-playfield-card-wrapper`,
+            style: { "--owner-color": ownerColor },
+            onDoubleClick: () => returnCardToOwnerHand(card2),
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent$1, { card: card2, isFaceUp }),
+              card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "div",
+                {
+                  className: "rg-playfield-owner-badge",
+                  title: `所有者: ${owner?.name || "不明"}`,
+                  children: ownerNameInitial
+                }
+              ),
+              card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$1.tooltip, children: card2.description })
+            ]
+          },
+          card2.id
+        );
+      })
+    ] })
+  ] });
 }
 const CardDisplayContent = React.memo(({ card: card2, isFaceUp }) => {
   if (!isFaceUp) {
