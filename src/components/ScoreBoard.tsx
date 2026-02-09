@@ -24,9 +24,6 @@ type PlayerListItemProps = {
   roomId: RoomId;
 };
 
-// =========================================================================
-// カード表面の内容
-// =========================================================================
 const CardDisplayContent = React.memo(
   ({ card, isFaceUp }: { card: Card; isFaceUp: boolean }) => {
     if (!isFaceUp) return null;
@@ -43,9 +40,6 @@ const CardDisplayContent = React.memo(
   },
 );
 
-// =========================================================================
-// トークン表示
-// =========================================================================
 const TokenDisplayContent = React.memo(
   ({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }: any) => {
     const isMyToken = myPlayerId === playerIdBeingDisplayed;
@@ -77,10 +71,6 @@ const TokenDisplayContent = React.memo(
     );
   },
 );
-
-// =========================================================================
-// プレイヤー1人分の表示 (ME表示・オーナーバッジ等を含む)
-// =========================================================================
 const PlayerListItem = React.memo(
   ({
     player,
@@ -92,10 +82,23 @@ const PlayerListItem = React.memo(
     roomId,
   }: PlayerListItemProps) => {
     const isActive = player.id === currentPlayerId;
+    const playerColor = (player as any).color || "#aaaaaa";
+
+    const customStyles = {
+      "--player-color": playerColor,
+      /* 背景色を 0.3、グロー用を 0.5 の不透明度で生成 */
+      "--player-color-bg": playerColor
+        .replace("hsl", "hsla")
+        .replace(")", ", 0.3)"),
+      "--player-color-glow": playerColor
+        .replace("hsl", "hsla")
+        .replace(")", ", 0.5)"),
+    } as React.CSSProperties;
 
     return (
       <li
         className={`${styles.playerItem} ${isActive ? styles.activePlayer : ""}`}
+        style={customStyles}
       >
         <div className={styles.playerHeader}>
           <span className={styles.playerName}>
@@ -131,10 +134,6 @@ const PlayerListItem = React.memo(
           {player.cards.map((card: Card) => {
             const isFaceUp = !!card.isFaceUp && player.id === myPlayerId;
             const isSelected = selectedCards.includes(card.id);
-            const ownerNameInitial = player.name
-              ? player.name.substring(0, 1).toUpperCase()
-              : "?";
-            const ownerColor = (player as any).color || "#333";
 
             return (
               <div
@@ -144,7 +143,7 @@ const PlayerListItem = React.memo(
                 }`}
                 style={
                   {
-                    "--owner-color": ownerColor,
+                    "--owner-color": playerColor,
                     "backgroundColor": isFaceUp ? "#fff" : card.backColor,
                     "cursor": isFaceUp ? "pointer" : "default",
                   } as React.CSSProperties
@@ -152,8 +151,6 @@ const PlayerListItem = React.memo(
                 onClick={() => toggleCardSelection(card.id, isFaceUp)}
               >
                 <CardDisplayContent card={card} isFaceUp={isFaceUp} />
-
-                {/* 説明文ツールチップ */}
                 {isFaceUp && card.description && (
                   <span className={styles.tooltip}>{card.description}</span>
                 )}
@@ -166,9 +163,6 @@ const PlayerListItem = React.memo(
   },
 );
 
-// =========================================================================
-// メインコンポーネント
-// =========================================================================
 export default function ScoreBoard({
   socket,
   players,

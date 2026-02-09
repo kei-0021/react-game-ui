@@ -1,11 +1,14 @@
 .container {
   padding: 16px;
+  /* 左側にアクティブプレイヤーが入り込むための余白を確保 */
+  padding-left: 40px;
   border: 1px solid #333;
   border-radius: 12px;
   background-color: #f9f9f9;
+  color: #000;
   max-width: 900px;
   margin: 0 auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .title {
@@ -14,6 +17,8 @@
   border-bottom: 2px solid #ddd;
   padding-bottom: 8px;
   color: #333;
+  /* タイトルは余白に引きずられないよう調整 */
+  margin-left: -24px;
 }
 
 .playerList {
@@ -22,36 +27,57 @@
 }
 
 .playerItem {
-  padding: 6px 12px;
-  margin-bottom: 6px;
-  border-radius: 4px;
-  background-color: #f5f5f5;
+  list-style: none;
+  margin-bottom: 12px;
+  padding: 16px;
+  background-color: var(--player-color-bg);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* アニメーション設定 */
+  transition:
+    transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 0.3s ease;
+  /* 通常時はそのままの位置（containerのpadding-leftにより右に寄っている） */
+  transform: translateX(0);
 }
 
 .activePlayer {
-  background-color: #a0e7ff !important;
-  font-weight: bold !important;
+  border: 4px solid #000000 !important;
+  box-shadow: none !important;
+  transform: translateX(-24px) !important;
+  z-index: 1;
+  background-color: var(
+    --player-color-active,
+    var(--player-color-bg)
+  ) !important;
 }
 
 .playerHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #333;
 }
 
 .playerName {
-  font-size: 1.1em;
+  font-weight: 900;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .playerScore {
-  font-size: 1.2em;
+  color: #ffffff;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.9em;
 }
 
 .resourceSection {
-  margin: 4px 0 8px;
+  margin: 8px 0;
   font-size: 0.9em;
-  color: #333;
 }
 
 .resourceList {
@@ -73,7 +99,7 @@
   gap: 8px;
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .tokenBadge {
@@ -88,6 +114,7 @@
   font-weight: bold;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
+  color: #000;
 }
 
 .cardList {
@@ -95,7 +122,6 @@
   gap: 8px;
   margin-top: 8px;
   flex-wrap: wrap;
-  /* ツールチップが親要素に切り取られないよう visible に */
   overflow: visible !important;
 }
 
@@ -111,23 +137,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
-  /* ★ 折り返し設定 */
   white-space: normal;
   word-break: break-all;
   text-align: center;
   padding: 4px;
-
   transition:
     transform 0.2s,
     box-shadow 0.2s;
 }
 
-/* ★ 選択時の色と演出 */
 .cardSelected {
-  border: 3px solid gold !important;
+  outline: 3px solid #ffffff !important;
+  box-shadow: 0 0 10px var(--player-color);
   transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
 }
 
 .tooltip {
@@ -158,4 +180,6 @@
   margin-top: 12px;
   display: flex;
   gap: 6px;
+  /* ボタンもプレイヤーリストの開始位置に合わせる */
+  padding-left: 0;
 }

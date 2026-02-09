@@ -1509,24 +1509,24 @@ function PlayField({
     ] })
   ] });
 }
-const container = "_container_w3fd9_1";
-const title = "_title_w3fd9_11";
-const playerList = "_playerList_w3fd9_19";
-const playerItem = "_playerItem_w3fd9_24";
-const activePlayer = "_activePlayer_w3fd9_31";
-const playerHeader = "_playerHeader_w3fd9_36";
-const playerName = "_playerName_w3fd9_43";
-const playerScore = "_playerScore_w3fd9_47";
-const resourceSection = "_resourceSection_w3fd9_51";
-const resourceList = "_resourceList_w3fd9_57";
-const resourceBadge = "_resourceBadge_w3fd9_63";
-const tokenList = "_tokenList_w3fd9_70";
-const tokenBadge = "_tokenBadge_w3fd9_79";
-const cardList = "_cardList_w3fd9_93";
-const cardBase = "_cardBase_w3fd9_102";
-const cardSelected = "_cardSelected_w3fd9_127";
-const tooltip = "_tooltip_w3fd9_133";
-const buttonGroup = "_buttonGroup_w3fd9_157";
+const container = "_container_j2x2g_1";
+const title = "_title_j2x2g_14";
+const playerList = "_playerList_j2x2g_24";
+const playerItem = "_playerItem_j2x2g_29";
+const activePlayer = "_activePlayer_j2x2g_44";
+const playerHeader = "_playerHeader_j2x2g_55";
+const playerName = "_playerName_j2x2g_61";
+const playerScore = "_playerScore_j2x2g_69";
+const resourceSection = "_resourceSection_j2x2g_78";
+const resourceList = "_resourceList_j2x2g_83";
+const resourceBadge = "_resourceBadge_j2x2g_89";
+const tokenList = "_tokenList_j2x2g_96";
+const tokenBadge = "_tokenBadge_j2x2g_105";
+const cardList = "_cardList_j2x2g_120";
+const cardBase = "_cardBase_j2x2g_128";
+const cardSelected = "_cardSelected_j2x2g_149";
+const tooltip = "_tooltip_j2x2g_155";
+const buttonGroup = "_buttonGroup_j2x2g_179";
 const styles = {
   container,
   title,
@@ -1600,10 +1600,18 @@ const PlayerListItem = React.memo(
     roomId
   }) => {
     const isActive = player.id === currentPlayerId;
+    const playerColor = player.color || "#aaaaaa";
+    const customStyles = {
+      "--player-color": playerColor,
+      /* 背景色を 0.3、グロー用を 0.5 の不透明度で生成 */
+      "--player-color-bg": playerColor.replace("hsl", "hsla").replace(")", ", 0.3)"),
+      "--player-color-glow": playerColor.replace("hsl", "hsla").replace(")", ", 0.5)")
+    };
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "li",
       {
         className: `${styles.playerItem} ${isActive ? styles.activePlayer : ""}`,
+        style: customStyles,
         children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.playerHeader, children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.playerName, children: [
@@ -1639,14 +1647,12 @@ const PlayerListItem = React.memo(
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.cardList, children: player.cards.map((card2) => {
             const isFaceUp = !!card2.isFaceUp && player.id === myPlayerId;
             const isSelected = selectedCards.includes(card2.id);
-            player.name ? player.name.substring(0, 1).toUpperCase() : "?";
-            const ownerColor = player.color || "#333";
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
                 className: `${styles.cardBase} rg-playfield-card-wrapper ${isSelected ? styles.cardSelected : ""}`,
                 style: {
-                  "--owner-color": ownerColor,
+                  "--owner-color": playerColor,
                   "backgroundColor": isFaceUp ? "#fff" : card2.backColor,
                   "cursor": isFaceUp ? "pointer" : "default"
                 },
