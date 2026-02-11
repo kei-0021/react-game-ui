@@ -384,6 +384,20 @@ export function initGameServer(io, options = {}) {
         // 適切な roomSettings で初期化
         roomInfo = initializeRoom(roomId, roomSettings);
         activeRooms.set(roomId, roomInfo);
+
+        // デッキが存在する場合のみシャッフルを実行
+        if (roomInfo.decks && typeof roomInfo.decks === "object") {
+          Object.keys(roomInfo.decks).forEach((deckId) => {
+            // デッキの中身が配列であり、かつ中身がある場合のみ
+            if (
+              Array.isArray(roomInfo.decks[deckId]) &&
+              roomInfo.decks[deckId].length > 0
+            ) {
+              shuffleDeck(roomId, deckId);
+            }
+          });
+        }
+
         io.emit("lobby:room-update");
       }
 
