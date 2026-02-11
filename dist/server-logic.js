@@ -779,7 +779,7 @@ export function initGameServer(io, options = {}) {
       }
 
       // デッキ・プレイフィールド・捨て札のカード位置をリセット
-      decks[deckId].forEach((c) => {
+      roomInfo.decks[deckId].forEach((c) => {
         if (c.location === "discard") {
           c.location = "deck";
           c.isFaceUp = false;
@@ -788,7 +788,7 @@ export function initGameServer(io, options = {}) {
       });
 
       // discardの配列をクリア
-      discardPile[deckId] = [];
+      roomInfo.discardPile[deckId] = [];
 
       server_log(
         "deck",
