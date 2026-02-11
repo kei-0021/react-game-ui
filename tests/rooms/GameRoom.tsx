@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Deck from "../../src/components/Deck";
 import PlayField from "../../src/components/PlayField";
 import ScoreBoard from "../../src/components/ScoreBoard";
@@ -17,36 +17,43 @@ const SERVER_URL = "http://127.0.0.1:4000";
 const RESOURCE_IDS = {
   OXYGEN: "OXYGEN",
   BATTERY: "BATTERY",
-  HULL: "HULL", // 船体耐久度
+  HULL: "HULL",
 };
 
-// ★ ポップアップの状態の型定義
 interface PopupState {
   message: string;
   color: string;
   visible: boolean;
 }
 
-// サーバーから送られてくるターン情報の型
 interface TurnUpdatePayload {
   playerId: string;
   currentRound: number;
   currentTurnIndex: number;
 }
 
+interface GameResult {
+  message: string;
+  rankings: {
+    rank: number;
+    name: string;
+    score: number;
+  }[];
+  finalRound: number;
+}
+
 export default function GameRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
+  const navigate = useNavigate();
   const popupTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ★ 1. ポップアップの状態を追加
   const [popup, setPopup] = useState<PopupState>({
     message: "",
     color: "blue",
     visible: false,
   });
 
-  // ★ プレイヤー名入力と参加状態
   const [userName, setUserName] = useState<string>("");
   const [isJoining, setIsJoining] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
@@ -55,56 +62,40 @@ export default function GameRoom() {
   const [players, setPlayers] = useState<PlayerWithResources[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
+  const [gameResult, setGameResult] = useState<GameResult | null>(null);
 
-  // --- デバッグ用 ---
   const [debugTargetId, setDebugTargetId] = useState<string | null>(null);
   const [debugScoreAmount, setDebugScoreAmount] = useState<number>(10);
   const [debugResourceAmount, setDebugResourceAmount] = useState<number>(1);
-  // ------------------
 
-  // ★ 汎用ポップアップ表示ロジック
   const showPopup = useCallback((message: string, color: string) => {
     if (popupTimerRef.current) {
       clearTimeout(popupTimerRef.current);
     }
-
-    // ポップアップを表示
     setPopup({ message, color, visible: true });
-
-    // 2秒後に自動的に非表示にする
     const newTimerId = setTimeout(() => {
       setPopup((prev) => ({ ...prev, visible: false }));
       popupTimerRef.current = null;
     }, 2000);
-
     popupTimerRef.current = newTimerId;
   }, []);
 
   const GAME_PRESET_ID = "deepsea";
 
-  // ★ 新しい参加ハンドラ
   const handleJoinRoom = useCallback(() => {
     if (!socket || !roomId || userName.trim() === "" || isJoining) return;
-
     setIsJoining(true);
-
     socket.emit("room:join", {
       roomId,
       playerName: userName.trim(),
       gamePresetId: GAME_PRESET_ID,
     });
-
-    console.log(
-      `[CLIENT] Attempting to join room: ${roomId} as ${userName.trim()}`,
-    );
   }, [socket, roomId, userName, isJoining]);
 
-  // ★ useEffectのロジック
   useEffect(() => {
     if (!socket || !roomId) return;
 
     const handleAssignId = (id: Player["id"]) => {
-      console.log("[CLIENT] Assigned player ID:", id);
       setMyPlayerId(id);
       setDebugTargetId(id);
       setHasJoined(true);
@@ -112,44 +103,41 @@ export default function GameRoom() {
     };
 
     const handlePlayersUpdate = (updatedPlayers: PlayerWithResources[]) => {
-      console.log("[CLIENT] players:update", updatedPlayers);
       setPlayers(updatedPlayers);
     };
 
-    // オブジェクトで受け取って、両方のStateを更新。ログも維持。
     const handleGameTurn = (data: TurnUpdatePayload | string) => {
-      console.log("[CLIENT] game:turn received:", data);
-
       if (typeof data === "string") {
         setCurrentPlayerId(data);
       } else {
         setCurrentPlayerId(data.playerId);
-        setCurrentRound(data.currentRound);
-        console.log(`[CLIENT] Round Updated to: ${data.currentRound}`);
+        setCurrentRound(data.currentRound + 1);
       }
     };
 
     const handleShowPopup = (data: { message: string; color: string }) => {
-      console.log("[CLIENT] client:show-popup received:", data);
       showPopup(data.message, data.color);
     };
 
-    // イベントリスナーの設定
+    const handleGameEnd = (result: GameResult) => {
+      setGameResult(result);
+    };
+
     socket.on("player:assign-id", handleAssignId);
     socket.on("players:update", handlePlayersUpdate);
     socket.on("game:turn", handleGameTurn);
     socket.on("client:show-popup", handleShowPopup);
+    socket.on("game:end", handleGameEnd);
 
     return () => {
-      // 離脱処理
       socket.off("player:assign-id", handleAssignId);
       socket.off("players:update", handlePlayersUpdate);
       socket.off("game:turn", handleGameTurn);
       socket.off("client:show-popup", handleShowPopup);
+      socket.off("game:end", handleGameEnd);
     };
   }, [socket, roomId, showPopup]);
 
-  // --- デバッグ用操作
   const handleDebugScore = (amount: number) => {
     if (!socket || !debugTargetId || !roomId) return;
     socket.emit("room:player:add-score", {
@@ -161,7 +149,6 @@ export default function GameRoom() {
 
   const handleDebugResource = (resourceId: string, amount: number) => {
     if (!socket || !debugTargetId || !roomId) return;
-    console.log("ここを通った");
     socket.emit("room:player:update-resource", {
       roomId,
       playerId: debugTargetId,
@@ -170,86 +157,71 @@ export default function GameRoom() {
     });
   };
 
-  const handleTestPopup = useCallback(
-    (message: string, color: string) => {
-      if (!socket || !roomId || !hasJoined) return;
-
-      socket.emit("require-popup", {
-        roomId,
-        message,
-        color,
-      });
-      console.log(`[CLIENT] Sent require-popup to server for room: ${roomId}`);
-    },
-    [socket, roomId, hasJoined],
-  );
-  // --- 接続前の状態 ---
   if (!roomId)
-    return (
-      <div className="deepsea-container">
-        <h1 className="deepsea-title-center">Game Room Status</h1>
-        <div className="status-message">
-          <p>⚠️ ルームIDがURLから取得できませんでした。</p>
-        </div>
-      </div>
-    );
+    return <div className="deepsea-container">Room ID Not Found</div>;
+  if (!socket) return <div className="deepsea-container">Connecting...</div>;
 
-  if (!socket)
-    return (
-      <div className="deepsea-container">
-        <h1 className="deepsea-title-center">Game Room Status: {roomId}</h1>
-        <div className="status-message">
-          <p>サーバーに接続中... (URL: {SERVER_URL})</p>
-        </div>
-      </div>
-    );
-
-  // --- ルーム参加フォームの表示 ---
   if (!hasJoined) {
     return (
       <div className="deepsea-container">
         <div className="join-form-wrapper">
-          <h2 className="deepsea-title-center" style={{ marginBottom: "5px" }}>
-            ルーム参加
-          </h2>
-          <p
-            className="deepsea-subtitle-center"
-            style={{ marginBottom: "10px" }}
-          >
-            Room ID: {roomId}
-          </p>
-
+          <h2 className="deepsea-title-center">ルーム参加</h2>
           <input
             className="join-form-input"
             type="text"
-            placeholder="あなたの名前を入力してください"
+            placeholder="名前を入力"
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
-            disabled={isJoining}
-            maxLength={12}
             onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
           />
-
           <button
             className="join-form-button"
             onClick={handleJoinRoom}
-            disabled={userName.trim() === "" || isJoining}
+            disabled={!userName.trim() || isJoining}
           >
             {isJoining ? "参加中..." : "ルームに参加"}
           </button>
-
-          {isJoining && (
-            <p className="waiting-text">サーバーからの応答を待っています...</p>
-          )}
         </div>
       </div>
     );
   }
 
-  // --- ゲームUI本体 ---
+  // ゲーム本編
   return (
     <div className="deepsea-container">
-      {/* ポップアップUI */}
+      {/* ゲーム終了リザルトモーダル */}
+      {gameResult && (
+        <div className="result-overlay">
+          <div className="result-modal">
+            <h2 className="result-header">MISSION COMPLETE</h2>
+            <p className="result-message">{gameResult.message}</p>
+            <div className="result-ranking-list">
+              {gameResult.rankings.map((res) => (
+                <div
+                  key={res.rank}
+                  className={`result-rank-card rank-${res.rank}`}
+                >
+                  <div className="rank-badge">{res.rank}</div>
+                  <div className="player-info">
+                    <span className="player-name">{res.name}</span>
+                    <span className="player-score">
+                      {res.score} <small>pts</small>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              className="result-exit-button"
+              onClick={() => navigate("/")}
+            >
+              ロビーへ戻る
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 汎用通知ポップアップ */}
       <Popup visible={popup.visible} color={popup.color}>
         {popup.message}
       </Popup>
@@ -260,17 +232,9 @@ export default function GameRoom() {
         深海を調査して眠れる資源を見つけ出せ！
       </p>
       {/* ラウンド表示 */}
-      <div
-        className="round-indicator"
-        style={{
-          textAlign: "center",
-          fontWeight: "bold",
-          fontSize: "1.2rem",
-          color: "#00d4ff",
-          marginBottom: "10px",
-        }}
-      >
-        ROUND: {currentRound}
+      <div className="round-display-container">
+        <div className="round-label">MISSION ROUND:</div>
+        <div className="round-number">{currentRound}</div>
       </div>
 
       {/* ボードラッパー */}
@@ -298,6 +262,7 @@ export default function GameRoom() {
         debugPanelStyle={{}}
         inputStyle={{}}
       />
+
       <div className="game-main-layout">
         {/* 左側グループ：デッキ列とフィールド列を横に並べる塊 */}
         <div className="game-left-group">

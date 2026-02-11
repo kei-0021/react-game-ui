@@ -107,6 +107,8 @@ function initializeRoom(roomId, settings) {
     playFieldCards,
     discardPile,
     gameStateInstance,
+    checkGameEnd: settings.checkGameEnd,
+    onGameEnd: settings.onGameEnd,
   };
 
   activeRooms.set(roomId, roomInfo);
@@ -1072,14 +1074,28 @@ export function initGameServer(io, options = {}) {
     // 次のターン
     socket.on("game:next-turn", ({ roomId }) => {
       const roomInfo = activeRooms.get(roomId);
-      if (!roomInfo) {
-        server_log("warn", `[${roomId}] ルームが見つかりません for next-turn`);
-        return;
-      }
+      if (!roomInfo) return;
 
       const { gameStateInstance } = roomInfo;
       const playerCount = gameStateInstance.players.length;
       if (playerCount === 0) return;
+
+      // 終了判定をここで実施
+      // ユーザー定義の checkGameEnd があれば実行
+      if (typeof roomInfo.checkGameEnd === "function") {
+        if (roomInfo.checkGameEnd(roomInfo)) {
+          server_log("game", `[${roomId}] ゲーム終了条件を満たしました。`);
+
+          // ユーザー定義の onGameEnd を実行する
+          const results =
+            typeof roomInfo.onGameEnd === "function"
+              ? roomInfo.onGameEnd(roomInfo)
+              : { message: "Game Over" };
+
+          io.to(roomId).emit("game:end", results);
+          return; // 終了した場合は次のターン処理を行わずに抜ける
+        }
+      }
 
       // ターンを更新
       const nextIndex = (roomInfo.currentTurnIndex + 1) % playerCount;
@@ -1096,7 +1112,7 @@ export function initGameServer(io, options = {}) {
       // ログにラウンドとターンを両方出す
       server_log(
         "game",
-        `[${roomId}] ターン更新 (Player: ${currentPlayer?.name}, RoundIndex: ${roomInfo.currentRoundIndex}, TurnIndex: ${roomInfo.currentTurnIndex})`,
+        `[${roomId}] ターン更新 (Player: ${currentPlayer?.name}, Round: ${roomInfo.currentRoundIndex})`,
       );
 
       // クライアント側でもラウンドを表示したいので、一緒に送る

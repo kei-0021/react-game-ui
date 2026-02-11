@@ -1,12 +1,11 @@
 import * as fs from "fs/promises";
 import path from "path";
-import { GameServer } from "react-game-ui/server"; // サーバー専用
+import { GameServer } from "react-game-ui/server";
 import { fileURLToPath } from "url";
-import { cardEffects } from "./data/cardEffects.js"; // サーバー専用
-import { cellEffects } from "./data/cellEffects.js"; // サーバー専用
-import { customEvents } from "./data/customEvents.js"; // サーバー専用
+import { cardEffects } from "./data/cardEffects.js";
+import { cellEffects } from "./data/cellEffects.js";
+import { customEvents } from "./data/customEvents.js";
 
-// --- パスヘルパー関数 ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -28,7 +27,7 @@ async function loadJson(relativePath) {
 
 // --- メインサーバー起動ロジック ---
 async function startServer() {
-  // 3つのJSONファイルを並行して非同期でロード
+  // 複数のJSONファイルを並行して非同期でロード
   const [
     numberCardsJson,
     deepSeaActionCardsBaseJson,
@@ -41,7 +40,7 @@ async function startServer() {
     loadJson("./data/deepSeaSpeciesCards.json"),
   ]);
 
-  // --- セル・カード・トークンの生成ロジック（そのまま使用） ---
+  // --- セル・カード・トークンの生成ロジック ---
   const CELL_COUNTS = {
     RA: 5,
     RB: 10,
@@ -78,6 +77,7 @@ async function startServer() {
     const finalCells = [];
     for (const templateId in counts) {
       const template = templateMap[templateId];
+      if (!template) continue;
       for (let i = 1; i <= counts[templateId]; i++) {
         finalCells.push({ ...template, id: `${templateId}-${i}` });
       }
@@ -158,9 +158,9 @@ async function startServer() {
         backColor: "#000000ff",
       },
     ],
-    cardEffects: {}, // カード効果なし
+    cardEffects: {},
     initialTokenStore: [],
-    initialHand: {}, // 初期手札なし
+    initialHand: {},
     initialBoard: [
       [
         {
@@ -170,7 +170,7 @@ async function startServer() {
           effect: "start",
         },
       ],
-    ], // 最小限のボード
+    ],
     cellEffects: {},
   };
 
@@ -182,9 +182,28 @@ async function startServer() {
     initialHand: { deckId: "deepSeaAction", count: 6 },
     initialBoard: completeDeepSeaCells2D,
     cellEffects,
+    checkGameEnd: (room) => {
+      // 5ラウンド（インデックス5）に到達したら終了
+      return room.currentRoundIndex >= 4;
+    },
+    onGameEnd: (room) => {
+      const players = room.gameStateInstance.players;
+      const rankings = [...players]
+        .sort((a, b) => b.score - a.score)
+        .map((p, index) => ({
+          rank: index + 1,
+          name: p.name,
+          score: p.score,
+        }));
+
+      return {
+        message: "潜水任務完了。リザルトを表示します。",
+        rankings,
+        finalRound: room.currentRoundIndex,
+      };
+    },
   };
 
-  // 💡 修正3: 全てのプリセットを GameServer に渡すためのオブジェクト
   const GAME_PRESETS_COLLECTION = {
     sample: SAMPLE_PRESET,
     deepsea: DEEP_SEA_ADVENTURE_PRESET,
@@ -199,10 +218,7 @@ async function startServer() {
     onServerStart: (url) => {
       console.log(`🎮 Demo server running at: ${url}`);
     },
-
     gamePresets: GAME_PRESETS_COLLECTION,
-
-    // プリセットに含まれない、サーバー全体の設定
     customEvents,
     initialLogCategories: {
       connection: true,
