@@ -975,7 +975,6 @@ const deckCard = "_deckCard_1mv54_66";
 const deckCardFront = "_deckCardFront_1mv54_78";
 const deckSection = "_deckSection_1mv54_95";
 const discardPileWrapper = "_discardPileWrapper_1mv54_103";
-const discardTopCard = "_discardTopCard_1mv54_109";
 const styles$2 = {
   card,
   tooltip: tooltip$1,
@@ -983,8 +982,7 @@ const styles$2 = {
   deckCard,
   deckCardFront,
   deckSection,
-  discardPileWrapper,
-  discardTopCard
+  discardPileWrapper
 };
 const CardContent = ({ card: card2 }) => {
   if (!card2.isFaceUp) return null;
@@ -994,16 +992,8 @@ const CardContent = ({ card: card2 }) => {
       {
         src: card2.frontImage,
         alt: card2.name,
-        style: {
-          width: "100%",
-          height: "100%",
-          objectFit: "contain"
-        }
+        style: { width: "100%", height: "100%", objectFit: "contain" }
       }
-    );
-  } else {
-    console.log(
-      `[CardContent] pngの描画失敗: ${card2.id}. Path: ${card2.frontImage}`
     );
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -1013,6 +1003,8 @@ const CardContent = ({ card: card2 }) => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        backgroundColor: "#fff",
+        color: "#000",
         height: "100%",
         width: "100%",
         padding: "5px"
@@ -1107,40 +1099,40 @@ function Deck({
             },
             c.id
           )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles$2.deckContainer} ${styles$2.discardPileWrapper}`, children: discardPile.length > 0 && (() => {
-            const topCard = discardPile[discardPile.length - 1];
-            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "div",
-              {
-                className: `${styles$2.deckCardFront} ${styles$2.discardTopCard}`,
-                style: { pointerEvents: "auto" },
-                onMouseEnter: () => setIsDiscardHovered(true),
-                onMouseLeave: () => setIsDiscardHovered(false),
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: topCard }),
-                  topCard.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    "span",
-                    {
-                      className: styles$2.tooltip,
-                      style: {
-                        visibility: isDiscardHovered ? "visible" : "hidden",
-                        opacity: isDiscardHovered ? 1 : 0,
-                        zIndex: 9999,
-                        // 💡 修正後の文字色が黒になるようにスタイルを追加
-                        color: "#333",
-                        backgroundColor: "white",
-                        border: "1px solid #ccc",
-                        padding: "4px",
-                        borderRadius: "4px"
-                      },
-                      children: topCard.description
-                    }
-                  )
-                ]
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles$2.deckContainer} ${styles$2.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "div",
+            {
+              className: styles$2.deckCardFront,
+              style: {
+                zIndex: i + 1,
+                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+                pointerEvents: i === discardPile.length - 1 ? "auto" : "none"
               },
-              topCard.id
-            );
-          })() })
+              onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true),
+              onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false),
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c }),
+                i === discardPile.length - 1 && c.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "span",
+                  {
+                    className: styles$2.tooltip,
+                    style: {
+                      visibility: isDiscardHovered ? "visible" : "hidden",
+                      opacity: isDiscardHovered ? 1 : 0,
+                      zIndex: 9999,
+                      color: "#333",
+                      backgroundColor: "white",
+                      border: "1px solid #ccc",
+                      padding: "4px",
+                      borderRadius: "4px"
+                    },
+                    children: c.description
+                  }
+                )
+              ]
+            },
+            c.id
+          )) })
         ]
       }
     )

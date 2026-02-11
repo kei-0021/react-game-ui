@@ -32,26 +32,20 @@ const CardContent = ({ card }: { card: Card }) => {
       <img
         src={card.frontImage}
         alt={card.name}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "contain",
-        }}
+        style={{ width: "100%", height: "100%", objectFit: "contain" }}
       />
-    );
-  } else {
-    // 画像URLがない場合やエラーの場合のデバッグログ
-    console.log(
-      `[CardContent] pngの描画失敗: ${card.id}. Path: ${card.frontImage}`
     );
   }
 
+  // 画像がない場合は名前のみ（背景白・文字黒）
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        backgroundColor: "#fff",
+        color: "#000",
         height: "100%",
         width: "100%",
         padding: "5px",
@@ -175,39 +169,44 @@ export default function Deck({
 
         {/* 捨て札 */}
         <div className={`${styles.deckContainer} ${styles.discardPileWrapper}`}>
-          {discardPile.length > 0 &&
-            (() => {
-              const topCard = discardPile[discardPile.length - 1];
-              return (
-                <div
-                  key={topCard.id}
-                  className={`${styles.deckCardFront} ${styles.discardTopCard}`}
-                  style={{ pointerEvents: "auto" }}
-                  onMouseEnter={() => setIsDiscardHovered(true)}
-                  onMouseLeave={() => setIsDiscardHovered(false)}
+          {discardPile.map((c, i) => (
+            <div
+              key={c.id}
+              className={styles.deckCardFront}
+              style={{
+                zIndex: i + 1,
+                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+                pointerEvents: i === discardPile.length - 1 ? "auto" : "none",
+              }}
+              onMouseEnter={() =>
+                i === discardPile.length - 1 && setIsDiscardHovered(true)
+              }
+              onMouseLeave={() =>
+                i === discardPile.length - 1 && setIsDiscardHovered(false)
+              }
+            >
+              <CardContent card={c} />
+
+              {/* ツールチップは一番上のカードのみ表示 */}
+              {i === discardPile.length - 1 && c.description && (
+                <span
+                  className={styles.tooltip}
+                  style={{
+                    visibility: isDiscardHovered ? "visible" : "hidden",
+                    opacity: isDiscardHovered ? 1 : 0,
+                    zIndex: 9999,
+                    color: "#333",
+                    backgroundColor: "white",
+                    border: "1px solid #ccc",
+                    padding: "4px",
+                    borderRadius: "4px",
+                  }}
                 >
-                  <CardContent card={topCard} />
-                  {topCard.description && (
-                    <span
-                      className={styles.tooltip}
-                      style={{
-                        visibility: isDiscardHovered ? "visible" : "hidden",
-                        opacity: isDiscardHovered ? 1 : 0,
-                        zIndex: 9999,
-                        // 💡 修正後の文字色が黒になるようにスタイルを追加
-                        color: "#333",
-                        backgroundColor: "white",
-                        border: "1px solid #ccc",
-                        padding: "4px",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      {topCard.description}
-                    </span>
-                  )}
-                </div>
-              );
-            })()}
+                  {c.description}
+                </span>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </section>

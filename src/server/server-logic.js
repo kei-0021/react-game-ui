@@ -333,7 +333,7 @@ export function initGameServer(io, options = {}) {
     // 全体のカードリストを更新（locationのプロパティは維持）
     roomInfo.decks[deckId] = shuffledDeck;
 
-    server_log("deck", `[${roomId}] デッキ ${deckId} をシャッフルしました`);
+    server_log("deck", `[${roomId}] デッキ ${deckId} をシャッフル`);
   }
 
   // --------------------
@@ -709,22 +709,23 @@ export function initGameServer(io, options = {}) {
           return;
         }
 
-        // デッキの先頭にあるカードのIDを取得
-        const cardToDrawId = currentDeck[0].id;
-        // 全カードリストからそのカードのインデックスを取得
-        const cardIndex = decks[deckId].findIndex((c) => c.id === cardToDrawId);
+        // 先頭のカードを取得
+        const card = currentDeck[0];
 
-        if (cardIndex === -1) {
-          server_log(
-            "warn",
-            `[${roomId}] デッキリストからカード ${cardToDrawId} が見つかりません。`,
-          );
-          return;
+        let destination = "";
+
+        // --- 移動ロジック開始 ---
+
+        // A. 引いた瞬間に捨て札にする場合
+        if (drawLocation == "discard") {
+          card.location = "discard";
+          card.ownerId = null;
+          card.isFaceUp = true;
+          roomInfo.discardPile[deckId].push(card);
+          destination = "discard";
         }
-
-        const card = decks[deckId][cardIndex];
-
-        if (playerId) {
+        // B. プレイヤーを指定して引く場合
+        else if (playerId) {
           const player = roomInfo.gameStateInstance.players.find(
             (p) => p.id === playerId,
           );
@@ -733,19 +734,22 @@ export function initGameServer(io, options = {}) {
             card.location = drawLocation;
             card.isFaceUp = true;
             card.ownerId = playerId;
-
             player.cards.push(card);
+            destination = playerId;
           }
-        } else {
+        }
+        // C. 場に出す場合
+        else {
           card.ownerId = null;
-
-          card.location = drawLocation || "field";
+          card.location = "field";
+          card.isFaceUp = true;
           roomInfo.playFieldCards[deckId].push(card);
+          destination = "field";
         }
 
         server_log(
           "deck",
-          `[${roomId}] デッキ ${deckId} からカードを引きました: ${card.name}`,
+          `[${roomId}] DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination})`,
         );
 
         emitDeckUpdate(roomId, deckId);
@@ -760,7 +764,6 @@ export function initGameServer(io, options = {}) {
         return;
       }
       shuffleDeck(roomId, deckId);
-      server_log("deck", `[${roomId}] デッキ ${deckId} シャッフル`);
       emitDeckUpdate(roomId, deckId);
     });
 
@@ -790,11 +793,11 @@ export function initGameServer(io, options = {}) {
       playFieldCards[deckId] = [];
       discardPile[deckId] = [];
 
-      shuffleDeck(roomId, deckId);
       server_log(
         "deck",
-        `[${roomId}] デッキ ${deckId} リセット（手札はそのまま）`,
+        `[${roomId}] デッキ ${deckId} リセット (手札はそのまま)`,
       );
+      shuffleDeck(roomId, deckId);
       emitDeckUpdate(roomId, deckId);
     });
 
