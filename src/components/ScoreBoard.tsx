@@ -71,6 +71,7 @@ const TokenDisplayContent = React.memo(
     );
   },
 );
+
 const PlayerListItem = React.memo(
   ({
     player,
@@ -86,7 +87,6 @@ const PlayerListItem = React.memo(
 
     const customStyles = {
       "--player-color": playerColor,
-      /* 背景色を 0.3、グロー用を 0.5 の不透明度で生成 */
       "--player-color-bg": playerColor
         .replace("hsl", "hsla")
         .replace(")", ", 0.3)"),
@@ -169,12 +169,14 @@ export default function ScoreBoard({
   currentPlayerId,
   myPlayerId,
   roomId,
+  autoNextTurnOnCardPlay = false,
 }: {
   socket: Socket;
   players: PlayerWithResources[];
   currentPlayerId?: PlayerId | null;
   myPlayerId: PlayerId | null;
   roomId: RoomId;
+  autoNextTurnOnCardPlay?: boolean;
 }) {
   const displayedPlayers: DisplayedPlayer[] = React.useMemo(() => {
     return (players || []).map((p: PlayerWithResources) => ({
@@ -217,6 +219,8 @@ export default function ScoreBoard({
     });
 
     if (!targetPlayLocation) return;
+
+    // 各デッキごとにカードをプレイ
     Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
       socket.emit("card:play", {
         roomId,
@@ -226,8 +230,21 @@ export default function ScoreBoard({
         playLocation: targetPlayLocation,
       });
     });
+
+    // フラグが有効なら自動でターン終了を送信
+    if (autoNextTurnOnCardPlay) {
+      socket.emit("game:next-turn", { roomId });
+    }
+
     setSelectedCards([]);
-  }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId]);
+  }, [
+    selectedCards,
+    myPlayerId,
+    displayedPlayers,
+    socket,
+    roomId,
+    autoNextTurnOnCardPlay,
+  ]);
 
   const nextTurn = () => socket.emit("game:next-turn", { roomId });
 
@@ -255,7 +272,10 @@ export default function ScoreBoard({
         >
           選択カードを出す
         </button>
-        <button onClick={nextTurn}>次のターン</button>
+        {/* 自動進行フラグがオフの時だけ「次のターン」ボタンを表示する*/}
+        {!autoNextTurnOnCardPlay && (
+          <button onClick={nextTurn}>次のターン</button>
+        )}
       </div>
     </div>
   );
