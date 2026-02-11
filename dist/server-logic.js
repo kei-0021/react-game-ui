@@ -838,7 +838,7 @@ export function initGameServer(io, options = {}) {
 
           server_log(
             "card",
-            `[${roomId}] プレイヤー ${playerId} がカード ${card.name} を ${playLocation} に移動`,
+            `[${roomId}] Play: ${card.name} (ID:${card.id}) (${playerId}  -> ${playLocation})`,
           );
 
           // プレイフィールド、捨て札リストを更新（サーバー側で状態を追跡するための配列）
@@ -878,64 +878,54 @@ export function initGameServer(io, options = {}) {
       },
     );
 
-    // カードを手札に戻す
+    // フィールドから「手札」または「捨て札」へ移動
     socket.on(
-      "card:return-to-hand",
-      ({ roomId, deckId, cardId, targetPlayerId }) => {
-        const room = activeRooms.get(roomId); // ← gameRooms ではなく activeRooms を使う
-        if (!room) {
-          server_log("warn", "card:return-to-hand: 無効なルームIDです。", {
-            roomId,
-          });
-          return;
-        }
+      "card:move-from-field",
+      ({ roomId, deckId, cardId, targetPlayerId = null }) => {
+        const roomInfo = activeRooms.get(roomId);
+        if (!roomInfo) return;
 
-        const { decks, playFieldCards, gameStateInstance } = room; // gameStateInstance に修正
+        const { decks, playFieldCards, gameStateInstance } = roomInfo;
 
-        if (!decks[deckId] || !targetPlayerId) {
-          server_log(
-            "warn",
-            "card:return-to-hand: 不正なデッキIDまたはターゲットプレイヤーIDです。",
-            { deckId, targetPlayerId },
-          );
-          return;
-        }
+        // 対象カードを特定
+        const card = decks[deckId]?.find((c) => c.id === cardId);
+        if (!card) return;
 
-        const card = decks[deckId].find((c) => c.id === cardId);
-        const player = gameStateInstance.players.find(
-          (p) => p.id === targetPlayerId,
-        );
-
-        if (!card || !player) {
-          server_log(
-            "warn",
-            "card:return-to-hand: カードまたはプレイヤーが見つかりません。",
-            { cardId, targetPlayerId },
-          );
-          return;
-        }
-
-        const fieldIndex = playFieldCards[deckId].findIndex(
+        // PlayFieldから削除（共通処理）
+        const fieldIndex = playFieldCards[deckId]?.findIndex(
           (c) => c.id === cardId,
         );
         if (fieldIndex !== -1) {
           playFieldCards[deckId].splice(fieldIndex, 1);
-        } else {
-          server_log(
-            "warn",
-            `card:return-to-hand: カード ${card.name} はPlayFieldに見つかりませんでしたが、処理を続行します。`,
-          );
         }
 
-        card.location = "hand";
-        card.isFaceUp = true;
+        // 行き先の判定と処理
+        if (targetPlayerId) {
+          // --- 手札に戻す場合 ---
+          const player = gameStateInstance.players.find(
+            (p) => p.id === targetPlayerId,
+          );
+          if (player) {
+            card.location = "hand";
+            card.ownerId = targetPlayerId;
+            card.isFaceUp = true; // 手札なので自分には見える
+            player.cards = player.cards || [];
+            player.cards.push(card);
 
-        player.cards.push(card);
+            server_log(
+              "card",
+              `[${roomId}] Return: ${card.name} -> Player:${targetPlayerId}`,
+            );
+          }
+        } else {
+          // --- 捨て札に送る場合 ---
+          card.location = "discard";
+          card.ownerId = null;
+          card.isFaceUp = true;
+          roomInfo.discardPile[deckId].push(card);
 
-        server_log(
-          "card",
-          `カード ${card.name} を持ち主 ${player.name} の手札に戻しました。（room: ${roomId}）`,
-        );
+          server_log("card", `[${roomId}] Return: ${card.name} -> discard`);
+        }
 
         emitDeckUpdate(roomId, deckId);
         emitPlayerUpdate(roomId);

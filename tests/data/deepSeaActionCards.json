@@ -9,7 +9,7 @@
     "location": "deck",
     "drawLocation": "hand",
     "playLocation": "field",
-    "playBackLocation": "hand"
+    "fieldBackLocation": "hand"
   },
   {
     "id": "card-A-02",
@@ -21,7 +21,7 @@
     "location": "deck",
     "drawLocation": "hand",
     "playLocation": "field",
-    "playBackLocation": "hand"
+    "fieldBackLocation": "hand"
   },
   {
     "id": "card-B-01",
@@ -33,7 +33,7 @@
     "location": "deck",
     "drawLocation": "hand",
     "playLocation": "field",
-    "playBackLocation": "hand"
+    "fieldBackLocation": "hand"
   },
   {
     "id": "card-B-02",
@@ -45,7 +45,7 @@
     "location": "deck",
     "drawLocation": "hand",
     "playLocation": "field",
-    "playBackLocation": "hand"
+    "fieldBackLocation": "hand"
   },
   {
     "id": "card-C-01",
@@ -57,7 +57,7 @@
     "location": "deck",
     "drawLocation": "hand",
     "playLocation": "field",
-    "playBackLocation": "hand"
+    "fieldBackLocation": "hand"
   },
   {
     "id": "card-D-01",
@@ -69,6 +69,6 @@
     "location": "deck",
     "drawLocation": "hand",
     "playLocation": "field",
-    "playBackLocation": "hand"
+    "fieldBackLocation": "hand"
   }
 ]

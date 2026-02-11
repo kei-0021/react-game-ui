@@ -1434,29 +1434,30 @@ function PlayField({
     return () => {
       socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
     };
-  }, [socket, roomId, deckId, playedCards.length]);
-  const returnCardToOwnerHand = (card2) => {
-    if (!card2.ownerId) {
-      client_log(
-        "playField",
-        `警告: ${card2.name} には所有者IDが設定されていません。手札に戻せません。`
-      );
-      return;
-    }
-    socket.emit("card:return-to-hand", {
+  }, [socket, roomId, deckId]);
+  const handleCardBack = (card2) => {
+    const backTo = card2.fieldBackLocation || "discard";
+    const requestData = {
       roomId,
-      deckId: card2.deckId,
-      cardId: card2.id,
-      targetPlayerId: card2.ownerId
-    });
+      deckId: card2.deckId || deckId,
+      cardId: card2.id
+    };
+    if (backTo === "hand") {
+      if (!card2.ownerId) {
+        client_log(
+          "playField",
+          `警告: ${card2.name} は手札指定ですが所有者が不明です。`
+        );
+        return;
+      }
+      requestData.targetPlayerId = card2.ownerId;
+    }
+    socket.emit("card:move-from-field", requestData);
     client_log(
       "playField",
-      `カード ${card2.name} を持ち主 ${card2.ownerId} の手札に戻すようリクエスト`
+      `カード ${card2.name} を ${backTo} へ移動リクエスト`
     );
   };
-  console.log(
-    `[PlayField] Deck ${deckId} - Start rendering ${playedCards.length} cards in the Play Area.`
-  );
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "rg-playfield", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "rg-playfield-title", children: [
       "プレイエリア",
@@ -1469,21 +1470,17 @@ function PlayField({
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rg-playfield-container", children: [
       playedCards.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-playfield-empty", children: "（まだカードが出ていません）" }),
       playedCards.map((card2) => {
-        const isFaceUp = true;
         const owner = card2.ownerId ? players.find((p) => p.id === card2.ownerId) : null;
         const ownerColor = owner?.color || "#aaaaaa";
         const ownerNameInitial = owner?.name?.[0] || "?";
-        console.log(
-          `[PlayField] Deck ${deckId} - Rendering Card ID: ${card2.id}, Name: ${card2.name} (Owner: ${card2.ownerId}, Color: ${ownerColor})`
-        );
         return /* @__PURE__ */ jsxRuntimeExports.jsxs(
           "div",
           {
             className: `${styles$2.card} rg-playfield-card-wrapper`,
             style: { "--owner-color": ownerColor },
-            onDoubleClick: () => returnCardToOwnerHand(card2),
+            onDoubleClick: () => handleCardBack(card2),
             children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent$1, { card: card2, isFaceUp }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent$1, { card: card2, isFaceUp: true }),
               card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx(
                 "div",
                 {

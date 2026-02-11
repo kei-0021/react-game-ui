@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Socket } from "socket.io-client";
 import type { Card } from "../types/card.js";
-import type { DeckId, RoomId } from "../types/definition.js";
+import type { DeckId, PlayerId, RoomId } from "../types/definition.js";
 import type { PlayerWithResources } from "../types/playerWithResources.js";
 import { client_log } from "../utils/client-log.js";
 import styles from "./Card.module.css";
@@ -91,33 +91,43 @@ export default function PlayField({
     return () => {
       socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
     };
-  }, [socket, roomId, deckId, playedCards.length]);
+  }, [socket, roomId, deckId]);
 
-  const returnCardToOwnerHand = (card: Card) => {
-    if (!card.ownerId) {
-      client_log(
-        "playField",
-        `警告: ${card.name} には所有者IDが設定されていません。手札に戻せません。`,
-      );
-      return;
+  // カードを適切な場所（手札 or 捨て札）へ移動させる
+  const handleCardBack = (card: Card) => {
+    const backTo = card.fieldBackLocation || "discard";
+
+    // 型定義を明示（targetPlayerId は string または undefined）
+    const requestData: {
+      roomId: RoomId;
+      deckId: DeckId;
+      cardId: string;
+      targetPlayerId?: PlayerId;
+    } = {
+      roomId,
+      deckId: card.deckId || deckId,
+      cardId: card.id,
+    };
+
+    // 手札に戻す設定の場合のみ、所有者IDをセット
+    if (backTo === "hand") {
+      if (!card.ownerId) {
+        client_log(
+          "playField",
+          `警告: ${card.name} は手札指定ですが所有者が不明です。`,
+        );
+        return;
+      }
+      requestData.targetPlayerId = card.ownerId;
     }
 
-    socket.emit("card:return-to-hand", {
-      roomId,
-      deckId: card.deckId,
-      cardId: card.id,
-      targetPlayerId: card.ownerId,
-    });
+    socket.emit("card:move-from-field", requestData);
 
     client_log(
       "playField",
-      `カード ${card.name} を持ち主 ${card.ownerId} の手札に戻すようリクエスト`,
+      `カード ${card.name} を ${backTo} へ移動リクエスト`,
     );
   };
-
-  console.log(
-    `[PlayField] Deck ${deckId} - Start rendering ${playedCards.length} cards in the Play Area.`,
-  );
 
   return (
     <section className="rg-playfield">
@@ -130,26 +140,21 @@ export default function PlayField({
           <div className="rg-playfield-empty">（まだカードが出ていません）</div>
         )}
         {playedCards.map((card) => {
-          const isFaceUp = true;
           const owner = card.ownerId
             ? players.find((p) => p.id === card.ownerId)
             : null;
-          // 自動生成された color があればそれを使う。なければデフォルト色。
           const ownerColor = owner?.color || "#aaaaaa";
           const ownerNameInitial = owner?.name?.[0] || "?";
-
-          console.log(
-            `[PlayField] Deck ${deckId} - Rendering Card ID: ${card.id}, Name: ${card.name} (Owner: ${card.ownerId}, Color: ${ownerColor})`,
-          );
 
           return (
             <div
               key={card.id}
               className={`${styles.card} rg-playfield-card-wrapper`}
               style={{ "--owner-color": ownerColor } as React.CSSProperties}
-              onDoubleClick={() => returnCardToOwnerHand(card)}
+              // ダブルクリックで戻す
+              onDoubleClick={() => handleCardBack(card)}
             >
-              <CardDisplayContent card={card} isFaceUp={isFaceUp} />
+              <CardDisplayContent card={card} isFaceUp={true} />
 
               {card.ownerId && (
                 <div

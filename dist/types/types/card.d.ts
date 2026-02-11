@@ -10,7 +10,7 @@ export type Card = {
     location: CardLocation;
     drawLocation: CardLocation;
     playLocation: CardLocation;
-    playBackLocation: CardLocation;
+    fieldBackLocation: CardLocation;
     isFaceUp?: boolean;
     frontImage?: string;
     backColor: string;
