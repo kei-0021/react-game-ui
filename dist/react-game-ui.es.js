@@ -1745,7 +1745,7 @@ function ScoreBoard({
           children: "選択カードを出す"
         }
       ),
-      !autoNextTurnOnCardPlay && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "次のターン" })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" })
     ] })
   ] });
 }

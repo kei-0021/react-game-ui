@@ -272,10 +272,7 @@ export default function ScoreBoard({
         >
           選択カードを出す
         </button>
-        {/* 自動進行フラグがオフの時だけ「次のターン」ボタンを表示する*/}
-        {!autoNextTurnOnCardPlay && (
-          <button onClick={nextTurn}>次のターン</button>
-        )}
+        <button onClick={nextTurn}>ターンをスキップ</button>
       </div>
     </div>
   );
