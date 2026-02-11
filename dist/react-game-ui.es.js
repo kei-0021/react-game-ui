@@ -1603,7 +1603,6 @@ const PlayerListItem = React.memo(
     const playerColor = player.color || "#aaaaaa";
     const customStyles = {
       "--player-color": playerColor,
-      /* 背景色を 0.3、グロー用を 0.5 の不透明度で生成 */
       "--player-color-bg": playerColor.replace("hsl", "hsla").replace(")", ", 0.3)"),
       "--player-color-glow": playerColor.replace("hsl", "hsla").replace(")", ", 0.5)")
     };
@@ -1675,7 +1674,8 @@ function ScoreBoard({
   players,
   currentPlayerId,
   myPlayerId,
-  roomId
+  roomId,
+  autoNextTurnOnCardPlay = false
 }) {
   const displayedPlayers = React.useMemo(() => {
     return (players || []).map((p) => ({
@@ -1719,8 +1719,18 @@ function ScoreBoard({
         playLocation: targetPlayLocation
       });
     });
+    if (autoNextTurnOnCardPlay) {
+      socket.emit("game:next-turn", { roomId });
+    }
     setSelectedCards([]);
-  }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId]);
+  }, [
+    selectedCards,
+    myPlayerId,
+    displayedPlayers,
+    socket,
+    roomId,
+    autoNextTurnOnCardPlay
+  ]);
   const nextTurn = () => socket.emit("game:next-turn", { roomId });
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.container, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: styles.title, children: "ゲームスコアボード" }),
@@ -1746,7 +1756,7 @@ function ScoreBoard({
           children: "選択カードを出す"
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "次のターン" })
+      !autoNextTurnOnCardPlay && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "次のターン" })
     ] })
   ] });
 }
