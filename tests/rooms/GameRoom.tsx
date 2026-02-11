@@ -73,7 +73,7 @@ export default function GameRoom() {
     popupTimerRef.current = newTimerId;
   }, []);
 
-  const GAME_PRESET_ID = "deep-sea";
+  const GAME_PRESET_ID = "deepsea";
 
   // ★ 新しい参加ハンドラ
   const handleJoinRoom = useCallback(() => {

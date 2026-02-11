@@ -32,8 +32,7 @@ function getRoomMeta(roomId) {
 
   return {
     id: roomId,
-    // ★ 修正点: activeRooms に保存されている roomInfo.name を使用
-    name: roomInfo.name,
+    gameName: roomInfo.gameName,
     playerCount: gameStateInstance.players.length,
     maxPlayers: 4,
     createdAt: roomInfo.createdAt,
@@ -100,6 +99,7 @@ function initializeRoom(roomId, settings) {
   const roomInfo = {
     roomId,
     createdAt: Date.now(),
+    gameName: settings.name || "不明なゲーム",
     currentTurnIndex: 0,
     decks,
     drawnCards,
@@ -375,6 +375,7 @@ export function initGameServer(io, options = {}) {
         } が join リクエストを送信 (Name: ${providedName || "N/A"})`,
       );
 
+      // --- ルーム情報の取得または作成 ---
       let roomInfo = activeRooms.get(roomId);
 
       // プリセットIDに基づいて設定を取得（未定義ならデフォルトのoptionsを使用）
@@ -382,8 +383,12 @@ export function initGameServer(io, options = {}) {
 
       if (!roomInfo) {
         // 適切な roomSettings で初期化
+        if (!roomSettings.name) {
+          roomSettings.name = gamePresetId || "default";
+        }
+
+        // initializeRoom の内部で activeRooms.set(roomId, roomInfo) が実行される
         roomInfo = initializeRoom(roomId, roomSettings);
-        activeRooms.set(roomId, roomInfo);
 
         // デッキが存在する場合のみシャッフルを実行
         if (roomInfo.decks && typeof roomInfo.decks === "object") {
@@ -433,8 +438,7 @@ export function initGameServer(io, options = {}) {
         gameStateInstance.players.push(newPlayer);
         socket.emit("player:assign-id", newPlayer.id);
 
-        // ★ 修正：配布の判定をロジック（プリセット設定の有無）のみに依存させる
-        // roomSettings.initialHand が存在し、かつそのデッキがこの部屋に存在する場合のみ実行
+        // 初期手札の配布
         const handConfig = roomSettings.initialHand;
 
         if (

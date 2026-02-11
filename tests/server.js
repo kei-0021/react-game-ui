@@ -59,7 +59,7 @@ async function startServer() {
     const allCards = [];
     for (let i = 1; i <= numSets; i++) {
       cards.forEach((card) =>
-        allCards.push({ ...card, id: `${card.id}-set${i}` })
+        allCards.push({ ...card, id: `${card.id}-set${i}` }),
       );
     }
     return allCards;
@@ -67,7 +67,7 @@ async function startServer() {
 
   const deepSeaActionCardsTwoSets = createUniqueCards(
     deepSeaActionCardsBaseJson,
-    2
+    2,
   );
 
   const createBoardCells = (baseCells, counts) => {
@@ -123,7 +123,7 @@ async function startServer() {
         ...t,
         id: `${t.id}-${i + 1}`,
         templateId: t.id,
-      }))
+      })),
     );
 
   const initTokenStores = [
@@ -186,8 +186,8 @@ async function startServer() {
 
   // 💡 修正3: 全てのプリセットを GameServer に渡すためのオブジェクト
   const GAME_PRESETS_COLLECTION = {
-    "sample": SAMPLE_PRESET,
-    "deep-sea": DEEP_SEA_ADVENTURE_PRESET,
+    sample: SAMPLE_PRESET,
+    deepsea: DEEP_SEA_ADVENTURE_PRESET,
   };
 
   // --- GameServer 初期化 ---
