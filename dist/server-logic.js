@@ -767,7 +767,7 @@ export function initGameServer(io, options = {}) {
       emitDeckUpdate(roomId, deckId);
     });
 
-    // デッキリセット（プレイヤーの手札はそのまま）
+    // デッキリセット（discard以外のカードはそのまま）
     socket.on("deck:reset", ({ roomId, deckId }) => {
       const roomInfo = activeRooms.get(roomId);
       if (!roomInfo || !roomInfo.decks[deckId]) {
@@ -778,24 +778,21 @@ export function initGameServer(io, options = {}) {
         return;
       }
 
-      const { decks, playFieldCards, discardPile } = roomInfo;
-
       // デッキ・プレイフィールド・捨て札のカード位置をリセット
       decks[deckId].forEach((c) => {
-        if (c.location === "discard" || c.location === "field") {
+        if (c.location === "discard") {
           c.location = "deck";
           c.isFaceUp = false;
           c.ownerId = null; // 所有者をクリア
         }
       });
 
-      // 各配列をクリア
-      playFieldCards[deckId] = [];
+      // discardの配列をクリア
       discardPile[deckId] = [];
 
       server_log(
         "deck",
-        `[${roomId}] デッキ ${deckId} リセット (手札はそのまま)`,
+        `[${roomId}] デッキ ${deckId} リセット (discard -> deck)`,
       );
       shuffleDeck(roomId, deckId);
       emitDeckUpdate(roomId, deckId);
