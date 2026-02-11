@@ -9,6 +9,13 @@ import type { PlayerWithResources } from "../../src/types/playerWithResources";
 
 const SERVER_URL = "http://127.0.0.1:4000";
 
+// サーバーから送られてくるターン情報の型定義
+interface TurnUpdatePayload {
+  playerId: string;
+  currentRound: number;
+  currentTurnIndex: number;
+}
+
 export default function GameRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
@@ -20,6 +27,9 @@ export default function GameRoom() {
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<PlayerWithResources[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
+
+  // ラウンドの状態を追加
+  const [currentRound, setCurrentRound] = useState<number>(1);
 
   const GAME_PRESET_ID = "sample";
 
@@ -49,9 +59,19 @@ export default function GameRoom() {
       setPlayers(updatedPlayers);
     };
 
-    const handleGameTurn = (id: string) => {
-      console.log("[CLIENT] game:turn:", id);
-      setCurrentPlayerId(id);
+    // 文字列（IDのみ）とオブジェクト（詳細データ）の両方に対応する
+    const handleGameTurn = (data: TurnUpdatePayload | string) => {
+      console.log("[CLIENT] game:turn received:", data);
+
+      if (typeof data === "string") {
+        // 互換性維持のため、文字列ならIDとしてセット
+        setCurrentPlayerId(data);
+      } else {
+        // オブジェクトならIDとラウンドをセット
+        setCurrentPlayerId(data.playerId);
+        setCurrentRound(data.currentRound);
+        console.log(`[CLIENT] Round Updated to: ${data.currentRound}`);
+      }
     };
 
     socket.on("player:assign-id", handleAssignId);
@@ -90,10 +110,26 @@ export default function GameRoom() {
     );
   }
 
-  // --- 参加後、Boardのみ表示 ---
+  // --- 参加後 ---
   return (
     <div style={{ padding: "20px" }}>
       <h1>Room ID: {roomId}</h1>
+
+      {/* ラウンド表示 */}
+      <div
+        style={{
+          backgroundColor: "#333",
+          color: "#00d4ff",
+          padding: "5px 15px",
+          borderRadius: "5px",
+          display: "inline-block",
+          fontWeight: "bold",
+          marginBottom: "15px",
+        }}
+      >
+        ROUND: {currentRound}
+      </div>
+
       <ScoreBoard
         socket={socket}
         roomId={roomId}

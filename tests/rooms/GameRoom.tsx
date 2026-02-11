@@ -27,6 +27,13 @@ interface PopupState {
   visible: boolean;
 }
 
+// サーバーから送られてくるターン情報の型
+interface TurnUpdatePayload {
+  playerId: string;
+  currentRound: number;
+  currentTurnIndex: number;
+}
+
 export default function GameRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
@@ -47,6 +54,7 @@ export default function GameRoom() {
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<PlayerWithResources[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
+  const [currentRound, setCurrentRound] = useState<number>(1);
 
   // --- デバッグ用 ---
   const [debugTargetId, setDebugTargetId] = useState<string | null>(null);
@@ -65,9 +73,8 @@ export default function GameRoom() {
 
     // 2秒後に自動的に非表示にする
     const newTimerId = setTimeout(() => {
-      // メッセージと色はそのままで、可視性のみ変更
       setPopup((prev) => ({ ...prev, visible: false }));
-      popupTimerRef.current = null; // タイマー完了後、refをクリア
+      popupTimerRef.current = null;
     }, 2000);
 
     popupTimerRef.current = newTimerId;
@@ -81,7 +88,6 @@ export default function GameRoom() {
 
     setIsJoining(true);
 
-    // サーバーの `room:join` イベントのペイロードをオブジェクトに変更
     socket.emit("room:join", {
       roomId,
       playerName: userName.trim(),
@@ -95,14 +101,14 @@ export default function GameRoom() {
 
   // ★ useEffectのロジック
   useEffect(() => {
-    if (!socket || !roomId) return; // hasJoinedがtrueになってからリスナーを設定
+    if (!socket || !roomId) return;
 
     const handleAssignId = (id: Player["id"]) => {
       console.log("[CLIENT] Assigned player ID:", id);
       setMyPlayerId(id);
       setDebugTargetId(id);
-      setHasJoined(true); // サーバーからIDを受け取った時点で「参加完了」とする
-      setIsJoining(false); // 参加処理完了
+      setHasJoined(true);
+      setIsJoining(false);
     };
 
     const handlePlayersUpdate = (updatedPlayers: PlayerWithResources[]) => {
@@ -110,12 +116,19 @@ export default function GameRoom() {
       setPlayers(updatedPlayers);
     };
 
-    const handleGameTurn = (id: string) => {
-      console.log("[CLIENT] game:turn:", id);
-      setCurrentPlayerId(id);
+    // オブジェクトで受け取って、両方のStateを更新。ログも維持。
+    const handleGameTurn = (data: TurnUpdatePayload | string) => {
+      console.log("[CLIENT] game:turn received:", data);
+
+      if (typeof data === "string") {
+        setCurrentPlayerId(data);
+      } else {
+        setCurrentPlayerId(data.playerId);
+        setCurrentRound(data.currentRound);
+        console.log(`[CLIENT] Round Updated to: ${data.currentRound}`);
+      }
     };
 
-    // ★ 2. ポップアップ受信リスナーの追加
     const handleShowPopup = (data: { message: string; color: string }) => {
       console.log("[CLIENT] client:show-popup received:", data);
       showPopup(data.message, data.color);
@@ -125,18 +138,18 @@ export default function GameRoom() {
     socket.on("player:assign-id", handleAssignId);
     socket.on("players:update", handlePlayersUpdate);
     socket.on("game:turn", handleGameTurn);
-    socket.on("client:show-popup", handleShowPopup); // ★ 追加
+    socket.on("client:show-popup", handleShowPopup);
 
     return () => {
-      // 離脱処理（ここはユーザーが手動でページ遷移した場合に実行される）
+      // 離脱処理
       socket.off("player:assign-id", handleAssignId);
       socket.off("players:update", handlePlayersUpdate);
       socket.off("game:turn", handleGameTurn);
-      socket.off("client:show-popup", handleShowPopup); // ★ 追加
+      socket.off("client:show-popup", handleShowPopup);
     };
   }, [socket, roomId, showPopup]);
 
-  // --- デバッグ用操作 (変更なし) ---
+  // --- デバッグ用操作
   const handleDebugScore = (amount: number) => {
     if (!socket || !debugTargetId || !roomId) return;
     socket.emit("room:player:add-score", {
@@ -157,13 +170,10 @@ export default function GameRoom() {
     });
   };
 
-  // ★ 3. require-popup イベント発火ハンドラ
   const handleTestPopup = useCallback(
     (message: string, color: string) => {
       if (!socket || !roomId || !hasJoined) return;
 
-      // サーバーの `require-popup` イベントを発火させる
-      // NOTE: サーバー側でこのイベントを受けて、client:show-popupをルーム全員にemitする必要があります。
       socket.emit("require-popup", {
         roomId,
         message,
@@ -249,6 +259,20 @@ export default function GameRoom() {
       <p className="deepsea-subtitle-center">
         深海を調査して眠れる資源を見つけ出せ！
       </p>
+      {/* ラウンド表示 */}
+      <div
+        className="round-indicator"
+        style={{
+          textAlign: "center",
+          fontWeight: "bold",
+          fontSize: "1.2rem",
+          color: "#00d4ff",
+          marginBottom: "10px",
+        }}
+      >
+        ROUND: {currentRound}
+      </div>
+
       {/* ボードラッパー */}
       <div className="board-wrapper">
         <MyBoard socket={socket} roomId={roomId} myPlayerId={myPlayerId} />

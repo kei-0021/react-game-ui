@@ -101,6 +101,7 @@ function initializeRoom(roomId, settings) {
     createdAt: Date.now(),
     gameName: settings.name || "不明なゲーム",
     currentTurnIndex: 0,
+    currentRoundIndex: 0,
     decks,
     drawnCards,
     playFieldCards,
@@ -495,10 +496,11 @@ export function initGameServer(io, options = {}) {
       });
 
       emitPlayerUpdate(roomId);
-      io.to(roomId).emit(
-        "game:turn",
-        gameStateInstance.players[currentTurnIndex]?.id,
-      );
+      io.to(roomId).emit("game:turn", {
+        playerId: gameStateInstance.players[currentTurnIndex]?.id,
+        currentRound: roomInfo.currentRoundIndex,
+        currentTurnIndex: currentTurnIndex,
+      });
 
       if (gameStateInstance.exploredCells.length > 0) {
         socket.emit("board-update", gameStateInstance.exploredCells);
@@ -1086,19 +1088,33 @@ export function initGameServer(io, options = {}) {
       }
 
       const { gameStateInstance } = roomInfo;
-      roomInfo.currentTurnIndex =
-        (roomInfo.currentTurnIndex + 1) % gameStateInstance.players.length;
+      const playerCount = gameStateInstance.players.length;
+      if (playerCount === 0) return;
 
+      // ターンを更新
+      const nextIndex = (roomInfo.currentTurnIndex + 1) % playerCount;
+
+      // ラウンド更新の判定
+      if (nextIndex === 0) {
+        roomInfo.currentRoundIndex = roomInfo.currentRoundIndex + 1;
+      }
+
+      roomInfo.currentTurnIndex = nextIndex;
+      const currentPlayer =
+        gameStateInstance.players[roomInfo.currentTurnIndex];
+
+      // ログにラウンドとターンを両方出す
       server_log(
         "game",
-        `[${roomId}] 次のターン: ${
-          gameStateInstance.players[roomInfo.currentTurnIndex]?.name
-        }`,
+        `[${roomId}] ターン更新 (Player: ${currentPlayer?.name}, RoundIndex: ${roomInfo.currentRoundIndex}, TurnIndex: ${roomInfo.currentTurnIndex})`,
       );
-      io.to(roomId).emit(
-        "game:turn",
-        gameStateInstance.players[roomInfo.currentTurnIndex]?.id,
-      );
+
+      // クライアント側でもラウンドを表示したいので、一緒に送る
+      io.to(roomId).emit("game:turn", {
+        playerId: currentPlayer?.id,
+        currentRound: roomInfo.currentRoundIndex,
+        currentTurnIndex: roomInfo.currentTurnIndex,
+      });
     });
 
     socket.on("require-popup", ({ roomId, message, color = "blue" }) => {
@@ -1192,11 +1208,13 @@ export function initGameServer(io, options = {}) {
                     ?.name
                 }`,
               );
-              io.to(disconnectedRoomId).emit(
-                "game:turn",
-                roomInfo.gameStateInstance.players[roomInfo.currentTurnIndex]
-                  ?.id,
-              );
+              io.to(disconnectedRoomId).emit("game:turn", {
+                playerId:
+                  roomInfo.gameStateInstance.players[roomInfo.currentTurnIndex]
+                    ?.id,
+                currentRound: roomInfo.currentRoundIndex,
+                currentTurnIndex: roomInfo.currentTurnIndex,
+              });
             }
           }
         }
