@@ -4,7 +4,8 @@ import { Socket } from "socket.io-client";
 import type { Card } from "../types/card.js";
 import { CardLocation } from "../types/cardLocation.js";
 import type { DeckId, PlayerId, RoomId } from "../types/definition.js";
-import styles from "./Card.module.css";
+import cardStyles from "./Card.module.css";
+import deckStyles from "./Deck.module.css";
 
 type DeckProps = {
   socket: Socket;
@@ -14,16 +15,12 @@ type DeckProps = {
   playerId?: PlayerId | null;
 };
 
-// サーバーから受信するデータ型
 type DeckUpdateData = {
   currentDeck: Card[];
   drawnCards: Card[];
   discardPile: Card[];
 };
 
-// =========================================================================
-// カードの内容表示コンポーネント
-// =========================================================================
 const CardContent = ({ card }: { card: Card }) => {
   if (!card.isFaceUp) return null;
 
@@ -32,25 +29,13 @@ const CardContent = ({ card }: { card: Card }) => {
       <img
         src={card.frontImage}
         alt={card.name}
-        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+        className={deckStyles.cardImage}
       />
     );
   }
 
-  // 画像がない場合は名前のみ（背景白・文字黒）
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#fff",
-        color: "#000",
-        height: "100%",
-        width: "100%",
-        padding: "5px",
-      }}
-    >
+    <div className={deckStyles.cardNameWrapper}>
       <strong
         style={{ fontSize: "1em", wordBreak: "break-all", textAlign: "center" }}
       >
@@ -60,9 +45,6 @@ const CardContent = ({ card }: { card: Card }) => {
   );
 };
 
-// =========================================================================
-// Deck コンポーネント
-// =========================================================================
 export default function Deck({
   socket,
   roomId,
@@ -76,14 +58,12 @@ export default function Deck({
   const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
 
   React.useEffect(() => {
-    // デッキ初期化イベント購読
     socket.on(`deck:init:${roomId}:${deckId}`, (data: DeckUpdateData) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
       setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
       setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
     });
 
-    // デッキ更新イベント購読
     socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
       console.log(`[Deck Update:${roomId}]`, data);
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
@@ -124,24 +104,24 @@ export default function Deck({
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
 
   return (
-    <section className={styles.deckSection}>
+    <section className={cardStyles.deckSection}>
       <h3 style={{ marginBottom: "6px", color: "#333" }}>{name}</h3>
 
-      <div className={styles.deckControls}>
+      <div className={cardStyles.deckControls}>
         <button onClick={shuffle}>シャッフル</button>
         <button onClick={resetDeck}>山札に戻す</button>
       </div>
 
       <div
-        className={styles.deckWrapper}
+        className={cardStyles.deckWrapper}
         style={{ display: "flex", gap: "0px" }}
       >
         {/* 山札 */}
-        <div className={styles.deckContainer} onClick={draw}>
+        <div className={cardStyles.deckContainer} onClick={draw}>
           {deckCards.map((c, i) => (
             <div
               key={c.id}
-              className={styles.deckCard}
+              className={cardStyles.deckCard}
               style={{
                 zIndex: deckCards.length - i,
                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
@@ -152,11 +132,11 @@ export default function Deck({
         </div>
 
         {/* ドロー済み */}
-        <div className={styles.deckContainer}>
+        <div className={cardStyles.deckContainer}>
           {drawnCards.map((c, i) => (
             <div
               key={c.id}
-              className={styles.deckCardFront}
+              className={cardStyles.deckCardFront}
               style={{
                 zIndex: i + 1,
                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
@@ -168,11 +148,13 @@ export default function Deck({
         </div>
 
         {/* 捨て札 */}
-        <div className={`${styles.deckContainer} ${styles.discardPileWrapper}`}>
+        <div
+          className={`${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`}
+        >
           {discardPile.map((c, i) => (
             <div
               key={c.id}
-              className={styles.deckCardFront}
+              className={cardStyles.deckCardFront}
               style={{
                 zIndex: i + 1,
                 transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
@@ -190,7 +172,7 @@ export default function Deck({
               {/* ツールチップは一番上のカードのみ表示 */}
               {i === discardPile.length - 1 && c.description && (
                 <span
-                  className={styles.tooltip}
+                  className={cardStyles.tooltip}
                   style={{
                     visibility: isDiscardHovered ? "visible" : "hidden",
                     opacity: isDiscardHovered ? 1 : 0,
