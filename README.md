@@ -47,13 +47,18 @@ pnpm run dev:multi
 
 - スコアボード (ScoreBoard)
   - 山札から引いたカードを手札にする場合、こちらで管理します。
+  - `playCardLimit` で最大プレイ枚数を設定できます (デフォルト無制限)
+  - `autoNextTurnOnCardPlay` を `true`にするとカードプレイ時に自動的次のターンに移ります (デフォルト`false`)
 
 ```tsx
 <ScoreBoard
   socket={socket}
+  roomId={roomId}
   players={players}
   currentPlayerId={currentPlayerId}
   myPlayerId={myPlayerId}
+  playeCardLimit={2}
+  autoNextTurnOnCardPlay={true}
 />
 ```
 

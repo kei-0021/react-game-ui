@@ -1,6 +1,5 @@
 .container {
   padding: 16px;
-  /* 左側にアクティブプレイヤーが入り込むための余白を確保 */
   padding-left: 40px;
   border: 1px solid #333;
   border-radius: 12px;
@@ -17,7 +16,6 @@
   border-bottom: 2px solid #ddd;
   padding-bottom: 8px;
   color: #333;
-  /* タイトルは余白に引きずられないよう調整 */
   margin-left: -24px;
 }
 
@@ -33,11 +31,9 @@
   background-color: var(--player-color-bg);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  /* アニメーション設定 */
   transition:
     transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
     box-shadow 0.3s ease;
-  /* 通常時はそのままの位置（containerのpadding-leftにより右に寄っている） */
   transform: translateX(0);
 }
 
@@ -93,6 +89,7 @@
   white-space: nowrap;
 }
 
+/* --- トークン関連 --- */
 .tokenList {
   display: flex;
   flex-wrap: wrap;
@@ -117,6 +114,17 @@
   color: #000;
 }
 
+.tokenBadgeOwner {
+  cursor: pointer;
+  opacity: 1;
+}
+
+.tokenBadgeGuest {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* --- カード関連 --- */
 .cardList {
   display: flex;
   gap: 8px;
@@ -152,6 +160,16 @@
   transform: translateY(-5px);
 }
 
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cardNameText {
+  width: 100%;
+}
+
 .tooltip {
   display: none;
   position: absolute;
@@ -176,10 +194,28 @@
   display: block;
 }
 
-.buttonGroup {
+/* --- 操作エリア --- */
+.buttonArea {
   margin-top: 12px;
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.limitMessage {
+  color: #d32f2f;
+  font-size: 0.85em;
+  font-weight: bold;
+  margin: 0;
+}
+
+.buttonArea {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.buttonGroup {
+  display: flex;
   gap: 6px;
-  /* ボタンもプレイヤーリストの開始位置に合わせる */
-  padding-left: 0;
 }

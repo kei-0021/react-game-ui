@@ -313,6 +313,7 @@ export default function GameRoom() {
             players={players}
             currentPlayerId={currentPlayerId}
             myPlayerId={myPlayerId}
+            playCardLimit={2}
             autoNextTurnOnCardPlay={true}
           />
         </div>

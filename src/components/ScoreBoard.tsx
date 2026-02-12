@@ -32,11 +32,11 @@ const CardDisplayContent = React.memo(
         <img
           src={card.frontImage}
           alt={card.name}
-          style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          className={styles.cardImage}
         />
       );
     }
-    return <strong style={{ width: "100%" }}>{card.name}</strong>;
+    return <strong className={styles.cardNameText}>{card.name}</strong>;
   },
 );
 
@@ -50,11 +50,9 @@ const TokenDisplayContent = React.memo(
         {tokens.map((token: Token) => (
           <div
             key={token.id}
-            className={styles.tokenBadge}
-            style={{
-              cursor: isMyToken ? "pointer" : "default",
-              opacity: isMyToken ? 1 : 0.7,
-            }}
+            className={`${styles.tokenBadge} ${
+              isMyToken ? styles.tokenBadgeOwner : styles.tokenBadgeGuest
+            }`}
             onClick={() => {
               if (!isMyToken) return;
               socket.emit("token:reclaim", {
@@ -169,6 +167,7 @@ export default function ScoreBoard({
   currentPlayerId,
   myPlayerId,
   roomId,
+  playCardLimit,
   autoNextTurnOnCardPlay = false,
 }: {
   socket: Socket;
@@ -176,6 +175,7 @@ export default function ScoreBoard({
   currentPlayerId?: PlayerId | null;
   myPlayerId: PlayerId | null;
   roomId: RoomId;
+  playCardLimit?: number;
   autoNextTurnOnCardPlay?: boolean;
 }) {
   const displayedPlayers: DisplayedPlayer[] = React.useMemo(() => {
@@ -204,6 +204,12 @@ export default function ScoreBoard({
 
   const playSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
+
+    // ガードレール：枚数制限チェック
+    if (playCardLimit !== undefined && selectedCards.length > playCardLimit) {
+      return;
+    }
+
     const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
     if (!myPlayer) return;
 
@@ -220,7 +226,6 @@ export default function ScoreBoard({
 
     if (!targetPlayLocation) return;
 
-    // 各デッキごとにカードをプレイ
     Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
       socket.emit("card:play", {
         roomId,
@@ -231,7 +236,6 @@ export default function ScoreBoard({
       });
     });
 
-    // フラグが有効なら自動でターン終了を送信
     if (autoNextTurnOnCardPlay) {
       socket.emit("game:next-turn", { roomId });
     }
@@ -243,10 +247,16 @@ export default function ScoreBoard({
     displayedPlayers,
     socket,
     roomId,
+    playCardLimit,
     autoNextTurnOnCardPlay,
   ]);
 
   const nextTurn = () => socket.emit("game:next-turn", { roomId });
+
+  // 判定ロジック
+  const isOverLimit =
+    playCardLimit !== undefined && selectedCards.length > playCardLimit;
+  const isPlayDisabled = selectedCards.length === 0 || isOverLimit;
 
   return (
     <div className={styles.container}>
@@ -265,14 +275,20 @@ export default function ScoreBoard({
           />
         ))}
       </ul>
-      <div className={styles.buttonGroup}>
-        <button
-          onClick={playSelectedCards}
-          disabled={selectedCards.length === 0}
-        >
-          選択カードを出す
-        </button>
-        <button onClick={nextTurn}>ターンをスキップ</button>
+
+      <div className={styles.buttonArea}>
+        {isOverLimit && (
+          <p className={styles.limitMessage}>
+            一度に出せるカードは {playCardLimit} 枚までです
+          </p>
+        )}
+
+        <div className={styles.buttonGroup}>
+          <button onClick={playSelectedCards} disabled={isPlayDisabled}>
+            選択カードを出す
+          </button>
+          <button onClick={nextTurn}>ターンをスキップ</button>
+        </div>
       </div>
     </div>
   );

@@ -984,16 +984,16 @@ const styles$2 = {
   deckSection,
   discardPileWrapper
 };
-const cardImage = "_cardImage_1s9db_1";
+const cardImage$1 = "_cardImage_1s9db_1";
 const cardNameWrapper = "_cardNameWrapper_1s9db_7";
-const cardNameText = "_cardNameText_1s9db_18";
+const cardNameText$1 = "_cardNameText_1s9db_18";
 const deckTitle = "_deckTitle_1s9db_24";
 const deckWrapperFlex = "_deckWrapperFlex_1s9db_29";
 const tooltipBase = "_tooltipBase_1s9db_34";
 const deckStyles = {
-  cardImage,
+  cardImage: cardImage$1,
   cardNameWrapper,
-  cardNameText,
+  cardNameText: cardNameText$1,
   deckTitle,
   deckWrapperFlex,
   tooltipBase
@@ -1489,24 +1489,30 @@ function PlayField({
     ] })
   ] });
 }
-const container = "_container_j2x2g_1";
-const title = "_title_j2x2g_14";
-const playerList = "_playerList_j2x2g_24";
-const playerItem = "_playerItem_j2x2g_29";
-const activePlayer = "_activePlayer_j2x2g_44";
-const playerHeader = "_playerHeader_j2x2g_55";
-const playerName = "_playerName_j2x2g_61";
-const playerScore = "_playerScore_j2x2g_69";
-const resourceSection = "_resourceSection_j2x2g_78";
-const resourceList = "_resourceList_j2x2g_83";
-const resourceBadge = "_resourceBadge_j2x2g_89";
-const tokenList = "_tokenList_j2x2g_96";
-const tokenBadge = "_tokenBadge_j2x2g_105";
-const cardList = "_cardList_j2x2g_120";
-const cardBase = "_cardBase_j2x2g_128";
-const cardSelected = "_cardSelected_j2x2g_149";
-const tooltip = "_tooltip_j2x2g_155";
-const buttonGroup = "_buttonGroup_j2x2g_179";
+const container = "_container_9hhf7_1";
+const title = "_title_9hhf7_13";
+const playerList = "_playerList_9hhf7_22";
+const playerItem = "_playerItem_9hhf7_27";
+const activePlayer = "_activePlayer_9hhf7_40";
+const playerHeader = "_playerHeader_9hhf7_51";
+const playerName = "_playerName_9hhf7_57";
+const playerScore = "_playerScore_9hhf7_65";
+const resourceSection = "_resourceSection_9hhf7_74";
+const resourceList = "_resourceList_9hhf7_79";
+const resourceBadge = "_resourceBadge_9hhf7_85";
+const tokenList = "_tokenList_9hhf7_93";
+const tokenBadge = "_tokenBadge_9hhf7_102";
+const tokenBadgeOwner = "_tokenBadgeOwner_9hhf7_117";
+const tokenBadgeGuest = "_tokenBadgeGuest_9hhf7_122";
+const cardList = "_cardList_9hhf7_128";
+const cardBase = "_cardBase_9hhf7_136";
+const cardSelected = "_cardSelected_9hhf7_157";
+const cardImage = "_cardImage_9hhf7_163";
+const cardNameText = "_cardNameText_9hhf7_169";
+const tooltip = "_tooltip_9hhf7_173";
+const buttonArea = "_buttonArea_9hhf7_198";
+const limitMessage = "_limitMessage_9hhf7_204";
+const buttonGroup = "_buttonGroup_9hhf7_218";
 const styles = {
   container,
   title,
@@ -1521,10 +1527,16 @@ const styles = {
   resourceBadge,
   tokenList,
   tokenBadge,
+  tokenBadgeOwner,
+  tokenBadgeGuest,
   cardList,
   cardBase,
   cardSelected,
+  cardImage,
+  cardNameText,
   tooltip,
+  buttonArea,
+  limitMessage,
   buttonGroup
 };
 const CardDisplayContent = React.memo(
@@ -1536,11 +1548,11 @@ const CardDisplayContent = React.memo(
         {
           src: card2.frontImage,
           alt: card2.name,
-          style: { width: "100%", height: "100%", objectFit: "contain" }
+          className: styles.cardImage
         }
       );
     }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { width: "100%" }, children: card2.name });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles.cardNameText, children: card2.name });
   }
 );
 const TokenDisplayContent = React.memo(
@@ -1550,11 +1562,7 @@ const TokenDisplayContent = React.memo(
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.tokenList, children: tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
-        className: styles.tokenBadge,
-        style: {
-          cursor: isMyToken ? "pointer" : "default",
-          opacity: isMyToken ? 1 : 0.7
-        },
+        className: `${styles.tokenBadge} ${isMyToken ? styles.tokenBadgeOwner : styles.tokenBadgeGuest}`,
         onClick: () => {
           if (!isMyToken) return;
           socket.emit("token:reclaim", {
@@ -1655,6 +1663,7 @@ function ScoreBoard({
   currentPlayerId,
   myPlayerId,
   roomId,
+  playCardLimit,
   autoNextTurnOnCardPlay = false
 }) {
   const displayedPlayers = React.useMemo(() => {
@@ -1678,6 +1687,9 @@ function ScoreBoard({
   );
   const playSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
+    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) {
+      return;
+    }
     const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
     if (!myPlayer) return;
     const cardsByDeck = {};
@@ -1709,9 +1721,12 @@ function ScoreBoard({
     displayedPlayers,
     socket,
     roomId,
+    playCardLimit,
     autoNextTurnOnCardPlay
   ]);
   const nextTurn = () => socket.emit("game:next-turn", { roomId });
+  const isOverLimit = playCardLimit !== void 0 && selectedCards.length > playCardLimit;
+  const isPlayDisabled = selectedCards.length === 0 || isOverLimit;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.container, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: styles.title, children: "ゲームスコアボード" }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: styles.playerList, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -1727,16 +1742,16 @@ function ScoreBoard({
       },
       player.id
     )) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.buttonGroup, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
-        {
-          onClick: playSelectedCards,
-          disabled: selectedCards.length === 0,
-          children: "選択カードを出す"
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.buttonArea, children: [
+      isOverLimit && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: styles.limitMessage, children: [
+        "一度に出せるカードは ",
+        playCardLimit,
+        " 枚までです"
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.buttonGroup, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: playSelectedCards, disabled: isPlayDisabled, children: "選択カードを出す" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" })
+      ] })
     ] })
   ] });
 }
