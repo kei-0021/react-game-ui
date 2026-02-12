@@ -36,11 +36,7 @@ const CardContent = ({ card }: { card: Card }) => {
 
   return (
     <div className={deckStyles.cardNameWrapper}>
-      <strong
-        style={{ fontSize: "1em", wordBreak: "break-all", textAlign: "center" }}
-      >
-        {card.name}
-      </strong>
+      <strong className={deckStyles.cardNameText}>{card.name}</strong>
     </div>
   );
 };
@@ -65,7 +61,6 @@ export default function Deck({
     });
 
     socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
-      console.log(`[Deck Update:${roomId}]`, data);
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
       setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
       setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
@@ -96,7 +91,6 @@ export default function Deck({
     if (drawLocation === "hand" && playerId) {
       requestData.playerId = playerId;
     }
-
     socket.emit("deck:draw", requestData);
   };
 
@@ -105,7 +99,7 @@ export default function Deck({
 
   return (
     <section className={cardStyles.deckSection}>
-      <h3 style={{ marginBottom: "6px", color: "#333" }}>{name}</h3>
+      <h3 className={deckStyles.deckTitle}>{name}</h3>
 
       <div className={cardStyles.deckControls}>
         <button onClick={shuffle}>シャッフル</button>
@@ -113,8 +107,7 @@ export default function Deck({
       </div>
 
       <div
-        className={cardStyles.deckWrapper}
-        style={{ display: "flex", gap: "0px" }}
+        className={`${cardStyles.deckWrapper} ${deckStyles.deckWrapperFlex}`}
       >
         {/* 山札 */}
         <div className={cardStyles.deckContainer} onClick={draw}>
@@ -169,19 +162,12 @@ export default function Deck({
             >
               <CardContent card={c} />
 
-              {/* ツールチップは一番上のカードのみ表示 */}
               {i === discardPile.length - 1 && c.description && (
                 <span
-                  className={cardStyles.tooltip}
+                  className={`${cardStyles.tooltip} ${deckStyles.tooltipBase}`}
                   style={{
                     visibility: isDiscardHovered ? "visible" : "hidden",
                     opacity: isDiscardHovered ? 1 : 0,
-                    zIndex: 9999,
-                    color: "#333",
-                    backgroundColor: "white",
-                    border: "1px solid #ccc",
-                    padding: "4px",
-                    borderRadius: "4px",
                   }}
                 >
                   {c.description}

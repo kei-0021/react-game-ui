@@ -984,6 +984,20 @@ const styles$2 = {
   deckSection,
   discardPileWrapper
 };
+const cardImage = "_cardImage_1s9db_1";
+const cardNameWrapper = "_cardNameWrapper_1s9db_7";
+const cardNameText = "_cardNameText_1s9db_18";
+const deckTitle = "_deckTitle_1s9db_24";
+const deckWrapperFlex = "_deckWrapperFlex_1s9db_29";
+const tooltipBase = "_tooltipBase_1s9db_34";
+const deckStyles = {
+  cardImage,
+  cardNameWrapper,
+  cardNameText,
+  deckTitle,
+  deckWrapperFlex,
+  tooltipBase
+};
 const CardContent = ({ card: card2 }) => {
   if (!card2.isFaceUp) return null;
   if (card2.frontImage) {
@@ -992,32 +1006,11 @@ const CardContent = ({ card: card2 }) => {
       {
         src: card2.frontImage,
         alt: card2.name,
-        style: { width: "100%", height: "100%", objectFit: "contain" }
+        className: deckStyles.cardImage
       }
     );
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      style: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#fff",
-        color: "#000",
-        height: "100%",
-        width: "100%",
-        padding: "5px"
-      },
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "strong",
-        {
-          style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" },
-          children: card2.name
-        }
-      )
-    }
-  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: deckStyles.cardNameText, children: card2.name }) });
 };
 function Deck({
   socket,
@@ -1037,7 +1030,6 @@ function Deck({
       setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
     });
     socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
-      console.log(`[Deck Update:${roomId}]`, data);
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
       setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
       setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
@@ -1064,7 +1056,7 @@ function Deck({
   const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$2.deckSection, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "6px", color: "#333" }, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: deckStyles.deckTitle, children: name }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.deckControls, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, children: "シャッフル" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
@@ -1072,8 +1064,7 @@ function Deck({
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
-        className: styles$2.deckWrapper,
-        style: { display: "flex", gap: "0px" },
+        className: `${styles$2.deckWrapper} ${deckStyles.deckWrapperFlex}`,
         children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
@@ -1099,40 +1090,40 @@ function Deck({
             },
             c.id
           )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles$2.deckContainer} ${styles$2.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
-              className: styles$2.deckCardFront,
-              style: {
-                zIndex: i + 1,
-                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                pointerEvents: i === discardPile.length - 1 ? "auto" : "none"
-              },
-              onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true),
-              onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false),
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c }),
-                i === discardPile.length - 1 && c.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "span",
-                  {
-                    className: styles$2.tooltip,
-                    style: {
-                      visibility: isDiscardHovered ? "visible" : "hidden",
-                      opacity: isDiscardHovered ? 1 : 0,
-                      zIndex: 9999,
-                      color: "#333",
-                      backgroundColor: "white",
-                      border: "1px solid #ccc",
-                      padding: "4px",
-                      borderRadius: "4px"
-                    },
-                    children: c.description
-                  }
-                )
-              ]
-            },
-            c.id
-          )) })
+              className: `${styles$2.deckContainer} ${styles$2.discardPileWrapper}`,
+              children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  className: styles$2.deckCardFront,
+                  style: {
+                    zIndex: i + 1,
+                    transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+                    pointerEvents: i === discardPile.length - 1 ? "auto" : "none"
+                  },
+                  onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true),
+                  onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false),
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c }),
+                    i === discardPile.length - 1 && c.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "span",
+                      {
+                        className: `${styles$2.tooltip} ${deckStyles.tooltipBase}`,
+                        style: {
+                          visibility: isDiscardHovered ? "visible" : "hidden",
+                          opacity: isDiscardHovered ? 1 : 0
+                        },
+                        children: c.description
+                      }
+                    )
+                  ]
+                },
+                c.id
+              ))
+            }
+          )
         ]
       }
     )

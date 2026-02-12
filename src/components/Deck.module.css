@@ -14,3 +14,28 @@
   width: 100%;
   padding: 5px;
 }
+
+.cardNameText {
+  font-size: 1em;
+  word-break: break-all;
+  text-align: center;
+}
+
+.deckTitle {
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.deckWrapperFlex {
+  display: flex;
+  gap: 0px;
+}
+
+.tooltipBase {
+  z-index: 9999;
+  color: #333;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 4px;
+  border-radius: 4px;
+}
