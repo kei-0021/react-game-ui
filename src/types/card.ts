@@ -9,12 +9,12 @@ export type Card = {
   name: string;
   description?: string;
   onPlay?: (...args: any[]) => void;
-  ownerId: PlayerId | null; 
+  ownerId: PlayerId | null;
   location: CardLocation;
   drawLocation: CardLocation;
   playLocation: CardLocation;
-  playBackLocation: CardLocation;
+  fieldBackLocation: CardLocation;
   isFaceUp?: boolean;
-  frontImage?: string; 
+  frontImage?: string;
   backColor: string;
 };

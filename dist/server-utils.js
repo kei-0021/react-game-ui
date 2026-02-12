@@ -14,16 +14,17 @@ export let LOG_CATEGORIES = {
   timer: false,
   addScore: true,
   resource: true,
-  token: true, 
+  token: true,
   room: true,
   lobby: true,
   disconnect: true,
   warn: true,
   popup: true,
+  custom_event: true,
 };
 
-const ANSI_RED = '\x1b[31m';
-const ANSI_RESET = '\x1b[0m';
+const ANSI_RED = "\x1b[31m";
+const ANSI_RESET = "\x1b[0m";
 
 /**
  * サーバーログを出力する
@@ -32,9 +33,12 @@ const ANSI_RESET = '\x1b[0m';
  */
 export function server_log(tag, ...args) {
   if (!LOG_CATEGORIES[tag]) return;
-  
-  if (tag === 'warn') {
-    console.warn(ANSI_RED + `[${tag}]` + ANSI_RESET, ...args.map(arg => ANSI_RED + String(arg) + ANSI_RESET));
+
+  if (tag === "warn") {
+    console.warn(
+      ANSI_RED + `[${tag}]` + ANSI_RESET,
+      ...args.map((arg) => ANSI_RED + String(arg) + ANSI_RESET),
+    );
   } else {
     console.log(`[${tag}]`, ...args);
   }
@@ -54,7 +58,7 @@ export function server_log(tag, ...args) {
  * @typedef {object} ServerPlayer
  * @property {string} id
  * @property {string} name
- * @property {string} socketId 
+ * @property {string} socketId
  * @property {any[]} cards
  * @property {number} score
  * @property {any[]} resources
@@ -66,17 +70,17 @@ export function server_log(tag, ...args) {
  * @typedef {object} GameState
  * @property {ServerPlayer[]} players
  * @property {any[]} initialResources
- * @property {any[]} initialTokenStores 
+ * @property {any[]} initialTokenStores
  * @property {any[]} initialTokens
  * @property {any[][]} board
- * @property {Location[]} exploredCells 
+ * @property {Location[]} exploredCells
  * @property {number} turn
  */
 
 /**
  * ルームごとのゲームメタ情報
  * @typedef {object} RoomGameInfo
- * @property {string} roomId 
+ * @property {string} roomId
  * @property {number} createdAt
  * @property {number} currentTurnIndex
  * @property {object} decks
@@ -85,7 +89,6 @@ export function server_log(tag, ...args) {
  * @property {object} discardPile
  * @property {MockGameState} gameStateInstance
  */
-
 
 // -----------------------------------------------------------------
 // 探索済みマス目のユーティリティ関数
@@ -98,7 +101,9 @@ export function server_log(tag, ...args) {
  * @returns {boolean}
  */
 export const isExplored = (gameStateInstance, location) => {
-    return gameStateInstance.exploredCells.some(loc => loc.row === location.row && loc.col === location.col);
+  return gameStateInstance.exploredCells.some(
+    (loc) => loc.row === location.row && loc.col === location.col,
+  );
 };
 
 /**
@@ -108,12 +113,15 @@ export const isExplored = (gameStateInstance, location) => {
  * @returns {boolean} - 更新されたかどうか
  */
 export const markCellAsExplored = (gameStateInstance, location) => {
-    if (!isExplored(gameStateInstance, location)) {
-        gameStateInstance.exploredCells.push(location);
-        server_log('cell', `マス (${location.row}, ${location.col}) を探索済みとしてマークしました。`);
-        return true; 
-    }
-    return false;
+  if (!isExplored(gameStateInstance, location)) {
+    gameStateInstance.exploredCells.push(location);
+    server_log(
+      "cell",
+      `マス (${location.row}, ${location.col}) を探索済みとしてマークしました。`,
+    );
+    return true;
+  }
+  return false;
 };
 
 /**
@@ -123,19 +131,22 @@ export const markCellAsExplored = (gameStateInstance, location) => {
  * @returns {boolean} - 削除されたかどうか
  */
 export const unmarkCellAsExplored = (gameStateInstance, location) => {
-    const initialLength = gameStateInstance.exploredCells.length;
-    
-    gameStateInstance.exploredCells = gameStateInstance.exploredCells.filter(loc => 
-        !(loc.row === location.row && loc.col === location.col)
+  const initialLength = gameStateInstance.exploredCells.length;
+
+  gameStateInstance.exploredCells = gameStateInstance.exploredCells.filter(
+    (loc) => !(loc.row === location.row && loc.col === location.col),
+  );
+
+  const wasRemoved = gameStateInstance.exploredCells.length < initialLength;
+
+  if (wasRemoved) {
+    server_log(
+      "cell",
+      `マス (${location.row}, ${location.col}) の探索済みマークを解除しました。`,
     );
+  }
 
-    const wasRemoved = gameStateInstance.exploredCells.length < initialLength;
-
-    if (wasRemoved) {
-        server_log('cell', `マス (${location.row}, ${location.col}) の探索済みマークを解除しました。`);
-    }
-    
-    return wasRemoved;
+  return wasRemoved;
 };
 
 // -----------------------------------------------------------------
@@ -144,11 +155,11 @@ export const unmarkCellAsExplored = (gameStateInstance, location) => {
 
 // Fisher-Yates シャッフル
 const shuffleArray = (array) => {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 };
 
 /**
@@ -157,43 +168,47 @@ const shuffleArray = (array) => {
  * @returns {any[][]} - ランダムに配置された盤面
  */
 export const createRandomBoard = (initialBoard) => {
-    if (!initialBoard || initialBoard.length === 0 || initialBoard[0].length === 0) {
-        server_log("warn", "createRandomBoard: initialBoardが空です。");
-        return [];
+  if (
+    !initialBoard ||
+    initialBoard.length === 0 ||
+    initialBoard[0].length === 0
+  ) {
+    server_log("warn", "createRandomBoard: initialBoardが空です。");
+    return [];
+  }
+
+  const rows = initialBoard.length;
+  const cols = initialBoard[0].length;
+
+  let allCells = [];
+  initialBoard.forEach((rowArr) => {
+    allCells = allCells.concat(rowArr);
+  });
+
+  shuffleArray(allCells);
+
+  const newBoard = [];
+  let cellIndex = 0;
+
+  for (let r = 0; r < rows; r++) {
+    const newRow = [];
+    for (let c = 0; c < cols; c++) {
+      if (cellIndex >= allCells.length) break;
+
+      const originalCell = allCells[cellIndex];
+
+      newRow.push({
+        ...originalCell,
+        id: `r${r}c${c}`,
+      });
+      cellIndex++;
     }
-    
-    const rows = initialBoard.length;
-    const cols = initialBoard[0].length; 
-    
-    let allCells = [];
-    initialBoard.forEach(rowArr => {
-        allCells = allCells.concat(rowArr);
-    });
-
-    shuffleArray(allCells);
-
-    const newBoard = [];
-    let cellIndex = 0;
-
-    for (let r = 0; r < rows; r++) {
-        const newRow = [];
-        for (let c = 0; c < cols; c++) {
-            if (cellIndex >= allCells.length) break; 
-            
-            const originalCell = allCells[cellIndex];
-            
-            newRow.push({ 
-                ...originalCell, 
-              id: `r${r}c${c}`
-            });
-            cellIndex++;
-        }
-        if (newRow.length > 0) {
-            newBoard.push(newRow);
-        }
+    if (newRow.length > 0) {
+      newBoard.push(newRow);
     }
-    
-    return newBoard;
+  }
+
+  return newBoard;
 };
 
 // -----------------------------------------------------------------
@@ -212,43 +227,55 @@ export const createRandomBoard = (initialBoard) => {
  * @param {function(string, string, number): void} updatePlayerToken - トークン更新ヘルパー関数 (playerId, tokenId, amount)
  */
 export const applyCellEffect = (
-    gameStateInstance,
-    playerId,
-    location,
-    cellEffects,
-    addScore,
-    updatePlayerResource,
-    updatePlayerToken,
-    requirePopup
+  gameStateInstance,
+  playerId,
+  location,
+  cellEffects,
+  addScore,
+  updatePlayerResource,
+  updatePlayerToken,
+  requirePopup,
 ) => {
-    const { row, col } = location;
-    
-    if (row < 0 || row >= gameStateInstance.board.length || col < 0 || col >= gameStateInstance.board[row].length) {
-        server_log("warn", `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
-        return;
-    }
+  const { row, col } = location;
 
-    const cell = gameStateInstance.board[row][col];
-    const effect = cellEffects[cell.name];
-    
-    if (effect) {
-        server_log("cell", `マス効果発動: ${cell.name} by ${playerId}`);
-        
-        try {
-          // ヘルパー関数をバインドした関数を渡す
-          effect({ 
-            playerId, 
-            addScore, 
-            updateResource: updatePlayerResource, 
-            updateToken: updatePlayerToken,
-            requirePopup: requirePopup
-          }); 
-        } catch (e) {
-            server_log("warn", `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
-        }
-    } else {
-        server_log("cell", `マス効果なし: (${row}, ${col}) ${cell.name}`);
+  if (
+    row < 0 ||
+    row >= gameStateInstance.board.length ||
+    col < 0 ||
+    col >= gameStateInstance.board[row].length
+  ) {
+    server_log(
+      "warn",
+      `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`,
+    );
+    return;
+  }
+
+  const cell = gameStateInstance.board[row][col];
+  const effect = cellEffects[cell.name];
+
+  if (effect) {
+    server_log("cell", `マス効果発動: ${cell.name} by ${playerId}`);
+
+    try {
+      // ヘルパー関数をバインドした関数を渡す
+      effect({
+        playerId,
+        addScore,
+        updateResource: updatePlayerResource,
+        updateToken: updatePlayerToken,
+        requirePopup: requirePopup,
+      });
+    } catch (e) {
+      server_log(
+        "warn",
+        `マス効果の実行中にエラーが発生しました: ${cell.name}`,
+        e,
+      );
     }
+  } else {
+    server_log("cell", `マス効果なし: (${row}, ${col}) ${cell.name}`);
+  }
 };
 
 // -----------------------------------------------------------------
@@ -256,107 +283,141 @@ export const applyCellEffect = (
 // -----------------------------------------------------------------
 
 export class TokenStore {
-    /**
-     * @param {string} id 
-     * @param {string} name 
-     * @param {any[]} initialTokens 
-     */
-    constructor(id, name, initialTokens) {
-        this.id = id;
-        this.name = name;
-        this.tokens = [...initialTokens];
-    }
-    getTokens() {
-        return this.tokens;
-    }
+  /**
+   * @param {string} id
+   * @param {string} name
+   * @param {any[]} initialTokens
+   */
+  constructor(id, name, initialTokens) {
+    this.id = id;
+    this.name = name;
+    this.tokens = [...initialTokens];
+  }
+  getTokens() {
+    return this.tokens;
+  }
 }
 
 export class MockGameState {
-    /**
-     * @param {GameState} initialState
-     * @param {any[]} initialTokenStoresDef
-     */
-    constructor(initialState, initialTokenStoresDef) {
-        this.players = initialState.players;
-        this.initialResources = initialState.initialResources;
-        this.initialTokens = initialState.initialTokens;
-        this.board = initialState.board;
-        this.exploredCells = initialState.exploredCells;
-        this.turn = initialState.turn;
+  /**
+   * @param {GameState} initialState
+   * @param {any[]} initialTokenStoresDef
+   */
+  constructor(initialState, initialTokenStoresDef) {
+    this.players = initialState.players;
+    this.initialResources = initialState.initialResources;
+    this.initialTokens = initialState.initialTokens;
+    this.board = initialState.board;
+    this.exploredCells = initialState.exploredCells;
+    this.turn = initialState.turn;
 
-        /** @type {Map<string, TokenStore>} */
-        this.tokenStores = new Map();
-        initialTokenStoresDef.forEach(storeDef => {
-            this.tokenStores.set(storeDef.tokenStoreId, new TokenStore(storeDef.tokenStoreId, storeDef.name, storeDef.tokens));
-        });
+    /** @type {Map<string, TokenStore>} */
+    this.tokenStores = new Map();
+    initialTokenStoresDef.forEach((storeDef) => {
+      this.tokenStores.set(
+        storeDef.tokenStoreId,
+        new TokenStore(storeDef.tokenStoreId, storeDef.name, storeDef.tokens),
+      );
+    });
+  }
+
+  /**
+   * @param {string} tokenStoreId
+   * @returns {TokenStore | undefined}
+   */
+  getTokenStore(tokenStoreId) {
+    return this.tokenStores.get(tokenStoreId);
+  }
+
+  /**
+   * トークン獲得ロジックを処理する
+   * @param {string} tokenStoreId - 獲得元のストアID
+   * @param {string} playerId - プレイヤーID
+   * @param {string} tokenId
+   * @returns {boolean} 成功したかどうか
+   */
+  acquireToken(tokenStoreId, playerId, tokenId) {
+    const player = this.players.find((p) => p.id === playerId);
+    if (!player) return false;
+
+    if (tokenStoreId === "scoreboard-acquisition") {
+      server_log(
+        "token",
+        `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`,
+      );
+
+      if (!Array.isArray(player.tokens)) {
+        player.tokens = [];
+      }
+
+      const token = {
+        id: tokenId,
+        name: `Token ${tokenId.slice(0, 4)}`,
+        backColor: "#333",
+        count: 1,
+      };
+
+      player.tokens.push(token);
+      server_log(
+        "token",
+        `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`,
+      );
+      return true;
     }
 
-    /**
-     * @param {string} tokenStoreId
-     * @returns {TokenStore | undefined}
-     */
-    getTokenStore(tokenStoreId) {
-        return this.tokenStores.get(tokenStoreId);
-    }
-    
-    /**
-     * トークン獲得ロジックを処理する
-     * @param {string} tokenStoreId - 獲得元のストアID 
-     * @param {string} playerId - プレイヤーID 
-     * @param {string} tokenId 
-     * @returns {boolean} 成功したかどうか
-     */
-    acquireToken(tokenStoreId, playerId, tokenId) {
-        const player = this.players.find(p => p.id === playerId);
-        if (!player) return false;
+    const store = this.tokenStores.get(tokenStoreId);
+    if (store) {
+      const index = store.tokens.findIndex((t) => t.id === tokenId);
+      if (index !== -1) {
+        const acquiredToken = store.tokens.splice(index, 1)[0];
 
-        if (tokenStoreId === 'scoreboard-acquisition') {
-            server_log('token', `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`);
-
-            if (!Array.isArray(player.tokens)) {
-                player.tokens = [];
-            }
-
-            const token = { 
-                id: tokenId, 
-                name: `Token ${tokenId.slice(0, 4)}`, 
-                backColor: '#333',
-                count: 1
-            };
-            
-            player.tokens.push(token); 
-            server_log('token', `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`);
-            return true;
+        if (!Array.isArray(player.tokens)) {
+          player.tokens = [];
         }
 
-        const store = this.tokenStores.get(tokenStoreId);
-        if (store) {
-            const index = store.tokens.findIndex(t => t.id === tokenId);
-            if (index !== -1) {
-                const acquiredToken = store.tokens.splice(index, 1)[0];
-                
-                if (!Array.isArray(player.tokens)) {
-                    player.tokens = [];
-                }
-                
-                player.tokens.push(acquiredToken);
+        player.tokens.push(acquiredToken);
 
-                server_log('token', `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`);
-                return true;
-            }
-        }
-        return false;
+        server_log(
+          "token",
+          `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
+        );
+        return true;
+      }
     }
-    
-    /**
-     * クライアントに送信する状態のサブセットを取得
-     */
-    getFullState() {
-        return {
-            players: this.players,
-            board: this.board,
-            exploredCells: this.exploredCells,
-            turn: this.turn,
-        };
-    }
+    return false;
+  }
+
+  /**
+   * クライアントに送信する状態のサブセットを取得
+   */
+  getFullState() {
+    return {
+      players: this.players,
+      board: this.board,
+      exploredCells: this.exploredCells,
+      turn: this.turn,
+    };
+  }
 }
+
+// -----------------------------------------------------------------
+// Player生成時に使う関数
+// -----------------------------------------------------------------
+
+export const generateColorFromId = (id) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    // 31を掛けるのはハッシュ関数の定番ですが、
+    // ビット演算を組み合わせて値を大きく散らします
+    hash = (hash << 5) - hash + id.charCodeAt(i);
+    hash |= 0; // 32ビット整数に変換
+  }
+
+  // 黄金比（約0.618）を使って色相を分散させるテクニック
+  // これにより、近い数値でも色相（Hue）が137.5度くらいずつジャンプします
+  const goldenRatioConjugate = 0.618033988749895;
+  let hue = (Math.abs(hash) * goldenRatioConjugate) % 1;
+  const finalHue = Math.floor(hue * 360);
+
+  return `hsl(${finalHue}, 70%, 50%)`;
+};

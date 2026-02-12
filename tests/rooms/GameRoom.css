@@ -1,0 +1,279 @@
+/* ==========================================
+   1. 基本レイアウト・背景
+   ========================================== */
+.deepsea-container {
+  min-height: 100vh;
+  background-color: #0a192f !important;
+  background-image:
+    linear-gradient(135deg, #0a192f 0%, #1e3a5f 70%, #0a192f 100%),
+    linear-gradient(to right, rgba(139, 233, 253, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(139, 233, 253, 0.05) 1px, transparent 1px) !important;
+  background-size:
+    auto,
+    30px 30px,
+    30px 30px !important;
+  background-position: center !important;
+  padding: 20px;
+  font-family: "Roboto", sans-serif;
+  color: white;
+}
+
+.deepsea-title-center {
+  text-align: center;
+  color: #8be9fd;
+  text-shadow: 0 0 10px rgba(139, 233, 253, 0.5);
+  margin-bottom: 10px;
+}
+
+.deepsea-subtitle-center {
+  text-align: center;
+  color: #ffffff;
+  font-size: 1em;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+.board-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+/* ラウンド表示：横並び・縦中央寄せ */
+.round-display-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.round-label {
+  font-size: 1rem;
+  color: #8be9fd;
+  letter-spacing: 2px;
+  font-weight: bold;
+  opacity: 0.8;
+  line-height: 1;
+}
+
+.round-number {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #fff;
+  line-height: 1;
+  text-shadow: 0 0 10px rgba(139, 233, 253, 0.5);
+}
+
+/* ==========================================
+   2. ライブラリ(rg-)要素の上書き
+   ========================================== */
+.rg-playfield {
+  background: #0a192f !important;
+  border: 2px solid #8be9fd !important;
+  width: 100% !important;
+  max-width: 800px !important;
+  padding: 20px !important;
+}
+
+.rg-playfield-title {
+  color: #8be9fd;
+}
+.rg-card-name-label {
+  font-size: 1rem !important;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+/* ==========================================
+   3. 参加フォーム (Join Form)
+   ========================================== */
+.join-form-wrapper {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #1e3a5f;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(139, 233, 253, 0.5);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  text-align: center;
+  min-width: 300px;
+}
+
+.join-form-input {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #8be9fd;
+  background-color: #0a192f;
+  color: white;
+  font-size: 1em;
+  outline: none;
+}
+
+.join-form-button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  background-color: #8be9fd;
+  color: #0a192f;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1em;
+  transition:
+    background-color 0.3s,
+    transform 0.1s;
+}
+.join-form-button:hover:not(:disabled) {
+  background-color: #a2f0ff;
+}
+.join-form-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================
+   4. レイアウト・パネル
+   ========================================== */
+.game-main-layout {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.game-left-group {
+  display: flex;
+  gap: 20px;
+  flex: 0 0 auto;
+}
+.deck-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 0 0 220px;
+}
+.field-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 0 0 320px;
+}
+.scoreboard-column {
+  flex: 1 1 auto;
+  min-width: 300px;
+}
+
+.debug-control-panel {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  padding: 15px !important;
+  border-radius: 8px !important;
+  margin-bottom: 20px !important;
+  border: 1px dashed rgba(139, 233, 253, 0.3) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+/* ==========================================
+   5. リザルト画面
+   ========================================== */
+.result-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 8, 20, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(8px);
+}
+
+.result-modal {
+  background: linear-gradient(145deg, #001a33, #000d1a);
+  border: 2px solid #00d4ff;
+  border-radius: 20px;
+  padding: 40px;
+  width: 90%;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: 0 0 50px rgba(0, 212, 255, 0.3);
+  animation: modalFadeIn 0.5s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.result-header {
+  color: #00d4ff;
+  font-size: 2rem;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+}
+
+.result-rank-card {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 10px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border-left: 4px solid #33475b;
+  gap: 20px; /* バッジと名前の間の空白 */
+}
+
+.rank-1 {
+  border-left-color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.rank-badge {
+  font-size: 1.5rem;
+  font-weight: bold;
+  width: 40px;
+  color: #00d4ff;
+  text-align: center;
+  flex-shrink: 0;
+  margin-right: 20px;
+}
+
+.player-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.player-name {
+  font-size: 1.4rem;
+}
+.player-score {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.result-exit-button {
+  margin-top: 20px;
+  padding: 10px 30px;
+  background: transparent;
+  border: 1px solid #00d4ff;
+  color: #00d4ff;
+  border-radius: 20px;
+  cursor: pointer;
+}

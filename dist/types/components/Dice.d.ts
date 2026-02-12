@@ -1,5 +1,5 @@
+import { DiceId, RoomId } from "@/types/definition.js";
 import { Socket } from "socket.io-client";
-import { DiceId, RoomId } from "../types/definition.js";
 type DiceProps = {
     socket?: Socket | null;
     diceId: DiceId;
