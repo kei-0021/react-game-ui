@@ -19,14 +19,14 @@ type PlayerListItemProps = {
   currentPlayerId: PlayerId | null | undefined;
   myPlayerId: PlayerId | null;
   selectedCards: string[];
-  toggleCardSelection: (cardId: string, isFaceUp: boolean) => void;
+  toggleCardSelection: (cardId: string, isOwner: boolean) => void;
   socket: Socket;
   roomId: RoomId;
 };
 
 const CardDisplayContent = React.memo(
-  ({ card, isFaceUp }: { card: Card; isFaceUp: boolean }) => {
-    if (!isFaceUp) return null;
+  ({ card, canSeeFront }: { card: Card; canSeeFront: boolean }) => {
+    if (!canSeeFront) return null;
     if (card.frontImage) {
       return (
         <img
@@ -82,6 +82,7 @@ const PlayerListItem = React.memo(
   }: PlayerListItemProps) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = (player as any).color || "#aaaaaa";
+    const isOwner = player.id === myPlayerId;
 
     const customStyles = {
       "--player-color": playerColor,
@@ -101,7 +102,7 @@ const PlayerListItem = React.memo(
         <div className={styles.playerHeader}>
           <span className={styles.playerName}>
             {isActive && "ᐅ "}
-            {player.id === myPlayerId && "★ ME "}
+            {isOwner && "★ ME "}
             {player.name}
           </span>
           <span className={styles.playerScore}>スコア: {player.score}</span>
@@ -130,26 +131,30 @@ const PlayerListItem = React.memo(
 
         <div className={styles.cardList}>
           {player.cards.map((card: Card) => {
-            const isFaceUp = !!card.isFaceUp && player.id === myPlayerId;
             const isSelected = selectedCards.includes(card.id);
+            const canSeeFront = !!card.isFaceUp || isOwner;
 
             return (
               <div
                 key={card.id}
                 className={`${styles.cardBase} rg-playfield-card-wrapper ${
                   isSelected ? styles.cardSelected : ""
-                }`}
+                } ${card.isFaceUp ? styles.cardSuperRevealed : ""}`}
                 style={
                   {
                     "--owner-color": playerColor,
-                    "backgroundColor": isFaceUp ? "#fff" : card.backColor,
-                    "cursor": isFaceUp ? "pointer" : "default",
+                    "backgroundColor": canSeeFront ? "#fff" : card.backColor,
+                    "cursor": isOwner ? "pointer" : "default",
+                    "border": card.isFaceUp
+                      ? "3px solid #00ffff"
+                      : "1px solid #ccc",
+                    "boxShadow": card.isFaceUp ? "0 0 10px #00ffff" : "none",
                   } as React.CSSProperties
                 }
-                onClick={() => toggleCardSelection(card.id, isFaceUp)}
+                onClick={() => toggleCardSelection(card.id, isOwner)}
               >
-                <CardDisplayContent card={card} isFaceUp={isFaceUp} />
-                {isFaceUp && card.description && (
+                <CardDisplayContent card={card} canSeeFront={canSeeFront} />
+                {canSeeFront && card.description && (
                   <span className={styles.tooltip}>{card.description}</span>
                 )}
               </div>
@@ -191,8 +196,8 @@ export default function ScoreBoard({
   const [selectedCards, setSelectedCards] = React.useState<string[]>([]);
 
   const toggleCardSelection = React.useCallback(
-    (cardId: string, isFaceUp: boolean) => {
-      if (!isFaceUp) return;
+    (cardId: string, isOwner: boolean) => {
+      if (!isOwner) return;
       setSelectedCards((prev) =>
         prev.includes(cardId)
           ? prev.filter((id) => id !== cardId)
@@ -202,13 +207,34 @@ export default function ScoreBoard({
     [],
   );
 
+  // 公開する
+  const revealSelectedCards = React.useCallback(() => {
+    if (selectedCards.length === 0 || !myPlayerId) return;
+    if (playCardLimit !== undefined && selectedCards.length > playCardLimit)
+      return;
+
+    socket.emit("card:reveal", {
+      roomId,
+      playerId: myPlayerId,
+      cardIds: selectedCards,
+    });
+
+    if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
+    setSelectedCards([]);
+  }, [
+    selectedCards,
+    myPlayerId,
+    socket,
+    roomId,
+    playCardLimit,
+    autoNextTurnOnCardPlay,
+  ]);
+
+  // 出す（プレイする）
   const playSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
-
-    // ガードレール：枚数制限チェック
-    if (playCardLimit !== undefined && selectedCards.length > playCardLimit) {
+    if (playCardLimit !== undefined && selectedCards.length > playCardLimit)
       return;
-    }
 
     const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
     if (!myPlayer) return;
@@ -236,10 +262,7 @@ export default function ScoreBoard({
       });
     });
 
-    if (autoNextTurnOnCardPlay) {
-      socket.emit("game:next-turn", { roomId });
-    }
-
+    if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
     setSelectedCards([]);
   }, [
     selectedCards,
@@ -253,10 +276,9 @@ export default function ScoreBoard({
 
   const nextTurn = () => socket.emit("game:next-turn", { roomId });
 
-  // 判定ロジック
   const isOverLimit =
     playCardLimit !== undefined && selectedCards.length > playCardLimit;
-  const isPlayDisabled = selectedCards.length === 0 || isOverLimit;
+  const isActionDisabled = selectedCards.length === 0 || isOverLimit;
 
   return (
     <div className={styles.container}>
@@ -284,8 +306,11 @@ export default function ScoreBoard({
         )}
 
         <div className={styles.buttonGroup}>
-          <button onClick={playSelectedCards} disabled={isPlayDisabled}>
+          <button onClick={playSelectedCards} disabled={isActionDisabled}>
             選択カードを出す
+          </button>
+          <button onClick={revealSelectedCards} disabled={isActionDisabled}>
+            選択カードを公開する
           </button>
           <button onClick={nextTurn}>ターンをスキップ</button>
         </div>

@@ -462,7 +462,7 @@ export function initGameServer(io, options = {}) {
 
             const card = targetDeck[cardIndex];
             card.location = "hand";
-            card.isFaceUp = true;
+            card.isFaceUp = false;
             card.ownerId = newPlayer.id;
             newPlayer.cards.push(card);
             cardsDealt++;
@@ -734,7 +734,7 @@ export function initGameServer(io, options = {}) {
           if (player) {
             player.cards = player.cards || [];
             card.location = drawLocation;
-            card.isFaceUp = true;
+            card.isFaceUp = false;
             card.ownerId = playerId;
             player.cards.push(card);
             destination = playerId;
@@ -876,6 +876,45 @@ export function initGameServer(io, options = {}) {
         emitPlayerUpdate(roomId);
       },
     );
+
+    // カード公開
+    socket.on("card:reveal", ({ roomId, playerId, cardIds }) => {
+      const roomInfo = activeRooms.get(roomId);
+      if (!roomInfo) {
+        server_log(
+          "warn",
+          `[${roomId}] ルームが見つかりません for card:reveal`,
+        );
+        return;
+      }
+
+      const { gameStateInstance } = roomInfo;
+      const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+
+      const player = gameStateInstance.players.find((p) => p.id === playerId);
+      if (!player || !player.cards) {
+        server_log(
+          "warn",
+          `[${roomId}] プレイヤーまたは手札が見つかりません: ${playerId}`,
+        );
+        return;
+      }
+
+      ids.forEach((cardId) => {
+        const card = player.cards.find((c) => c.id === cardId);
+        if (!card) return;
+
+        // 公開状態にする
+        card.isFaceUp = true;
+
+        server_log(
+          "card",
+          `[${roomId}] Reveal: ${card.name} (ID:${card.id}) by ${playerId}`,
+        );
+      });
+
+      emitPlayerUpdate(roomId);
+    });
 
     // フィールドから「手札」または「捨て札」へ移動
     socket.on(

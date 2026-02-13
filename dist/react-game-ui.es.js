@@ -1540,8 +1540,8 @@ const styles = {
   buttonGroup
 };
 const CardDisplayContent = React.memo(
-  ({ card: card2, isFaceUp }) => {
-    if (!isFaceUp) return null;
+  ({ card: card2, canSeeFront }) => {
+    if (!canSeeFront) return null;
     if (card2.frontImage) {
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
         "img",
@@ -1589,6 +1589,7 @@ const PlayerListItem = React.memo(
   }) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = player.color || "#aaaaaa";
+    const isOwner = player.id === myPlayerId;
     const customStyles = {
       "--player-color": playerColor,
       "--player-color-bg": playerColor.replace("hsl", "hsla").replace(")", ", 0.3)"),
@@ -1603,7 +1604,7 @@ const PlayerListItem = React.memo(
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.playerHeader, children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.playerName, children: [
               isActive && "ᐅ ",
-              player.id === myPlayerId && "★ ME ",
+              isOwner && "★ ME ",
               player.name
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.playerScore, children: [
@@ -1632,21 +1633,23 @@ const PlayerListItem = React.memo(
             }
           ),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.cardList, children: player.cards.map((card2) => {
-            const isFaceUp = !!card2.isFaceUp && player.id === myPlayerId;
             const isSelected = selectedCards.includes(card2.id);
+            const canSeeFront = !!card2.isFaceUp || isOwner;
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
-                className: `${styles.cardBase} rg-playfield-card-wrapper ${isSelected ? styles.cardSelected : ""}`,
+                className: `${styles.cardBase} rg-playfield-card-wrapper ${isSelected ? styles.cardSelected : ""} ${card2.isFaceUp ? styles.cardSuperRevealed : ""}`,
                 style: {
                   "--owner-color": playerColor,
-                  "backgroundColor": isFaceUp ? "#fff" : card2.backColor,
-                  "cursor": isFaceUp ? "pointer" : "default"
+                  "backgroundColor": canSeeFront ? "#fff" : card2.backColor,
+                  "cursor": isOwner ? "pointer" : "default",
+                  "border": card2.isFaceUp ? "3px solid #00ffff" : "1px solid #ccc",
+                  "boxShadow": card2.isFaceUp ? "0 0 10px #00ffff" : "none"
                 },
-                onClick: () => toggleCardSelection(card2.id, isFaceUp),
+                onClick: () => toggleCardSelection(card2.id, isOwner),
                 children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, isFaceUp }),
-                  isFaceUp && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles.tooltip, children: card2.description })
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
+                  canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles.tooltip, children: card2.description })
                 ]
               },
               card2.id
@@ -1677,19 +1680,37 @@ function ScoreBoard({
   }, [players]);
   const [selectedCards, setSelectedCards] = React.useState([]);
   const toggleCardSelection = React.useCallback(
-    (cardId, isFaceUp) => {
-      if (!isFaceUp) return;
+    (cardId, isOwner) => {
+      if (!isOwner) return;
       setSelectedCards(
         (prev) => prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
       );
     },
     []
   );
+  const revealSelectedCards = React.useCallback(() => {
+    if (selectedCards.length === 0 || !myPlayerId) return;
+    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit)
+      return;
+    socket.emit("card:reveal", {
+      roomId,
+      playerId: myPlayerId,
+      cardIds: selectedCards
+    });
+    if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
+    setSelectedCards([]);
+  }, [
+    selectedCards,
+    myPlayerId,
+    socket,
+    roomId,
+    playCardLimit,
+    autoNextTurnOnCardPlay
+  ]);
   const playSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) {
+    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit)
       return;
-    }
     const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
     if (!myPlayer) return;
     const cardsByDeck = {};
@@ -1711,9 +1732,7 @@ function ScoreBoard({
         playLocation: targetPlayLocation
       });
     });
-    if (autoNextTurnOnCardPlay) {
-      socket.emit("game:next-turn", { roomId });
-    }
+    if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
     setSelectedCards([]);
   }, [
     selectedCards,
@@ -1726,7 +1745,7 @@ function ScoreBoard({
   ]);
   const nextTurn = () => socket.emit("game:next-turn", { roomId });
   const isOverLimit = playCardLimit !== void 0 && selectedCards.length > playCardLimit;
-  const isPlayDisabled = selectedCards.length === 0 || isOverLimit;
+  const isActionDisabled = selectedCards.length === 0 || isOverLimit;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.container, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: styles.title, children: "ゲームスコアボード" }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: styles.playerList, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -1749,7 +1768,8 @@ function ScoreBoard({
         " 枚までです"
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.buttonGroup, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: playSelectedCards, disabled: isPlayDisabled, children: "選択カードを出す" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: playSelectedCards, disabled: isActionDisabled, children: "選択カードを出す" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, disabled: isActionDisabled, children: "選択カードを公開する" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" })
       ] })
     ] })
