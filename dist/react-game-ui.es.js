@@ -1398,9 +1398,11 @@ function PlayField({
   name,
   is_logging = false,
   players,
-  myPlayerId
+  myPlayerId,
+  layoutMode = "free"
 }) {
   const [playedCards, setPlayedCards] = React.useState([]);
+  const containerRef = React.useRef(null);
   React.useEffect(() => {
     const handleUpdate = (data) => {
       const newCards = data.playFieldCards || [];
@@ -1425,7 +1427,21 @@ function PlayField({
     return () => {
       socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
     };
-  }, [socket, roomId, deckId]);
+  }, [socket, roomId, deckId, is_logging, playedCards.length]);
+  const handleDragEnd = (e, card2) => {
+    if (layoutMode !== "free" || !containerRef.current) return;
+    if (e.clientX === 0 && e.clientY === 0) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width * 100;
+    const y = (e.clientY - rect.top) / rect.height * 100;
+    console.log("ここを通りました", x, y);
+    socket.emit("card:move-on-field", {
+      roomId,
+      deckId,
+      cardId: card2.id,
+      position: { x, y }
+    });
+  };
   const handleCardBack = (card2) => {
     const backTo = card2.fieldBackLocation || "discard";
     const requestData = {
@@ -1449,44 +1465,75 @@ function PlayField({
       `カード ${card2.name} を ${backTo} へ移動リクエスト`
     );
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "rg-playfield", children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: `rg-playfield mode-${layoutMode}`, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "rg-playfield-title", children: [
       "プレイエリア",
+      " ",
       name && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "rg-playfield-subtitle", children: [
         "（",
         name,
         "）"
       ] })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rg-playfield-container", children: [
-      playedCards.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-playfield-empty", children: "（まだカードが出ていません）" }),
-      playedCards.map((card2) => {
-        const owner = card2.ownerId ? players.find((p) => p.id === card2.ownerId) : null;
-        const ownerColor = owner?.color || "#aaaaaa";
-        const ownerNameInitial = owner?.name?.[0] || "?";
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            className: `${styles$2.card} rg-playfield-card-wrapper`,
-            style: { "--owner-color": ownerColor },
-            onDoubleClick: () => handleCardBack(card2),
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent$1, { card: card2, isFaceUp: true }),
-              card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "div",
-                {
-                  className: "rg-playfield-owner-badge",
-                  title: `所有者: ${owner?.name || "不明"}`,
-                  children: ownerNameInitial
-                }
-              ),
-              card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$2.tooltip, children: card2.description })
-            ]
-          },
-          card2.id
-        );
-      })
-    ] })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        ref: containerRef,
+        className: "rg-playfield-container",
+        onDragOver: (e) => e.preventDefault(),
+        style: {
+          position: layoutMode === "free" ? "relative" : void 0,
+          minHeight: "600px"
+        },
+        children: [
+          playedCards.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-playfield-empty", children: "（まだカードが出ていません）" }),
+          playedCards.map((card2) => {
+            const owner = players.find((p) => p.id === card2.ownerId);
+            const ownerColor = owner?.color || "#aaaaaa";
+            const ownerNameInitial = owner?.name?.[0] || "?";
+            const freeStyle = layoutMode === "free" ? {
+              position: "absolute",
+              left: `${card2.position?.x ?? 50}%`,
+              top: `${card2.position?.y ?? 50}%`,
+              transform: "translate(-50%, -50%)",
+              zIndex: Math.floor(card2.position?.y ?? 0)
+            } : {
+              position: void 0,
+              left: void 0,
+              top: void 0,
+              transform: void 0,
+              zIndex: void 0
+            };
+            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "div",
+              {
+                draggable: layoutMode === "free",
+                onDragEnd: (e) => handleDragEnd(e, card2),
+                className: `${styles$2.card} rg-playfield-card-wrapper`,
+                style: {
+                  "--owner-color": ownerColor,
+                  ...freeStyle
+                },
+                onDoubleClick: () => handleCardBack(card2),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent$1, { card: card2, isFaceUp: true }),
+                  card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "div",
+                    {
+                      className: "rg-playfield-owner-badge",
+                      title: `所有者: ${owner?.name || "不明"}`,
+                      children: ownerNameInitial
+                    }
+                  ),
+                  card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$2.tooltip, children: card2.description })
+                ]
+              },
+              card2.id
+            );
+          })
+        ]
+      }
+    )
   ] });
 }
 const container = "_container_9hhf7_1";

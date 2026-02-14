@@ -17,4 +17,5 @@ export type Card = {
   isFaceUp?: boolean;
   frontImage?: string;
   backColor: string;
+  position?: { x: number; y: number };
 };

@@ -50,6 +50,7 @@ type PlayFieldProps = {
   is_logging?: boolean;
   players: PlayerWithResources[];
   myPlayerId: string | null;
+  layoutMode?: "grid" | "free"; // 切り替え用
 };
 
 export default function PlayField({
@@ -60,8 +61,10 @@ export default function PlayField({
   is_logging = false,
   players,
   myPlayerId,
+  layoutMode = "free",
 }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const handleUpdate = (data: { playFieldCards?: Card[] }) => {
@@ -91,13 +94,29 @@ export default function PlayField({
     return () => {
       socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
     };
-  }, [socket, roomId, deckId]);
+  }, [socket, roomId, deckId, is_logging, playedCards.length]);
 
-  // カードを適切な場所（手札 or 捨て札）へ移動させる
+  const handleDragEnd = (e: React.DragEvent, card: Card) => {
+    if (layoutMode !== "free" || !containerRef.current) return;
+
+    // 離した瞬間に座標が0になるブラウザ対策
+    if (e.clientX === 0 && e.clientY === 0) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    console.log("ここを通りました", x, y);
+
+    socket.emit("card:move-on-field", {
+      roomId,
+      deckId,
+      cardId: card.id,
+      position: { x, y },
+    });
+  };
+
   const handleCardBack = (card: Card) => {
     const backTo = card.fieldBackLocation || "discard";
-
-    // 型定義を明示（targetPlayerId は string または undefined）
     const requestData: {
       roomId: RoomId;
       deckId: DeckId;
@@ -109,7 +128,6 @@ export default function PlayField({
       cardId: card.id,
     };
 
-    // 手札に戻す設定の場合のみ、所有者IDをセット
     if (backTo === "hand") {
       if (!card.ownerId) {
         client_log(
@@ -122,7 +140,6 @@ export default function PlayField({
     }
 
     socket.emit("card:move-from-field", requestData);
-
     client_log(
       "playField",
       `カード ${card.name} を ${backTo} へ移動リクエスト`,
@@ -130,28 +147,57 @@ export default function PlayField({
   };
 
   return (
-    <section className="rg-playfield">
+    <section className={`rg-playfield mode-${layoutMode}`}>
       <h3 className="rg-playfield-title">
-        プレイエリア
+        プレイエリア{" "}
         {name && <span className="rg-playfield-subtitle">（{name}）</span>}
       </h3>
-      <div className="rg-playfield-container">
+      <div
+        ref={containerRef}
+        className="rg-playfield-container"
+        onDragOver={(e) => e.preventDefault()}
+        style={{
+          position: layoutMode === "free" ? "relative" : undefined,
+          minHeight: "600px",
+        }}
+      >
         {playedCards.length === 0 && (
           <div className="rg-playfield-empty">（まだカードが出ていません）</div>
         )}
         {playedCards.map((card) => {
-          const owner = card.ownerId
-            ? players.find((p) => p.id === card.ownerId)
-            : null;
+          const owner = players.find((p) => p.id === card.ownerId);
           const ownerColor = owner?.color || "#aaaaaa";
           const ownerNameInitial = owner?.name?.[0] || "?";
+
+          const freeStyle: React.CSSProperties =
+            layoutMode === "free"
+              ? {
+                  position: "absolute",
+                  left: `${card.position?.x ?? 50}%`,
+                  top: `${card.position?.y ?? 50}%`,
+                  transform: "translate(-50%, -50%)",
+                  zIndex: Math.floor(card.position?.y ?? 0),
+                }
+              : {
+                  position: undefined,
+                  left: undefined,
+                  top: undefined,
+                  transform: undefined,
+                  zIndex: undefined,
+                };
 
           return (
             <div
               key={card.id}
+              draggable={layoutMode === "free"}
+              onDragEnd={(e) => handleDragEnd(e, card)}
               className={`${styles.card} rg-playfield-card-wrapper`}
-              style={{ "--owner-color": ownerColor } as React.CSSProperties}
-              // ダブルクリックで戻す
+              style={
+                {
+                  "--owner-color": ownerColor,
+                  ...freeStyle,
+                } as React.CSSProperties
+              }
               onDoubleClick={() => handleCardBack(card)}
             >
               <CardDisplayContent card={card} isFaceUp={true} />

@@ -970,6 +970,23 @@ export function initGameServer(io, options = {}) {
       },
     );
 
+    socket.on("card:move-on-field", (data) => {
+      const { roomId, deckId, cardId, position } = data;
+
+      // メモリ上のデータを直接更新
+      const roomInfo = activeRooms.get(roomId);
+      if (!roomInfo) return;
+
+      const card = roomInfo.playFieldCards[deckId].find((c) => c.id === cardId);
+
+      if (card) {
+        card.position = position; // ここで座標を上書き
+
+        emitDeckUpdate(roomId, deckId);
+        emitPlayerUpdate(roomId);
+      }
+    });
+
     // トークン獲得イベントのハンドラ（room対応版）
     socket.on("game:acquire-token", (payload) => {
       const { roomId, tokenStoreId, tokenId, tokenName } = payload;

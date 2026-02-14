@@ -10,6 +10,7 @@ type PlayFieldProps = {
     is_logging?: boolean;
     players: PlayerWithResources[];
     myPlayerId: string | null;
+    layoutMode?: "grid" | "free";
 };
-export default function PlayField({ socket, roomId, deckId, name, is_logging, players, myPlayerId, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
+export default function PlayField({ socket, roomId, deckId, name, is_logging, players, myPlayerId, layoutMode, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
 export {};
