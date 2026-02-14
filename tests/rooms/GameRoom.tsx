@@ -7,7 +7,6 @@ import TokenStore from "../../src/components/TokenStore";
 import { useSocket } from "../../src/hooks/useSocket";
 import type { Player } from "../../src/types/player";
 import type { PlayerWithResources } from "../../src/types/playerWithResources";
-import DebugControlPanel from "../components/DebugControlPanel";
 import MyBoard from "../components/MyBoard";
 import Popup from "../components/PopUp";
 import "./GameRoom.css";
@@ -173,6 +172,7 @@ export default function GameRoom() {
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
+            autoFocus={true}
           />
           <button
             className="join-form-button"
@@ -247,21 +247,6 @@ export default function GameRoom() {
         tokenStoreId="ARTIFACT"
         name="遺物"
       />
-      <DebugControlPanel
-        players={players}
-        myPlayerId={myPlayerId}
-        debugTargetId={debugTargetId}
-        setDebugTargetId={setDebugTargetId}
-        debugScoreAmount={debugScoreAmount}
-        setDebugScoreAmount={setDebugScoreAmount}
-        handleDebugScore={handleDebugScore}
-        debugResourceAmount={debugResourceAmount}
-        setDebugResourceAmount={setDebugResourceAmount}
-        handleDebugResource={handleDebugResource}
-        RESOURCE_IDS={RESOURCE_IDS}
-        debugPanelStyle={{}}
-        inputStyle={{}}
-      />
 
       <div className="game-main-layout">
         {/* 左側グループ：デッキ列とフィールド列を横に並べる塊 */}
@@ -301,6 +286,7 @@ export default function GameRoom() {
               name="深海生物カード"
               myPlayerId={myPlayerId}
               players={players}
+              layoutMode="grid"
             />
           </div>
         </div>
@@ -314,7 +300,6 @@ export default function GameRoom() {
             currentPlayerId={currentPlayerId}
             myPlayerId={myPlayerId}
             playCardLimit={2}
-            autoNextTurnOnCardPlay={true}
           />
         </div>
       </div>
