@@ -28,7 +28,7 @@ interface Room {
   createdAt: number;
 }
 
-export default function LobbyRoom() {
+export function LobbyRoom() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [socket, setSocket] = useState<Socket | null>(null);

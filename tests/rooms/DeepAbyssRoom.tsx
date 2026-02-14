@@ -9,7 +9,7 @@ import type { Player } from "../../src/types/player";
 import type { PlayerWithResources } from "../../src/types/playerWithResources";
 import MyBoard from "../components/MyBoard";
 import Popup from "../components/PopUp";
-import "./GameRoom.css";
+import "./DeepAbyssRoom.css";
 
 const SERVER_URL = "http://127.0.0.1:4000";
 
@@ -41,7 +41,7 @@ interface GameResult {
   finalRound: number;
 }
 
-export default function GameRoom() {
+export function DeepAbyssRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
   const navigate = useNavigate();

@@ -16,7 +16,7 @@ interface TurnUpdatePayload {
   currentTurnIndex: number;
 }
 
-export default function GameRoom() {
+export function SampleRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
 

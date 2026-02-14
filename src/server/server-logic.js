@@ -412,8 +412,6 @@ export function initGameServer(io, options = {}) {
         if (!roomSettings.name) {
           roomSettings.name = gamePresetId || "default";
         }
-
-        // initializeRoom の内部で activeRooms.set(roomId, roomInfo) が実行される
         roomInfo = initializeRoom(roomId, roomSettings);
 
         // デッキが存在する場合のみシャッフルを実行
