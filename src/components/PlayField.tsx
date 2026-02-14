@@ -29,24 +29,15 @@ const CardDisplayContent = ({
   isFaceUp: boolean;
 }) => {
   if (!isFaceUp) {
-    console.log(
-      `[CardDisplayContent] Card ID: ${card.id}, Name: ${card.name} - isFaceUp is false. Not rendering.`,
-    );
     return null;
   }
 
   if (card.frontImage) {
-    console.log(
-      `[CardDisplayContent] Card ID: ${card.id}, Name: ${card.name} - Rendering with frontImage: ${card.frontImage}`,
-    );
     return (
       <img src={card.frontImage} alt={card.name} className="rg-card-image" />
     );
   }
 
-  console.log(
-    `[CardDisplayContent] Card ID: ${card.id}, Name: ${card.name} - Rendering with card.name (No frontImage).`,
-  );
   return (
     <div className="rg-card-text-content">
       <strong className="rg-card-name-label">{card.name}</strong>
@@ -62,7 +53,7 @@ type PlayFieldProps = {
   is_logging?: boolean;
   players: PlayerWithResources[];
   myPlayerId: string | null;
-  layoutMode?: "grid" | "free"; // 切り替え用
+  layoutMode?: "grid" | "free";
 };
 
 export default function PlayField({
@@ -76,45 +67,28 @@ export default function PlayField({
   layoutMode = "free",
 }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
-  // ドラッグ中の表示制御用
   const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(
     null,
   );
   const containerRef = React.useRef<HTMLDivElement>(null);
-  // 座標計算用
   const draggingIdRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     const handleUpdate = (data: { playFieldCards?: Card[] }) => {
       const newCards = data.playFieldCards || [];
-
       if (is_logging) {
-        client_log("playField", `[${deckId}] 場の状態を更新`);
-        client_log(
-          "playField",
-          `[${deckId}] 古いカード数: ${playedCards.length}, 新しいカード数: ${newCards.length}`,
-        );
-        client_log(
-          "playField",
-          `[${deckId}] 受信したカードリスト:`,
-          newCards.map((c) => c.name),
-        );
+        client_log("playField", `[${deckId}] 場の更新: ${newCards.length}枚`);
       }
-
-      console.log(
-        `[PlayField] Deck ${deckId} - Received ${newCards.length} cards for rendering.`,
-      );
       setPlayedCards(newCards);
     };
 
     socket.on(`deck:update:${roomId}:${deckId}`, handleUpdate);
-
     return () => {
       socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
     };
-  }, [socket, roomId, deckId, is_logging, playedCards.length]);
+  }, [socket, roomId, deckId, is_logging]);
 
-  // リアルタイム送信ロジック
+  // リアルタイム送信ロジック（境界制限付き）
   const emitMove = React.useMemo(
     () =>
       throttle((cardId: string, clientX: number, clientY: number) => {
@@ -122,15 +96,12 @@ export default function PlayField({
 
         const rect = containerRef.current.getBoundingClientRect();
 
-        // コンテナ内の相対座標を計算
+        // 座標計算 & 0-100% の範囲にクランプ
         let x = ((clientX - rect.left) / rect.width) * 100;
         let y = ((clientY - rect.top) / rect.height) * 100;
 
-        // --- ここで 0% 〜 100% の範囲に制限 ---
-        // 0未満なら0、100より大きければ100にする
         x = Math.max(0, Math.min(100, x));
         y = Math.max(0, Math.min(100, y));
-        // ------------------------------------
 
         socket.emit("card:move-on-field", {
           roomId,
@@ -176,21 +147,11 @@ export default function PlayField({
     };
 
     if (backTo === "hand") {
-      if (!card.ownerId) {
-        client_log(
-          "playField",
-          `警告: ${card.name} は手札指定ですが所有者が不明です。`,
-        );
-        return;
-      }
+      if (!card.ownerId) return;
       requestData.targetPlayerId = card.ownerId;
     }
 
     socket.emit("card:move-from-field", requestData);
-    client_log(
-      "playField",
-      `カード ${card.name} を ${backTo} へ移動リクエスト`,
-    );
   };
 
   return (
@@ -207,16 +168,29 @@ export default function PlayField({
           position: layoutMode === "free" ? "relative" : undefined,
           minHeight: "600px",
           touchAction: "none",
+          overflow: "hidden", // 枠外はみ出し防止
         }}
       >
         {playedCards.length === 0 && (
           <div className="rg-playfield-empty">（まだカードが出ていません）</div>
         )}
-        {playedCards.map((card) => {
+        {playedCards.map((card, index) => {
           const owner = players.find((p) => p.id === card.ownerId);
-          const ownerColor = owner?.color || "#aaaaaa";
-          const ownerNameInitial = owner?.name?.[0] || "?";
           const isDragging = activeDraggingId === card.id;
+
+          // --- 自動回避（オフセット）ロジック ---
+          // 他のカードと座標が重なっているか判定（誤差1%以内）
+          const isOverlapping = playedCards
+            .slice(0, index)
+            .some(
+              (other) =>
+                Math.abs((other.position?.x ?? 50) - (card.position?.x ?? 50)) <
+                  1 &&
+                Math.abs((other.position?.y ?? 50) - (card.position?.y ?? 50)) <
+                  1,
+            );
+          // 重なりがある場合、indexに応じて階段状にずらす
+          const visualOffset = isOverlapping ? index * 12 : 0;
 
           const freeStyle: React.CSSProperties =
             layoutMode === "free"
@@ -224,16 +198,13 @@ export default function PlayField({
                   position: "absolute",
                   left: `${card.position?.x ?? 50}%`,
                   top: `${card.position?.y ?? 50}%`,
-                  transform: "translate(-50%, -50%)",
-                  zIndex: isDragging ? 9999 : Math.floor(card.position?.y ?? 0),
+                  // transform内でオフセットを適用
+                  transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
+                  zIndex: isDragging
+                    ? 9999
+                    : Math.floor((card.position?.y ?? 0) * 100) + index,
                 }
-              : {
-                  position: undefined,
-                  left: undefined,
-                  top: undefined,
-                  transform: undefined,
-                  zIndex: undefined,
-                };
+              : {};
 
           return (
             <div
@@ -243,7 +214,7 @@ export default function PlayField({
               className={`${styles.card} rg-playfield-card-wrapper`}
               style={
                 {
-                  "--owner-color": ownerColor,
+                  "--owner-color": owner?.color || "#aaaaaa",
                   ...freeStyle,
                   "touchAction": "none",
                   "cursor": isDragging
@@ -262,11 +233,10 @@ export default function PlayField({
                   className="rg-playfield-owner-badge"
                   title={`所有者: ${owner?.name || "不明"}`}
                 >
-                  {ownerNameInitial}
+                  {owner?.name?.[0] || "?"}
                 </div>
               )}
 
-              {/* ドラッグ中(isDragging)はツールチップを表示しない */}
               {card.description && !isDragging && (
                 <span className={styles.tooltip}>{card.description}</span>
               )}
