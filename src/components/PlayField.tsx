@@ -9,6 +9,18 @@ import { client_log } from "../utils/client-log.js";
 import styles from "./Card.module.css";
 import "./PlayField.css";
 
+// 通信量制限用の throttle
+function throttle<T extends (...args: any[]) => any>(func: T, limit: number) {
+  let inThrottle: boolean;
+  return function (this: any, ...args: Parameters<T>) {
+    if (!inThrottle) {
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+}
+
 const CardDisplayContent = ({
   card,
   isFaceUp,
@@ -64,7 +76,13 @@ export default function PlayField({
   layoutMode = "free",
 }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
+  // ドラッグ中の表示制御用
+  const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(
+    null,
+  );
   const containerRef = React.useRef<HTMLDivElement>(null);
+  // 座標計算用
+  const draggingIdRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     const handleUpdate = (data: { playFieldCards?: Card[] }) => {
@@ -96,23 +114,52 @@ export default function PlayField({
     };
   }, [socket, roomId, deckId, is_logging, playedCards.length]);
 
-  const handleDragEnd = (e: React.DragEvent, card: Card) => {
-    if (layoutMode !== "free" || !containerRef.current) return;
+  // リアルタイム送信ロジック
+  const emitMove = React.useMemo(
+    () =>
+      throttle((cardId: string, clientX: number, clientY: number) => {
+        if (!containerRef.current) return;
 
-    // 離した瞬間に座標が0になるブラウザ対策
-    if (e.clientX === 0 && e.clientY === 0) return;
+        const rect = containerRef.current.getBoundingClientRect();
 
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    console.log("ここを通りました", x, y);
+        // コンテナ内の相対座標を計算
+        let x = ((clientX - rect.left) / rect.width) * 100;
+        let y = ((clientY - rect.top) / rect.height) * 100;
 
-    socket.emit("card:move-on-field", {
-      roomId,
-      deckId,
-      cardId: card.id,
-      position: { x, y },
-    });
+        // --- ここで 0% 〜 100% の範囲に制限 ---
+        // 0未満なら0、100より大きければ100にする
+        x = Math.max(0, Math.min(100, x));
+        y = Math.max(0, Math.min(100, y));
+        // ------------------------------------
+
+        socket.emit("card:move-on-field", {
+          roomId,
+          deckId,
+          cardId,
+          position: { x, y },
+        });
+      }, 50),
+    [socket, roomId, deckId],
+  );
+
+  const handlePointerDown = (e: React.PointerEvent, card: Card) => {
+    if (layoutMode !== "free") return;
+    draggingIdRef.current = card.id;
+    setActiveDraggingId(card.id);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!draggingIdRef.current) return;
+    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!draggingIdRef.current) return;
+    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    draggingIdRef.current = null;
+    setActiveDraggingId(null);
   };
 
   const handleCardBack = (card: Card) => {
@@ -155,10 +202,11 @@ export default function PlayField({
       <div
         ref={containerRef}
         className="rg-playfield-container"
-        onDragOver={(e) => e.preventDefault()}
+        onPointerMove={handlePointerMove}
         style={{
           position: layoutMode === "free" ? "relative" : undefined,
           minHeight: "600px",
+          touchAction: "none",
         }}
       >
         {playedCards.length === 0 && (
@@ -168,6 +216,7 @@ export default function PlayField({
           const owner = players.find((p) => p.id === card.ownerId);
           const ownerColor = owner?.color || "#aaaaaa";
           const ownerNameInitial = owner?.name?.[0] || "?";
+          const isDragging = activeDraggingId === card.id;
 
           const freeStyle: React.CSSProperties =
             layoutMode === "free"
@@ -176,7 +225,7 @@ export default function PlayField({
                   left: `${card.position?.x ?? 50}%`,
                   top: `${card.position?.y ?? 50}%`,
                   transform: "translate(-50%, -50%)",
-                  zIndex: Math.floor(card.position?.y ?? 0),
+                  zIndex: isDragging ? 9999 : Math.floor(card.position?.y ?? 0),
                 }
               : {
                   position: undefined,
@@ -189,13 +238,19 @@ export default function PlayField({
           return (
             <div
               key={card.id}
-              draggable={layoutMode === "free"}
-              onDragEnd={(e) => handleDragEnd(e, card)}
+              onPointerDown={(e) => handlePointerDown(e, card)}
+              onPointerUp={handlePointerUp}
               className={`${styles.card} rg-playfield-card-wrapper`}
               style={
                 {
                   "--owner-color": ownerColor,
                   ...freeStyle,
+                  "touchAction": "none",
+                  "cursor": isDragging
+                    ? "grabbing"
+                    : layoutMode === "free"
+                      ? "grab"
+                      : "default",
                 } as React.CSSProperties
               }
               onDoubleClick={() => handleCardBack(card)}
@@ -211,7 +266,8 @@ export default function PlayField({
                 </div>
               )}
 
-              {card.description && (
+              {/* ドラッグ中(isDragging)はツールチップを表示しない */}
+              {card.description && !isDragging && (
                 <span className={styles.tooltip}>{card.description}</span>
               )}
             </div>

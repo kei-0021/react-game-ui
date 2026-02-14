@@ -978,9 +978,8 @@ export function initGameServer(io, options = {}) {
       if (!roomInfo) return;
 
       const card = roomInfo.playFieldCards[deckId].find((c) => c.id === cardId);
-
       if (card) {
-        card.position = position; // ここで座標を上書き
+        card.position = position;
 
         emitDeckUpdate(roomId, deckId);
         emitPlayerUpdate(roomId);

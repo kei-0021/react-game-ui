@@ -1370,6 +1370,16 @@ function GridBoard({
 function client_log(tag, ...args) {
   console.log(`[${tag}]`, ...args);
 }
+function throttle(func, limit) {
+  let inThrottle;
+  return function(...args) {
+    if (!inThrottle) {
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}
 const CardDisplayContent$1 = ({
   card: card2,
   isFaceUp
@@ -1402,7 +1412,11 @@ function PlayField({
   layoutMode = "free"
 }) {
   const [playedCards, setPlayedCards] = React.useState([]);
+  const [activeDraggingId, setActiveDraggingId] = React.useState(
+    null
+  );
   const containerRef = React.useRef(null);
+  const draggingIdRef = React.useRef(null);
   React.useEffect(() => {
     const handleUpdate = (data) => {
       const newCards = data.playFieldCards || [];
@@ -1428,19 +1442,39 @@ function PlayField({
       socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
     };
   }, [socket, roomId, deckId, is_logging, playedCards.length]);
-  const handleDragEnd = (e, card2) => {
-    if (layoutMode !== "free" || !containerRef.current) return;
-    if (e.clientX === 0 && e.clientY === 0) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width * 100;
-    const y = (e.clientY - rect.top) / rect.height * 100;
-    console.log("ここを通りました", x, y);
-    socket.emit("card:move-on-field", {
-      roomId,
-      deckId,
-      cardId: card2.id,
-      position: { x, y }
-    });
+  const emitMove = React.useMemo(
+    () => throttle((cardId, clientX, clientY) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      let x = (clientX - rect.left) / rect.width * 100;
+      let y = (clientY - rect.top) / rect.height * 100;
+      x = Math.max(0, Math.min(100, x));
+      y = Math.max(0, Math.min(100, y));
+      socket.emit("card:move-on-field", {
+        roomId,
+        deckId,
+        cardId,
+        position: { x, y }
+      });
+    }, 50),
+    [socket, roomId, deckId]
+  );
+  const handlePointerDown = (e, card2) => {
+    if (layoutMode !== "free") return;
+    draggingIdRef.current = card2.id;
+    setActiveDraggingId(card2.id);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const handlePointerMove = (e) => {
+    if (!draggingIdRef.current) return;
+    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+  };
+  const handlePointerUp = (e) => {
+    if (!draggingIdRef.current) return;
+    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    draggingIdRef.current = null;
+    setActiveDraggingId(null);
   };
   const handleCardBack = (card2) => {
     const backTo = card2.fieldBackLocation || "discard";
@@ -1480,10 +1514,11 @@ function PlayField({
       {
         ref: containerRef,
         className: "rg-playfield-container",
-        onDragOver: (e) => e.preventDefault(),
+        onPointerMove: handlePointerMove,
         style: {
           position: layoutMode === "free" ? "relative" : void 0,
-          minHeight: "600px"
+          minHeight: "600px",
+          touchAction: "none"
         },
         children: [
           playedCards.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-playfield-empty", children: "（まだカードが出ていません）" }),
@@ -1491,12 +1526,13 @@ function PlayField({
             const owner = players.find((p) => p.id === card2.ownerId);
             const ownerColor = owner?.color || "#aaaaaa";
             const ownerNameInitial = owner?.name?.[0] || "?";
+            const isDragging = activeDraggingId === card2.id;
             const freeStyle = layoutMode === "free" ? {
               position: "absolute",
               left: `${card2.position?.x ?? 50}%`,
               top: `${card2.position?.y ?? 50}%`,
               transform: "translate(-50%, -50%)",
-              zIndex: Math.floor(card2.position?.y ?? 0)
+              zIndex: isDragging ? 9999 : Math.floor(card2.position?.y ?? 0)
             } : {
               position: void 0,
               left: void 0,
@@ -1507,12 +1543,14 @@ function PlayField({
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
-                draggable: layoutMode === "free",
-                onDragEnd: (e) => handleDragEnd(e, card2),
+                onPointerDown: (e) => handlePointerDown(e, card2),
+                onPointerUp: handlePointerUp,
                 className: `${styles$2.card} rg-playfield-card-wrapper`,
                 style: {
                   "--owner-color": ownerColor,
-                  ...freeStyle
+                  ...freeStyle,
+                  "touchAction": "none",
+                  "cursor": isDragging ? "grabbing" : layoutMode === "free" ? "grab" : "default"
                 },
                 onDoubleClick: () => handleCardBack(card2),
                 children: [
@@ -1525,7 +1563,7 @@ function PlayField({
                       children: ownerNameInitial
                     }
                   ),
-                  card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$2.tooltip, children: card2.description })
+                  card2.description && !isDragging && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$2.tooltip, children: card2.description })
                 ]
               },
               card2.id
