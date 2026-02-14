@@ -1,0 +1,18 @@
+.input-form {
+  text-align: center;
+  margin-top: 120px;
+}
+
+.game-container {
+  padding: 20px;
+}
+
+.round-display {
+  background-color: #333;
+  color: #00d4ff;
+  padding: 5px 15px;
+  border-radius: 5px;
+  display: inline-block;
+  font-weight: bold;
+  margin-bottom: 15px;
+}

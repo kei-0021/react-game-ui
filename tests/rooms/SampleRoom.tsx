@@ -6,6 +6,7 @@ import ScoreBoard from "../../src/components/ScoreBoard";
 import Timer from "../../src/components/Timer";
 import { useSocket } from "../../src/hooks/useSocket";
 import type { PlayerWithResources } from "../../src/types/playerWithResources";
+import "./SampleRoom.css";
 
 const SERVER_URL = "http://127.0.0.1:4000";
 
@@ -91,7 +92,7 @@ export function SampleRoom() {
 
   if (!hasJoined) {
     return (
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
+      <div className="input-form">
         <h2>ルーム参加</h2>
         <input
           type="text"
@@ -99,6 +100,8 @@ export function SampleRoom() {
           value={userName}
           onChange={(e) => setUserName(e.target.value)}
           disabled={isJoining}
+          onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
+          autoFocus
         />
         <button
           onClick={handleJoinRoom}
@@ -112,23 +115,11 @@ export function SampleRoom() {
 
   // --- 参加後 ---
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="game-container">
       <h1>Room ID: {roomId}</h1>
 
       {/* ラウンド表示 */}
-      <div
-        style={{
-          backgroundColor: "#333",
-          color: "#00d4ff",
-          padding: "5px 15px",
-          borderRadius: "5px",
-          display: "inline-block",
-          fontWeight: "bold",
-          marginBottom: "15px",
-        }}
-      >
-        ROUND: {currentRound}
-      </div>
+      <div className="round-display">ROUND: {currentRound}</div>
 
       <ScoreBoard
         socket={socket}
