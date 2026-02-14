@@ -133,6 +133,48 @@ export default function PlayField({
     setActiveDraggingId(null);
   };
 
+  // --- 手札（ScoreBoard）からの新規ドロップ受け入れ ---
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!containerRef.current || !myPlayerId) return;
+
+    const droppedCardId = e.dataTransfer.getData("cardId");
+    const droppedDeckId = e.dataTransfer.getData("deckId");
+    if (!droppedCardId || !droppedDeckId) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+
+    let x = ((e.clientX - rect.left) / rect.width) * 100;
+    let y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    x = Math.max(0, Math.min(100, x));
+    y = Math.max(0, Math.min(100, y));
+
+    // サーバーへ「この場所にプレイする」と送信
+    socket.emit("card:play", {
+      roomId,
+      deckId: droppedDeckId,
+      cardIds: [droppedCardId],
+      playerId: myPlayerId,
+      // サーバー側の strict な if 文に合わせて "field" 固定で送る
+      playLocation: "field",
+      position: { x, y }, // 座標を渡す
+    });
+
+    if (is_logging) {
+      client_log(
+        "playField",
+        `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`,
+      );
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    // ドロップを有効にするために必須
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
   const handleCardBack = (card: Card) => {
     const backTo = card.fieldBackLocation || "discard";
     const requestData: {
@@ -164,6 +206,8 @@ export default function PlayField({
         ref={containerRef}
         className="rg-playfield-container"
         onPointerMove={handlePointerMove}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
         style={{
           position: layoutMode === "free" ? "relative" : undefined,
           minHeight: "600px",
@@ -178,8 +222,6 @@ export default function PlayField({
           const owner = players.find((p) => p.id === card.ownerId);
           const isDragging = activeDraggingId === card.id;
 
-          // --- 自動回避（オフセット）ロジック ---
-          // 他のカードと座標が重なっているか判定（誤差1%以内）
           const isOverlapping = playedCards
             .slice(0, index)
             .some(
@@ -189,7 +231,6 @@ export default function PlayField({
                 Math.abs((other.position?.y ?? 50) - (card.position?.y ?? 50)) <
                   1,
             );
-          // 重なりがある場合、indexに応じて階段状にずらす
           const visualOffset = isOverlapping ? index * 12 : 0;
 
           const freeStyle: React.CSSProperties =
@@ -198,7 +239,6 @@ export default function PlayField({
                   position: "absolute",
                   left: `${card.position?.x ?? 50}%`,
                   top: `${card.position?.y ?? 50}%`,
-                  // transform内でオフセットを適用
                   transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
                   zIndex: isDragging
                     ? 9999

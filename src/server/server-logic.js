@@ -875,7 +875,15 @@ export function initGameServer(io, options = {}) {
     // カード使用
     socket.on(
       "card:play",
-      ({ roomId, deckId, cardIds, playerId, playLocation = "field" }) => {
+      ({
+        roomId,
+        deckId,
+        cardIds,
+        playerId,
+        playLocation = "field",
+        position,
+      }) => {
+        // position を受け取る
         const roomInfo = activeRooms.get(roomId);
         if (!roomInfo || !roomInfo.decks[deckId]) {
           server_log(
@@ -895,7 +903,7 @@ export function initGameServer(io, options = {}) {
           const card = decks[deckId].find((c) => c.id === cardId);
           if (!card) return;
 
-          // 元の配列からの削除（手札からの削除）
+          // 手札等からの削除
           if (playerId) {
             const player = gameStateInstance.players.find(
               (p) => p.id === playerId,
@@ -905,7 +913,9 @@ export function initGameServer(io, options = {}) {
             }
           }
 
-          // カードの location を更新
+          // 座標の更新: 送られてきたらそれを使う。なければ中央(50, 50)
+          card.position = position || { x: 50, y: 50 };
+
           card.location = playLocation;
           card.isFaceUp = true;
 
@@ -913,16 +923,16 @@ export function initGameServer(io, options = {}) {
             "card",
             roomInfo.gameName,
             roomId,
-            `Play: ${card.name} (ID:${card.id}) (${playerId}  -> ${playLocation})`,
+            `Play: ${card.name} (ID:${card.id}) (${playerId} -> ${playLocation}) at pos(${card.position.x}, ${card.position.y})`,
           );
 
-          // プレイフィールド、捨て札リストを更新（サーバー側で状態を追跡するための配列）
-          // 既存の場所からの削除と新しい場所への追加を行う
+          // 既存の場所から削除
           [playFieldCards[deckId], discardPile[deckId]].forEach((arr) => {
             const index = arr.findIndex((c) => c.id === cardId);
             if (index !== -1) arr.splice(index, 1);
           });
 
+          // 配列への追加（厳密チェック）
           if (playLocation === "discard") {
             card.ownerId = null;
             discardPile[deckId].push(card);

@@ -1455,6 +1455,38 @@ function PlayField({
     draggingIdRef.current = null;
     setActiveDraggingId(null);
   };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (!containerRef.current || !myPlayerId) return;
+    const droppedCardId = e.dataTransfer.getData("cardId");
+    const droppedDeckId = e.dataTransfer.getData("deckId");
+    if (!droppedCardId || !droppedDeckId) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    let x = (e.clientX - rect.left) / rect.width * 100;
+    let y = (e.clientY - rect.top) / rect.height * 100;
+    x = Math.max(0, Math.min(100, x));
+    y = Math.max(0, Math.min(100, y));
+    socket.emit("card:play", {
+      roomId,
+      deckId: droppedDeckId,
+      cardIds: [droppedCardId],
+      playerId: myPlayerId,
+      // サーバー側の strict な if 文に合わせて "field" 固定で送る
+      playLocation: "field",
+      position: { x, y }
+      // 座標を渡す
+    });
+    if (is_logging) {
+      client_log(
+        "playField",
+        `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`
+      );
+    }
+  };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
   const handleCardBack = (card2) => {
     const backTo = card2.fieldBackLocation || "discard";
     const requestData = {
@@ -1484,6 +1516,8 @@ function PlayField({
         ref: containerRef,
         className: "rg-playfield-container",
         onPointerMove: handlePointerMove,
+        onDrop: handleDrop,
+        onDragOver: handleDragOver,
         style: {
           position: layoutMode === "free" ? "relative" : void 0,
           minHeight: "600px",
@@ -1504,7 +1538,6 @@ function PlayField({
               position: "absolute",
               left: `${card2.position?.x ?? 50}%`,
               top: `${card2.position?.y ?? 50}%`,
-              // transform内でオフセットを適用
               transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
               zIndex: isDragging ? 9999 : Math.floor((card2.position?.y ?? 0) * 100) + index
             } : {};
@@ -1691,11 +1724,18 @@ const PlayerListItem = React.memo(
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
+                draggable: isOwner,
+                onDragStart: (e) => {
+                  if (!isOwner) return;
+                  e.dataTransfer.setData("cardId", card2.id);
+                  e.dataTransfer.setData("deckId", card2.deckId);
+                  e.dataTransfer.effectAllowed = "move";
+                },
                 className: `${styles.cardBase} rg-playfield-card-wrapper ${isSelected ? styles.cardSelected : ""} ${card2.isFaceUp ? styles.cardSuperRevealed : ""}`,
                 style: {
                   "--owner-color": playerColor,
                   "backgroundColor": canSeeFront ? "#fff" : card2.backColor,
-                  "cursor": isOwner ? "pointer" : "default",
+                  "cursor": isOwner ? "grab" : "default",
                   "border": card2.isFaceUp ? "3px solid #00ffff" : "1px solid #ccc",
                   "boxShadow": card2.isFaceUp ? "0 0 10px #00ffff" : "none"
                 },
@@ -1782,7 +1822,9 @@ function ScoreBoard({
         deckId,
         cardIds,
         playerId: myPlayerId,
-        playLocation: targetPlayLocation
+        playLocation: targetPlayLocation,
+        // ボタン経由の場合は中央(50, 50)に設定
+        position: { x: 50, y: 50 }
       });
     });
     if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });

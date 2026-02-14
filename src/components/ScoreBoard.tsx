@@ -137,6 +137,15 @@ const PlayerListItem = React.memo(
             return (
               <div
                 key={card.id}
+                draggable={isOwner}
+                onDragStart={(e) => {
+                  if (!isOwner) return;
+                  // ドラッグ開始時にカード情報をセット
+                  e.dataTransfer.setData("cardId", card.id);
+                  e.dataTransfer.setData("deckId", card.deckId);
+                  // ゴースト画像の挙動設定
+                  e.dataTransfer.effectAllowed = "move";
+                }}
                 className={`${styles.cardBase} rg-playfield-card-wrapper ${
                   isSelected ? styles.cardSelected : ""
                 } ${card.isFaceUp ? styles.cardSuperRevealed : ""}`}
@@ -144,7 +153,7 @@ const PlayerListItem = React.memo(
                   {
                     "--owner-color": playerColor,
                     "backgroundColor": canSeeFront ? "#fff" : card.backColor,
-                    "cursor": isOwner ? "pointer" : "default",
+                    "cursor": isOwner ? "grab" : "default",
                     "border": card.isFaceUp
                       ? "3px solid #00ffff"
                       : "1px solid #ccc",
@@ -207,7 +216,6 @@ export default function ScoreBoard({
     [],
   );
 
-  // 公開する
   const revealSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
     if (playCardLimit !== undefined && selectedCards.length > playCardLimit)
@@ -230,7 +238,6 @@ export default function ScoreBoard({
     autoNextTurnOnCardPlay,
   ]);
 
-  // 出す（プレイする）
   const playSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
     if (playCardLimit !== undefined && selectedCards.length > playCardLimit)
@@ -259,6 +266,8 @@ export default function ScoreBoard({
         cardIds,
         playerId: myPlayerId,
         playLocation: targetPlayLocation,
+        // ボタン経由の場合は中央(50, 50)に設定
+        position: { x: 50, y: 50 },
       });
     });
 
