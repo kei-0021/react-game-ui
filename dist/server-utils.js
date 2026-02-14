@@ -29,9 +29,11 @@ const ANSI_RESET = "\x1b[0m";
 /**
  * サーバーログを出力する
  * @param {string} tag - ログカテゴリタグ
+ * @param {string} gamePresetId - 対象ゲームID
+ * @param {string} roomId - 対象ルームID
  * @param {...any} args - 出力する値
  */
-export function server_log(tag, ...args) {
+export function server_log(tag, gamePresetId, roomId, ...args) {
   if (!LOG_CATEGORIES[tag]) return;
 
   if (tag === "warn") {
@@ -40,7 +42,7 @@ export function server_log(tag, ...args) {
       ...args.map((arg) => ANSI_RED + String(arg) + ANSI_RESET),
     );
   } else {
-    console.log(`[${tag}]`, ...args);
+    console.log(`[${tag}] [${gamePresetId} (${roomId})]`, ...args);
   }
 }
 
@@ -109,14 +111,23 @@ export const isExplored = (gameStateInstance, location) => {
 /**
  * マスを探索済みとしてマークする
  * @param {MockGameState} gameStateInstance
+ * @param {string} gameName
+ * @param {string} roomId
  * @param {Location} location
  * @returns {boolean} - 更新されたかどうか
  */
-export const markCellAsExplored = (gameStateInstance, location) => {
+export const markCellAsExplored = (
+  gameStateInstance,
+  gameName,
+  roomId,
+  location,
+) => {
   if (!isExplored(gameStateInstance, location)) {
     gameStateInstance.exploredCells.push(location);
     server_log(
       "cell",
+      gameName,
+      roomId,
       `マス (${location.row}, ${location.col}) を探索済みとしてマークしました。`,
     );
     return true;
@@ -127,10 +138,17 @@ export const markCellAsExplored = (gameStateInstance, location) => {
 /**
  * 特定のマスを探索済みリストから削除する（未探索に戻す）
  * @param {MockGameState} gameStateInstance
+ * @param {string} gameName
+ * @param {string} roomId
  * @param {Location} location
  * @returns {boolean} - 削除されたかどうか
  */
-export const unmarkCellAsExplored = (gameStateInstance, location) => {
+export const unmarkCellAsExplored = (
+  gameStateInstance,
+  gameName,
+  roomId,
+  location,
+) => {
   const initialLength = gameStateInstance.exploredCells.length;
 
   gameStateInstance.exploredCells = gameStateInstance.exploredCells.filter(
@@ -142,6 +160,8 @@ export const unmarkCellAsExplored = (gameStateInstance, location) => {
   if (wasRemoved) {
     server_log(
       "cell",
+      gameName,
+      roomId,
       `マス (${location.row}, ${location.col}) の探索済みマークを解除しました。`,
     );
   }
@@ -218,6 +238,8 @@ export const createRandomBoard = (initialBoard) => {
 /**
  * プレイヤーが停止したマス目の効果を適用する
  * @param {MockGameState} gameStateInstance - 現在のゲーム状態インスタンス
+ * @param {string} gameName
+ * @param {string} roomId
  * @param {string} playerId - 効果を適用するプレイヤーのID
  * @param {Location} location - プレイヤーが停止したマス目の座標
  * @param {object} cellEffects - マス効果定義 (effectName: function)
@@ -228,6 +250,8 @@ export const createRandomBoard = (initialBoard) => {
  */
 export const applyCellEffect = (
   gameStateInstance,
+  gameName,
+  roomId,
   playerId,
   location,
   cellEffects,
@@ -246,6 +270,8 @@ export const applyCellEffect = (
   ) {
     server_log(
       "warn",
+      gameName,
+      roomId,
       `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`,
     );
     return;
@@ -255,7 +281,12 @@ export const applyCellEffect = (
   const effect = cellEffects[cell.name];
 
   if (effect) {
-    server_log("cell", `マス効果発動: ${cell.name} by ${playerId}`);
+    server_log(
+      "cell",
+      gameName,
+      roomId,
+      `マス効果発動: ${cell.name} by ${playerId}`,
+    );
 
     try {
       // ヘルパー関数をバインドした関数を渡す
@@ -269,12 +300,19 @@ export const applyCellEffect = (
     } catch (e) {
       server_log(
         "warn",
+        gameName,
+        roomId,
         `マス効果の実行中にエラーが発生しました: ${cell.name}`,
         e,
       );
     }
   } else {
-    server_log("cell", `マス効果なし: (${row}, ${col}) ${cell.name}`);
+    server_log(
+      "cell",
+      gameName,
+      roomId,
+      `マス効果なし: (${row}, ${col}) ${cell.name}`,
+    );
   }
 };
 
@@ -332,17 +370,21 @@ export class MockGameState {
   /**
    * トークン獲得ロジックを処理する
    * @param {string} tokenStoreId - 獲得元のストアID
+   * @param {string} gameName
+   * @param {string} roomId
    * @param {string} playerId - プレイヤーID
    * @param {string} tokenId
    * @returns {boolean} 成功したかどうか
    */
-  acquireToken(tokenStoreId, playerId, tokenId) {
+  acquireToken(tokenStoreId, gameName, roomId, playerId, tokenId) {
     const player = this.players.find((p) => p.id === playerId);
     if (!player) return false;
 
     if (tokenStoreId === "scoreboard-acquisition") {
       server_log(
         "token",
+        gameName,
+        roomId,
         `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`,
       );
 
@@ -360,6 +402,8 @@ export class MockGameState {
       player.tokens.push(token);
       server_log(
         "token",
+        gameName,
+        roomId,
         `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`,
       );
       return true;
@@ -379,6 +423,8 @@ export class MockGameState {
 
         server_log(
           "token",
+          gameName,
+          roomId,
           `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
         );
         return true;

@@ -92,7 +92,9 @@ function initializeRoom(roomId, settings) {
 
     server_log(
       "deck",
-      `[${roomId}] デッキ "${deckConfig.name}" (${deckConfig.deckId}) 初期化完了`,
+      settings.name,
+      roomId,
+      `デッキ "${deckConfig.name}" (${deckConfig.deckId}) 初期化完了`,
     );
   });
 
@@ -114,7 +116,9 @@ function initializeRoom(roomId, settings) {
   activeRooms.set(roomId, roomInfo);
   server_log(
     "room",
-    `ルーム ${roomId} を初期化し、アクティブリストに追加しました。`,
+    roomInfo.gameName,
+    roomId,
+    `ルームの初期化処理が完了しました`,
   );
 
   return roomInfo;
@@ -183,7 +187,9 @@ export function initGameServer(io, options = {}) {
     );
     server_log(
       "cell",
-      `[${roomId}] Explored cells updated and broadcasted. Total: ${roomInfo.gameStateInstance.exploredCells.length}`,
+      roomInfo.gameName,
+      roomId,
+      `Explored cells updated and broadcasted. Total: ${roomInfo.gameStateInstance.exploredCells.length}`,
     );
   };
 
@@ -204,7 +210,9 @@ export function initGameServer(io, options = {}) {
     player.score = (player.score || 0) + points;
     server_log(
       "addScore",
-      `[${roomId}] ${player.name} に ${points} ポイント加算`,
+      roomInfo.gameName,
+      roomId,
+      `${player.name} に ${points} ポイント加算`,
     );
     emitPlayerUpdate(roomId);
   }
@@ -230,7 +238,9 @@ export function initGameServer(io, options = {}) {
     if (!resource) {
       server_log(
         "warn",
-        `[${roomId}] リソースID "${resourceId}" が見つかりません。`,
+        roomInfo.gameName,
+        roomId,
+        `リソースID "${resourceId}" が見つかりません。`,
       );
       return false;
     }
@@ -240,7 +250,9 @@ export function initGameServer(io, options = {}) {
 
     server_log(
       "resource",
-      `[${roomId}] ${player.name}: ${resource.name} を ${
+      roomInfo.gameName,
+      roomId,
+      `${player.name}: ${resource.name} を ${
         amount > 0 ? "+" : ""
       }${amount}、現在値: ${resource.currentValue}`,
     );
@@ -270,7 +282,9 @@ export function initGameServer(io, options = {}) {
     if (!token) {
       server_log(
         "warn",
-        `[${roomId}] トークンID "${tokenId}" がプレイヤーのインベントリに見つかりません。`,
+        roomInfo.gameName,
+        roomId,
+        `トークンID "${tokenId}" がプレイヤーのインベントリに見つかりません。`,
       );
       return false;
     }
@@ -280,7 +294,9 @@ export function initGameServer(io, options = {}) {
 
     server_log(
       "token",
-      `[${roomId}] ${player.name}: ${token.name || tokenId} を ${
+      roomInfo.gameName,
+      roomId,
+      `${player.name}: ${token.name || tokenId} を ${
         amount > 0 ? "+" : ""
       }${amount}、現在枚数: ${token.count}`,
     );
@@ -309,7 +325,9 @@ export function initGameServer(io, options = {}) {
     };
     server_log(
       "popup",
-      `[${roomId}] 全員にポップアップ要求: ${message} (色: ${color})`,
+      roomInfo.gameName,
+      roomId,
+      `全員にポップアップ要求: ${message} (色: ${color})`,
     );
     io.to(roomId).emit("client:show-popup", popupContent);
   }
@@ -335,7 +353,12 @@ export function initGameServer(io, options = {}) {
     // 全体のカードリストを更新（locationのプロパティは維持）
     roomInfo.decks[deckId] = shuffledDeck;
 
-    server_log("deck", `[${roomId}] デッキ ${deckId} をシャッフル`);
+    server_log(
+      "deck",
+      roomInfo.gameName,
+      roomId,
+      `デッキ ${deckId} をシャッフル`,
+    );
   }
 
   // --------------------
@@ -373,9 +396,9 @@ export function initGameServer(io, options = {}) {
 
       server_log(
         "room",
-        `[${roomId}][${gamePresetId}] Client ${
-          socket.id
-        } が join リクエストを送信 (Name: ${providedName || "N/A"})`,
+        gamePresetId,
+        roomId,
+        `${providedName || "N/A"} (${socket.id}) が room:join リクエストを送信`,
       );
 
       // --- ルーム情報の取得または作成 ---
@@ -469,7 +492,9 @@ export function initGameServer(io, options = {}) {
           }
           server_log(
             "deck",
-            `[${roomId}] 初期手札を ${cardsDealt}枚 配布しました (Preset: ${gamePresetId})`,
+            roomInfo.gameName,
+            roomId,
+            `初期手札を ${cardsDealt}枚 配布しました (Preset: ${roomInfo.gameName})`,
           );
         }
       } else {
@@ -546,7 +571,9 @@ export function initGameServer(io, options = {}) {
       if (!roomInfo) {
         server_log(
           "warn",
-          `[${roomId}] ルームが見つかりません for move-player`,
+          roomInfo.gameName,
+          roomId,
+          `ルームが見つかりません for move-player`,
         );
         return;
       }
@@ -560,14 +587,22 @@ export function initGameServer(io, options = {}) {
         playerToMove.position = newPosition;
         server_log(
           "game",
-          `[${roomId}] Player ${playerToMove.name} moved to (${newPosition.row}, ${newPosition.col})`,
+          roomInfo.gameName,
+          roomId,
+          `Player ${playerToMove.name} moved to (${newPosition.row}, ${newPosition.col})`,
         );
 
-        const wasUpdated = markCellAsExplored(gameStateInstance, newPosition);
+        const wasUpdated = markCellAsExplored(
+          gameStateInstance,
+          roomInfo.gameName,
+          roomId,
+          newPosition,
+        );
 
-        // applyCellEffect の引数にヘルパー関数をバインドして渡す
         applyCellEffect(
           gameStateInstance,
+          roomInfo.gameName,
+          roomId,
           playerId,
           newPosition,
           cellEffects,
@@ -585,7 +620,9 @@ export function initGameServer(io, options = {}) {
       } else {
         server_log(
           "warn",
-          `[${roomId}] Move requested for unknown player ID: ${playerId}`,
+          roomInfo.gameName,
+          roomId,
+          `Move requested for unknown player ID: ${playerId}`,
         );
       }
     });
@@ -596,7 +633,9 @@ export function initGameServer(io, options = {}) {
       if (!roomInfo) {
         server_log(
           "warn",
-          `[${roomId}] ルームが見つかりません for explore-cell`,
+          roomInfo.gameName,
+          roomId,
+          `ルームが見つかりません for explore-cell`,
         );
         return;
       }
@@ -608,11 +647,15 @@ export function initGameServer(io, options = {}) {
       if (player) {
         server_log(
           "game",
-          `[${roomId}] Player ${player.name} exploring cell at (${row}, ${col})`,
+          roomInfo.gameName,
+          roomId,
+          `Player ${player.name} exploring cell at (${row}, ${col})`,
         );
 
         const wasUpdated = markCellAsExplored(
           gameStateInstance,
+          roomInfo.gameName,
+          roomId,
           targetPosition,
         );
 
@@ -624,7 +667,9 @@ export function initGameServer(io, options = {}) {
       } else {
         server_log(
           "warn",
-          `[${roomId}] Explore requested for unknown player ID: ${playerId}`,
+          roomInfo.gameName,
+          roomId,
+          `Explore requested for unknown player ID: ${playerId}`,
         );
       }
     });
@@ -634,13 +679,17 @@ export function initGameServer(io, options = {}) {
       if (!roomInfo) {
         server_log(
           "warn",
-          `[${roomId}] ルームが見つかりません for unexplore-cell`,
+          roomInfo.gameName,
+          roomId,
+          `ルームが見つかりません for unexplore-cell`,
         );
         return;
       }
 
       const wasRemoved = unmarkCellAsExplored(
         roomInfo.gameStateInstance,
+        roomInfo.gameName,
+        roomId,
         targetPosition,
       );
 
@@ -655,7 +704,12 @@ export function initGameServer(io, options = {}) {
     socket.on("dice:roll", ({ roomId, diceId, sides }) => {
       const roomInfo = activeRooms.get(roomId);
       if (!roomInfo) {
-        server_log("warn", `[${roomId}] ルームが見つかりません for dice-roll`);
+        server_log(
+          "warn",
+          roomInfo.gameName,
+          roomId,
+          `ルームが見つかりません for dice-roll`,
+        );
         return;
       }
 
@@ -664,7 +718,9 @@ export function initGameServer(io, options = {}) {
 
       server_log(
         "game",
-        `[${roomId}] Dice ${diceId} rolled D${sides}. Result: ${rollValue}`,
+        roomInfo.gameName,
+        roomId,
+        `Dice ${diceId} rolled D${sides}. Result: ${rollValue}`,
       );
 
       // 💡 修正: ルーム内の全員に結果を、ユニークなイベント名でブロードキャスト
@@ -698,7 +754,9 @@ export function initGameServer(io, options = {}) {
         if (!roomInfo || !roomInfo.decks[deckId]) {
           server_log(
             "warn",
-            `[${roomId}] ルームまたはデッキが見つかりません for draw`,
+            roomInfo.gameName,
+            roomId,
+            `ルームまたはデッキが見つかりません for draw`,
           );
           return;
         }
@@ -707,7 +765,12 @@ export function initGameServer(io, options = {}) {
         // デッキにあるカードのみをフィルタリング
         const currentDeck = decks[deckId].filter((c) => c.location === "deck");
         if (!currentDeck.length) {
-          server_log("warn", `[${roomId}] デッキ ${deckId} は空です。`);
+          server_log(
+            "warn",
+            roomInfo.gameName,
+            roomId,
+            `デッキ ${deckId} は空です。`,
+          );
           return;
         }
 
@@ -751,7 +814,9 @@ export function initGameServer(io, options = {}) {
 
         server_log(
           "deck",
-          `[${roomId}] DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination})`,
+          roomInfo.gameName,
+          roomId,
+          `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination})`,
         );
 
         emitDeckUpdate(roomId, deckId);
@@ -762,7 +827,12 @@ export function initGameServer(io, options = {}) {
     // デッキシャッフル
     socket.on("deck:shuffle", ({ roomId, deckId }) => {
       if (!activeRooms.has(roomId)) {
-        server_log("warn", `[${roomId}] ルームが見つかりません for shuffle`);
+        server_log(
+          "warn",
+          roomInfo.gameName,
+          roomId,
+          `ルームが見つかりません for shuffle`,
+        );
         return;
       }
       shuffleDeck(roomId, deckId);
@@ -775,7 +845,9 @@ export function initGameServer(io, options = {}) {
       if (!roomInfo || !roomInfo.decks[deckId]) {
         server_log(
           "warn",
-          `[${roomId}] ルームまたはデッキが見つかりません for reset`,
+          roomInfo.gameName,
+          roomId,
+          `ルームまたはデッキが見つかりません for reset`,
         );
         return;
       }
@@ -794,7 +866,9 @@ export function initGameServer(io, options = {}) {
 
       server_log(
         "deck",
-        `[${roomId}] デッキ ${deckId} リセット (discard -> deck)`,
+        roomInfo.gameName,
+        roomId,
+        `デッキ ${deckId} リセット (discard -> deck)`,
       );
       shuffleDeck(roomId, deckId);
       emitDeckUpdate(roomId, deckId);
@@ -808,7 +882,9 @@ export function initGameServer(io, options = {}) {
         if (!roomInfo || !roomInfo.decks[deckId]) {
           server_log(
             "warn",
-            `[${roomId}] ルームまたはデッキが見つかりません for card:play`,
+            roomInfo.gameName,
+            roomId,
+            `ルームまたはデッキが見つかりません for card:play`,
           );
           return;
         }
@@ -837,7 +913,9 @@ export function initGameServer(io, options = {}) {
 
           server_log(
             "card",
-            `[${roomId}] Play: ${card.name} (ID:${card.id}) (${playerId}  -> ${playLocation})`,
+            roomInfo.gameName,
+            roomId,
+            `Play: ${card.name} (ID:${card.id}) (${playerId}  -> ${playLocation})`,
           );
 
           // プレイフィールド、捨て札リストを更新（サーバー側で状態を追跡するための配列）
@@ -859,7 +937,9 @@ export function initGameServer(io, options = {}) {
           if (effect) {
             server_log(
               "card",
-              `[${roomId}] カード効果発揮: ${card.name} by ${playerId}`,
+              roomInfo.gameName,
+              roomId,
+              `カード効果発揮: ${card.name} by ${playerId}`,
             );
             effect({
               playerId,
@@ -883,7 +963,9 @@ export function initGameServer(io, options = {}) {
       if (!roomInfo) {
         server_log(
           "warn",
-          `[${roomId}] ルームが見つかりません for card:reveal`,
+          roomInfo.gameName,
+          roomId,
+          `ルームが見つかりません for card:reveal`,
         );
         return;
       }
@@ -895,7 +977,9 @@ export function initGameServer(io, options = {}) {
       if (!player || !player.cards) {
         server_log(
           "warn",
-          `[${roomId}] プレイヤーまたは手札が見つかりません: ${playerId}`,
+          roomInfo.gameName,
+          roomId,
+          `プレイヤーまたは手札が見つかりません: ${playerId}`,
         );
         return;
       }
@@ -909,7 +993,9 @@ export function initGameServer(io, options = {}) {
 
         server_log(
           "card",
-          `[${roomId}] Reveal: ${card.name} (ID:${card.id}) by ${playerId}`,
+          roomInfo.gameName,
+          roomId,
+          `Reveal: ${card.name} (ID:${card.id}) by ${playerId}`,
         );
       });
 
@@ -952,7 +1038,9 @@ export function initGameServer(io, options = {}) {
 
             server_log(
               "card",
-              `[${roomId}] Return: ${card.name} -> Player:${targetPlayerId}`,
+              roomInfo.gameName,
+              roomId,
+              `Return: ${card.name} -> Player:${targetPlayerId}`,
             );
           }
         } else {
@@ -962,7 +1050,12 @@ export function initGameServer(io, options = {}) {
           card.isFaceUp = true;
           roomInfo.discardPile[deckId].push(card);
 
-          server_log("card", `[${roomId}] Return: ${card.name} -> discard`);
+          server_log(
+            "card",
+            roomInfo.gameName,
+            roomId,
+            `Return: ${card.name} -> discard`,
+          );
         }
 
         emitDeckUpdate(roomId, deckId);
@@ -992,7 +1085,7 @@ export function initGameServer(io, options = {}) {
 
       const roomInfo = activeRooms.get(roomId);
       if (!roomInfo) {
-        server_log("warn", `[${roomId}] Room not found.`);
+        server_log("warn", roomInfo.gameName, roomId, ` Room not found.`);
         return;
       }
 
@@ -1005,7 +1098,9 @@ export function initGameServer(io, options = {}) {
       if (!player) {
         server_log(
           "warn",
-          `[${roomId}] プレイヤーが見つかりません (socket.id: ${socket.id})`,
+          roomInfo.gameName,
+          roomId,
+          `プレイヤーが見つかりません (socket.id: ${socket.id})`,
         );
         return;
       }
@@ -1013,11 +1108,15 @@ export function initGameServer(io, options = {}) {
 
       server_log(
         "token",
-        `[${roomId}] Player ${player.name} attempts to acquire token: ${tokenName} (Store: ${tokenStoreId}, ID: ${tokenId})`,
+        roomInfo.gameName,
+        roomId,
+        `Player ${player.name} attempts to acquire token: ${tokenName} (Store: ${tokenStoreId}, ID: ${tokenId})`,
       );
 
       const success = gameStateInstance.acquireToken(
         tokenStoreId,
+        roomInfo.gameName,
+        roomId,
         playerId,
         tokenId,
       );
@@ -1034,7 +1133,9 @@ export function initGameServer(io, options = {}) {
             );
             server_log(
               "token",
-              `[${roomId}] ストア ${tokenStoreId} の更新 (${updatedTokens.length} 個) をブロードキャストしました。`,
+              roomInfo.gameName,
+              roomId,
+              `ストア ${tokenStoreId} の更新 (${updatedTokens.length} 個) をブロードキャストしました。`,
             );
           }
         }
@@ -1047,7 +1148,9 @@ export function initGameServer(io, options = {}) {
       } else {
         server_log(
           "warn",
-          `[${roomId}] Failed to acquire token ${tokenId}. It might not exist or logic failed.`,
+          roomInfo.gameName,
+          roomId,
+          `Failed to acquire token ${tokenId}. It might not exist or logic failed.`,
         );
         const currentTokens = gameStateInstance
           .getTokenStore(tokenStoreId)
@@ -1068,12 +1171,13 @@ export function initGameServer(io, options = {}) {
     /**
      * ルームのタイマーを停止・クリアする
      * @param {string} roomId
+     * @param {string} gameName
      */
-    function stopTimer(roomId) {
+    function stopTimer(roomId, gameName) {
       if (roomTimers.has(roomId)) {
         clearTimeout(roomTimers.get(roomId));
         roomTimers.delete(roomId);
-        server_log("timer", `[${roomId}] タイマーを停止しました。`);
+        server_log("timer", gameName, roomId, `タイマーを停止しました。`);
       }
     }
 
@@ -1082,18 +1186,26 @@ export function initGameServer(io, options = {}) {
      * @param {{ duration: number, roomId: string }} data
      */
     socket.on("timer:start", ({ duration, roomId }) => {
+      const roomInfo = activeRooms.get(roomId);
       if (!activeRooms.has(roomId)) {
         server_log(
           "warn",
-          `[${roomId}] 存在しないルームでタイマー開始リクエストを受信。`,
+          roomInfo.gameName,
+          roomId,
+          `存在しないルームでタイマー開始リクエストを受信。`,
         );
         return;
       }
 
-      server_log("timer", `[${roomId}] ${duration}秒のタイマーを開始します。`);
+      server_log(
+        "timer",
+        roomInfo.gameName,
+        roomId,
+        `${duration}秒のタイマーを開始します。`,
+      );
 
       // 既存のタイマーをクリア
-      stopTimer(roomId);
+      stopTimer(roomId, roomInfo.gameName);
 
       let remainingTime = duration;
 
@@ -1106,7 +1218,12 @@ export function initGameServer(io, options = {}) {
           stopTimer(roomId);
           io.to(roomId).emit("timer:update", { remaining: 0, roomId });
           io.to(roomId).emit("timer:finish", { roomId });
-          server_log("timer", `[${roomId}] タイマーが終了しました。`);
+          server_log(
+            "timer",
+            roomInfo.gameName,
+            roomId,
+            `タイマーが終了しました。`,
+          );
           return;
         }
 
@@ -1139,7 +1256,12 @@ export function initGameServer(io, options = {}) {
       // ユーザー定義の checkGameEnd があれば実行
       if (typeof roomInfo.checkGameEnd === "function") {
         if (roomInfo.checkGameEnd(roomInfo)) {
-          server_log("game", `[${roomId}] ゲーム終了条件を満たしました。`);
+          server_log(
+            "game",
+            roomInfo.gameName,
+            roomId,
+            `ゲーム終了条件を満たしました。`,
+          );
 
           // ユーザー定義の onGameEnd を実行する
           const results =
@@ -1167,7 +1289,9 @@ export function initGameServer(io, options = {}) {
       // ログにラウンドとターンを両方出す
       server_log(
         "game",
-        `[${roomId}] ターン更新 (Player: ${currentPlayer?.name}, Round: ${roomInfo.currentRoundIndex})`,
+        roomInfo.gameName,
+        roomId,
+        `ターン更新 (Player: ${currentPlayer?.name}, Round: ${roomInfo.currentRoundIndex})`,
       );
 
       // クライアント側でもラウンドを表示したいので、一緒に送る
@@ -1181,7 +1305,9 @@ export function initGameServer(io, options = {}) {
     socket.on("require-popup", ({ roomId, message, color = "blue" }) => {
       server_log(
         "popup",
-        `[${roomId}] 全員にポップアップ要求: ${message} (色: ${color})`,
+        roomInfo.gameName,
+        roomId,
+        `全員にポップアップ要求: ${message} (色: ${color})`,
       );
 
       const popupContent = {
@@ -1216,7 +1342,9 @@ export function initGameServer(io, options = {}) {
           roomInfo.gameStateInstance.players.splice(playerIndex, 1);
           server_log(
             "room",
-            `[${roomId}] プレイヤー ${disconnectingPlayer.name} (${disconnectingPlayer.id}) をリストから削除しました。`,
+            roomInfo.gameName,
+            roomId,
+            `プレイヤー ${disconnectingPlayer.name} (${disconnectingPlayer.id}) をリストから削除しました。`,
           );
           break;
         }
