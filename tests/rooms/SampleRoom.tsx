@@ -11,6 +11,8 @@ import "./SampleRoom.css";
 
 const SERVER_URL = "http://127.0.0.1:4000";
 
+const DRAGGABLE_IMAGE_PATH = "/hanabishi.svg";
+
 // サーバーから送られてくるターン情報の型定義
 interface TurnUpdatePayload {
   playerId: string;
@@ -140,13 +142,17 @@ export function SampleRoom() {
         name="数字カード"
       ></Deck>
       <Draggable
+        image={DRAGGABLE_IMAGE_PATH}
+        mask={true}
         key={`piece`}
         pieceId={`piece`}
         socket={socket}
         roomId={roomId}
         initialX={1000}
         initialY={500}
-        containerRef={containerRef} // Draggable側でこのrefを使って座標計算する
+        containerRef={containerRef}
+        color="red"
+        size={150}
       ></Draggable>
     </div>
   );

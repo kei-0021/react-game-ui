@@ -14,6 +14,8 @@ interface GridBounds {
 }
 
 interface DraggableProps {
+  image?: string;
+  mask?: boolean;
   initialX?: number;
   initialY?: number;
   size?: number;
@@ -31,6 +33,8 @@ interface DraggableProps {
 }
 
 export function Draggable({
+  image,
+  mask = false,
   initialX = 500,
   initialY = 500,
   size = 100,
@@ -74,9 +78,7 @@ export function Draggable({
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
 
-    // querySelectorの代わりに渡されたrefを使う
     const fixedContainer = containerRef?.current;
-
     if (!fixedContainer) {
       console.error("containerRef がセットされていません！");
       return;
@@ -93,8 +95,6 @@ export function Draggable({
     const interval = 1000 / targetFPS;
 
     const handleMouseMove = (ev: MouseEvent) => {
-      console.log("MouseMove: triggered");
-
       const now = performance.now();
       if (now - lastTime < interval) return;
       lastTime = now;
@@ -116,7 +116,6 @@ export function Draggable({
     };
 
     const handleMouseUp = () => {
-      console.log("MouseUp: end");
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
 
@@ -133,15 +132,35 @@ export function Draggable({
 
   const handleDoubleClick = () => setRotation((prev) => prev + 90);
 
+  const maskStyle: CSSProperties =
+    mask && image
+      ? {
+          WebkitMaskImage: `url(${image})`,
+          maskImage: `url(${image})`,
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+          backgroundColor: color || "yellow",
+        }
+      : {};
+
   const dynamicStyle: CSSProperties = {
     left: `${pos.x}px`,
     top: `${pos.y}px`,
     width: `${size}px`,
     height: `${size}px`,
-    background: isTransparent ? "transparent" : color,
+    background:
+      mask && image ? undefined : isTransparent ? "transparent" : color,
     transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-    position: "absolute", // これ重要
+    position: "absolute",
     cursor: "grab",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    ...maskStyle,
     ...style,
   };
 
@@ -152,7 +171,22 @@ export function Draggable({
       className={styles.draggable}
       style={dynamicStyle}
     >
-      {children}
+      {image ? (
+        <img
+          src={image}
+          alt=""
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            pointerEvents: "none",
+            userSelect: "none",
+            mixBlendMode: mask ? "multiply" : "normal",
+          }}
+        />
+      ) : (
+        children
+      )}
     </div>
   );
 }
