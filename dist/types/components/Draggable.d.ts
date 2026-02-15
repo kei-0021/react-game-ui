@@ -9,6 +9,8 @@ interface GridBounds {
     cellSize: number;
 }
 interface DraggableProps {
+    image?: string;
+    mask?: boolean;
     initialX?: number;
     initialY?: number;
     size?: number;
@@ -24,5 +26,5 @@ interface DraggableProps {
     scale?: number;
     containerRef?: React.RefObject<HTMLElement | null>;
 }
-export declare function Draggable({ initialX, initialY, size, color, isTransparent, children, style, socket, roomId, pieceId, onDragEnd, scale, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
+export declare function Draggable({ image, mask, initialX, initialY, size, color, isTransparent, children, style, socket, roomId, pieceId, onDragEnd, scale, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
 export {};

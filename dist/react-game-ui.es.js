@@ -1235,6 +1235,8 @@ const styles$2 = {
   draggable
 };
 function Draggable({
+  image,
+  mask = false,
   initialX = 500,
   initialY = 500,
   size = 100,
@@ -1284,7 +1286,6 @@ function Draggable({
     const targetFPS = 50;
     const interval = 1e3 / targetFPS;
     const handleMouseMove = (ev) => {
-      console.log("MouseMove: triggered");
       const now = performance.now();
       if (now - lastTime < interval) return;
       lastTime = now;
@@ -1301,7 +1302,6 @@ function Draggable({
       }
     };
     const handleMouseUp = () => {
-      console.log("MouseUp: end");
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
       const { x, y } = posRef.current;
@@ -1314,16 +1314,30 @@ function Draggable({
     document.addEventListener("mouseup", handleMouseUp);
   };
   const handleDoubleClick = () => setRotation((prev) => prev + 90);
+  const maskStyle = mask && image ? {
+    WebkitMaskImage: `({})(${image})`,
+    maskImage: `({})(${image})`,
+    WebkitMaskSize: "contain",
+    maskSize: "contain",
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+    WebkitMaskPosition: "center",
+    maskPosition: "center",
+    backgroundColor: color || "yellow"
+  } : {};
   const dynamicStyle = {
     left: `${pos.x}px`,
     top: `${pos.y}px`,
     width: `${size}px`,
     height: `${size}px`,
-    background: isTransparent ? "transparent" : color,
+    background: mask && image ? void 0 : isTransparent ? "transparent" : color,
     transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
     position: "absolute",
-    // これ重要
     cursor: "grab",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    ...maskStyle,
     ...style
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -1333,7 +1347,21 @@ function Draggable({
       onDoubleClick: handleDoubleClick,
       className: styles$2.draggable,
       style: dynamicStyle,
-      children
+      children: image ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "img",
+        {
+          src: image,
+          alt: "",
+          style: {
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            pointerEvents: "none",
+            userSelect: "none",
+            mixBlendMode: mask ? "multiply" : "normal"
+          }
+        }
+      ) : children
     }
   );
 }
