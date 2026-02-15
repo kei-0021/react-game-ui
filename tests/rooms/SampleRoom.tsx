@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import Deck from "../../src/components/Deck";
 import Dice from "../../src/components/Dice";
+import { Draggable } from "../../src/components/Draggable";
 import ScoreBoard from "../../src/components/ScoreBoard";
 import Timer from "../../src/components/Timer";
 import { useSocket } from "../../src/hooks/useSocket";
@@ -28,6 +29,8 @@ export function SampleRoom() {
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<PlayerWithResources[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // ラウンドの状態を追加
   const [currentRound, setCurrentRound] = useState<number>(1);
@@ -115,12 +118,12 @@ export function SampleRoom() {
 
   // --- 参加後 ---
   return (
-    <div className="game-container">
+    <div className="game-container" ref={containerRef}>
+      {" "}
+      {/* ← ここに渡す */}
       <h1>Room ID: {roomId}</h1>
-
       {/* ラウンド表示 */}
       <div className="round-display">ROUND: {currentRound}</div>
-
       <ScoreBoard
         socket={socket}
         roomId={roomId}
@@ -136,6 +139,15 @@ export function SampleRoom() {
         deckId="numberDeck"
         name="数字カード"
       ></Deck>
+      <Draggable
+        key={`piece`}
+        pieceId={`piece`}
+        socket={socket}
+        roomId={roomId}
+        initialX={1000}
+        initialY={500}
+        containerRef={containerRef} // Draggable側でこのrefを使って座標計算する
+      ></Draggable>
     </div>
   );
 }

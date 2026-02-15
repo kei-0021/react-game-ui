@@ -1172,6 +1172,12 @@ export function initGameServer(io, options = {}) {
       }
     });
 
+    // ドラッグ可能オブジェクト関連
+    socket.on("draggable:moved", (data) => {
+      const { roomId, ...move } = data;
+      socket.to(roomId).emit("draggable:update", move);
+    });
+
     // ------------------------------------
     // 3. タイマー機能
     // ------------------------------------
