@@ -930,7 +930,7 @@ function requireJsxRuntime() {
 var jsxRuntimeExports = requireJsxRuntime();
 const boardContainer = "_boardContainer_1laip_8";
 const cell = "_cell_1laip_28";
-const styles$5 = {
+const styles$6 = {
   boardContainer,
   cell
 };
@@ -958,7 +958,7 @@ const Cell = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
-      className: styles$5.cell,
+      className: styles$6.cell,
       onClick: handleClick,
       onDoubleClick: handleDoubleClick,
       onDrop,
@@ -975,7 +975,7 @@ const deckCard = "_deckCard_1mv54_66";
 const deckCardFront = "_deckCardFront_1mv54_78";
 const deckSection = "_deckSection_1mv54_95";
 const discardPileWrapper = "_discardPileWrapper_1mv54_103";
-const styles$4 = {
+const styles$5 = {
   card,
   tooltip: tooltip$1,
   deckContainer,
@@ -1055,21 +1055,21 @@ function Deck({
   };
   const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$4.deckSection, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$5.deckSection, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: deckStyles.deckTitle, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.deckControls, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.deckControls, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, children: "シャッフル" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
-        className: `${styles$4.deckWrapper} ${deckStyles.deckWrapperFlex}`,
+        className: `${styles$5.deckWrapper} ${deckStyles.deckWrapperFlex}`,
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
-              className: styles$4.deckCard,
+              className: styles$5.deckCard,
               style: {
                 zIndex: deckCards.length - i,
                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
@@ -1078,10 +1078,10 @@ function Deck({
             },
             c.id
           )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
-              className: styles$4.deckCardFront,
+              className: styles$5.deckCardFront,
               style: {
                 zIndex: i + 1,
                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
@@ -1093,11 +1093,11 @@ function Deck({
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
-              className: `${styles$4.deckContainer} ${styles$4.discardPileWrapper}`,
+              className: `${styles$5.deckContainer} ${styles$5.discardPileWrapper}`,
               children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
                 "div",
                 {
-                  className: styles$4.deckCardFront,
+                  className: styles$5.deckCardFront,
                   style: {
                     zIndex: i + 1,
                     transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
@@ -1110,7 +1110,7 @@ function Deck({
                     i === discardPile.length - 1 && c.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
                       "span",
                       {
-                        className: `${styles$4.tooltip} ${deckStyles.tooltipBase}`,
+                        className: `${styles$5.tooltip} ${deckStyles.tooltipBase}`,
                         style: {
                           visibility: isDiscardHovered ? "visible" : "hidden",
                           opacity: isDiscardHovered ? 1 : 0
@@ -1135,7 +1135,7 @@ const diceNotRolling = "_diceNotRolling_9d2ym_24";
 const faceImage = "_faceImage_9d2ym_28";
 const faceContainer = "_faceContainer_9d2ym_34";
 const defaultText = "_defaultText_9d2ym_42";
-const styles$3 = {
+const styles$4 = {
   dice,
   diceRolling,
   diceNotRolling,
@@ -1205,7 +1205,7 @@ function Dice({
   };
   const renderDiceFace = () => {
     if (customFaces && customFaces[value - 1]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.faceContainer, children: customFaces[value - 1] });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.faceContainer, children: customFaces[value - 1] });
     }
     if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -1213,23 +1213,23 @@ function Dice({
         {
           src: defaultDiceImages[value],
           alt: `Dice face ${value}`,
-          className: styles$3.faceImage
+          className: styles$4.faceImage
         }
       );
     }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$3.defaultText, children: value });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$4.defaultText, children: value });
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
-      className: `${styles$3.dice} ${rolling ? styles$3.diceRolling : styles$3.diceNotRolling}`,
+      className: `${styles$4.dice} ${rolling ? styles$4.diceRolling : styles$4.diceNotRolling}`,
       onClick: roll,
       children: renderDiceFace()
     }
   );
 }
 const draggable = "_draggable_1bsjy_3";
-const styles$2 = {
+const styles$3 = {
   draggable
 };
 function Draggable({
@@ -1346,7 +1346,7 @@ function Draggable({
     {
       onMouseDown: handleMouseDown,
       onDoubleClick: handleDoubleClick,
-      className: styles$2.draggable,
+      className: styles$3.draggable,
       style: dynamicStyle,
       children: image ? /* @__PURE__ */ jsxRuntimeExports.jsx(
         "img",
@@ -1367,7 +1367,7 @@ function Draggable({
   );
 }
 const piece = "_piece_wi08l_3";
-const styles$1 = {
+const styles$2 = {
   piece
 };
 function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
@@ -1384,8 +1384,8 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
     }
   };
   const pieceClasses = [
-    styles$1.piece,
-    isDraggable ? styles$1.draggable : styles$1.clickable
+    styles$2.piece,
+    isDraggable ? styles$2.draggable : styles$2.clickable
   ].join(" ");
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
@@ -1439,7 +1439,7 @@ function GridBoard({
     height: "600px",
     position: "relative"
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.boardContainer, style: boardStyle, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [
     boardData.map((rowArr, row) => rowArr.map((originalCellData, col) => {
       const isChanged = changedCells.some(
         (loc2) => loc2.row === row && loc2.col === col
@@ -1682,7 +1682,7 @@ function PlayField({
               {
                 onPointerDown: (e) => handlePointerDown(e, card2),
                 onPointerUp: handlePointerUp,
-                className: `${styles$4.card} rg-playfield-card-wrapper`,
+                className: `${styles$5.card} rg-playfield-card-wrapper`,
                 style: {
                   "--owner-color": owner?.color || "#aaaaaa",
                   ...freeStyle,
@@ -1700,7 +1700,7 @@ function PlayField({
                       children: owner?.name?.[0] || "?"
                     }
                   ),
-                  card2.description && !isDragging && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$4.tooltip, children: card2.description })
+                  card2.description && !isDragging && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$5.tooltip, children: card2.description })
                 ]
               },
               card2.id
@@ -1711,6 +1711,86 @@ function PlayField({
     )
   ] });
 }
+const container$1 = "_container_17uio_2";
+const cursorWrapper = "_cursorWrapper_17uio_13";
+const icon = "_icon_17uio_21";
+const label = "_label_17uio_29";
+const styles$1 = {
+  container: container$1,
+  cursorWrapper,
+  icon,
+  label
+};
+const RemoteCursor = React__default.memo(
+  ({
+    socket,
+    roomId,
+    myPlayerId,
+    players,
+    scale,
+    fixedContainerRef,
+    visible,
+    isRelative = true
+  }) => {
+    const [remoteCursors, setRemoteCursors] = useState({});
+    useEffect(() => {
+      if (!socket) return;
+      const handleUpdate = (data) => {
+        if (data.playerId === socket.id || data.playerId === myPlayerId) return;
+        setRemoteCursors((prev) => ({
+          ...prev,
+          [data.playerId]: { x: data.x, y: data.y }
+        }));
+      };
+      socket.on("cursor:update", handleUpdate);
+      return () => {
+        socket.off("cursor:update", handleUpdate);
+      };
+    }, [socket, myPlayerId]);
+    useEffect(() => {
+      if (!socket || !roomId || !myPlayerId || !fixedContainerRef.current)
+        return;
+      const THROTTLE = 50;
+      let lastTime = 0;
+      const handleMove = (e) => {
+        const now = Date.now();
+        if (now - lastTime < THROTTLE) return;
+        lastTime = now;
+        const rect = fixedContainerRef.current.getBoundingClientRect();
+        const x = isRelative ? (e.clientX - rect.left) / rect.width : (e.clientX - rect.left) / scale;
+        const y = isRelative ? (e.clientY - rect.top) / rect.height : (e.clientY - rect.top) / scale;
+        socket.emit("cursor:move", {
+          roomId,
+          playerId: myPlayerId,
+          x,
+          y
+        });
+      };
+      window.addEventListener("mousemove", handleMove);
+      return () => window.removeEventListener("mousemove", handleMove);
+    }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
+    if (!visible) return null;
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
+      const player = players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
+      const name = player ? player.name : "接続中...";
+      const color = player?.color || "#000000";
+      const left = isRelative ? `${coords.x * 100}%` : coords.x;
+      const top = isRelative ? `${coords.y * 100}%` : coords.y;
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          className: styles$1.cursorWrapper,
+          style: { left, top },
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.icon, style: { color }, children: "👆" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.label, style: { backgroundColor: color }, children: name })
+          ]
+        },
+        id
+      );
+    }) });
+  }
+);
 const container = "_container_9hhf7_1";
 const title = "_title_9hhf7_13";
 const playerList = "_playerList_9hhf7_22";
@@ -2215,6 +2295,7 @@ export {
   Draggable,
   GridBoard,
   PlayField,
+  RemoteCursor,
   ScoreBoard,
   Timer,
   TokenStore
