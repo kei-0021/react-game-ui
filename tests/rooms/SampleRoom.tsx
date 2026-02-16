@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import Deck from "../../src/components/Deck";
@@ -10,10 +11,8 @@ import type { PlayerWithResources } from "../../src/types/playerWithResources";
 import "./SampleRoom.css";
 
 const SERVER_URL = "http://127.0.0.1:4000";
-
 const DRAGGABLE_IMAGE_PATH = "/hanabishi.svg";
 
-// サーバーから送られてくるターン情報の型定義
 interface TurnUpdatePayload {
   playerId: string;
   currentRound: number;
@@ -33,8 +32,6 @@ export function SampleRoom() {
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // ラウンドの状態を追加
   const [currentRound, setCurrentRound] = useState<number>(1);
 
   const GAME_PRESET_ID = "sample";
@@ -57,26 +54,18 @@ export function SampleRoom() {
       setMyPlayerId(id);
       setHasJoined(true);
       setIsJoining(false);
-      console.log(`プレイヤーID: ${id} が渡されました`);
     };
 
     const handlePlayersUpdate = (updatedPlayers: PlayerWithResources[]) => {
-      console.log("[CLIENT] players:update", updatedPlayers);
       setPlayers(updatedPlayers);
     };
 
-    // 文字列（IDのみ）とオブジェクト（詳細データ）の両方に対応する
     const handleGameTurn = (data: TurnUpdatePayload | string) => {
-      console.log("[CLIENT] game:turn received:", data);
-
       if (typeof data === "string") {
-        // 互換性維持のため、文字列ならIDとしてセット
         setCurrentPlayerId(data);
       } else {
-        // オブジェクトならIDとラウンドをセット
         setCurrentPlayerId(data.playerId);
         setCurrentRound(data.currentRound);
-        console.log(`[CLIENT] Round Updated to: ${data.currentRound}`);
       }
     };
 
@@ -91,7 +80,6 @@ export function SampleRoom() {
     };
   }, [socket, roomId]);
 
-  // --- 参加前 ---
   if (!roomId) return <p>⚠️ ルームIDがURLから取得できません</p>;
   if (!socket) return <p>サーバーに接続中...</p>;
 
@@ -118,13 +106,9 @@ export function SampleRoom() {
     );
   }
 
-  // --- 参加後 ---
   return (
     <div className="game-container" ref={containerRef}>
-      {" "}
-      {/* ← ここに渡す */}
       <h1>Room ID: {roomId}</h1>
-      {/* ラウンド表示 */}
       <div className="round-display">ROUND: {currentRound}</div>
       <ScoreBoard
         socket={socket}
@@ -133,7 +117,36 @@ export function SampleRoom() {
         currentPlayerId={currentPlayerId}
         myPlayerId={myPlayerId}
       />
-      <Dice socket={socket} diceId="1" roomId={roomId} />
+
+      <Dice
+        socket={socket}
+        diceId="1"
+        roomId={roomId}
+        sides={3}
+        customFaces={[
+          <img
+            key="f1"
+            src="/weather_sunny.png"
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          />,
+          <img
+            key="f2"
+            src="/weather_cloud.png"
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          />,
+          <img
+            key="f3"
+            src="/weather_wind.png"
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          />,
+          <img
+            key="f4"
+            src="/weather_rain.png"
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          />,
+        ]}
+      />
+
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>
       <Deck
         socket={socket}
