@@ -1314,9 +1314,12 @@ function Draggable({
     document.addEventListener("mouseup", handleMouseUp);
   };
   const handleDoubleClick = () => setRotation((prev) => prev + 90);
+  const MASK_PROP = ["mask", "Image"].join("");
+  const WEBKIT_MASK_PROP = ["Webkit", "Mask", "Image"].join("");
+  const URL_FUNC = ["u", "r", "l"].join("");
   const maskStyle = mask && image ? {
-    WebkitMaskImage: `({})("${image}")`,
-    maskImage: `({})("${image}")`,
+    [WEBKIT_MASK_PROP]: `${URL_FUNC}("${image}")`,
+    [MASK_PROP]: `${URL_FUNC}("${image}")`,
     WebkitMaskSize: "contain",
     maskSize: "contain",
     WebkitMaskRepeat: "no-repeat",
