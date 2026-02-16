@@ -1315,8 +1315,8 @@ function Draggable({
   };
   const handleDoubleClick = () => setRotation((prev) => prev + 90);
   const maskStyle = mask && image ? {
-    WebkitMaskImage: `({})(${image})`,
-    maskImage: `({})(${image})`,
+    WebkitMaskImage: `({})("${image}")`,
+    maskImage: `({})("${image}")`,
     WebkitMaskSize: "contain",
     maskSize: "contain",
     WebkitMaskRepeat: "no-repeat",

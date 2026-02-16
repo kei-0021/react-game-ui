@@ -135,8 +135,8 @@ export function Draggable({
   const maskStyle: CSSProperties =
     mask && image
       ? {
-          WebkitMaskImage: `url(${image})`,
-          maskImage: `url(${image})`,
+          WebkitMaskImage: `url("${image}")`,
+          maskImage: `url("${image}")`,
           WebkitMaskSize: "contain",
           maskSize: "contain",
           WebkitMaskRepeat: "no-repeat",
