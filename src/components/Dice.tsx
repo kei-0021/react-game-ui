@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { DiceId, RoomId } from "@/types/definition.js";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
@@ -36,7 +37,7 @@ export default function Dice({
   onRoll,
   customFaces,
 }: DiceProps) {
-  const [value, setValue] = useState<number | null>(null);
+  const [value, setValue] = useState<number>(1);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -83,9 +84,6 @@ export default function Dice({
   };
 
   const renderDiceFace = () => {
-    if (value === null)
-      return <span className={styles.defaultText}>{"🎲"}</span>;
-
     if (customFaces && customFaces[value - 1]) {
       return (
         <div className={styles.faceContainer}>{customFaces[value - 1]}</div>

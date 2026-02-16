@@ -1165,7 +1165,7 @@ function Dice({
   onRoll,
   customFaces
 }) {
-  const [value, setValue] = useState(null);
+  const [value, setValue] = useState(1);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef(null);
   const rollEventName = useMemo(
@@ -1204,8 +1204,6 @@ function Dice({
     socket.emit("dice:roll", { roomId, diceId, sides });
   };
   const renderDiceFace = () => {
-    if (value === null)
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$3.defaultText, children: "🎲" });
     if (customFaces && customFaces[value - 1]) {
       return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.faceContainer, children: customFaces[value - 1] });
     }
