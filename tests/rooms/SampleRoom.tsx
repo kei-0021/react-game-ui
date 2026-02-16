@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import Deck from "../../src/components/Deck";
 import Dice from "../../src/components/Dice";
 import { Draggable } from "../../src/components/Draggable";
+import { RemoteCursor } from "../../src/components/RemoteCursor";
 import ScoreBoard from "../../src/components/ScoreBoard";
 import Timer from "../../src/components/Timer";
 import { useSocket } from "../../src/hooks/useSocket";
@@ -30,9 +31,10 @@ export function SampleRoom() {
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<PlayerWithResources[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
+  const [currentRound, setCurrentRound] = useState<number>(1);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [currentRound, setCurrentRound] = useState<number>(1);
+  const [scale, setScale] = useState<number>(1);
 
   const GAME_PRESET_ID = "sample";
 
@@ -167,6 +169,20 @@ export function SampleRoom() {
         color="red"
         size={150}
       ></Draggable>
+      <RemoteCursor
+        socket={socket!}
+        roomId={roomId}
+        myPlayerId={myPlayerId}
+        players={players.map((p) => ({
+          name: p.name || "Unknown",
+          socketId: String(p.id),
+          color: p.color,
+        }))}
+        scale={scale}
+        fixedContainerRef={containerRef}
+        visible={true}
+        isRelative={true}
+      />
     </div>
   );
 }

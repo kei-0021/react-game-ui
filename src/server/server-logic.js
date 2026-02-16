@@ -1178,22 +1178,35 @@ export function initGameServer(io, options = {}) {
       socket.to(roomId).emit("draggable:update", move);
     });
 
-    // ------------------------------------
-    // 3. タイマー機能
-    // ------------------------------------
+    // カーソル関連
+    (socket.on("cursor:move", (data) => {
+      const { roomId, x, y } = data;
 
-    /**
-     * ルームのタイマーを停止・クリアする
-     * @param {string} roomId
-     * @param {string} gameName
-     */
-    function stopTimer(roomId, gameName) {
-      if (roomTimers.has(roomId)) {
-        clearTimeout(roomTimers.get(roomId));
-        roomTimers.delete(roomId);
-        server_log("timer", gameName, roomId, `タイマーを停止しました。`);
-      }
-    }
+      // 送信元ソケットのIDを取得
+      const playerId = socket.id;
+
+      socket.to(roomId).emit("cursor:update", {
+        playerId,
+        x,
+        y,
+      });
+    }),
+      // ------------------------------------
+      // 3. タイマー機能
+      // ------------------------------------
+
+      /**
+       * ルームのタイマーを停止・クリアする
+       * @param {string} roomId
+       * @param {string} gameName
+       */
+      function stopTimer(roomId, gameName) {
+        if (roomTimers.has(roomId)) {
+          clearTimeout(roomTimers.get(roomId));
+          roomTimers.delete(roomId);
+          server_log("timer", gameName, roomId, `タイマーを停止しました。`);
+        }
+      });
 
     /**
      * クライアントからのタイマー開始リクエスト
