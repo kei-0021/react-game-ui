@@ -34,7 +34,7 @@
   ],
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "NODE_ENV=production vite build && cp -r src/assets/. dist/assets/ && tsc --project tsconfig.json && node -e \"require('fs').copyFileSync('src/server/server.js', 'dist/server.js'); require('fs').copyFileSync('src/server/server-logic.js', 'dist/server-logic.js'); require('fs').copyFileSync('src/server/server-utils.js', 'dist/server-utils.js');\"",
+    "build": "NODE_ENV=production vite build && cp -r src/assets/. dist/assets/ && tsc --project tsconfig.json && node -e \"require('fs').copyFileSync('src/server/server.js', 'dist/server.js'); require('fs').copyFileSync('src/server/server-logic.js', 'dist/server-logic.js');\"",
     "preview": "vite preview",
     "server": "node --loader ts-node/esm tests/server.js",
     "dev:multi": "concurrently \"npm run server\" \"vite\"",
