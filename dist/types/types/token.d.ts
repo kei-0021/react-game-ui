@@ -6,3 +6,4 @@ export type Token = {
     description?: string;
     color?: string;
 };
+//# sourceMappingURL=token.d.ts.map

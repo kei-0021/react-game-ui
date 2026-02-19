@@ -3,3 +3,4 @@ import type { Resource } from './resource.js';
 export type PlayerWithResources = Player & {
     resources: Resource[];
 };
+//# sourceMappingURL=playerWithResources.d.ts.map

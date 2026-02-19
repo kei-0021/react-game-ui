@@ -3,3 +3,4 @@ export type CardEffectParams = {
     addScore: (playerId: string, points: number) => void;
     updateResource: (playerId: string, resourceId: string, amount: number) => void;
 };
+//# sourceMappingURL=cardEffectParams.d.ts.map

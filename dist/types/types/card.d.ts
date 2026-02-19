@@ -19,3 +19,4 @@ export type Card = {
         y: number;
     };
 };
+//# sourceMappingURL=card.d.ts.map

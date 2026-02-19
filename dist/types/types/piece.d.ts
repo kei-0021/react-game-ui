@@ -8,3 +8,4 @@ export type PieceData = {
         col: number;
     };
 };
+//# sourceMappingURL=piece.d.ts.map

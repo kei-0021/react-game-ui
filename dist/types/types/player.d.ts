@@ -11,3 +11,4 @@ export type Player = {
     tokens?: Token[];
     resources?: Resource[];
 };
+//# sourceMappingURL=player.d.ts.map

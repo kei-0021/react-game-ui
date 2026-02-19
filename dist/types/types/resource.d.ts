@@ -7,3 +7,4 @@ export type Resource = {
     maxValue: number;
     type: 'CONSUMABLE' | 'DURABILITY' | 'ACTION_POINT';
 };
+//# sourceMappingURL=resource.d.ts.map

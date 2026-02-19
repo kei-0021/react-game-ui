@@ -13,30 +13,28 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
 
-    /* JS共存設定（ここが重要！） */
+    /* JS共存とビルド設定 */
     "allowJs": true,
     "checkJs": false,
-
-    /* 型定義の設定 */
     "declaration": true,
     "declarationDir": "dist/types",
-    "emitDeclarationOnly": true,
-    "typeRoots": ["./node_modules/@types", "./node_modules"],
-    "types": ["node", "react", "react-dom"],
+    "emitDeclarationOnly": false,
+    "declarationMap": true, // 利用者が型定義からソースへジャンプ可能に
 
     /* パス解決 */
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+
+    /* 型定義の参照 */
+    "typeRoots": ["./node_modules/@types", "./node_modules"],
+    "types": ["node", "react", "react-dom"]
   },
   "include": [
-    "src/components",
-    "src/types",
-    "src/global.d.ts",
-    "src/index.ts",
-    "src/hooks",
-    "src/server/server-utils"
+    "src/server/server-utils.ts",
+    "src/types/**/*.ts",
+    "src/global.d.ts"
   ],
   "exclude": [
     "node_modules",
