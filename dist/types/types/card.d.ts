@@ -1,6 +1,6 @@
-import { Coordinate } from '@/server/server-utils.js';
 import { CardLocation } from './cardLocation.js';
 import { CardId, DeckId, PlayerId } from './definition.js';
+import { Coordinate } from './server.js';
 export type Card = {
     id: CardId;
     deckId: DeckId;

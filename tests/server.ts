@@ -1,15 +1,15 @@
-import * as fs from "fs/promises";
-import path from "path";
-import { GameServer, type GameServerOptions } from "react-game-ui/server";
-import { fileURLToPath } from "url";
+import * as fs from 'fs/promises';
+import path from 'path';
+import { GameServer, type GameServerOptions } from 'react-game-ui/server';
+import { fileURLToPath } from 'url';
 
 // データファイルのインポート（TS化されている想定、または @ts-ignore で対応）
 // @ts-ignore
-import { cardEffects } from "./data/cardEffects.js";
+import { cardEffects } from './data/cardEffects.js';
 // @ts-ignore
-import { cellEffects } from "./data/cellEffects.js";
+import { cellEffects } from './data/cellEffects.js';
 // @ts-ignore
-import { customEvents } from "./data/customEvents.js";
+import { customEvents } from './data/customEvents.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename);
 async function loadJson<T>(relativePath: string): Promise<T> {
   const jsonPath = path.join(__dirname, relativePath);
   try {
-    const data = await fs.readFile(jsonPath, "utf-8");
+    const data = await fs.readFile(jsonPath, 'utf-8');
     return JSON.parse(data) as T;
   } catch (error) {
     console.error(`Error loading JSON file: ${relativePath}`, error);
@@ -31,22 +31,25 @@ async function loadJson<T>(relativePath: string): Promise<T> {
 // --- メインサーバー起動ロジック ---
 async function startServer() {
   // 複数のJSONファイルを並行してロード
-  const [
-    numberCardsJson,
-    deepSeaActionCardsBaseJson,
-    deepSeaCellsBaseJson,
-    deepSeaSpeciesDeckJson,
-  ] = await Promise.all([
-    loadJson<any[]>("./data/numberCards.json"),
-    loadJson<any[]>("./data/deepSeaActionCards.json"),
-    loadJson<any[]>("./data/deepSeaCells.json"),
-    loadJson<any[]>("./data/deepSeaSpeciesCards.json"),
-  ]);
+  const [numberCardsJson, deepSeaActionCardsBaseJson, deepSeaCellsBaseJson, deepSeaSpeciesDeckJson] = await Promise.all(
+    [
+      loadJson<any[]>('./data/numberCards.json'),
+      loadJson<any[]>('./data/deepSeaActionCards.json'),
+      loadJson<any[]>('./data/deepSeaCells.json'),
+      loadJson<any[]>('./data/deepSeaSpeciesCards.json'),
+    ],
+  );
 
   // --- カード・セルの生成用ヘルパー ---
   const CELL_COUNTS = {
-    RA: 5, RB: 10, B_NORM: 4, B_TRACK: 3,
-    T_VOL: 7, T_CRF: 6, N_A: 12, N_B: 17,
+    RA: 5,
+    RB: 10,
+    B_NORM: 4,
+    B_TRACK: 3,
+    T_VOL: 7,
+    T_CRF: 6,
+    N_A: 12,
+    N_B: 17,
   };
   const ROWS = 8;
   const COLS = 8;
@@ -54,18 +57,19 @@ async function startServer() {
   const createUniqueCards = (cards: any[], numSets: number) => {
     const allCards: any[] = [];
     for (let i = 1; i <= numSets; i++) {
-      cards.forEach((card) =>
-        allCards.push({ ...card, id: `${card.id}-set${i}` }),
-      );
+      cards.forEach((card) => allCards.push({ ...card, id: `${card.id}-set${i}` }));
     }
     return allCards;
   };
 
   const createBoardCells = (baseCells: any[], counts: Record<string, number>) => {
-    const templateMap = baseCells.reduce((map, t) => {
-      map[t.templateId] = t;
-      return map;
-    }, {} as Record<string, any>);
+    const templateMap = baseCells.reduce(
+      (map, t) => {
+        map[t.templateId] = t;
+        return map;
+      },
+      {} as Record<string, any>,
+    );
 
     const finalCells: any[] = [];
     for (const templateId in counts) {
@@ -90,11 +94,11 @@ async function startServer() {
   })();
 
   const DEEP_SEA_RESOURCES = [
-    { id: "OXYGEN", name: "酸素", icon: "🫧", currentValue: 50, maxValue: 50, type: "CONSUMABLE" },
-    { id: "BATTERY", name: "バッテリー", icon: "🔋", currentValue: 6, maxValue: 6, type: "CONSUMABLE" },
+    { id: 'OXYGEN', name: '酸素', icon: '🫧', currentValue: 50, maxValue: 50, type: 'CONSUMABLE' },
+    { id: 'BATTERY', name: 'バッテリー', icon: '🔋', currentValue: 6, maxValue: 6, type: 'CONSUMABLE' },
   ];
 
-  const DEEP_SEA_TOKENS_ARTIFACT = [{ id: "ARTIFACT", name: "💰", color: "#D4AF37" }];
+  const DEEP_SEA_TOKENS_ARTIFACT = [{ id: 'ARTIFACT', name: '💰', color: '#D4AF37' }];
 
   const createUniqueTokens = (templates: any[], count: number) =>
     templates.flatMap((t) =>
@@ -108,30 +112,28 @@ async function startServer() {
   // --- プリセット定義 ---
   const GAME_PRESETS_COLLECTION: Record<string, any> = {
     sample: {
-      initialDecks: [
-        { deckId: "numberDeck", name: "数字カード", cards: numberCardsJson, backColor: "#000000ff" },
-      ],
-      initialBoard: [[{ id: "start", type: "START", position: { row: 0, col: 0 }, effect: "start" }]],
+      initialDecks: [{ deckId: 'numberDeck', name: '数字カード', cards: numberCardsJson, backColor: '#000000ff' }],
+      initialBoard: [[{ id: 'start', type: 'START', position: { row: 0, col: 0 }, effect: 'start' }]],
     },
     deepsea: {
       initialDecks: [
-        { deckId: "deepSeaSpecies", name: "深海生物カード", cards: deepSeaSpeciesDeckJson, backColor: "#0d3c99ff" },
-        { deckId: "deepSeaAction", name: "アクションカード", cards: deepSeaActionCardsTwoSets, backColor: "#0d8999ff" },
+        { deckId: 'deepSeaSpecies', name: '深海生物カード', cards: deepSeaSpeciesDeckJson, backColor: '#0d3c99ff' },
+        { deckId: 'deepSeaAction', name: 'アクションカード', cards: deepSeaActionCardsTwoSets, backColor: '#0d8999ff' },
       ],
       cardEffects,
       initialResources: DEEP_SEA_RESOURCES,
-      initialTokenStore: [
-        { tokenStoreId: "ARTIFACT", name: "遺物", tokens: createUniqueTokens(DEEP_SEA_TOKENS_ARTIFACT, 10) },
+      initialTokenStores: [
+        { tokenStoreId: 'ARTIFACT', name: '遺物', tokens: createUniqueTokens(DEEP_SEA_TOKENS_ARTIFACT, 10) },
       ],
-      initialHand: { deckId: "deepSeaAction", count: 6 },
+      initialHand: { deckId: 'deepSeaAction', count: 6 },
       initialBoard: completeDeepSeaCells2D,
       cellEffects,
       checkGameEnd: (room: any) => room.currentRoundIndex >= 4,
       onGameEnd: (room: any) => {
-        const rankings = [...room.gameStateInstance.players]
+        const rankings = [...room.gameParam.players]
           .sort((a, b) => b.score - a.score)
           .map((p, index) => ({ rank: index + 1, name: p.name, score: p.score }));
-        return { message: "潜水任務完了。", rankings, finalRound: room.currentRoundIndex };
+        return { message: '潜水任務完了。', rankings, finalRound: room.currentRoundIndex };
       },
     },
   };
@@ -139,9 +141,9 @@ async function startServer() {
   // --- GameServer インスタンス作成 ---
   const options: GameServerOptions = {
     port: 4000,
-    clientDistPath: path.resolve(__dirname, "..", "dist"),
-    libDistPath: path.resolve("../dist"),
-    corsOrigins: ["http://localhost:5173", "http://localhost:4000"],
+    clientDistPath: path.resolve(__dirname, '..', 'dist'),
+    libDistPath: path.resolve('../dist'),
+    corsOrigins: ['http://localhost:5173', 'http://localhost:4000'],
     gamePresets: GAME_PRESETS_COLLECTION,
     customEvents,
     initialLogCategories: {
@@ -158,6 +160,6 @@ async function startServer() {
 }
 
 startServer().catch((err) => {
-  console.error("致命的なエラー: サーバー起動に失敗しました。", err);
+  console.error('致命的なエラー: サーバー起動に失敗しました。', err);
   process.exit(1);
 });

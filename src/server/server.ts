@@ -1,14 +1,13 @@
-import express from "express";
-import fs from "fs";
-import { createServer, Server as HttpServer } from "http";
-import path from "path";
-import { Server as SocketIOServer } from "socket.io";
-import { fileURLToPath } from "url";
-// @ts-ignore: 既存のロジックがJSの場合。TS化したなら型定義をインポート
-import { Card } from "@/types/card.js";
-import { Token } from "@/types/token.js";
-import { initGameServer } from "./server-logic.js";
-import { GameSettings } from "./server-utils.js";
+import { Card } from '@/types/card.js';
+import { RoomParam } from '@/types/server.js';
+import { Token } from '@/types/token.js';
+import express from 'express';
+import fs from 'fs';
+import { createServer, Server as HttpServer } from 'http';
+import path from 'path';
+import { Server as SocketIOServer } from 'socket.io';
+import { fileURLToPath } from 'url';
+import { initGameServer } from './server-logic.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,12 +20,12 @@ export interface GameServerOptions {
   libDistPath?: string;
   clientDistPath?: string;
   corsOrigins?: string[];
-  gamePresets?: Record<string, GameSettings>;
+  gamePresets?: Record<string, RoomParam>;
   checkGameEnd?: ((gameState: any) => boolean) | null;
   onGameEnd?: ((results: any) => void) | null;
   initialDecks?: any[];
   cardEffects?: Record<string, any>;
-  initialTokenStore?: Record<string, any>;
+  initialTokenStores?: Record<string, any>;
   initialHand?: Record<string, any>;
   initialTokens?: Record<string, Token[]>;
   initialResources?: any[];
@@ -44,13 +43,13 @@ export class GameServer {
   private corsOrigins: string[];
   private onServerStart?: (url: string) => void;
 
-  private gamePresets: Record<string, any>;
+  private gamePresets: Record<string, RoomParam>;
   private checkGameEnd: ((gameState: any) => boolean) | null;
   private onGameEnd: ((results: any) => void) | null;
 
   private initialDecks: any[];
   private cardEffects: Record<string, any>;
-  private initialTokenStore: Record<string, any>;
+  private initialTokenStores: Record<string, any>;
   private initialHand: Record<string, Card[]>;
   private initialTokens: Record<string, Token[]>;
   private initialResources: any[];
@@ -65,9 +64,9 @@ export class GameServer {
 
   constructor(options: GameServerOptions = {}) {
     this.port = Number(process.env.PORT) || options.port || 3000;
-    this.libDistPath = options.libDistPath || path.resolve(__dirname, "../../dist");
-    this.clientDistPath = options.clientDistPath || path.resolve(__dirname, "../tests");
-    this.corsOrigins = options.corsOrigins || ["http://localhost:5173"];
+    this.libDistPath = options.libDistPath || path.resolve(__dirname, '../../dist');
+    this.clientDistPath = options.clientDistPath || path.resolve(__dirname, '../tests');
+    this.corsOrigins = options.corsOrigins || ['http://localhost:5173'];
     this.onServerStart = options.onServerStart;
 
     this.gamePresets = options.gamePresets || {};
@@ -76,7 +75,7 @@ export class GameServer {
 
     this.initialDecks = options.initialDecks || [];
     this.cardEffects = options.cardEffects || {};
-    this.initialTokenStore = options.initialTokenStore || {};
+    this.initialTokenStores = options.initialTokenStores || {};
     this.initialHand = options.initialHand || {};
     this.initialTokens = options.initialTokens || {};
     this.initialResources = options.initialResources || [];
@@ -90,16 +89,14 @@ export class GameServer {
     this.io = new SocketIOServer(this.httpServer, {
       cors: {
         origin: (origin, callback) => {
-          const allowed = this.corsOrigins.concat(
-            process.env.NODE_ENV === "production" ? ["*"] : []
-          );
-          if (!origin || allowed.includes(origin) || allowed.includes("*")) {
+          const allowed = this.corsOrigins.concat(process.env.NODE_ENV === 'production' ? ['*'] : []);
+          if (!origin || allowed.includes(origin) || allowed.includes('*')) {
             callback(null, true);
           } else {
-            callback(new Error("Not allowed by CORS"));
+            callback(new Error('Not allowed by CORS'));
           }
         },
-        methods: ["GET", "POST"],
+        methods: ['GET', 'POST'],
       },
     });
 
@@ -109,17 +106,17 @@ export class GameServer {
 
   private setupStaticRoutes(): void {
     if (fs.existsSync(this.libDistPath)) {
-      this.app.use("/lib", express.static(this.libDistPath));
+      this.app.use('/lib', express.static(this.libDistPath));
     }
 
     if (fs.existsSync(this.clientDistPath)) {
       this.app.use(express.static(this.clientDistPath));
-      const indexPath = path.join(this.clientDistPath, "index.html");
-      this.app.get("/", (_req, res) => {
+      const indexPath = path.join(this.clientDistPath, 'index.html');
+      this.app.get('/', (_req, res) => {
         if (fs.existsSync(indexPath)) {
           res.sendFile(indexPath);
         } else {
-          res.send("<h1>Client app not built yet.</h1>");
+          res.send('<h1>Client app not built yet.</h1>');
         }
       });
     }
@@ -135,7 +132,7 @@ export class GameServer {
         cardEffects: this.cardEffects,
         initialResources: this.initialResources,
         initialHand: this.initialHand,
-        initialTokenStore: this.initialTokenStore,
+        initialTokenStores: this.initialTokenStores,
         initialTokens: this.initialTokens,
         initialBoard: this.initialBoard,
         cellEffects: this.cellEffects,
@@ -143,14 +140,14 @@ export class GameServer {
         initialLogCategories: this.initialLogCategories,
       });
     } catch (err) {
-      console.error("[Server] Failed to initialize game server logic:", err);
+      console.error('[Server] Failed to initialize game server logic:', err);
     }
   }
 
   public start(): void {
     this.httpServer.listen(this.port, () => {
       const address = this.httpServer.address();
-      const actualPort = typeof address === "string" ? address : address?.port;
+      const actualPort = typeof address === 'string' ? address : address?.port;
       const url = `http://localhost:${actualPort}`;
       console.log(`[Server] Server listening on ${url}`);
       if (this.onServerStart) this.onServerStart(url);

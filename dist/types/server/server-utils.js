@@ -1,5 +1,3 @@
-// src/server/server-utils.ts
-/** ログ出力カテゴリ設定 */
 export let LOG_CATEGORIES = {
     connection: true,
     deck: false,
@@ -20,9 +18,6 @@ export let LOG_CATEGORIES = {
 };
 const ANSI_RED = '\x1b[31m';
 const ANSI_RESET = '\x1b[0m';
-/**
- * サーバーログを出力する
- */
 export function server_log(tag, gamePresetId, roomId, ...args) {
     if (!LOG_CATEGORIES[tag])
         return;
@@ -33,42 +28,26 @@ export function server_log(tag, gamePresetId, roomId, ...args) {
         console.log(`[${tag}] [${gamePresetId} (${roomId})]`, ...args);
     }
 }
-// -----------------------------------------------------------------
-// 探索済みマス目のユーティリティ関数
-// -----------------------------------------------------------------
-/**
- * マスが探索済みリストに含まれているかチェックする
- */
-export const isExplored = (gameStateInstance, location) => {
-    return gameStateInstance.exploredCells.some((loc) => loc.row === location.row && loc.col === location.col);
+export const isExplored = (gameParam, location) => {
+    return gameParam.exploredCells.some((loc) => loc.row === location.row && loc.col === location.col);
 };
-/**
- * マスを探索済みとしてマークする
- */
-export const markCellAsExplored = (gameStateInstance, gameName, roomId, location) => {
-    if (!isExplored(gameStateInstance, location)) {
-        gameStateInstance.exploredCells.push(location);
+export const markCellAsExplored = (gameParam, gameName, roomId, location) => {
+    if (!isExplored(gameParam, location)) {
+        gameParam.exploredCells.push(location);
         server_log('cell', gameName, roomId, `マス (${location.row}, ${location.col}) を探索済みとしてマークしました。`);
         return true;
     }
     return false;
 };
-/**
- * 特定のマスを探索済みリストから削除する（未探索に戻す）
- */
-export const unmarkCellAsExplored = (gameStateInstance, gameName, roomId, location) => {
-    const initialLength = gameStateInstance.exploredCells.length;
-    gameStateInstance.exploredCells = gameStateInstance.exploredCells.filter((loc) => !(loc.row === location.row && loc.col === location.col));
-    const wasRemoved = gameStateInstance.exploredCells.length < initialLength;
+export const unmarkCellAsExplored = (gameParam, gameName, roomId, location) => {
+    const initialLength = gameParam.exploredCells.length;
+    gameParam.exploredCells = gameParam.exploredCells.filter((loc) => !(loc.row === location.row && loc.col === location.col));
+    const wasRemoved = gameParam.exploredCells.length < initialLength;
     if (wasRemoved) {
         server_log('cell', gameName, roomId, `マス (${location.row}, ${location.col}) の探索済みマークを解除しました。`);
     }
     return wasRemoved;
 };
-// -----------------------------------------------------------------
-// ボード初期化ユーティリティ関数
-// -----------------------------------------------------------------
-/** Fisher-Yates シャッフル */
 const shuffleArray = (array) => {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -76,9 +55,6 @@ const shuffleArray = (array) => {
     }
     return array;
 };
-/**
- * 初期ボードデータからランダムな確定盤面を作成
- */
 export const createRandomBoard = (initialBoard) => {
     if (!initialBoard || initialBoard.length === 0 || initialBoard[0].length === 0) {
         server_log('warn', 'SYSTEM', 'N/A', 'createRandomBoard: initialBoardが空です。');
@@ -111,19 +87,13 @@ export const createRandomBoard = (initialBoard) => {
     }
     return newBoard;
 };
-// -----------------------------------------------------------------
-// タイル効果の適用ロジック
-// -----------------------------------------------------------------
-/**
- * プレイヤーが停止したマス目の効果を適用する
- */
-export const applyCellEffect = (gameStateInstance, gameName, roomId, playerId, location, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
+export const applyCellEffect = (gameParam, gameName, roomId, playerId, location, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
     const { row, col } = location;
-    if (row < 0 || row >= gameStateInstance.board.length || col < 0 || col >= gameStateInstance.board[row].length) {
+    if (row < 0 || row >= gameParam.board.length || col < 0 || col >= gameParam.board[row].length) {
         server_log('warn', gameName, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
         return;
     }
-    const cell = gameStateInstance.board[row][col];
+    const cell = gameParam.board[row][col];
     const effect = cellEffects[cell.name];
     if (effect) {
         server_log('cell', gameName, roomId, `マス効果発動: ${cell.name} by ${playerId}`);
@@ -144,9 +114,6 @@ export const applyCellEffect = (gameStateInstance, gameName, roomId, playerId, l
         server_log('cell', gameName, roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
     }
 };
-// -----------------------------------------------------------------
-// TokenStore クラスと MockGameState クラスの定義
-// -----------------------------------------------------------------
 export class TokenStore {
     id;
     name;
@@ -160,9 +127,10 @@ export class TokenStore {
         return this.tokens;
     }
 }
-export class GameState {
+export class RoomManager {
     players;
     initialResources;
+    initialTokenStores;
     initialTokens;
     board;
     exploredCells;
@@ -171,6 +139,7 @@ export class GameState {
     constructor(initialState, initialTokenStoresDef) {
         this.players = initialState.players;
         this.initialResources = initialState.initialResources;
+        this.initialTokenStores = initialState.initialTokenStores;
         this.initialTokens = initialState.initialTokens;
         this.board = initialState.board;
         this.exploredCells = initialState.exploredCells;
@@ -221,15 +190,15 @@ export class GameState {
     getFullState() {
         return {
             players: this.players,
+            initialResources: this.initialResources,
+            initialTokenStores: this.initialTokenStores,
+            initialTokens: this.initialTokens,
             board: this.board,
             exploredCells: this.exploredCells,
             turn: this.turn,
         };
     }
 }
-// -----------------------------------------------------------------
-// Player生成時に使う関数
-// -----------------------------------------------------------------
 export const generateColorFromId = (id) => {
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
