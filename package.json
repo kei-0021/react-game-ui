@@ -14,14 +14,15 @@
     },
     "./server": {
       "types": "./dist/types/server/server.d.ts",
-      "import": "./dist/server/server.js"
+      "import": "./dist/types/server/server.js"
     },
     "./server-logic": {
-      "import": "./dist/server/server-logic.js"
+      "types": "./dist/types/server/server-logic.d.ts",
+      "import": "./dist/types/server/server-logic.js"
     },
     "./server-utils": {
       "types": "./dist/types/server/server-utils.d.ts",
-      "import": "./dist/server/server-utils.js"
+      "import": "./dist/types/server/server-utils.js"
     },
     "./dist/react-game-ui.css": "./dist/react-game-ui.css"
   },
