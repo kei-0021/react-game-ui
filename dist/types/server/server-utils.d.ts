@@ -1,3 +1,9 @@
+import { Card } from "../types/card.js";
+export type Position = {
+    row: number;
+    col: number;
+};
+export type GameSettings = any;
 /** ログカテゴリの型定義 */
 export type LogCategory = "connection" | "deck" | "card" | "cell" | "game" | "dice" | "timer" | "addScore" | "resource" | "token" | "room" | "lobby" | "disconnect" | "warn" | "popup" | "custom_event";
 /** ログ出力カテゴリ設定 */
@@ -14,7 +20,8 @@ export interface ServerPlayer {
     id: string;
     name: string;
     socketId: string;
-    cards: any[];
+    color: string;
+    cards: Card[];
     score: number;
     resources: any[];
     tokens: any[];
@@ -31,13 +38,17 @@ export interface GameState {
 }
 export interface RoomGameInfo {
     roomId: string;
+    gameName: string;
     createdAt: number;
+    currentRoundIndex: number;
     currentTurnIndex: number;
-    decks: Record<string, any>;
-    drawnCards: Record<string, any>;
-    playFieldCards: Record<string, any>;
+    decks: Record<string, Card[]>;
+    drawnCards: Record<string, Card[]>;
+    playFieldCards: Record<string, Card[]>;
     discardPile: Record<string, any>;
     gameStateInstance: MockGameState;
+    checkGameEnd: any;
+    onGameEnd: any;
 }
 /** トークンストア初期化用の定義型 */
 export interface TokenStoreDef {

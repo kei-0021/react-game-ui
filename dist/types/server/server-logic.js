@@ -1,49 +1,39 @@
 import { applyCellEffect, createRandomBoard, generateColorFromId, LOG_CATEGORIES, markCellAsExplored, MockGameState, server_log, unmarkCellAsExplored, } from "./server-utils.js";
 // ------------------------------------
-// ルームの状態管理
+// ルーム・タイマー状態管理
 // ------------------------------------
-/** @typedef {import('./server-utils.js').RoomGameInfo} RoomGameInfo */
-/** @typedef {import('./server-utils.js').GameState} GameState */
-/** @type {Map<string, RoomGameInfo>} */
 const activeRooms = new Map();
+const roomTimers = new Map();
 /**
  * ルームの基本的なメタ情報を取得する
- * @param {string} roomId
- * @returns {object | null}
  */
 function getRoomMeta(roomId) {
     const roomInfo = activeRooms.get(roomId);
     if (!roomInfo)
         return null;
-    const gameStateInstance = roomInfo.gameStateInstance;
     return {
         id: roomId,
         gameName: roomInfo.gameName,
-        playerCount: gameStateInstance.players.length,
+        playerCount: roomInfo.gameStateInstance.players.length,
         maxPlayers: 4,
         createdAt: roomInfo.createdAt,
     };
 }
 /**
  * ルームのゲームロジックを初期化する
- * @param {string} roomId
- * @param {object} options
- * @returns {RoomGameInfo}
  */
 function initializeRoom(roomId, settings) {
     const initialDecks = settings.initialDecks || [];
     const initialResources = settings.initialResources || [];
-    const initialTokenStores = Array.isArray(settings.initialTokenStore)
-        ? settings.initialTokenStore
-        : [];
+    const initialTokenStores = Array.isArray(settings.initialTokenStore) ? settings.initialTokenStore : [];
     const initialTokens = settings.initialTokens || [];
     const initialBoard = settings.initialBoard || [];
     const Cells = createRandomBoard(initialBoard);
     const initialState = {
         players: [],
-        initialResources: initialResources,
-        initialTokenStores: initialTokenStores,
-        initialTokens: initialTokens,
+        initialResources,
+        initialTokenStores,
+        initialTokens,
         board: Cells,
         exploredCells: [],
         turn: 1,
@@ -53,9 +43,7 @@ function initializeRoom(roomId, settings) {
     const drawnCards = {};
     const playFieldCards = {};
     const discardPile = {};
-    // デッキの初期化ループ
     initialDecks.forEach((deckConfig) => {
-        // deckConfig.cards が正しく渡ってきているか
         const cards = (deckConfig.cards || []).map((c, index) => ({
             ...c,
             deckId: deckConfig.deckId,
@@ -68,7 +56,6 @@ function initializeRoom(roomId, settings) {
         drawnCards[deckConfig.deckId] = [];
         playFieldCards[deckConfig.deckId] = [];
         discardPile[deckConfig.deckId] = [];
-        server_log("deck", settings.name, roomId, `デッキ "${deckConfig.name}" (${deckConfig.deckId}) 初期化完了`);
     });
     const roomInfo = {
         roomId,
@@ -85,29 +72,25 @@ function initializeRoom(roomId, settings) {
         onGameEnd: settings.onGameEnd,
     };
     activeRooms.set(roomId, roomInfo);
-    server_log("room", roomInfo.gameName, roomId, `ルームの初期化処理が完了しました`);
+    server_log("room", roomInfo.gameName, roomId, `ルーム初期化完了`);
     return roomInfo;
 }
+// ------------------------------------
+// サーバー本体
+// ------------------------------------
 export function initGameServer(io, options = {}) {
     const gamePresets = options.gamePresets || {};
-    // === ログ設定の初期化 ===
     if (options.initialLogCategories) {
-        // server-utils.js の LOG_CATEGORIES を更新
         Object.assign(LOG_CATEGORIES, options.initialLogCategories);
-        console.log("[log] ログカテゴリをオプションで初期化しました。", LOG_CATEGORIES);
     }
-    // =============================
-    const initialHand = options.initialHand || {};
     const cellEffects = options.cellEffects || {};
-    // ------------------------------------
-    // ヘルパー関数の定義 (特定のルームに限定)
-    // ------------------------------------
-    /**
-     * Deck 状態をルーム内のクライアントに送信
-     * @param {string} roomId
-     * @param {string} deckId
-     */
-    function emitDeckUpdate(roomId, deckId) {
+    // --- 内部ヘルパー ---
+    const emitPlayerUpdate = (roomId) => {
+        const roomInfo = activeRooms.get(roomId);
+        if (roomInfo)
+            io.to(roomId).emit("players:update", roomInfo.gameStateInstance.players);
+    };
+    const emitDeckUpdate = (roomId, deckId) => {
         const roomInfo = activeRooms.get(roomId);
         if (!roomInfo)
             return;
@@ -117,683 +100,256 @@ export function initGameServer(io, options = {}) {
             playFieldCards: roomInfo.playFieldCards[deckId],
             discardPile: roomInfo.discardPile[deckId],
         });
-        io.to(roomId).emit("players:update", roomInfo.gameStateInstance.players);
-    }
-    /**
-     * Player 状態をルーム内のクライアントに送信
-     * @param {string} roomId
-     */
-    function emitPlayerUpdate(roomId) {
-        const roomInfo = activeRooms.get(roomId);
-        if (!roomInfo)
-            return;
-        io.to(roomId).emit("players:update", roomInfo.gameStateInstance.players);
-    }
-    /**
-     * 探索済みマス目リストをルーム内のクライアントにブロードキャスト
-     * @param {string} roomId
-     */
+        emitPlayerUpdate(roomId);
+    };
     const broadcastExploredUpdate = (roomId) => {
         const roomInfo = activeRooms.get(roomId);
-        if (!roomInfo)
-            return;
-        io.to(roomId).emit("board-update", roomInfo.gameStateInstance.exploredCells);
-        server_log("cell", roomInfo.gameName, roomId, `Explored cells updated and broadcasted. Total: ${roomInfo.gameStateInstance.exploredCells.length}`);
+        if (roomInfo)
+            io.to(roomId).emit("board-update", roomInfo.gameStateInstance.exploredCells);
     };
-    /**
-     * スコア加算関数
-     * @param {string} roomId
-     * @param {string} playerId
-     * @param {number} points
-     */
-    function addScore(roomId, playerId, points) {
+    const addScore = (roomId, playerId, points) => {
         const roomInfo = activeRooms.get(roomId);
         if (!roomInfo)
             return;
         const player = roomInfo.gameStateInstance.players.find((p) => p.id === playerId);
-        if (!player)
-            return;
-        player.score = (player.score || 0) + points;
-        server_log("addScore", roomInfo.gameName, roomId, `${player.name} に ${points} ポイント加算`);
-        emitPlayerUpdate(roomId);
-    }
-    /**
-     * 統一された汎用リソース更新関数
-     * @param {string} roomId
-     * @param {string} playerId
-     * @param {string} resourceId
-     * @param {number} amount
-     * @returns {boolean}
-     */
-    function updatePlayerResource(roomId, playerId, resourceId, amount) {
+        if (player) {
+            player.score = (player.score || 0) + points;
+            emitPlayerUpdate(roomId);
+        }
+    };
+    const updatePlayerResource = (roomId, playerId, resourceId, amount) => {
         const roomInfo = activeRooms.get(roomId);
         if (!roomInfo)
             return false;
         const player = roomInfo.gameStateInstance.players.find((p) => p.id === playerId);
-        if (!player || !player.resources)
-            return false;
-        const resource = player.resources.find((r) => r.id === resourceId);
-        if (!resource) {
-            server_log("warn", roomInfo.gameName, roomId, `リソースID "${resourceId}" が見つかりません。`);
-            return false;
+        const resource = player?.resources?.find((r) => r.id === resourceId);
+        if (resource) {
+            resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
+            emitPlayerUpdate(roomId);
+            return true;
         }
-        const newValue = resource.currentValue + amount;
-        resource.currentValue = Math.min(resource.maxValue, Math.max(0, newValue));
-        server_log("resource", roomInfo.gameName, roomId, `${player.name}: ${resource.name} を ${amount > 0 ? "+" : ""}${amount}、現在値: ${resource.currentValue}`);
-        emitPlayerUpdate(roomId);
-        return true;
-    }
-    /**
-     * 統一された汎用トークン更新関数 (カウント更新)
-     * @param {string} roomId
-     * @param {string} playerId
-     * @param {string} tokenId
-     * @param {number} amount
-     * @returns {boolean}
-     */
-    function updatePlayerToken(roomId, playerId, tokenId, amount) {
+        return false;
+    };
+    const updatePlayerToken = (roomId, playerId, tokenId, amount) => {
         const roomInfo = activeRooms.get(roomId);
         if (!roomInfo)
             return false;
         const player = roomInfo.gameStateInstance.players.find((p) => p.id === playerId);
-        if (!player || !player.tokens)
-            return false;
-        const token = player.tokens.find((t) => t.id === tokenId);
-        if (!token) {
-            server_log("warn", roomInfo.gameName, roomId, `トークンID "${tokenId}" がプレイヤーのインベントリに見つかりません。`);
-            return false;
+        const token = player?.tokens?.find((t) => t.id === tokenId);
+        if (token) {
+            token.count = Math.max(0, (token.count || 0) + amount);
+            emitPlayerUpdate(roomId);
+            return true;
         }
-        const newValue = (token.count || 0) + amount;
-        token.count = Math.max(0, newValue);
-        server_log("token", roomInfo.gameName, roomId, `${player.name}: ${token.name || tokenId} を ${amount > 0 ? "+" : ""}${amount}、現在枚数: ${token.count}`);
-        emitPlayerUpdate(roomId);
-        return true;
-    }
-    // ------------------------------------
-    // サーバー全体でルームごとのタイマーを管理
-    // ------------------------------------
-    /** @type {Map<string, NodeJS.Timeout>} */
-    const roomTimers = new Map();
-    /**
-     * ルーム内の全クライアントにポップアップ表示を要求
-     * @param {string} roomId
-     * @param {string} message
-     * @param {string} color
-     */
-    function requirePopup(roomId, message, color = "blue") {
-        const popupContent = {
-            message: message,
-            color: color,
-            timestamp: Date.now(),
-        };
-        server_log("popup", roomInfo.gameName, roomId, `全員にポップアップ要求: ${message} (色: ${color})`);
-        io.to(roomId).emit("client:show-popup", popupContent);
-    }
-    // デッキをシャッフル
-    function shuffleDeck(roomId, deckId) {
+        return false;
+    };
+    const requirePopup = (roomId, message, color = "blue") => {
+        io.to(roomId).emit("client:show-popup", { message, color, timestamp: Date.now() });
+    };
+    const shuffleDeck = (roomId, deckId) => {
         const roomInfo = activeRooms.get(roomId);
         if (!roomInfo || !roomInfo.decks[deckId])
             return;
-        const decks = roomInfo.decks;
-        const currentDeck = decks[deckId].filter((c) => c.location === "deck");
-        const otherCards = decks[deckId].filter((c) => c.location !== "deck");
-        // Fisher-Yates シャッフル
+        const currentDeck = roomInfo.decks[deckId].filter((c) => c.location === "deck");
+        const otherCards = roomInfo.decks[deckId].filter((c) => c.location !== "deck");
         for (let i = currentDeck.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
         }
-        // シャッフルしたデッキと、手札/フィールド/捨て札を結合
-        const shuffledDeck = currentDeck.concat(otherCards);
-        // 全体のカードリストを更新（locationのプロパティは維持）
-        roomInfo.decks[deckId] = shuffledDeck;
-        server_log("deck", roomInfo.gameName, roomId, `デッキ ${deckId} をシャッフル`);
-    }
+        roomInfo.decks[deckId] = currentDeck.concat(otherCards);
+    };
+    const stopTimer = (roomId, gameName) => {
+        const timer = roomTimers.get(roomId);
+        if (timer) {
+            clearTimeout(timer);
+            roomTimers.delete(roomId);
+        }
+    };
     // --------------------
-    // Socket.IO 接続
+    // Socket.IO 通信ロジック
     // --------------------
     io.on("connection", (socket) => {
-        // 1. ロビー機能: アクティブルームリストの取得
+        // ロビー機能
         socket.on("lobby:get-rooms", () => {
-            server_log("lobby", `クライアント ${socket.id} からルームリスト要求を受信。`);
-            const roomList = Array.from(activeRooms.keys())
-                .map(getRoomMeta)
-                .filter((meta) => meta !== null);
+            const roomList = Array.from(activeRooms.keys()).map(getRoomMeta).filter(Boolean);
             socket.emit("lobby:rooms-list", roomList);
         });
-        // 2. ルーム参加処理
+        // ルーム参加
         socket.on("room:join", async ({ roomId, playerName, gamePresetId }) => {
-            if (!roomId || typeof roomId !== "string") {
-                server_log("warn", `Client ${socket.id} が不正な roomId: ${roomId} で join を試行しました。初期化をスキップします。`);
+            if (!roomId)
                 return;
-            }
-            const providedName = typeof playerName === "string" && playerName.trim().length > 0
-                ? playerName.trim()
-                : null;
-            server_log("room", gamePresetId, roomId, `${providedName || "N/A"} (${socket.id}) が room:join リクエストを送信`);
-            // --- ルーム情報の取得または作成 ---
             let roomInfo = activeRooms.get(roomId);
-            // プリセットIDに基づいて設定を取得（未定義ならデフォルトのoptionsを使用）
             const roomSettings = gamePresets[gamePresetId] || options;
             if (!roomInfo) {
-                // 適切な roomSettings で初期化
-                if (!roomSettings.name) {
-                    roomSettings.name = gamePresetId || "default";
-                }
                 roomInfo = initializeRoom(roomId, roomSettings);
-                // デッキが存在する場合のみシャッフルを実行
-                if (roomInfo.decks && typeof roomInfo.decks === "object") {
-                    Object.keys(roomInfo.decks).forEach((deckId) => {
-                        // デッキの中身が配列であり、かつ中身がある場合のみ
-                        if (Array.isArray(roomInfo.decks[deckId]) &&
-                            roomInfo.decks[deckId].length > 0) {
-                            shuffleDeck(roomId, deckId);
-                        }
-                    });
-                }
+                Object.keys(roomInfo.decks).forEach(id => shuffleDeck(roomId, id));
                 io.emit("lobby:room-update");
             }
             await socket.join(roomId);
-            const { gameStateInstance, decks, currentTurnIndex } = roomInfo;
-            const existingPlayer = gameStateInstance.players.find((p) => p.socketId === socket.id);
-            if (!existingPlayer) {
-                // --- 新規プレイヤー作成 ---
+            const { gameStateInstance, decks } = roomInfo;
+            let player = gameStateInstance.players.find(p => p.socketId === socket.id);
+            if (!player) {
                 const playerId = `${roomId}_p${gameStateInstance.players.length + 1}`;
-                const playerColor = generateColorFromId(playerId);
-                const newPlayer = {
+                player = {
                     id: playerId,
-                    name: providedName || `Player ${gameStateInstance.players.length + 1}`,
-                    color: playerColor,
+                    name: playerName?.trim() || `Player ${gameStateInstance.players.length + 1}`,
+                    color: generateColorFromId(playerId),
                     socketId: socket.id,
                     cards: [],
                     score: 0,
-                    resources: Array.isArray(roomSettings.initialResources)
-                        ? JSON.parse(JSON.stringify(roomSettings.initialResources))
-                        : [],
-                    tokens: Array.isArray(roomSettings.initialTokens)
-                        ? JSON.parse(JSON.stringify(roomSettings.initialTokens))
-                        : [],
+                    resources: JSON.parse(JSON.stringify(roomSettings.initialResources || [])),
+                    tokens: JSON.parse(JSON.stringify(roomSettings.initialTokens || [])),
                     position: { row: 0, col: 0 },
                 };
-                gameStateInstance.players.push(newPlayer);
-                socket.emit("player:assign-id", newPlayer.id);
-                // 初期手札の配布
-                const handConfig = roomSettings.initialHand;
-                if (handConfig &&
-                    handConfig.deckId &&
-                    handConfig.count > 0 &&
-                    decks[handConfig.deckId]) {
-                    const targetDeck = decks[handConfig.deckId];
-                    let cardsDealt = 0;
-                    for (let i = 0; i < handConfig.count; i++) {
-                        // デッキ（location="deck"）の状態にあるカードを上から探す
-                        const cardIndex = targetDeck.findIndex((c) => c.location === "deck");
-                        if (cardIndex === -1)
+                gameStateInstance.players.push(player);
+                const hand = roomSettings.initialHand;
+                if (hand && decks[hand.deckId]) {
+                    const target = decks[hand.deckId];
+                    for (let i = 0; i < hand.count; i++) {
+                        const idx = target.findIndex(c => c.location === "deck");
+                        if (idx === -1)
                             break;
-                        const card = targetDeck[cardIndex];
-                        card.location = "hand";
-                        card.isFaceUp = false;
-                        card.ownerId = newPlayer.id;
-                        newPlayer.cards.push(card);
-                        cardsDealt++;
+                        target[idx].location = "hand";
+                        target[idx].ownerId = player.id;
+                        player.cards.push(target[idx]);
                     }
-                    server_log("deck", roomInfo.gameName, roomId, `初期手札を ${cardsDealt}枚 配布しました (Preset: ${roomInfo.gameName})`);
                 }
             }
             else {
-                existingPlayer.socketId = socket.id;
-                socket.emit("player:assign-id", existingPlayer.id);
+                player.socketId = socket.id;
             }
-            // --- 同期処理（本人のみに送信） ---
-            if (gameStateInstance.board && gameStateInstance.board.length > 0) {
-                socket.emit("game:init-board", gameStateInstance.board);
-            }
-            gameStateInstance.tokenStores.forEach((store) => {
-                socket.emit(`token-store:init:${roomId}:${store.id}`, store.getTokens());
-            });
-            Object.keys(decks).forEach((deckId) => {
-                socket.emit(`deck:init:${deckId}`, {
-                    currentDeck: decks[deckId].filter((c) => c.location === "deck"),
-                    drawnCards: roomInfo.drawnCards[deckId],
-                });
-                emitDeckUpdate(roomId, deckId);
-            });
+            socket.emit("player:assign-id", player.id);
+            socket.emit("game:init-board", gameStateInstance.board);
+            Object.keys(decks).forEach(id => emitDeckUpdate(roomId, id));
             emitPlayerUpdate(roomId);
-            io.to(roomId).emit("game:turn", {
-                playerId: gameStateInstance.players[currentTurnIndex]?.id,
-                currentRound: roomInfo.currentRoundIndex,
-                currentTurnIndex: currentTurnIndex,
-            });
             if (gameStateInstance.exploredCells.length > 0) {
                 socket.emit("board-update", gameStateInstance.exploredCells);
             }
         });
-        // スコア加算
-        socket.on("room:player:add-score", ({ roomId, targetPlayerId, points }) => {
-            const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo)
-                return;
-            addScore(roomId, targetPlayerId, points);
-        });
-        socket.on("room:player:update-resource", ({ roomId, playerId, resourceId, amount }) => {
-            const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo)
-                return;
-            updatePlayerResource(roomId, playerId, resourceId, amount);
-        });
-        // 2.5. カスタムイベントの登録
-        const events = options.customEvents ? options.customEvents() : {};
-        for (const [event, handler] of Object.entries(events)) {
-            socket.on(event, (data) => {
-                server_log("custom_event", `${event} received from ${socket.id}`, data);
-                try {
-                    handler(socket, data);
-                }
-                catch (err) {
-                    server_log("warning", `${event} handler error:`, err);
-                }
-            });
-        }
-        // 3. プレイヤーの移動処理
+        // 移動処理
         socket.on("game:move-player", ({ roomId, playerId, newPosition }) => {
             const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo) {
-                server_log("warn", roomInfo.gameName, roomId, `ルームが見つかりません for move-player`);
+            if (!roomInfo)
                 return;
-            }
-            const { gameStateInstance } = roomInfo;
-            const playerToMove = gameStateInstance.players.find((p) => p.id === playerId);
-            if (playerToMove) {
-                playerToMove.position = newPosition;
-                server_log("game", roomInfo.gameName, roomId, `Player ${playerToMove.name} moved to (${newPosition.row}, ${newPosition.col})`);
-                const wasUpdated = markCellAsExplored(gameStateInstance, roomInfo.gameName, roomId, newPosition);
-                applyCellEffect(gameStateInstance, roomInfo.gameName, roomId, playerId, newPosition, cellEffects, (pId, pts) => addScore(roomId, pId, pts), (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), (msg, color) => requirePopup(roomId, msg, color));
+            const player = roomInfo.gameStateInstance.players.find(p => p.id === playerId);
+            if (player) {
+                player.position = newPosition;
+                const wasUpdated = markCellAsExplored(roomInfo.gameStateInstance, roomInfo.gameName, roomId, newPosition);
+                applyCellEffect(roomInfo.gameStateInstance, roomInfo.gameName, roomId, playerId, newPosition, cellEffects, (pId, pts) => addScore(roomId, pId, pts), (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => requirePopup(roomId, message, color));
                 emitPlayerUpdate(roomId);
-                if (wasUpdated) {
+                if (wasUpdated)
                     broadcastExploredUpdate(roomId);
-                }
-            }
-            else {
-                server_log("warn", roomInfo.gameName, roomId, `Move requested for unknown player ID: ${playerId}`);
             }
         });
-        // 4. マス目探索処理 (roomIdを要求)
-        socket.on("game:explore-cell", ({ roomId, playerId, targetPosition }) => {
+        // 探索処理
+        socket.on("game:explore-cell", ({ roomId, targetPosition }) => {
             const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo) {
-                server_log("warn", roomInfo.gameName, roomId, `ルームが見つかりません for explore-cell`);
-                return;
-            }
-            const { gameStateInstance } = roomInfo;
-            const player = gameStateInstance.players.find((p) => p.id === playerId);
-            const { row, col } = targetPosition;
-            if (player) {
-                server_log("game", roomInfo.gameName, roomId, `Player ${player.name} exploring cell at (${row}, ${col})`);
-                const wasUpdated = markCellAsExplored(gameStateInstance, roomInfo.gameName, roomId, targetPosition);
-                emitPlayerUpdate(roomId);
-                if (wasUpdated) {
-                    broadcastExploredUpdate(roomId);
-                }
-            }
-            else {
-                server_log("warn", roomInfo.gameName, roomId, `Explore requested for unknown player ID: ${playerId}`);
+            if (roomInfo && markCellAsExplored(roomInfo.gameStateInstance, roomInfo.gameName, roomId, targetPosition)) {
+                broadcastExploredUpdate(roomId);
             }
         });
         socket.on("game:unexplore-cell", ({ roomId, targetPosition }) => {
             const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo) {
-                server_log("warn", roomInfo.gameName, roomId, `ルームが見つかりません for unexplore-cell`);
-                return;
-            }
-            const wasRemoved = unmarkCellAsExplored(roomInfo.gameStateInstance, roomInfo.gameName, roomId, targetPosition);
-            emitPlayerUpdate(roomId);
-            if (wasRemoved) {
+            if (roomInfo && unmarkCellAsExplored(roomInfo.gameStateInstance, roomInfo.gameName, roomId, targetPosition)) {
                 broadcastExploredUpdate(roomId);
             }
         });
-        // 💡 修正箇所: 5. ダイスロール要求の処理 (イベント名をクライアント側の期待値に合わせる)
+        // ダイス
         socket.on("dice:roll", ({ roomId, diceId, sides }) => {
-            const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo) {
-                server_log("warn", roomInfo.gameName, roomId, `ルームが見つかりません for dice-roll`);
-                return;
-            }
-            // 乱数生成: 1からsidesまでの整数
-            const rollValue = Math.floor(Math.random() * sides) + 1;
-            server_log("game", roomInfo.gameName, roomId, `Dice ${diceId} rolled D${sides}. Result: ${rollValue}`);
-            // 💡 修正: ルーム内の全員に結果を、ユニークなイベント名でブロードキャスト
-            // クライアントの Dice.js が期待するイベント名: `dice:rolled:${roomId}:${diceId}`
-            io.to(roomId).emit(`dice:rolled:${roomId}:${diceId}`, rollValue);
-            // TODO: ゲームロジック側で、このロール結果をプレイヤーの移動や行動に反映する
-        });
-        // ログ設定の変更を受け付ける
-        socket.on("log:set-category", ({ category, enabled }) => {
-            if (LOG_CATEGORIES.hasOwnProperty(category)) {
-                LOG_CATEGORIES[category] = enabled;
-                console.log(`[log] カテゴリ "${category}" のログ出力を ${enabled ? "有効" : "無効"} に設定しました。`);
-            }
-            else {
-                console.warn(`[log] 未知のログカテゴリ "${category}" が指定されました。`);
-            }
+            const val = Math.floor(Math.random() * sides) + 1;
+            io.to(roomId).emit(`dice:rolled:${roomId}:${diceId}`, val);
         });
         // カードを引く
         socket.on("deck:draw", ({ roomId, deckId, playerId, drawLocation = "hand" }) => {
             const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo || !roomInfo.decks[deckId]) {
-                server_log("warn", roomInfo.gameName, roomId, `ルームまたはデッキが見つかりません for draw`);
+            if (!roomInfo || !roomInfo.decks[deckId])
                 return;
-            }
-            const { decks } = roomInfo;
-            // デッキにあるカードのみをフィルタリング
-            const currentDeck = decks[deckId].filter((c) => c.location === "deck");
-            if (!currentDeck.length) {
-                server_log("warn", roomInfo.gameName, roomId, `デッキ ${deckId} は空です。`);
+            const deck = roomInfo.decks[deckId].filter(c => c.location === "deck");
+            if (deck.length === 0)
                 return;
-            }
-            // 先頭のカードを取得
-            const card = currentDeck[0];
-            let destination = "";
-            // --- 移動ロジック開始 ---
-            // A. 引いた瞬間に捨て札にする場合
-            if (drawLocation == "discard") {
+            const card = deck[0];
+            if (drawLocation === "discard") {
                 card.location = "discard";
-                card.ownerId = null;
-                card.isFaceUp = true;
                 roomInfo.discardPile[deckId].push(card);
-                destination = "discard";
             }
-            // B. プレイヤーを指定して引く場合
             else if (playerId) {
-                const player = roomInfo.gameStateInstance.players.find((p) => p.id === playerId);
-                if (player) {
-                    player.cards = player.cards || [];
+                const p = roomInfo.gameStateInstance.players.find(p => p.id === playerId);
+                if (p) {
                     card.location = drawLocation;
-                    card.isFaceUp = false;
                     card.ownerId = playerId;
-                    player.cards.push(card);
-                    destination = playerId;
+                    p.cards.push(card);
                 }
             }
-            // C. 場に出す場合
             else {
-                card.ownerId = null;
                 card.location = "field";
-                card.isFaceUp = true;
                 roomInfo.playFieldCards[deckId].push(card);
-                destination = "field";
             }
-            server_log("deck", roomInfo.gameName, roomId, `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination})`);
-            emitDeckUpdate(roomId, deckId);
-            emitPlayerUpdate(roomId);
-        });
-        // デッキシャッフル
-        socket.on("deck:shuffle", ({ roomId, deckId }) => {
-            if (!activeRooms.has(roomId)) {
-                server_log("warn", roomInfo.gameName, roomId, `ルームが見つかりません for shuffle`);
-                return;
-            }
-            shuffleDeck(roomId, deckId);
-            emitDeckUpdate(roomId, deckId);
-        });
-        // デッキリセット（discard以外のカードはそのまま）
-        socket.on("deck:reset", ({ roomId, deckId }) => {
-            const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo || !roomInfo.decks[deckId]) {
-                server_log("warn", roomInfo.gameName, roomId, `ルームまたはデッキが見つかりません for reset`);
-                return;
-            }
-            // デッキ・プレイフィールド・捨て札のカード位置をリセット
-            roomInfo.decks[deckId].forEach((c) => {
-                if (c.location === "discard") {
-                    c.location = "deck";
-                    c.isFaceUp = false;
-                    c.ownerId = null; // 所有者をクリア
-                }
-            });
-            // discardの配列をクリア
-            roomInfo.discardPile[deckId] = [];
-            server_log("deck", roomInfo.gameName, roomId, `デッキ ${deckId} リセット (discard -> deck)`);
-            shuffleDeck(roomId, deckId);
             emitDeckUpdate(roomId, deckId);
         });
         // カード使用
-        socket.on("card:play", ({ roomId, deckId, cardIds, playerId, playLocation = "field", position, }) => {
-            // position を受け取る
+        socket.on("card:play", ({ roomId, deckId, cardIds, playerId, playLocation = "field", position }) => {
             const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo || !roomInfo.decks[deckId]) {
-                server_log("warn", roomInfo.gameName, roomId, `ルームまたはデッキが見つかりません for card:play`);
+            if (!roomInfo)
                 return;
-            }
-            const { decks, playFieldCards, discardPile, gameStateInstance } = roomInfo;
             const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
-            ids.forEach((cardId) => {
-                const card = decks[deckId].find((c) => c.id === cardId);
+            ids.forEach(id => {
+                const card = roomInfo.decks[deckId].find(c => c.id === id);
                 if (!card)
                     return;
-                // 手札等からの削除
                 if (playerId) {
-                    const player = gameStateInstance.players.find((p) => p.id === playerId);
-                    if (player && player.cards) {
-                        player.cards = player.cards.filter((c) => c.id !== cardId);
-                    }
+                    const p = roomInfo.gameStateInstance.players.find(p => p.id === playerId);
+                    if (p)
+                        p.cards = p.cards.filter(c => c.id !== id);
                 }
-                // 座標の更新: 送られてきたらそれを使う。なければ中央(50, 50)
-                card.position = position || { x: 50, y: 50 };
                 card.location = playLocation;
+                card.position = position || { x: 50, y: 50 };
                 card.isFaceUp = true;
-                server_log("card", roomInfo.gameName, roomId, `Play: ${card.name} (ID:${card.id}) (${playerId} -> ${playLocation}) at pos(${card.position.x}, ${card.position.y})`);
-                // 既存の場所から削除
-                [playFieldCards[deckId], discardPile[deckId]].forEach((arr) => {
-                    const index = arr.findIndex((c) => c.id === cardId);
-                    if (index !== -1)
-                        arr.splice(index, 1);
-                });
-                // 配列への追加（厳密チェック）
                 if (playLocation === "discard") {
-                    card.ownerId = null;
-                    discardPile[deckId].push(card);
+                    roomInfo.discardPile[deckId].push(card);
                 }
-                else if (playLocation === "field") {
-                    playFieldCards[deckId].push(card);
+                else {
+                    roomInfo.playFieldCards[deckId].push(card);
                 }
-                // 効果発動
-                const effect = options.cardEffects[card.name];
-                if (effect) {
-                    server_log("card", roomInfo.gameName, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
+                const effect = options.cardEffects?.[card.name];
+                if (effect)
                     effect({
                         playerId,
-                        addScore: (points) => addScore(roomId, playerId, points),
-                        updateResource: (resourceId, amount) => updatePlayerResource(roomId, playerId, resourceId, amount),
-                        updateToken: (tokenId, amount) => updatePlayerToken(roomId, playerId, tokenId, amount),
+                        addScore: (pts) => addScore(roomId, playerId, pts),
+                        updateResource: (rId, amt) => updatePlayerResource(roomId, playerId, rId, amt)
                     });
-                }
             });
             emitDeckUpdate(roomId, deckId);
-            emitPlayerUpdate(roomId);
         });
-        // カード公開
-        socket.on("card:reveal", ({ roomId, playerId, cardIds }) => {
-            const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo) {
-                server_log("warn", roomInfo.gameName, roomId, `ルームが見つかりません for card:reveal`);
-                return;
-            }
-            const { gameStateInstance } = roomInfo;
-            const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
-            const player = gameStateInstance.players.find((p) => p.id === playerId);
-            if (!player || !player.cards) {
-                server_log("warn", roomInfo.gameName, roomId, `プレイヤーまたは手札が見つかりません: ${playerId}`);
-                return;
-            }
-            ids.forEach((cardId) => {
-                const card = player.cards.find((c) => c.id === cardId);
-                if (!card)
-                    return;
-                // 公開状態にする
-                card.isFaceUp = true;
-                server_log("card", roomInfo.gameName, roomId, `Reveal: ${card.name} (ID:${card.id}) by ${playerId}`);
-            });
-            emitPlayerUpdate(roomId);
-        });
-        // フィールドから「手札」または「捨て札」へ移動
-        socket.on("card:move-from-field", ({ roomId, deckId, cardId, targetPlayerId = null }) => {
-            const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo)
-                return;
-            const { decks, playFieldCards, gameStateInstance } = roomInfo;
-            // 対象カードを特定
-            const card = decks[deckId]?.find((c) => c.id === cardId);
-            if (!card)
-                return;
-            // PlayFieldから削除（共通処理）
-            const fieldIndex = playFieldCards[deckId]?.findIndex((c) => c.id === cardId);
-            if (fieldIndex !== -1) {
-                playFieldCards[deckId].splice(fieldIndex, 1);
-            }
-            // 行き先の判定と処理
-            if (targetPlayerId) {
-                // --- 手札に戻す場合 ---
-                const player = gameStateInstance.players.find((p) => p.id === targetPlayerId);
-                if (player) {
-                    card.location = "hand";
-                    card.ownerId = targetPlayerId;
-                    card.isFaceUp = true; // 手札なので自分には見える
-                    player.cards = player.cards || [];
-                    player.cards.push(card);
-                    server_log("card", roomInfo.gameName, roomId, `Return: ${card.name} -> Player:${targetPlayerId}`);
-                }
-            }
-            else {
-                // --- 捨て札に送る場合 ---
-                card.location = "discard";
-                card.ownerId = null;
-                card.isFaceUp = true;
-                roomInfo.discardPile[deckId].push(card);
-                server_log("card", roomInfo.gameName, roomId, `Return: ${card.name} -> discard`);
-            }
-            emitDeckUpdate(roomId, deckId);
-            emitPlayerUpdate(roomId);
-        });
-        socket.on("card:move-on-field", (data) => {
-            const { roomId, deckId, cardId, position } = data;
-            // メモリ上のデータを直接更新
-            const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo)
-                return;
-            const card = roomInfo.playFieldCards[deckId].find((c) => c.id === cardId);
-            if (card) {
-                card.position = position;
-                emitDeckUpdate(roomId, deckId);
-                emitPlayerUpdate(roomId);
-            }
-        });
-        // トークン獲得イベントのハンドラ（room対応版）
+        // トークン獲得
         socket.on("game:acquire-token", (payload) => {
-            const { roomId, tokenStoreId, tokenId, tokenName } = payload;
+            const { roomId, tokenStoreId, tokenId } = payload;
             const roomInfo = activeRooms.get(roomId);
-            if (!roomInfo) {
-                server_log("warn", roomInfo.gameName, roomId, ` Room not found.`);
-                return;
-            }
-            const { gameStateInstance } = roomInfo;
-            // socket.id からプレイヤーIDを取得
-            const player = gameStateInstance.players.find((p) => p.socketId === socket.id);
-            if (!player) {
-                server_log("warn", roomInfo.gameName, roomId, `プレイヤーが見つかりません (socket.id: ${socket.id})`);
-                return;
-            }
-            const playerId = player.id;
-            server_log("token", roomInfo.gameName, roomId, `Player ${player.name} attempts to acquire token: ${tokenName} (Store: ${tokenStoreId}, ID: ${tokenId})`);
-            const success = gameStateInstance.acquireToken(tokenStoreId, roomInfo.gameName, roomId, playerId, tokenId);
-            if (success) {
-                if (tokenStoreId !== "scoreboard-acquisition") {
-                    const updatedTokens = gameStateInstance
-                        .getTokenStore(tokenStoreId)
-                        ?.getTokens();
-                    if (updatedTokens) {
-                        io.to(roomId).emit(`token-store:update:${roomId}:${tokenStoreId}`, updatedTokens);
-                        server_log("token", roomInfo.gameName, roomId, `ストア ${tokenStoreId} の更新 (${updatedTokens.length} 個) をブロードキャストしました。`);
-                    }
-                }
+            const player = roomInfo?.gameStateInstance.players.find(p => p.socketId === socket.id);
+            if (roomInfo && player && roomInfo.gameStateInstance.acquireToken(tokenStoreId, roomInfo.gameName, roomId, player.id, tokenId)) {
+                const store = roomInfo.gameStateInstance.getTokenStore(tokenStoreId);
+                if (store)
+                    io.to(roomId).emit(`token-store:update:${roomId}:${tokenStoreId}`, store.getTokens());
                 emitPlayerUpdate(roomId);
-                io.to(roomId).emit("game:state-update", gameStateInstance.getFullState());
-            }
-            else {
-                server_log("warn", roomInfo.gameName, roomId, `Failed to acquire token ${tokenId}. It might not exist or logic failed.`);
-                const currentTokens = gameStateInstance
-                    .getTokenStore(tokenStoreId)
-                    ?.getTokens();
-                if (currentTokens) {
-                    socket.emit(`token-store:update:${roomId}:${tokenStoreId}`, currentTokens);
-                }
             }
         });
-        // ドラッグ可能オブジェクト関連
-        socket.on("draggable:moved", (data) => {
-            const { roomId, ...move } = data;
-            socket.to(roomId).emit("draggable:update", move);
-        });
-        // カーソル関連
-        (socket.on("cursor:move", (data) => {
-            const { roomId, x, y } = data;
-            // 送信元ソケットのIDを取得
-            const playerId = socket.id;
-            socket.to(roomId).emit("cursor:update", {
-                playerId,
-                x,
-                y,
-            });
-        }),
-            // ------------------------------------
-            // 3. タイマー機能
-            // ------------------------------------
-            /**
-             * ルームのタイマーを停止・クリアする
-             * @param {string} roomId
-             * @param {string} gameName
-             */
-            function stopTimer(roomId, gameName) {
-                if (roomTimers.has(roomId)) {
-                    clearTimeout(roomTimers.get(roomId));
-                    roomTimers.delete(roomId);
-                    server_log("timer", gameName, roomId, `タイマーを停止しました。`);
-                }
-            });
-        /**
-         * クライアントからのタイマー開始リクエスト
-         * @param {{ duration: number, roomId: string }} data
-         */
+        // タイマー
         socket.on("timer:start", ({ duration, roomId }) => {
             const roomInfo = activeRooms.get(roomId);
-            if (!activeRooms.has(roomId)) {
-                server_log("warn", roomInfo.gameName, roomId, `存在しないルームでタイマー開始リクエストを受信。`);
+            if (!roomInfo)
                 return;
-            }
-            server_log("timer", roomInfo.gameName, roomId, `${duration}秒のタイマーを開始します。`);
-            // 既存のタイマーをクリア
             stopTimer(roomId, roomInfo.gameName);
-            let remainingTime = duration;
-            // ルーム内の全クライアントに開始を通知
+            let rem = duration;
             io.to(roomId).emit("timer:start", { duration, roomId });
-            function tick() {
-                if (remainingTime <= 0) {
-                    // 終了処理
-                    stopTimer(roomId);
-                    io.to(roomId).emit("timer:update", { remaining: 0, roomId });
+            const tick = () => {
+                if (rem <= 0) {
+                    stopTimer(roomId, roomInfo.gameName);
                     io.to(roomId).emit("timer:finish", { roomId });
-                    server_log("timer", roomInfo.gameName, roomId, `タイマーが終了しました。`);
                     return;
                 }
-                // 1秒ごとの更新をクライアントにブロードキャスト
-                io.to(roomId).emit("timer:update", {
-                    remaining: remainingTime,
-                    roomId,
-                });
-                remainingTime--;
-                // 1秒後に次のティックを予約
-                const timeoutId = setTimeout(tick, 1000);
-                roomTimers.set(roomId, timeoutId);
-            }
-            // 即座に最初のティックを実行
+                io.to(roomId).emit("timer:update", { remaining: rem, roomId });
+                rem--;
+                roomTimers.set(roomId, setTimeout(tick, 1000));
+            };
             tick();
         });
         // 次のターン
@@ -802,107 +358,50 @@ export function initGameServer(io, options = {}) {
             if (!roomInfo)
                 return;
             const { gameStateInstance } = roomInfo;
-            const playerCount = gameStateInstance.players.length;
-            if (playerCount === 0)
+            if (gameStateInstance.players.length === 0)
                 return;
-            // 終了判定をここで実施
-            // ユーザー定義の checkGameEnd があれば実行
-            if (typeof roomInfo.checkGameEnd === "function") {
-                if (roomInfo.checkGameEnd(roomInfo)) {
-                    server_log("game", roomInfo.gameName, roomId, `ゲーム終了条件を満たしました。`);
-                    // ユーザー定義の onGameEnd を実行する
-                    const results = typeof roomInfo.onGameEnd === "function"
-                        ? roomInfo.onGameEnd(roomInfo)
-                        : { message: "Game Over" };
-                    io.to(roomId).emit("game:end", results);
-                    return; // 終了した場合は次のターン処理を行わずに抜ける
-                }
+            if (typeof roomInfo.checkGameEnd === "function" && roomInfo.checkGameEnd(roomInfo)) {
+                const results = typeof roomInfo.onGameEnd === "function" ? roomInfo.onGameEnd(roomInfo) : { message: "Game Over" };
+                io.to(roomId).emit("game:end", results);
+                return;
             }
-            // ターンを更新
-            const nextIndex = (roomInfo.currentTurnIndex + 1) % playerCount;
-            // ラウンド更新の判定
-            if (nextIndex === 0) {
-                roomInfo.currentRoundIndex = roomInfo.currentRoundIndex + 1;
-            }
+            const nextIndex = (roomInfo.currentTurnIndex + 1) % gameStateInstance.players.length;
+            if (nextIndex === 0)
+                roomInfo.currentRoundIndex += 1;
             roomInfo.currentTurnIndex = nextIndex;
             const currentPlayer = gameStateInstance.players[roomInfo.currentTurnIndex];
-            // ログにラウンドとターンを両方出す
-            server_log("game", roomInfo.gameName, roomId, `ターン更新 (Player: ${currentPlayer?.name}, Round: ${roomInfo.currentRoundIndex})`);
-            // クライアント側でもラウンドを表示したいので、一緒に送る
             io.to(roomId).emit("game:turn", {
                 playerId: currentPlayer?.id,
                 currentRound: roomInfo.currentRoundIndex,
                 currentTurnIndex: roomInfo.currentTurnIndex,
             });
         });
-        socket.on("require-popup", ({ roomId, message, color = "blue" }) => {
-            server_log("popup", roomInfo.gameName, roomId, `全員にポップアップ要求: ${message} (色: ${color})`);
-            const popupContent = {
-                message: message,
-                color: color,
-                timestamp: Date.now(),
-            };
-            io.to(roomId).emit("client:show-popup", popupContent);
-        });
-        // 接続切断処理
+        // 切断処理
         socket.on("disconnect", async () => {
-            server_log("disconnect", `クライアント切断: ${socket.id}`);
-            // 1. 切断されたソケットが参加していたゲームルームを特定
-            // Socket.IOは切断時に自動でルームを抜けますが、disconnectingイベントで参加していたルームを取得できます。
-            // しかし、ここではルーム参加時にプレイヤーオブジェクトにroomIdを保持していないため、
-            // activeRooms全体をチェックして、このsocketIdを持つプレイヤーがいたルームを探します。
             let disconnectedRoomId = null;
-            let disconnectingPlayer = null;
-            for (const [roomId, roomInfo] of activeRooms.entries()) {
-                const playerIndex = roomInfo.gameStateInstance.players.findIndex((p) => p.socketId === socket.id);
-                if (playerIndex !== -1) {
-                    disconnectedRoomId = roomId;
-                    disconnectingPlayer = roomInfo.gameStateInstance.players[playerIndex];
-                    // プレイヤーリストから削除（非アクティブ化）
-                    roomInfo.gameStateInstance.players.splice(playerIndex, 1);
-                    server_log("room", roomInfo.gameName, roomId, `プレイヤー ${disconnectingPlayer.name} (${disconnectingPlayer.id}) をリストから削除しました。`);
+            for (const [id, info] of activeRooms.entries()) {
+                const idx = info.gameStateInstance.players.findIndex(p => p.socketId === socket.id);
+                if (idx !== -1) {
+                    disconnectedRoomId = id;
+                    info.gameStateInstance.players.splice(idx, 1);
                     break;
                 }
             }
             if (disconnectedRoomId) {
-                // プレイヤーリストの更新をブロードキャスト
-                emitPlayerUpdate(disconnectedRoomId);
-                // 2. ルームに残っている接続中のソケットの数をチェック
-                // Socket.IO v3/v4では io.in(roomId).fetchSockets() でルーム内のソケットを取得できます。
-                const socketsInRoom = await io.in(disconnectedRoomId).fetchSockets();
-                server_log("room", `[${disconnectedRoomId}] 残りソケット数: ${socketsInRoom.length}`);
-                // 3. 残りソケット数が0であればルームをクリーンアップ
-                if (socketsInRoom.length === 0) {
+                const sockets = await io.in(disconnectedRoomId).fetchSockets();
+                if (sockets.length === 0) {
                     activeRooms.delete(disconnectedRoomId);
-                    server_log("room", `[${disconnectedRoomId}] 誰もいなくなったため、ルームをアクティブリストから削除しました。`);
-                    // ロビーリストの更新を通知
                     io.emit("lobby:room-update");
                 }
                 else {
-                    // ターンプレイヤーが切断した場合、次のターンへ
-                    const roomInfo = activeRooms.get(disconnectedRoomId);
-                    if (roomInfo &&
-                        disconnectingPlayer &&
-                        roomInfo.gameStateInstance.players.length > 0) {
-                        // 切断されたプレイヤーが現在のターンプレイヤーだった場合、ターンをスキップ（次のプレイヤーに移動）
-                        const currentTurnPlayer = roomInfo.gameStateInstance.players[roomInfo.currentTurnIndex];
-                        if (currentTurnPlayer &&
-                            currentTurnPlayer.id === disconnectingPlayer.id) {
-                            roomInfo.currentTurnIndex =
-                                roomInfo.currentTurnIndex %
-                                    roomInfo.gameStateInstance.players.length; // 新しいプレイヤー数に基づいてインデックスを調整
-                            server_log("game", `[${disconnectedRoomId}] ターンプレイヤーが切断したため、次のターンへ移行します: ${roomInfo.gameStateInstance.players[roomInfo.currentTurnIndex]
-                                ?.name}`);
-                            io.to(disconnectedRoomId).emit("game:turn", {
-                                playerId: roomInfo.gameStateInstance.players[roomInfo.currentTurnIndex]
-                                    ?.id,
-                                currentRound: roomInfo.currentRoundIndex,
-                                currentTurnIndex: roomInfo.currentTurnIndex,
-                            });
-                        }
-                    }
+                    emitPlayerUpdate(disconnectedRoomId);
                 }
             }
         });
+        // カスタムイベント
+        const customEvents = options.customEvents ? options.customEvents() : {};
+        for (const [event, handler] of Object.entries(customEvents)) {
+            socket.on(event, (data) => handler(socket, data));
+        }
     });
 }

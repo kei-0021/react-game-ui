@@ -1,4 +1,4 @@
-export function initGameServer(io: any, options?: {}): void;
-export type RoomGameInfo = import("./server-utils.js").RoomGameInfo;
-export type GameState = import("./server-utils.js").GameState;
+import { Server } from "socket.io";
+import type { GameServerOptions } from "./server.js";
+export declare function initGameServer(io: Server, options?: GameServerOptions): void;
 //# sourceMappingURL=server-logic.d.ts.map
