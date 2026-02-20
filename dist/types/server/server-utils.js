@@ -28,23 +28,23 @@ export function server_log(tag, gamePresetId, roomId, ...args) {
         console.log(`[${tag}] [${gamePresetId} (${roomId})]`, ...args);
     }
 }
-export const isExplored = (gameParam, location) => {
-    return gameParam.exploredCells.some((loc) => loc.row === location.row && loc.col === location.col);
+export const isExplored = (gameParam, position) => {
+    return gameParam.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
-export const markCellAsExplored = (gameParam, gameName, roomId, location) => {
-    if (!isExplored(gameParam, location)) {
-        gameParam.exploredCells.push(location);
-        server_log('cell', gameName, roomId, `マス (${location.row}, ${location.col}) を探索済みとしてマークしました。`);
+export const markCellAsExplored = (gameParam, gameName, roomId, position) => {
+    if (!isExplored(gameParam, position)) {
+        gameParam.exploredCells.push(position);
+        server_log('cell', gameName, roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
         return true;
     }
     return false;
 };
-export const unmarkCellAsExplored = (gameParam, gameName, roomId, location) => {
+export const unmarkCellAsExplored = (gameParam, gameName, roomId, position) => {
     const initialLength = gameParam.exploredCells.length;
-    gameParam.exploredCells = gameParam.exploredCells.filter((loc) => !(loc.row === location.row && loc.col === location.col));
+    gameParam.exploredCells = gameParam.exploredCells.filter((loc) => !(loc.row === position.row && loc.col === position.col));
     const wasRemoved = gameParam.exploredCells.length < initialLength;
     if (wasRemoved) {
-        server_log('cell', gameName, roomId, `マス (${location.row}, ${location.col}) の探索済みマークを解除しました。`);
+        server_log('cell', gameName, roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
     }
     return wasRemoved;
 };
@@ -87,8 +87,8 @@ export const createRandomBoard = (initialBoard) => {
     }
     return newBoard;
 };
-export const applyCellEffect = (gameParam, gameName, roomId, playerId, location, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
-    const { row, col } = location;
+export const applyCellEffect = (gameParam, gameName, roomId, playerId, position, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
+    const { row, col } = position;
     if (row < 0 || row >= gameParam.board.length || col < 0 || col >= gameParam.board[row].length) {
         server_log('warn', gameName, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
         return;

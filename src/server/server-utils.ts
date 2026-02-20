@@ -1,5 +1,5 @@
 import { GameName, PlayerId, RoomId } from '@/types/definition.js';
-import { initialRoomState as IInitialRoomState, Location, ServerPlayer, TokenStoreDef } from '@/types/server.js';
+import { initialRoomState as IInitialRoomState, Position, ServerPlayer, TokenStoreDef } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 
 export type LogCategory =
@@ -51,19 +51,19 @@ export function server_log(tag: LogCategory, gamePresetId: GameName, roomId: Roo
   }
 }
 
-export const isExplored = (gameParam: IInitialRoomState, location: Location): boolean => {
-  return gameParam.exploredCells.some((loc) => loc.row === location.row && loc.col === location.col);
+export const isExplored = (gameParam: IInitialRoomState, position: Position): boolean => {
+  return gameParam.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
 
 export const markCellAsExplored = (
   gameParam: IInitialRoomState,
   gameName: string,
   roomId: RoomId,
-  location: Location,
+  position: Position,
 ): boolean => {
-  if (!isExplored(gameParam, location)) {
-    gameParam.exploredCells.push(location);
-    server_log('cell', gameName, roomId, `マス (${location.row}, ${location.col}) を探索済みとしてマークしました。`);
+  if (!isExplored(gameParam, position)) {
+    gameParam.exploredCells.push(position);
+    server_log('cell', gameName, roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
     return true;
   }
   return false;
@@ -73,15 +73,15 @@ export const unmarkCellAsExplored = (
   gameParam: IInitialRoomState,
   gameName: string,
   roomId: RoomId,
-  location: Location,
+  position: Position,
 ): boolean => {
   const initialLength = gameParam.exploredCells.length;
   gameParam.exploredCells = gameParam.exploredCells.filter(
-    (loc) => !(loc.row === location.row && loc.col === location.col),
+    (loc) => !(loc.row === position.row && loc.col === position.col),
   );
   const wasRemoved = gameParam.exploredCells.length < initialLength;
   if (wasRemoved) {
-    server_log('cell', gameName, roomId, `マス (${location.row}, ${location.col}) の探索済みマークを解除しました。`);
+    server_log('cell', gameName, roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
   }
   return wasRemoved;
 };
@@ -131,14 +131,14 @@ export const applyCellEffect = (
   gameName: string,
   roomId: RoomId,
   playerId: PlayerId,
-  location: Location,
+  position: Position,
   cellEffects: Record<string, (params: any) => void>,
   addScore: (playerId: PlayerId, points: number) => void,
   updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void,
   updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void,
   requirePopup: (params: any) => void,
 ): void => {
-  const { row, col } = location;
+  const { row, col } = position;
   if (row < 0 || row >= gameParam.board.length || col < 0 || col >= gameParam.board[row].length) {
     server_log('warn', gameName, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
     return;
@@ -183,7 +183,7 @@ export class RoomManager {
   public initialTokenStores: any[];
   public initialTokens: any[];
   public board: any[][];
-  public exploredCells: Location[];
+  public exploredCells: Position[];
   public turn: number;
   public tokenStores: Map<string, TokenStore>;
 

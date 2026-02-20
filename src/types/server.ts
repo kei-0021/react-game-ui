@@ -5,36 +5,41 @@
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
-import { DeckId, GameName, RoomId } from './definition.js';
+import { DeckId, GameName, PlayerId, ResourceId, RoomId, TokenId } from './definition.js';
+import { Resource } from './resource.js';
 import { Token } from './token.js';
 
-export interface Location {
-  row: number;
-  col: number;
-}
-
 export interface ServerPlayer {
-  id: string;
+  id: PlayerId;
   name: string;
   socketId: string;
   color: string;
   cards: Card[];
   score: number;
-  resources: any[];
+  resources: Resource[];
   tokens: Token[];
-  position: Location;
+  position: Position;
 }
 
 export type Position = { col: number; row: number };
 export type Coordinate = { x: number; y: number };
 
 export type RoomParam = {
-  name: GameName;
+  gameName: GameName;
   initialDecks: Deck[];
-  initialHand: any;
-  initialResources: any;
+  initialHand?: {
+    deckId: DeckId;
+    count: number;
+  };
+  initialResources?: {
+    resouceId: ResourceId;
+    count: number;
+  };
   initialTokenStores: any;
-  initialTokens: any;
+  initialTokens?: {
+    tokenId: TokenId;
+    count: number;
+  };
   initialBoard: any;
   checkGameEnd: any;
   onGameEnd: any;
@@ -46,7 +51,7 @@ export type initialRoomState = {
   initialTokenStores: any[];
   initialTokens: any[];
   board: any[][];
-  exploredCells: Location[];
+  exploredCells: Position[];
   turn: number;
 };
 
@@ -69,5 +74,5 @@ export interface RoomState {
 export interface TokenStoreDef {
   tokenStoreId: string;
   name: string;
-  tokens: any[];
+  tokens: Token[];
 }

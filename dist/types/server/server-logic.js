@@ -51,12 +51,12 @@ function initializeRoom(roomId, settings) {
         drawnCards[deck.deckId] = [];
         playFieldCards[deck.deckId] = [];
         discardPile[deck.deckId] = [];
-        server_log('deck', settings.name || 'Standard', roomId, `デッキ "${deck.deckId}" 初期化完了`);
+        server_log('deck', settings.gameName || 'Standard', roomId, `デッキ "${deck.deckId}" 初期化完了`);
     });
     const roomState = {
         roomId,
         createdAt: Date.now(),
-        gameName: settings.name || '不明なゲーム',
+        gameName: settings.gameName || '不明なゲーム',
         currentTurnIndex: 0,
         currentRoundIndex: 0,
         decks,
@@ -156,9 +156,9 @@ export function initGameServer(io, options = {}) {
             if (!roomId)
                 return;
             let roomInfo = activeRooms.get(roomId);
-            const roomSettings = gamePresets[gamePresetId] || options;
+            const roomParam = gamePresets[gamePresetId] || options;
             if (!roomInfo) {
-                roomInfo = initializeRoom(roomId, { ...roomSettings, name: gamePresetId });
+                roomInfo = initializeRoom(roomId, { ...roomParam, gameName: gamePresetId });
                 Object.keys(roomInfo.decks).forEach((id) => shuffleDeck(roomId, id));
                 io.emit('lobby:room-update');
             }
@@ -173,12 +173,12 @@ export function initGameServer(io, options = {}) {
                     socketId: socket.id,
                     cards: [],
                     score: 0,
-                    resources: JSON.parse(JSON.stringify(roomSettings.initialResources || [])),
-                    tokens: JSON.parse(JSON.stringify(roomSettings.initialTokens || [])),
+                    resources: JSON.parse(JSON.stringify(roomParam.initialResources || [])),
+                    tokens: JSON.parse(JSON.stringify(roomParam.initialTokens || [])),
                     position: { row: 0, col: 0 },
                 };
                 gameParam.players.push(player);
-                const hand = roomSettings.initialHand;
+                const hand = roomParam.initialHand;
                 if (hand && decks[hand.deckId]) {
                     const target = decks[hand.deckId];
                     for (let i = 0; i < hand.count; i++) {
