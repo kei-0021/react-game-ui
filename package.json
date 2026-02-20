@@ -13,7 +13,7 @@
       "require": "./dist/react-game-ui.cjs.js"
     },
     "./server": {
-      "types": "./dist/types/server/server-utils.d.ts",
+      "types": "./dist/types/server/server.d.ts",
       "import": "./dist/server/server.js"
     },
     "./server-logic": {
@@ -30,7 +30,7 @@
   ],
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && NODE_ENV=production vite build && cp -r src/assets/. dist/assets/ && tsc --project tsconfig.json && node -e \"require('fs').mkdirSync('dist/server', {recursive: true}); require('fs').copyFileSync('src/server/server.js', 'dist/server/server.js'); require('fs').copyFileSync('src/server/server-logic.js', 'dist/server/server-logic.js'); require('fs').copyFileSync('dist/types/server/server-utils.js', 'dist/server/server-utils.js');\"",
+    "build": "npm run clean && NODE_ENV=production vite build && cp -r src/assets/. dist/assets/ && tsc --project tsconfig.json",
     "preview": "vite preview",
     "server": "node --loader ts-node/esm tests/server.js",
     "dev:multi": "concurrently \"npm run server\" \"vite\"",

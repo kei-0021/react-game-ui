@@ -37,6 +37,7 @@
     "src/components/**/*",
     "src/hooks/**/*",
     "src/types/**/*",
+    "src/server/server.ts",
     "src/server/server-utils.ts"
   ],
   "exclude": [
