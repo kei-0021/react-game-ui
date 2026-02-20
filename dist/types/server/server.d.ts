@@ -1,6 +1,8 @@
 import express from "express";
 import { Server as HttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
+import { Token } from "@/types/token.js";
+import { GameSettings } from "./server-utils.js";
 /**
  * サーバー設定の型定義
  */
@@ -9,14 +11,14 @@ export interface GameServerOptions {
     libDistPath?: string;
     clientDistPath?: string;
     corsOrigins?: string[];
-    gamePresets?: Record<string, any>;
+    gamePresets?: Record<string, GameSettings>;
     checkGameEnd?: ((gameState: any) => boolean) | null;
     onGameEnd?: ((results: any) => void) | null;
     initialDecks?: any[];
     cardEffects?: Record<string, any>;
     initialTokenStore?: Record<string, any>;
     initialHand?: Record<string, any>;
-    initialTokens?: Record<string, any>;
+    initialTokens?: Record<string, Token[]>;
     initialResources?: any[];
     initialBoard?: any[][];
     cellEffects?: Record<string, any>;

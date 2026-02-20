@@ -1,13 +1,13 @@
 // src/components/PlayField.tsx
 
-import * as React from "react";
-import { Socket } from "socket.io-client";
-import type { Card } from "../types/card.js";
-import type { DeckId, PlayerId, RoomId } from "../types/definition.js";
-import type { PlayerWithResources } from "../types/playerWithResources.js";
-import { client_log } from "../utils/client-log.js";
-import styles from "./Card.module.css";
-import "./PlayField.css";
+import * as React from 'react';
+import { Socket } from 'socket.io-client';
+import type { Card } from '../types/card.js';
+import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
+import type { PlayerWithResources } from '../types/playerWithResources.js';
+import { client_log } from '../utils/client-log.js';
+import styles from './Card.module.css';
+import './PlayField.css';
 
 // 通信量制限用の throttle
 function throttle<T extends (...args: any[]) => any>(func: T, limit: number) {
@@ -21,21 +21,13 @@ function throttle<T extends (...args: any[]) => any>(func: T, limit: number) {
   };
 }
 
-const CardDisplayContent = ({
-  card,
-  isFaceUp,
-}: {
-  card: Card;
-  isFaceUp: boolean;
-}) => {
+const CardDisplayContent = ({ card, isFaceUp }: { card: Card; isFaceUp: boolean }) => {
   if (!isFaceUp) {
     return null;
   }
 
   if (card.frontImage) {
-    return (
-      <img src={card.frontImage} alt={card.name} className="rg-card-image" />
-    );
+    return <img src={card.frontImage} alt={card.name} className="rg-card-image" />;
   }
 
   return (
@@ -53,23 +45,12 @@ type PlayFieldProps = {
   is_logging?: boolean;
   players: PlayerWithResources[];
   myPlayerId: string | null;
-  layoutMode?: "grid" | "free";
+  layoutMode?: 'grid' | 'free';
 };
 
-export default function PlayField({
-  socket,
-  roomId,
-  deckId,
-  name,
-  is_logging = false,
-  players,
-  myPlayerId,
-  layoutMode = "free",
-}: PlayFieldProps) {
+export default function PlayField({ socket, roomId, deckId, name, is_logging = false, players, myPlayerId, layoutMode = 'free' }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
-  const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(
-    null,
-  );
+  const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const draggingIdRef = React.useRef<string | null>(null);
 
@@ -77,7 +58,7 @@ export default function PlayField({
     const handleUpdate = (data: { playFieldCards?: Card[] }) => {
       const newCards = data.playFieldCards || [];
       if (is_logging) {
-        client_log("playField", `[${deckId}] 場の更新: ${newCards.length}枚`);
+        client_log('playField', `[${deckId}] 場の更新: ${newCards.length}枚`);
       }
       setPlayedCards(newCards);
     };
@@ -103,7 +84,7 @@ export default function PlayField({
         x = Math.max(0, Math.min(100, x));
         y = Math.max(0, Math.min(100, y));
 
-        socket.emit("card:move-on-field", {
+        socket.emit('card:move-on-field', {
           roomId,
           deckId,
           cardId,
@@ -114,7 +95,7 @@ export default function PlayField({
   );
 
   const handlePointerDown = (e: React.PointerEvent, card: Card) => {
-    if (layoutMode !== "free") return;
+    if (layoutMode !== 'free') return;
     draggingIdRef.current = card.id;
     setActiveDraggingId(card.id);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -138,8 +119,8 @@ export default function PlayField({
     e.preventDefault();
     if (!containerRef.current || !myPlayerId) return;
 
-    const droppedCardId = e.dataTransfer.getData("cardId");
-    const droppedDeckId = e.dataTransfer.getData("deckId");
+    const droppedCardId = e.dataTransfer.getData('cardId');
+    const droppedDeckId = e.dataTransfer.getData('deckId');
     if (!droppedCardId || !droppedDeckId) return;
 
     const rect = containerRef.current.getBoundingClientRect();
@@ -151,32 +132,29 @@ export default function PlayField({
     y = Math.max(0, Math.min(100, y));
 
     // サーバーへ「この場所にプレイする」と送信
-    socket.emit("card:play", {
+    socket.emit('card:play', {
       roomId,
       deckId: droppedDeckId,
       cardIds: [droppedCardId],
       playerId: myPlayerId,
       // サーバー側の strict な if 文に合わせて "field" 固定で送る
-      playLocation: "field",
+      playLocation: 'field',
       position: { x, y }, // 座標を渡す
     });
 
     if (is_logging) {
-      client_log(
-        "playField",
-        `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`,
-      );
+      client_log('playField', `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`);
     }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     // ドロップを有効にするために必須
     e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
+    e.dataTransfer.dropEffect = 'move';
   };
 
   const handleCardBack = (card: Card) => {
-    const backTo = card.fieldBackLocation || "discard";
+    const backTo = card.fieldBackLocation || 'discard';
     const requestData: {
       roomId: RoomId;
       deckId: DeckId;
@@ -188,20 +166,17 @@ export default function PlayField({
       cardId: card.id,
     };
 
-    if (backTo === "hand") {
+    if (backTo === 'hand') {
       if (!card.ownerId) return;
       requestData.targetPlayerId = card.ownerId;
     }
 
-    socket.emit("card:move-from-field", requestData);
+    socket.emit('card:move-from-field', requestData);
   };
 
   return (
     <section className={`rg-playfield mode-${layoutMode}`}>
-      <h3 className="rg-playfield-title">
-        プレイエリア{" "}
-        {name && <span className="rg-playfield-subtitle">（{name}）</span>}
-      </h3>
+      <h3 className="rg-playfield-title">プレイエリア {name && <span className="rg-playfield-subtitle">（{name}）</span>}</h3>
       <div
         ref={containerRef}
         className="rg-playfield-container"
@@ -209,15 +184,13 @@ export default function PlayField({
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         style={{
-          position: layoutMode === "free" ? "relative" : undefined,
-          minHeight: "600px",
-          touchAction: "none",
-          overflow: "hidden", // 枠外はみ出し防止
+          position: layoutMode === 'free' ? 'relative' : undefined,
+          minHeight: '600px',
+          touchAction: 'none',
+          overflow: 'hidden', // 枠外はみ出し防止
         }}
       >
-        {playedCards.length === 0 && (
-          <div className="rg-playfield-empty">（まだカードが出ていません）</div>
-        )}
+        {playedCards.length === 0 && <div className="rg-playfield-empty">（まだカードが出ていません）</div>}
         {playedCards.map((card, index) => {
           const owner = players.find((p) => p.id === card.ownerId);
           const isDragging = activeDraggingId === card.id;
@@ -226,23 +199,19 @@ export default function PlayField({
             .slice(0, index)
             .some(
               (other) =>
-                Math.abs((other.position?.x ?? 50) - (card.position?.x ?? 50)) <
-                  1 &&
-                Math.abs((other.position?.y ?? 50) - (card.position?.y ?? 50)) <
-                  1,
+                Math.abs((other.coordinate?.x ?? 50) - (card.coordinate?.x ?? 50)) < 1 &&
+                Math.abs((other.coordinate?.y ?? 50) - (card.coordinate?.y ?? 50)) < 1,
             );
           const visualOffset = isOverlapping ? index * 12 : 0;
 
           const freeStyle: React.CSSProperties =
-            layoutMode === "free"
+            layoutMode === 'free'
               ? {
-                  position: "absolute",
-                  left: `${card.position?.x ?? 50}%`,
-                  top: `${card.position?.y ?? 50}%`,
+                  position: 'absolute',
+                  left: `${card.coordinate?.x ?? 50}%`,
+                  top: `${card.coordinate?.y ?? 50}%`,
                   transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
-                  zIndex: isDragging
-                    ? 9999
-                    : Math.floor((card.position?.y ?? 0) * 100) + index,
+                  zIndex: isDragging ? 9999 : Math.floor((card.coordinate?.y ?? 0) * 100) + index,
                 }
               : {};
 
@@ -254,14 +223,10 @@ export default function PlayField({
               className={`${styles.card} rg-playfield-card-wrapper`}
               style={
                 {
-                  "--owner-color": owner?.color || "#aaaaaa",
+                  '--owner-color': owner?.color || '#aaaaaa',
                   ...freeStyle,
-                  "touchAction": "none",
-                  "cursor": isDragging
-                    ? "grabbing"
-                    : layoutMode === "free"
-                      ? "grab"
-                      : "default",
+                  touchAction: 'none',
+                  cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
                 } as React.CSSProperties
               }
               onDoubleClick={() => handleCardBack(card)}
@@ -269,17 +234,12 @@ export default function PlayField({
               <CardDisplayContent card={card} isFaceUp={true} />
 
               {card.ownerId && (
-                <div
-                  className="rg-playfield-owner-badge"
-                  title={`所有者: ${owner?.name || "不明"}`}
-                >
-                  {owner?.name?.[0] || "?"}
+                <div className="rg-playfield-owner-badge" title={`所有者: ${owner?.name || '不明'}`}>
+                  {owner?.name?.[0] || '?'}
                 </div>
               )}
 
-              {card.description && !isDragging && (
-                <span className={styles.tooltip}>{card.description}</span>
-              )}
+              {card.description && !isDragging && <span className={styles.tooltip}>{card.description}</span>}
             </div>
           );
         })}

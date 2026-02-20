@@ -5,7 +5,10 @@ import path from "path";
 import { Server as SocketIOServer } from "socket.io";
 import { fileURLToPath } from "url";
 // @ts-ignore: 既存のロジックがJSの場合。TS化したなら型定義をインポート
+import { Card } from "@/types/card.js";
+import { Token } from "@/types/token.js";
 import { initGameServer } from "./server-logic.js";
+import { GameSettings } from "./server-utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,14 +21,14 @@ export interface GameServerOptions {
   libDistPath?: string;
   clientDistPath?: string;
   corsOrigins?: string[];
-  gamePresets?: Record<string, any>;
+  gamePresets?: Record<string, GameSettings>;
   checkGameEnd?: ((gameState: any) => boolean) | null;
   onGameEnd?: ((results: any) => void) | null;
   initialDecks?: any[];
   cardEffects?: Record<string, any>;
   initialTokenStore?: Record<string, any>;
   initialHand?: Record<string, any>;
-  initialTokens?: Record<string, any>;
+  initialTokens?: Record<string, Token[]>;
   initialResources?: any[];
   initialBoard?: any[][];
   cellEffects?: Record<string, any>; // any[] から変更
@@ -48,8 +51,8 @@ export class GameServer {
   private initialDecks: any[];
   private cardEffects: Record<string, any>;
   private initialTokenStore: Record<string, any>;
-  private initialHand: Record<string, any>;
-  private initialTokens: Record<string, any>;
+  private initialHand: Record<string, Card[]>;
+  private initialTokens: Record<string, Token[]>;
   private initialResources: any[];
   private initialBoard: any[][];
   private cellEffects: Record<string, any>; // any[] から修正

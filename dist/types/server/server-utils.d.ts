@@ -1,11 +1,28 @@
-import { Card } from "../types/card.js";
+import { Deck } from '@/types/deck.js';
+import { DeckId, GameName, PlayerId } from '@/types/definition.js';
+import { Token } from '@/types/token.js';
+import { Card } from '../types/card.js';
 export type Position = {
-    row: number;
     col: number;
+    row: number;
 };
-export type GameSettings = any;
+export type Coordinate = {
+    x: number;
+    y: number;
+};
+export type GameSettings = {
+    name: GameName;
+    initialDecks: Deck[];
+    initialHand: any;
+    initialResources: any;
+    initialTokenStore: any;
+    initialTokens: any;
+    initialBoard: any;
+    checkGameEnd: any;
+    onGameEnd: any;
+};
 /** ログカテゴリの型定義 */
-export type LogCategory = "connection" | "deck" | "card" | "cell" | "game" | "dice" | "timer" | "addScore" | "resource" | "token" | "room" | "lobby" | "disconnect" | "warn" | "popup" | "custom_event";
+export type LogCategory = 'connection' | 'deck' | 'card' | 'cell' | 'game' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'room' | 'lobby' | 'disconnect' | 'warn' | 'popup' | 'custom_event';
 /** ログ出力カテゴリ設定 */
 export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
 /**
@@ -24,7 +41,7 @@ export interface ServerPlayer {
     cards: Card[];
     score: number;
     resources: any[];
-    tokens: any[];
+    tokens: Token[];
     position: Location;
 }
 export interface GameState {
@@ -42,7 +59,7 @@ export interface RoomGameInfo {
     createdAt: number;
     currentRoundIndex: number;
     currentTurnIndex: number;
-    decks: Record<string, Card[]>;
+    decks: Record<DeckId, Card[]>;
     drawnCards: Record<string, Card[]>;
     playFieldCards: Record<string, Card[]>;
     discardPile: Record<string, any>;
@@ -77,11 +94,11 @@ export declare const createRandomBoard: (initialBoard: any[][]) => any[][];
  */
 export declare const applyCellEffect: (gameStateInstance: MockGameState, gameName: string, roomId: string, playerId: string, location: Location, cellEffects: Record<string, (params: any) => void>, addScore: (playerId: string, points: number) => void, updatePlayerResource: (playerId: string, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: string, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
 export declare class TokenStore {
-    id: string;
+    id: PlayerId;
     name: string;
-    tokens: any[];
+    tokens: Token[];
     constructor(id: string, name: string, initialTokens: any[]);
-    getTokens(): any[];
+    getTokens(): Token[];
 }
 export declare class MockGameState {
     players: ServerPlayer[];

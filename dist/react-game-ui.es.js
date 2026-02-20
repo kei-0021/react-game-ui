@@ -1516,10 +1516,7 @@ function throttle(func, limit) {
     }
   };
 }
-const CardDisplayContent$1 = ({
-  card: card2,
-  isFaceUp
-}) => {
+const CardDisplayContent$1 = ({ card: card2, isFaceUp }) => {
   if (!isFaceUp) {
     return null;
   }
@@ -1528,20 +1525,9 @@ const CardDisplayContent$1 = ({
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-card-text-content", children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: "rg-card-name-label", children: card2.name }) });
 };
-function PlayField({
-  socket,
-  roomId,
-  deckId,
-  name,
-  is_logging = false,
-  players,
-  myPlayerId,
-  layoutMode = "free"
-}) {
+function PlayField({ socket, roomId, deckId, name, is_logging = false, players, myPlayerId, layoutMode = "free" }) {
   const [playedCards, setPlayedCards] = React.useState([]);
-  const [activeDraggingId, setActiveDraggingId] = React.useState(
-    null
-  );
+  const [activeDraggingId, setActiveDraggingId] = React.useState(null);
   const containerRef = React.useRef(null);
   const draggingIdRef = React.useRef(null);
   React.useEffect(() => {
@@ -1613,10 +1599,7 @@ function PlayField({
       // 座標を渡す
     });
     if (is_logging) {
-      client_log(
-        "playField",
-        `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`
-      );
+      client_log("playField", `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`);
     }
   };
   const handleDragOver = (e) => {
@@ -1638,8 +1621,7 @@ function PlayField({
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: `rg-playfield mode-${layoutMode}`, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "rg-playfield-title", children: [
-      "プレイエリア",
-      " ",
+      "プレイエリア ",
       name && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "rg-playfield-subtitle", children: [
         "（",
         name,
@@ -1667,15 +1649,15 @@ function PlayField({
             const owner = players.find((p) => p.id === card2.ownerId);
             const isDragging = activeDraggingId === card2.id;
             const isOverlapping = playedCards.slice(0, index).some(
-              (other) => Math.abs((other.position?.x ?? 50) - (card2.position?.x ?? 50)) < 1 && Math.abs((other.position?.y ?? 50) - (card2.position?.y ?? 50)) < 1
+              (other) => Math.abs((other.coordinate?.x ?? 50) - (card2.coordinate?.x ?? 50)) < 1 && Math.abs((other.coordinate?.y ?? 50) - (card2.coordinate?.y ?? 50)) < 1
             );
             const visualOffset = isOverlapping ? index * 12 : 0;
             const freeStyle = layoutMode === "free" ? {
               position: "absolute",
-              left: `${card2.position?.x ?? 50}%`,
-              top: `${card2.position?.y ?? 50}%`,
+              left: `${card2.coordinate?.x ?? 50}%`,
+              top: `${card2.coordinate?.y ?? 50}%`,
               transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
-              zIndex: isDragging ? 9999 : Math.floor((card2.position?.y ?? 0) * 100) + index
+              zIndex: isDragging ? 9999 : Math.floor((card2.coordinate?.y ?? 0) * 100) + index
             } : {};
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
@@ -1686,20 +1668,13 @@ function PlayField({
                 style: {
                   "--owner-color": owner?.color || "#aaaaaa",
                   ...freeStyle,
-                  "touchAction": "none",
-                  "cursor": isDragging ? "grabbing" : layoutMode === "free" ? "grab" : "default"
+                  touchAction: "none",
+                  cursor: isDragging ? "grabbing" : layoutMode === "free" ? "grab" : "default"
                 },
                 onDoubleClick: () => handleCardBack(card2),
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent$1, { card: card2, isFaceUp: true }),
-                  card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    "div",
-                    {
-                      className: "rg-playfield-owner-badge",
-                      title: `所有者: ${owner?.name || "不明"}`,
-                      children: owner?.name?.[0] || "?"
-                    }
-                  ),
+                  card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-playfield-owner-badge", title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
                   card2.description && !isDragging && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$5.tooltip, children: card2.description })
                 ]
               },

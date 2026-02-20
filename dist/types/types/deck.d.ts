@@ -1,5 +1,5 @@
 import { Card } from "./card.js";
-export interface DeckConfig {
+export interface Deck {
     deckId: string;
     name: string;
     backColor: string;

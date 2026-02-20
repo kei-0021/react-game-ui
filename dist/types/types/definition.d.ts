@@ -1,4 +1,5 @@
 export type RoomId = string;
+export type GameName = string;
 export type PlayerId = string;
 export type ResourceId = string;
 export type DeckId = string;

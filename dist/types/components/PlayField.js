@@ -1,9 +1,9 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 // src/components/PlayField.tsx
-import * as React from "react";
-import { client_log } from "../utils/client-log.js";
-import styles from "./Card.module.css";
-import "./PlayField.css";
+import * as React from 'react';
+import { client_log } from '../utils/client-log.js';
+import styles from './Card.module.css';
+import './PlayField.css';
 // 通信量制限用の throttle
 function throttle(func, limit) {
     let inThrottle;
@@ -15,16 +15,16 @@ function throttle(func, limit) {
         }
     };
 }
-const CardDisplayContent = ({ card, isFaceUp, }) => {
+const CardDisplayContent = ({ card, isFaceUp }) => {
     if (!isFaceUp) {
         return null;
     }
     if (card.frontImage) {
-        return (_jsx("img", { src: card.frontImage, alt: card.name, className: "rg-card-image" }));
+        return _jsx("img", { src: card.frontImage, alt: card.name, className: "rg-card-image" });
     }
     return (_jsx("div", { className: "rg-card-text-content", children: _jsx("strong", { className: "rg-card-name-label", children: card.name }) }));
 };
-export default function PlayField({ socket, roomId, deckId, name, is_logging = false, players, myPlayerId, layoutMode = "free", }) {
+export default function PlayField({ socket, roomId, deckId, name, is_logging = false, players, myPlayerId, layoutMode = 'free' }) {
     const [playedCards, setPlayedCards] = React.useState([]);
     const [activeDraggingId, setActiveDraggingId] = React.useState(null);
     const containerRef = React.useRef(null);
@@ -33,7 +33,7 @@ export default function PlayField({ socket, roomId, deckId, name, is_logging = f
         const handleUpdate = (data) => {
             const newCards = data.playFieldCards || [];
             if (is_logging) {
-                client_log("playField", `[${deckId}] 場の更新: ${newCards.length}枚`);
+                client_log('playField', `[${deckId}] 場の更新: ${newCards.length}枚`);
             }
             setPlayedCards(newCards);
         };
@@ -52,7 +52,7 @@ export default function PlayField({ socket, roomId, deckId, name, is_logging = f
         let y = ((clientY - rect.top) / rect.height) * 100;
         x = Math.max(0, Math.min(100, x));
         y = Math.max(0, Math.min(100, y));
-        socket.emit("card:move-on-field", {
+        socket.emit('card:move-on-field', {
             roomId,
             deckId,
             cardId,
@@ -60,7 +60,7 @@ export default function PlayField({ socket, roomId, deckId, name, is_logging = f
         });
     }, 50), [socket, roomId, deckId]);
     const handlePointerDown = (e, card) => {
-        if (layoutMode !== "free")
+        if (layoutMode !== 'free')
             return;
         draggingIdRef.current = card.id;
         setActiveDraggingId(card.id);
@@ -84,8 +84,8 @@ export default function PlayField({ socket, roomId, deckId, name, is_logging = f
         e.preventDefault();
         if (!containerRef.current || !myPlayerId)
             return;
-        const droppedCardId = e.dataTransfer.getData("cardId");
-        const droppedDeckId = e.dataTransfer.getData("deckId");
+        const droppedCardId = e.dataTransfer.getData('cardId');
+        const droppedDeckId = e.dataTransfer.getData('deckId');
         if (!droppedCardId || !droppedDeckId)
             return;
         const rect = containerRef.current.getBoundingClientRect();
@@ -94,73 +94,65 @@ export default function PlayField({ socket, roomId, deckId, name, is_logging = f
         x = Math.max(0, Math.min(100, x));
         y = Math.max(0, Math.min(100, y));
         // サーバーへ「この場所にプレイする」と送信
-        socket.emit("card:play", {
+        socket.emit('card:play', {
             roomId,
             deckId: droppedDeckId,
             cardIds: [droppedCardId],
             playerId: myPlayerId,
             // サーバー側の strict な if 文に合わせて "field" 固定で送る
-            playLocation: "field",
+            playLocation: 'field',
             position: { x, y }, // 座標を渡す
         });
         if (is_logging) {
-            client_log("playField", `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`);
+            client_log('playField', `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`);
         }
     };
     const handleDragOver = (e) => {
         // ドロップを有効にするために必須
         e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
+        e.dataTransfer.dropEffect = 'move';
     };
     const handleCardBack = (card) => {
-        const backTo = card.fieldBackLocation || "discard";
+        const backTo = card.fieldBackLocation || 'discard';
         const requestData = {
             roomId,
             deckId: card.deckId || deckId,
             cardId: card.id,
         };
-        if (backTo === "hand") {
+        if (backTo === 'hand') {
             if (!card.ownerId)
                 return;
             requestData.targetPlayerId = card.ownerId;
         }
-        socket.emit("card:move-from-field", requestData);
+        socket.emit('card:move-from-field', requestData);
     };
-    return (_jsxs("section", { className: `rg-playfield mode-${layoutMode}`, children: [_jsxs("h3", { className: "rg-playfield-title", children: ["\u30D7\u30EC\u30A4\u30A8\u30EA\u30A2", " ", name && _jsxs("span", { className: "rg-playfield-subtitle", children: ["\uFF08", name, "\uFF09"] })] }), _jsxs("div", { ref: containerRef, className: "rg-playfield-container", onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
-                    position: layoutMode === "free" ? "relative" : undefined,
-                    minHeight: "600px",
-                    touchAction: "none",
-                    overflow: "hidden", // 枠外はみ出し防止
-                }, children: [playedCards.length === 0 && (_jsx("div", { className: "rg-playfield-empty", children: "\uFF08\u307E\u3060\u30AB\u30FC\u30C9\u304C\u51FA\u3066\u3044\u307E\u305B\u3093\uFF09" })), playedCards.map((card, index) => {
+    return (_jsxs("section", { className: `rg-playfield mode-${layoutMode}`, children: [_jsxs("h3", { className: "rg-playfield-title", children: ["\u30D7\u30EC\u30A4\u30A8\u30EA\u30A2 ", name && _jsxs("span", { className: "rg-playfield-subtitle", children: ["\uFF08", name, "\uFF09"] })] }), _jsxs("div", { ref: containerRef, className: "rg-playfield-container", onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
+                    position: layoutMode === 'free' ? 'relative' : undefined,
+                    minHeight: '600px',
+                    touchAction: 'none',
+                    overflow: 'hidden', // 枠外はみ出し防止
+                }, children: [playedCards.length === 0 && _jsx("div", { className: "rg-playfield-empty", children: "\uFF08\u307E\u3060\u30AB\u30FC\u30C9\u304C\u51FA\u3066\u3044\u307E\u305B\u3093\uFF09" }), playedCards.map((card, index) => {
                         const owner = players.find((p) => p.id === card.ownerId);
                         const isDragging = activeDraggingId === card.id;
                         const isOverlapping = playedCards
                             .slice(0, index)
-                            .some((other) => Math.abs((other.position?.x ?? 50) - (card.position?.x ?? 50)) <
-                            1 &&
-                            Math.abs((other.position?.y ?? 50) - (card.position?.y ?? 50)) <
-                                1);
+                            .some((other) => Math.abs((other.coordinate?.x ?? 50) - (card.coordinate?.x ?? 50)) < 1 &&
+                            Math.abs((other.coordinate?.y ?? 50) - (card.coordinate?.y ?? 50)) < 1);
                         const visualOffset = isOverlapping ? index * 12 : 0;
-                        const freeStyle = layoutMode === "free"
+                        const freeStyle = layoutMode === 'free'
                             ? {
-                                position: "absolute",
-                                left: `${card.position?.x ?? 50}%`,
-                                top: `${card.position?.y ?? 50}%`,
+                                position: 'absolute',
+                                left: `${card.coordinate?.x ?? 50}%`,
+                                top: `${card.coordinate?.y ?? 50}%`,
                                 transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
-                                zIndex: isDragging
-                                    ? 9999
-                                    : Math.floor((card.position?.y ?? 0) * 100) + index,
+                                zIndex: isDragging ? 9999 : Math.floor((card.coordinate?.y ?? 0) * 100) + index,
                             }
                             : {};
                         return (_jsxs("div", { onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, className: `${styles.card} rg-playfield-card-wrapper`, style: {
-                                "--owner-color": owner?.color || "#aaaaaa",
+                                '--owner-color': owner?.color || '#aaaaaa',
                                 ...freeStyle,
-                                "touchAction": "none",
-                                "cursor": isDragging
-                                    ? "grabbing"
-                                    : layoutMode === "free"
-                                        ? "grab"
-                                        : "default",
-                            }, onDoubleClick: () => handleCardBack(card), children: [_jsx(CardDisplayContent, { card: card, isFaceUp: true }), card.ownerId && (_jsx("div", { className: "rg-playfield-owner-badge", title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" })), card.description && !isDragging && (_jsx("span", { className: styles.tooltip, children: card.description }))] }, card.id));
+                                touchAction: 'none',
+                                cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
+                            }, onDoubleClick: () => handleCardBack(card), children: [_jsx(CardDisplayContent, { card: card, isFaceUp: true }), card.ownerId && (_jsx("div", { className: "rg-playfield-owner-badge", title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && _jsx("span", { className: styles.tooltip, children: card.description })] }, card.id));
                     })] })] }));
 }

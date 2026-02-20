@@ -1,9 +1,11 @@
 {
-  // 1. VSCodeのデフォルトフォーマッタをPrettierに設定
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-
-  // 2. ファイルを保存するたびに自動でフォーマットを実行
   "editor.formatOnSave": true,
+  "prettier.quoteProps": "consistent",
 
-  "prettier.quoteProps": "consistent"
+  // TypeScript専用の念押し
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  }
 }

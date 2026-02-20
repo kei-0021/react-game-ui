@@ -4,7 +4,6 @@ import { createServer } from "http";
 import path from "path";
 import { Server as SocketIOServer } from "socket.io";
 import { fileURLToPath } from "url";
-// @ts-ignore: 既存のロジックがJSの場合。TS化したなら型定義をインポート
 import { initGameServer } from "./server-logic.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

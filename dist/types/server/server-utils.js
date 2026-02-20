@@ -18,15 +18,15 @@ export let LOG_CATEGORIES = {
     popup: true,
     custom_event: true,
 };
-const ANSI_RED = "\x1b[31m";
-const ANSI_RESET = "\x1b[0m";
+const ANSI_RED = '\x1b[31m';
+const ANSI_RESET = '\x1b[0m';
 /**
  * サーバーログを出力する
  */
 export function server_log(tag, gamePresetId, roomId, ...args) {
     if (!LOG_CATEGORIES[tag])
         return;
-    if (tag === "warn") {
+    if (tag === 'warn') {
         console.warn(ANSI_RED + `[${tag}]` + ANSI_RESET, ...args.map((arg) => ANSI_RED + String(arg) + ANSI_RESET));
     }
     else {
@@ -48,7 +48,7 @@ export const isExplored = (gameStateInstance, location) => {
 export const markCellAsExplored = (gameStateInstance, gameName, roomId, location) => {
     if (!isExplored(gameStateInstance, location)) {
         gameStateInstance.exploredCells.push(location);
-        server_log("cell", gameName, roomId, `マス (${location.row}, ${location.col}) を探索済みとしてマークしました。`);
+        server_log('cell', gameName, roomId, `マス (${location.row}, ${location.col}) を探索済みとしてマークしました。`);
         return true;
     }
     return false;
@@ -61,7 +61,7 @@ export const unmarkCellAsExplored = (gameStateInstance, gameName, roomId, locati
     gameStateInstance.exploredCells = gameStateInstance.exploredCells.filter((loc) => !(loc.row === location.row && loc.col === location.col));
     const wasRemoved = gameStateInstance.exploredCells.length < initialLength;
     if (wasRemoved) {
-        server_log("cell", gameName, roomId, `マス (${location.row}, ${location.col}) の探索済みマークを解除しました。`);
+        server_log('cell', gameName, roomId, `マス (${location.row}, ${location.col}) の探索済みマークを解除しました。`);
     }
     return wasRemoved;
 };
@@ -80,10 +80,8 @@ const shuffleArray = (array) => {
  * 初期ボードデータからランダムな確定盤面を作成
  */
 export const createRandomBoard = (initialBoard) => {
-    if (!initialBoard ||
-        initialBoard.length === 0 ||
-        initialBoard[0].length === 0) {
-        server_log("warn", "SYSTEM", "N/A", "createRandomBoard: initialBoardが空です。");
+    if (!initialBoard || initialBoard.length === 0 || initialBoard[0].length === 0) {
+        server_log('warn', 'SYSTEM', 'N/A', 'createRandomBoard: initialBoardが空です。');
         return [];
     }
     const rows = initialBoard.length;
@@ -121,17 +119,14 @@ export const createRandomBoard = (initialBoard) => {
  */
 export const applyCellEffect = (gameStateInstance, gameName, roomId, playerId, location, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
     const { row, col } = location;
-    if (row < 0 ||
-        row >= gameStateInstance.board.length ||
-        col < 0 ||
-        col >= gameStateInstance.board[row].length) {
-        server_log("warn", gameName, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
+    if (row < 0 || row >= gameStateInstance.board.length || col < 0 || col >= gameStateInstance.board[row].length) {
+        server_log('warn', gameName, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
         return;
     }
     const cell = gameStateInstance.board[row][col];
     const effect = cellEffects[cell.name];
     if (effect) {
-        server_log("cell", gameName, roomId, `マス効果発動: ${cell.name} by ${playerId}`);
+        server_log('cell', gameName, roomId, `マス効果発動: ${cell.name} by ${playerId}`);
         try {
             effect({
                 playerId,
@@ -142,11 +137,11 @@ export const applyCellEffect = (gameStateInstance, gameName, roomId, playerId, l
             });
         }
         catch (e) {
-            server_log("warn", gameName, roomId, `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
+            server_log('warn', gameName, roomId, `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
         }
     }
     else {
-        server_log("cell", gameName, roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
+        server_log('cell', gameName, roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
     }
 };
 // -----------------------------------------------------------------
@@ -192,19 +187,20 @@ export class MockGameState {
         const player = this.players.find((p) => p.id === playerId);
         if (!player)
             return false;
-        if (tokenStoreId === "scoreboard-acquisition") {
-            server_log("token", gameName, roomId, `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`);
+        if (tokenStoreId === 'scoreboard-acquisition') {
+            server_log('token', gameName, roomId, `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`);
             if (!Array.isArray(player.tokens)) {
                 player.tokens = [];
             }
             const token = {
                 id: tokenId,
                 name: `Token ${tokenId.slice(0, 4)}`,
-                backColor: "#333",
+                backColor: '#333',
                 count: 1,
+                imageSrc: '',
             };
             player.tokens.push(token);
-            server_log("token", gameName, roomId, `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`);
+            server_log('token', gameName, roomId, `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`);
             return true;
         }
         const store = this.tokenStores.get(tokenStoreId);
@@ -216,7 +212,7 @@ export class MockGameState {
                     player.tokens = [];
                 }
                 player.tokens.push(acquiredToken);
-                server_log("token", gameName, roomId, `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`);
+                server_log('token', gameName, roomId, `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`);
                 return true;
             }
         }
