@@ -2,7 +2,7 @@
   "compilerOptions": {
     /* 基本設定 */
     "rootDir": "src",
-    "outDir": "dist",
+    "outDir": "dist/types",
     "target": "ESNext",
     "module": "node16",
     "moduleResolution": "node16",
@@ -32,9 +32,12 @@
     "types": ["node", "react", "react-dom"]
   },
   "include": [
-    "src/server/server-utils.ts",
-    "src/types/**/*.ts",
-    "src/global.d.ts"
+    "src/index.ts",
+    "src/global.d.ts",
+    "src/components/**/*",
+    "src/hooks/**/*",
+    "src/types/**/*",
+    "src/server/server-utils.ts"
   ],
   "exclude": [
     "node_modules",

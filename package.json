@@ -5,36 +5,32 @@
   "description": "React + Socket.IO UI components for card/dice games",
   "main": "dist/react-game-ui.cjs.js",
   "module": "dist/react-game-ui.es.js",
-  "types": "dist/types/index.d.ts",
+  "types": "dist/types/server/server-utils.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/types/server/server-utils.d.ts",
       "import": "./dist/react-game-ui.es.js",
-      "require": "./dist/react-game-ui.cjs.js",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/react-game-ui.cjs.js"
     },
     "./server": {
-      "import": "./dist/server.js",
-      "require": "./dist/server.js"
+      "types": "./dist/types/server/server-utils.d.ts",
+      "import": "./dist/server/server.js"
     },
     "./server-logic": {
-      "import": "./dist/server-logic.js",
-      "require": "./dist/server-logic.js"
+      "import": "./dist/server/server-logic.js"
     },
     "./server-utils": {
-      "import": "./dist/server-utils.js",
-      "require": "./dist/server-utils.js"
+      "types": "./dist/types/server/server-utils.d.ts",
+      "import": "./dist/server/server-utils.js"
     },
     "./dist/react-game-ui.css": "./dist/react-game-ui.css"
   },
   "files": [
-    "dist",
-    "src/server/server.js",
-    "src/server/server-logic.js",
-    "src/server/server-utils.js"
+    "dist"
   ],
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && NODE_ENV=production vite build && cp -r src/assets/. dist/assets/ && tsc --project tsconfig.json && node -e \"if (!require('fs').existsSync('dist/server')) require('fs').mkdirSync('dist/server', { recursive: true }); require('fs').copyFileSync('src/server/server.js', 'dist/server/server.js'); require('fs').copyFileSync('src/server/server-logic.js', 'dist/server/server-logic.js');\"",
+    "build": "npm run clean && NODE_ENV=production vite build && cp -r src/assets/. dist/assets/ && tsc --project tsconfig.json && node -e \"require('fs').mkdirSync('dist/server', {recursive: true}); require('fs').copyFileSync('src/server/server.js', 'dist/server/server.js'); require('fs').copyFileSync('src/server/server-logic.js', 'dist/server/server-logic.js'); require('fs').copyFileSync('dist/types/server/server-utils.js', 'dist/server/server-utils.js');\"",
     "preview": "vite preview",
     "server": "node --loader ts-node/esm tests/server.js",
     "dev:multi": "concurrently \"npm run server\" \"vite\"",
