@@ -5,10 +5,10 @@
   "description": "React + Socket.IO UI components for card/dice games",
   "main": "dist/react-game-ui.cjs.js",
   "module": "dist/react-game-ui.es.js",
-  "types": "dist/types/server/server-utils.d.ts",
+  "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/server/server-utils.d.ts",
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/react-game-ui.es.js",
       "require": "./dist/react-game-ui.cjs.js"
     },
