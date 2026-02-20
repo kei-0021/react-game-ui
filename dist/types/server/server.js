@@ -24,8 +24,8 @@ export class GameServer {
     initialTokens;
     initialResources;
     initialBoard;
-    cellEffects;
-    customEvents;
+    cellEffects; // any[] から修正
+    customEvents; // any[] から修正
     initialLogCategories;
     app;
     httpServer;
@@ -46,8 +46,8 @@ export class GameServer {
         this.initialTokens = options.initialTokens || {};
         this.initialResources = options.initialResources || [];
         this.initialBoard = options.initialBoard || [];
-        this.cellEffects = options.cellEffects || [];
-        this.customEvents = options.customEvents || [];
+        this.cellEffects = options.cellEffects || {}; // [] から {} に修正
+        this.customEvents = options.customEvents || {}; // [] から {} に修正
         this.initialLogCategories = options.initialLogCategories || null;
         this.app = express();
         this.httpServer = createServer(this.app);

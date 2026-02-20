@@ -28,7 +28,7 @@ export interface GameServerOptions {
   initialTokens?: Record<string, any>;
   initialResources?: any[];
   initialBoard?: any[][];
-  cellEffects?: any[];
+  cellEffects?: Record<string, any>; // any[] から変更
   customEvents?: any;
   initialLogCategories?: Record<string, boolean> | null;
   onServerStart?: (url: string) => void;
@@ -52,8 +52,8 @@ export class GameServer {
   private initialTokens: Record<string, any>;
   private initialResources: any[];
   private initialBoard: any[][];
-  private cellEffects: any[];
-  private customEvents: any[];
+  private cellEffects: Record<string, any>; // any[] から修正
+  private customEvents: any; // any[] から修正
   private initialLogCategories: Record<string, boolean> | null;
 
   public app: express.Application;
@@ -78,8 +78,8 @@ export class GameServer {
     this.initialTokens = options.initialTokens || {};
     this.initialResources = options.initialResources || [];
     this.initialBoard = options.initialBoard || [];
-    this.cellEffects = options.cellEffects || [];
-    this.customEvents = options.customEvents || [];
+    this.cellEffects = options.cellEffects || {}; // [] から {} に修正
+    this.customEvents = options.customEvents || {}; // [] から {} に修正
     this.initialLogCategories = options.initialLogCategories || null;
 
     this.app = express();

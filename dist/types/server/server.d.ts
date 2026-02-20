@@ -19,7 +19,7 @@ export interface GameServerOptions {
     initialTokens?: Record<string, any>;
     initialResources?: any[];
     initialBoard?: any[][];
-    cellEffects?: any[];
+    cellEffects?: Record<string, any>;
     customEvents?: any;
     initialLogCategories?: Record<string, boolean> | null;
     onServerStart?: (url: string) => void;
