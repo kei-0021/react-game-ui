@@ -48,7 +48,16 @@ type PlayFieldProps = {
   layoutMode?: 'grid' | 'free';
 };
 
-export default function PlayField({ socket, roomId, deckId, name, is_logging = false, players, myPlayerId, layoutMode = 'free' }: PlayFieldProps) {
+export default function PlayField({
+  socket,
+  roomId,
+  deckId,
+  name,
+  is_logging = false,
+  players,
+  myPlayerId,
+  layoutMode = 'free',
+}: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -88,7 +97,7 @@ export default function PlayField({ socket, roomId, deckId, name, is_logging = f
           roomId,
           deckId,
           cardId,
-          position: { x, y },
+          coordinate: { x, y },
         });
       }, 50),
     [socket, roomId, deckId],
@@ -139,7 +148,7 @@ export default function PlayField({ socket, roomId, deckId, name, is_logging = f
       playerId: myPlayerId,
       // サーバー側の strict な if 文に合わせて "field" 固定で送る
       playLocation: 'field',
-      position: { x, y }, // 座標を渡す
+      coordinate: { x, y }, // 座標を渡す
     });
 
     if (is_logging) {
@@ -176,7 +185,9 @@ export default function PlayField({ socket, roomId, deckId, name, is_logging = f
 
   return (
     <section className={`rg-playfield mode-${layoutMode}`}>
-      <h3 className="rg-playfield-title">プレイエリア {name && <span className="rg-playfield-subtitle">（{name}）</span>}</h3>
+      <h3 className="rg-playfield-title">
+        プレイエリア {name && <span className="rg-playfield-subtitle">（{name}）</span>}
+      </h3>
       <div
         ref={containerRef}
         className="rg-playfield-container"

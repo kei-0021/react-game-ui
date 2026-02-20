@@ -1,5 +1,5 @@
 import { Deck } from '@/types/deck.js';
-import { DeckId, GameName, PlayerId } from '@/types/definition.js';
+import { DeckId, GameName, PlayerId, RoomId } from '@/types/definition.js';
 import { Token } from '@/types/token.js';
 import { Card } from '../types/card.js';
 export type Position = {
@@ -28,7 +28,7 @@ export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
 /**
  * サーバーログを出力する
  */
-export declare function server_log(tag: LogCategory, gamePresetId: string, roomId: string, ...args: any[]): void;
+export declare function server_log(tag: LogCategory, gamePresetId: GameName, roomId: RoomId, ...args: any[]): void;
 export interface Location {
     row: number;
     col: number;
@@ -62,8 +62,8 @@ export interface RoomGameInfo {
     decks: Record<DeckId, Card[]>;
     drawnCards: Record<string, Card[]>;
     playFieldCards: Record<string, Card[]>;
-    discardPile: Record<string, any>;
-    gameStateInstance: MockGameState;
+    discardPile: Record<string, Card[]>;
+    gameStateInstance: GameState;
     checkGameEnd: any;
     onGameEnd: any;
 }
@@ -76,15 +76,15 @@ export interface TokenStoreDef {
 /**
  * マスが探索済みリストに含まれているかチェックする
  */
-export declare const isExplored: (gameStateInstance: MockGameState, location: Location) => boolean;
+export declare const isExplored: (gameStateInstance: GameState, location: Location) => boolean;
 /**
  * マスを探索済みとしてマークする
  */
-export declare const markCellAsExplored: (gameStateInstance: MockGameState, gameName: string, roomId: string, location: Location) => boolean;
+export declare const markCellAsExplored: (gameStateInstance: GameState, gameName: string, roomId: string, location: Location) => boolean;
 /**
  * 特定のマスを探索済みリストから削除する（未探索に戻す）
  */
-export declare const unmarkCellAsExplored: (gameStateInstance: MockGameState, gameName: string, roomId: string, location: Location) => boolean;
+export declare const unmarkCellAsExplored: (gameStateInstance: GameState, gameName: string, roomId: string, location: Location) => boolean;
 /**
  * 初期ボードデータからランダムな確定盤面を作成
  */
@@ -92,7 +92,7 @@ export declare const createRandomBoard: (initialBoard: any[][]) => any[][];
 /**
  * プレイヤーが停止したマス目の効果を適用する
  */
-export declare const applyCellEffect: (gameStateInstance: MockGameState, gameName: string, roomId: string, playerId: string, location: Location, cellEffects: Record<string, (params: any) => void>, addScore: (playerId: string, points: number) => void, updatePlayerResource: (playerId: string, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: string, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
+export declare const applyCellEffect: (gameStateInstance: GameState, gameName: string, roomId: string, playerId: string, location: Location, cellEffects: Record<string, (params: any) => void>, addScore: (playerId: string, points: number) => void, updatePlayerResource: (playerId: string, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: string, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
 export declare class TokenStore {
     id: PlayerId;
     name: string;
@@ -100,7 +100,7 @@ export declare class TokenStore {
     constructor(id: string, name: string, initialTokens: any[]);
     getTokens(): Token[];
 }
-export declare class MockGameState {
+export declare class GameState {
     players: ServerPlayer[];
     initialResources: any[];
     initialTokens: any[];

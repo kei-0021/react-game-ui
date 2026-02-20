@@ -160,7 +160,7 @@ export class TokenStore {
         return this.tokens;
     }
 }
-export class MockGameState {
+export class GameState {
     players;
     initialResources;
     initialTokens;

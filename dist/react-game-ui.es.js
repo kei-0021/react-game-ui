@@ -1525,7 +1525,16 @@ const CardDisplayContent$1 = ({ card: card2, isFaceUp }) => {
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-card-text-content", children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: "rg-card-name-label", children: card2.name }) });
 };
-function PlayField({ socket, roomId, deckId, name, is_logging = false, players, myPlayerId, layoutMode = "free" }) {
+function PlayField({
+  socket,
+  roomId,
+  deckId,
+  name,
+  is_logging = false,
+  players,
+  myPlayerId,
+  layoutMode = "free"
+}) {
   const [playedCards, setPlayedCards] = React.useState([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState(null);
   const containerRef = React.useRef(null);
@@ -1555,7 +1564,7 @@ function PlayField({ socket, roomId, deckId, name, is_logging = false, players, 
         roomId,
         deckId,
         cardId,
-        position: { x, y }
+        coordinate: { x, y }
       });
     }, 50),
     [socket, roomId, deckId]
@@ -1595,7 +1604,7 @@ function PlayField({ socket, roomId, deckId, name, is_logging = false, players, 
       playerId: myPlayerId,
       // サーバー側の strict な if 文に合わせて "field" 固定で送る
       playLocation: "field",
-      position: { x, y }
+      coordinate: { x, y }
       // 座標を渡す
     });
     if (is_logging) {

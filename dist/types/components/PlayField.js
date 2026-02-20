@@ -24,7 +24,7 @@ const CardDisplayContent = ({ card, isFaceUp }) => {
     }
     return (_jsx("div", { className: "rg-card-text-content", children: _jsx("strong", { className: "rg-card-name-label", children: card.name }) }));
 };
-export default function PlayField({ socket, roomId, deckId, name, is_logging = false, players, myPlayerId, layoutMode = 'free' }) {
+export default function PlayField({ socket, roomId, deckId, name, is_logging = false, players, myPlayerId, layoutMode = 'free', }) {
     const [playedCards, setPlayedCards] = React.useState([]);
     const [activeDraggingId, setActiveDraggingId] = React.useState(null);
     const containerRef = React.useRef(null);
@@ -56,7 +56,7 @@ export default function PlayField({ socket, roomId, deckId, name, is_logging = f
             roomId,
             deckId,
             cardId,
-            position: { x, y },
+            coordinate: { x, y },
         });
     }, 50), [socket, roomId, deckId]);
     const handlePointerDown = (e, card) => {
@@ -101,7 +101,7 @@ export default function PlayField({ socket, roomId, deckId, name, is_logging = f
             playerId: myPlayerId,
             // サーバー側の strict な if 文に合わせて "field" 固定で送る
             playLocation: 'field',
-            position: { x, y }, // 座標を渡す
+            coordinate: { x, y }, // 座標を渡す
         });
         if (is_logging) {
             client_log('playField', `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`);

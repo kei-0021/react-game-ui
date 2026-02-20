@@ -1,7 +1,7 @@
 // src/server/server-utils.ts
 
 import { Deck } from '@/types/deck.js';
-import { DeckId, GameName, PlayerId } from '@/types/definition.js';
+import { DeckId, GameName, PlayerId, RoomId } from '@/types/definition.js';
 import { Token } from '@/types/token.js';
 import { Card } from '../types/card.js';
 // -----------------------------------------------------------------
@@ -68,7 +68,7 @@ const ANSI_RESET = '\x1b[0m';
 /**
  * サーバーログを出力する
  */
-export function server_log(tag: LogCategory, gamePresetId: string, roomId: string, ...args: any[]): void {
+export function server_log(tag: LogCategory, gamePresetId: GameName, roomId: RoomId, ...args: any[]): void {
   if (!LOG_CATEGORIES[tag]) return;
 
   if (tag === 'warn') {
@@ -118,8 +118,8 @@ export interface RoomGameInfo {
   decks: Record<DeckId, Card[]>;
   drawnCards: Record<string, Card[]>;
   playFieldCards: Record<string, Card[]>;
-  discardPile: Record<string, any>;
-  gameStateInstance: MockGameState;
+  discardPile: Record<string, Card[]>;
+  gameStateInstance: GameState;
   checkGameEnd: any;
   onGameEnd: any;
 }
@@ -138,14 +138,19 @@ export interface TokenStoreDef {
 /**
  * マスが探索済みリストに含まれているかチェックする
  */
-export const isExplored = (gameStateInstance: MockGameState, location: Location): boolean => {
+export const isExplored = (gameStateInstance: GameState, location: Location): boolean => {
   return gameStateInstance.exploredCells.some((loc) => loc.row === location.row && loc.col === location.col);
 };
 
 /**
  * マスを探索済みとしてマークする
  */
-export const markCellAsExplored = (gameStateInstance: MockGameState, gameName: string, roomId: string, location: Location): boolean => {
+export const markCellAsExplored = (
+  gameStateInstance: GameState,
+  gameName: string,
+  roomId: string,
+  location: Location,
+): boolean => {
   if (!isExplored(gameStateInstance, location)) {
     gameStateInstance.exploredCells.push(location);
     server_log('cell', gameName, roomId, `マス (${location.row}, ${location.col}) を探索済みとしてマークしました。`);
@@ -157,10 +162,17 @@ export const markCellAsExplored = (gameStateInstance: MockGameState, gameName: s
 /**
  * 特定のマスを探索済みリストから削除する（未探索に戻す）
  */
-export const unmarkCellAsExplored = (gameStateInstance: MockGameState, gameName: string, roomId: string, location: Location): boolean => {
+export const unmarkCellAsExplored = (
+  gameStateInstance: GameState,
+  gameName: string,
+  roomId: string,
+  location: Location,
+): boolean => {
   const initialLength = gameStateInstance.exploredCells.length;
 
-  gameStateInstance.exploredCells = gameStateInstance.exploredCells.filter((loc) => !(loc.row === location.row && loc.col === location.col));
+  gameStateInstance.exploredCells = gameStateInstance.exploredCells.filter(
+    (loc) => !(loc.row === location.row && loc.col === location.col),
+  );
 
   const wasRemoved = gameStateInstance.exploredCells.length < initialLength;
 
@@ -235,7 +247,7 @@ export const createRandomBoard = (initialBoard: any[][]): any[][] => {
  * プレイヤーが停止したマス目の効果を適用する
  */
 export const applyCellEffect = (
-  gameStateInstance: MockGameState,
+  gameStateInstance: GameState,
   gameName: string,
   roomId: string,
   playerId: string,
@@ -295,7 +307,7 @@ export class TokenStore {
   }
 }
 
-export class MockGameState {
+export class GameState {
   public players: ServerPlayer[];
   public initialResources: any[];
   public initialTokens: any[];
@@ -314,7 +326,10 @@ export class MockGameState {
 
     this.tokenStores = new Map<string, TokenStore>();
     initialTokenStoresDef.forEach((storeDef) => {
-      this.tokenStores.set(storeDef.tokenStoreId, new TokenStore(storeDef.tokenStoreId, storeDef.name, storeDef.tokens));
+      this.tokenStores.set(
+        storeDef.tokenStoreId,
+        new TokenStore(storeDef.tokenStoreId, storeDef.name, storeDef.tokens),
+      );
     });
   }
 
@@ -327,7 +342,12 @@ export class MockGameState {
     if (!player) return false;
 
     if (tokenStoreId === 'scoreboard-acquisition') {
-      server_log('token', gameName, roomId, `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`);
+      server_log(
+        'token',
+        gameName,
+        roomId,
+        `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`,
+      );
 
       if (!Array.isArray(player.tokens)) {
         player.tokens = [];
@@ -342,7 +362,12 @@ export class MockGameState {
       };
 
       player.tokens.push(token);
-      server_log('token', gameName, roomId, `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`);
+      server_log(
+        'token',
+        gameName,
+        roomId,
+        `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`,
+      );
       return true;
     }
 
@@ -358,7 +383,12 @@ export class MockGameState {
 
         player.tokens.push(acquiredToken);
 
-        server_log('token', gameName, roomId, `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`);
+        server_log(
+          'token',
+          gameName,
+          roomId,
+          `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
+        );
         return true;
       }
     }
