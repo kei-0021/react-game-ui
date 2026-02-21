@@ -1,7 +1,7 @@
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
-import { DeckId, GameName, PlayerId, ResourceId, RoomId, TokenId } from './definition.js';
+import { DeckId, GameId, PlayerId, ResourceId, RoomId, TokenId } from './definition.js';
 import { Resource } from './resource.js';
 import { Token } from './token.js';
 export interface ServerPlayer {
@@ -24,7 +24,7 @@ export type Coordinate = {
     y: number;
 };
 export type RoomParam = {
-    gameName: GameName;
+    gameId: GameId;
     initialDecks: Deck[];
     initialHand?: {
         deckId: DeckId;
@@ -54,7 +54,7 @@ export type initialRoomState = {
 };
 export interface RoomState {
     roomId: RoomId;
-    gameName: string;
+    gameId: GameId;
     createdAt: number;
     currentRoundIndex: number;
     currentTurnIndex: number;
@@ -72,4 +72,5 @@ export interface TokenStoreDef {
     name: string;
     tokens: Token[];
 }
+export { GameId };
 //# sourceMappingURL=server.d.ts.map

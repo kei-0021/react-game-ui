@@ -2,7 +2,7 @@
 // タイプエイリアスだけをまとめたファイル
 
 export type RoomId = string;
-export type GameName = string;
+export type GameId = string;
 
 export type PlayerId = string;
 export type ResourceId = string;

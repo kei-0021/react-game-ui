@@ -30,4 +30,3 @@ export * from './types/player';
 export type { PlayerWithResources } from './types/playerWithResources';
 /* @ts-ignore */
 export type { PieceData } from './types/piece';
-

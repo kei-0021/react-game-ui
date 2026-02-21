@@ -1,28 +1,29 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import io, { Socket } from "socket.io-client";
-import "./LobbyRoom.css";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import io, { Socket } from 'socket.io-client';
+import { GameId } from '../../src/types/server';
+import './LobbyRoom.css';
 
-const SERVER_URL = "http://127.0.0.1:4000";
+const SERVER_URL = 'http://127.0.0.1:4000';
 
 const GAME_PRESETS = [
   {
-    id: "sample",
-    name: "サンプル",
-    pathSegment: "sample",
-    buttonClass: "primary-button",
+    id: 'sample',
+    name: 'サンプル',
+    pathSegment: 'sample',
+    buttonClass: 'primary-button',
   },
   {
-    id: "deepsea",
-    name: "深海大冒険",
-    pathSegment: "deepsea",
-    buttonClass: "primary-button",
+    id: 'deepsea',
+    name: '深海大冒険',
+    pathSegment: 'deepsea',
+    buttonClass: 'primary-button',
   },
 ];
 
 interface Room {
   id: string;
-  gameName: string;
+  gameId: GameId;
   playerCount: number;
   maxPlayers: number;
   createdAt: number;
@@ -38,39 +39,37 @@ export function LobbyRoom() {
     const lobbySocket = io(SERVER_URL);
     setSocket(lobbySocket);
 
-    lobbySocket.on("connect", () => {
-      console.log("Lobby connected. Requesting room list.");
-      lobbySocket.emit("lobby:get-rooms");
+    lobbySocket.on('connect', () => {
+      console.log('Lobby connected. Requesting room list.');
+      lobbySocket.emit('lobby:get-rooms');
 
       // --- テストとして、カスタムイベント1を強制発動 ---
-      lobbySocket.emit("custom:events:1");
+      lobbySocket.emit('custom:events:1');
     });
 
     // ルームリスト受信
-    lobbySocket.on("lobby:rooms-list", (fetchedRooms: Room[]) => {
+    lobbySocket.on('lobby:rooms-list', (fetchedRooms: Room[]) => {
       fetchedRooms.sort((a, b) => b.createdAt - a.createdAt);
       setRooms(fetchedRooms);
       setIsLoading(false);
     });
 
-    lobbySocket.on("lobby:room-update", () => {
-      lobbySocket.emit("lobby:get-rooms");
+    lobbySocket.on('lobby:room-update', () => {
+      lobbySocket.emit('lobby:get-rooms');
     });
 
     return () => {
-      lobbySocket.off("connect");
-      lobbySocket.off("lobby:rooms-list");
-      lobbySocket.off("lobby:room-update");
+      lobbySocket.off('connect');
+      lobbySocket.off('lobby:rooms-list');
+      lobbySocket.off('lobby:room-update');
       lobbySocket.disconnect();
     };
   }, []);
 
   // 1. 既存ルームに参加
   const handleJoinRoom = (room: Room) => {
-    const preset = GAME_PRESETS.find(
-      (p) => p.id === room.gameName || p.name === room.gameName,
-    );
-    const segment = preset ? preset.pathSegment : "sample";
+    const preset = GAME_PRESETS.find((p) => p.id === room.gameId || p.name === room.gameId);
+    const segment = preset ? preset.pathSegment : 'sample';
 
     navigate(`/game/${segment}/${room.id}`);
   };
@@ -87,10 +86,7 @@ export function LobbyRoom() {
 
       <div className="section create-room-section">
         <h2 className="section-title">新しいゲームを始める</h2>
-        <div
-          className="preset-button-group"
-          style={{ display: "flex", gap: "15px", justifyContent: "center" }}
-        >
+        <div className="preset-button-group" style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
           {GAME_PRESETS.map((preset) => (
             <button
               key={preset.id}
@@ -110,27 +106,21 @@ export function LobbyRoom() {
         {isLoading ? (
           <p className="status-message">ルームリストを読み込み中...</p>
         ) : rooms.length === 0 ? (
-          <p className="status-message">
-            現在、公開されているルームはありません。
-          </p>
+          <p className="status-message">現在、公開されているルームはありません。</p>
         ) : (
           <ul className="room-list">
             {rooms.map((room) => (
               <li
                 key={room.id}
-                className={`room-item ${room.playerCount >= room.maxPlayers ? "room-item-full" : "room-item-available"}`}
-                onClick={() =>
-                  room.playerCount < room.maxPlayers && handleJoinRoom(room)
-                }
+                className={`room-item ${room.playerCount >= room.maxPlayers ? 'room-item-full' : 'room-item-available'}`}
+                onClick={() => room.playerCount < room.maxPlayers && handleJoinRoom(room)}
               >
                 <div className="room-info">
-                  <p className="room-game-name">【{room.gameName}】</p>
+                  <p className="room-game-name">【{room.gameId}】</p>
                   <p className="room-id">ID: {room.id}</p>
                 </div>
                 <div className="room-status">
-                  <span
-                    className={`player-count ${room.playerCount < room.maxPlayers ? "status-ok" : "status-full"}`}
-                  >
+                  <span className={`player-count ${room.playerCount < room.maxPlayers ? 'status-ok' : 'status-full'}`}>
                     {room.playerCount}/{room.maxPlayers}
                   </span>
                 </div>

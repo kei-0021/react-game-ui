@@ -31,20 +31,20 @@ export function server_log(tag, gamePresetId, roomId, ...args) {
 export const isExplored = (gameParam, position) => {
     return gameParam.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
-export const markCellAsExplored = (gameParam, gameName, roomId, position) => {
+export const markCellAsExplored = (gameParam, gameId, roomId, position) => {
     if (!isExplored(gameParam, position)) {
         gameParam.exploredCells.push(position);
-        server_log('cell', gameName, roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
+        server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
         return true;
     }
     return false;
 };
-export const unmarkCellAsExplored = (gameParam, gameName, roomId, position) => {
+export const unmarkCellAsExplored = (gameParam, gameId, roomId, position) => {
     const initialLength = gameParam.exploredCells.length;
     gameParam.exploredCells = gameParam.exploredCells.filter((loc) => !(loc.row === position.row && loc.col === position.col));
     const wasRemoved = gameParam.exploredCells.length < initialLength;
     if (wasRemoved) {
-        server_log('cell', gameName, roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
+        server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
     }
     return wasRemoved;
 };
@@ -87,16 +87,16 @@ export const createRandomBoard = (initialBoard) => {
     }
     return newBoard;
 };
-export const applyCellEffect = (gameParam, gameName, roomId, playerId, position, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
+export const applyCellEffect = (gameParam, gameId, roomId, playerId, position, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
     const { row, col } = position;
     if (row < 0 || row >= gameParam.board.length || col < 0 || col >= gameParam.board[row].length) {
-        server_log('warn', gameName, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
+        server_log('warn', gameId, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
         return;
     }
     const cell = gameParam.board[row][col];
     const effect = cellEffects[cell.name];
     if (effect) {
-        server_log('cell', gameName, roomId, `マス効果発動: ${cell.name} by ${playerId}`);
+        server_log('cell', gameId, roomId, `マス効果発動: ${cell.name} by ${playerId}`);
         try {
             effect({
                 playerId,
@@ -107,11 +107,11 @@ export const applyCellEffect = (gameParam, gameName, roomId, playerId, position,
             });
         }
         catch (e) {
-            server_log('warn', gameName, roomId, `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
+            server_log('warn', gameId, roomId, `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
         }
     }
     else {
-        server_log('cell', gameName, roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
+        server_log('cell', gameId, roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
     }
 };
 export class TokenStore {
@@ -152,12 +152,12 @@ export class RoomManager {
     getTokenStore(tokenStoreId) {
         return this.tokenStores.get(tokenStoreId);
     }
-    acquireToken(tokenStoreId, gameName, roomId, playerId, tokenId) {
+    acquireToken(tokenStoreId, gameId, roomId, playerId, tokenId) {
         const player = this.players.find((p) => p.id === playerId);
         if (!player)
             return false;
         if (tokenStoreId === 'scoreboard-acquisition') {
-            server_log('token', gameName, roomId, `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`);
+            server_log('token', gameId, roomId, `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`);
             if (!Array.isArray(player.tokens)) {
                 player.tokens = [];
             }
@@ -169,7 +169,7 @@ export class RoomManager {
                 imageSrc: '',
             };
             player.tokens.push(token);
-            server_log('token', gameName, roomId, `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`);
+            server_log('token', gameId, roomId, `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`);
             return true;
         }
         const store = this.tokenStores.get(tokenStoreId);
@@ -181,7 +181,7 @@ export class RoomManager {
                     player.tokens = [];
                 }
                 player.tokens.push(acquiredToken);
-                server_log('token', gameName, roomId, `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`);
+                server_log('token', gameId, roomId, `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`);
                 return true;
             }
         }

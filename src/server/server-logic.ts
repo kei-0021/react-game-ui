@@ -25,7 +25,7 @@ function getRoomMeta(roomId: RoomId) {
   if (!roomState) return null;
   return {
     id: roomId,
-    gameName: roomState.gameName,
+    gameId: roomState.gameId,
     playerCount: roomState.initRoomState.players.length,
     maxPlayers: 4,
     createdAt: roomState.createdAt,
@@ -83,13 +83,13 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
     drawnCards[deck.deckId] = [];
     playFieldCards[deck.deckId] = [];
     discardPile[deck.deckId] = [];
-    server_log('deck', roomParam.gameName || 'Standard', roomId, `デッキ "${deck.deckId}" 初期化完了`);
+    server_log('deck', roomParam.gameId || 'Standard', roomId, `デッキ "${deck.deckId}" 初期化完了`);
   });
 
   const roomState: RoomState = {
     roomId,
     createdAt: Date.now(),
-    gameName: roomParam.gameName || '不明なゲーム',
+    gameId: roomParam.gameId || '不明なゲーム',
     currentTurnIndex: 0,
     currentRoundIndex: 0,
     decks,
@@ -102,7 +102,7 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
   };
 
   activeRooms.set(roomId, roomState);
-  server_log('room', roomState.gameName, roomId, `ルーム初期化完了`);
+  server_log('room', roomState.gameId, roomId, `ルーム初期化完了`);
   return roomState;
 }
 
@@ -139,7 +139,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     const player = roomState?.initRoomState.players.find((p) => p.id === playerId);
     if (player) {
       player.score = (player.score || 0) + points;
-      server_log('addScore', roomState!.gameName, roomId, `${player.name} に ${points}pt 加算`);
+      server_log('addScore', roomState!.gameId, roomId, `${player.name} に ${points}pt 加算`);
       emitPlayerUpdate(roomId);
     }
   };
@@ -150,7 +150,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     const resource = player?.resources?.find((r) => r.id === resourceId);
     if (resource) {
       resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
-      server_log('resource', roomState!.gameName, roomId, `${player!.name}: ${resource.name} 更新`);
+      server_log('resource', roomState!.gameId, roomId, `${player!.name}: ${resource.name} 更新`);
       emitPlayerUpdate(roomId);
       return true;
     }
@@ -163,19 +163,19 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     const token = player?.tokens?.find((t) => t.id === tokenId);
     if (token) {
       token.count = Math.max(0, (token.count || 0) + amount);
-      server_log('token', roomState!.gameName, roomId, `${player!.name}: ${tokenId} 更新`);
+      server_log('token', roomState!.gameId, roomId, `${player!.name}: ${tokenId} 更新`);
       emitPlayerUpdate(roomId);
       return true;
     }
     return false;
   };
 
-  const stopTimer = (roomId: RoomId, gameName: string) => {
+  const stopTimer = (roomId: RoomId, gameId: string) => {
     const timer = roomTimers.get(roomId);
     if (timer) {
       clearTimeout(timer);
       roomTimers.delete(roomId);
-      server_log('timer', gameName, roomId, `タイマー停止`);
+      server_log('timer', gameId, roomId, `タイマー停止`);
     }
   };
 
@@ -183,7 +183,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     const roomState = activeRooms.get(roomId);
     if (!roomState || !roomState.decks[deckId]) return;
 
-    server_log('deck', roomState.gameName, roomId, `${deckId} をシャッフル`);
+    server_log('deck', roomState.gameId, roomId, `${deckId} をシャッフル`);
     const currentDeck = roomState.decks[deckId].filter((c) => c.location === 'deck');
     const otherCards = roomState.decks[deckId].filter((c) => c.location !== 'deck');
     for (let i = currentDeck.length - 1; i > 0; i--) {
@@ -207,7 +207,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
       const roomParam = gamePresets[gamePresetId] || options;
 
       if (!roomState) {
-        roomState = initializeRoom(roomId, { ...roomParam, gameName: gamePresetId });
+        roomState = initializeRoom(roomId, { ...roomParam, gameId: gamePresetId });
         Object.keys(roomState.decks).forEach((id) => shuffleDeck(roomId, id));
         io.emit('lobby:room-update');
       }
@@ -251,7 +251,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
 
       server_log(
         'game',
-        roomState.gameName,
+        roomState.gameId,
         roomId,
         `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, Round: ${roomState.currentRoundIndex})`,
       );
@@ -270,10 +270,10 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
       const player = roomState?.initRoomState.players.find((p) => p.id === playerId);
       if (player && roomState) {
         player.position = newPosition;
-        const updated = markCellAsExplored(roomState.initRoomState, roomState.gameName, roomId, newPosition);
+        const updated = markCellAsExplored(roomState.initRoomState, roomState.gameId, roomId, newPosition);
         applyCellEffect(
           roomState.initRoomState,
-          roomState.gameName,
+          roomState.gameId,
           roomId,
           playerId,
           newPosition,
@@ -290,14 +290,14 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
 
     socket.on('game:explore-cell', ({ roomId, targetPosition }) => {
       const roomState = activeRooms.get(roomId);
-      if (roomState && markCellAsExplored(roomState.initRoomState, roomState.gameName, roomId, targetPosition)) {
+      if (roomState && markCellAsExplored(roomState.initRoomState, roomState.gameId, roomId, targetPosition)) {
         io.to(roomId).emit('board-update', roomState.initRoomState.exploredCells);
       }
     });
 
     socket.on('game:unexplore-cell', ({ roomId, targetPosition }) => {
       const roomState = activeRooms.get(roomId);
-      if (roomState && unmarkCellAsExplored(roomState.initRoomState, roomState.gameName, roomId, targetPosition)) {
+      if (roomState && unmarkCellAsExplored(roomState.initRoomState, roomState.gameId, roomId, targetPosition)) {
         io.to(roomId).emit('board-update', roomState.initRoomState.exploredCells);
       }
     });
@@ -311,7 +311,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
       // デッキにあるカードのみをフィルタリング
       const currentDeck = decks[deckId].filter((c) => c.location === 'deck');
       if (!currentDeck.length) {
-        server_log('warn', roomState.gameName, roomId, `デッキ ${deckId} は空です。`);
+        server_log('warn', roomState.gameId, roomId, `デッキ ${deckId} は空です。`);
         return;
       }
 
@@ -351,7 +351,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
         destination = 'field';
       }
 
-      server_log('deck', roomState.gameName, roomId, `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination})`);
+      server_log('deck', roomState.gameId, roomId, `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination})`);
 
       emitDeckUpdate(roomId, deckId);
       emitPlayerUpdate(roomId);
@@ -369,7 +369,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     socket.on('deck:reset', ({ roomId, deckId }) => {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
-      server_log('deck', roomState.gameName, roomId, `${deckId} を山札に戻した`);
+      server_log('deck', roomState.gameId, roomId, `${deckId} を山札に戻した`);
       roomState.decks[deckId].forEach((c) => {
         if (c.location === 'discard') {
           c.location = 'deck';
@@ -410,7 +410,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
         card.location = playLocation as any;
         if (coordinate?.x != null && coordinate?.y != null) {
           card.coordinate = coordinate;
-          server_log('card', roomState.gameName, roomId, `Update Coord: x=${coordinate.x}, y=${coordinate.y}`);
+          server_log('card', roomState.gameId, roomId, `Update Coord: x=${coordinate.x}, y=${coordinate.y}`);
         }
         card.isFaceUp = true;
 
@@ -456,7 +456,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
       if (
         roomState &&
         player &&
-        roomState.initRoomState.acquireToken(tokenStoreId, roomState.gameName, roomId, player.id, tokenId)
+        roomState.initRoomState.acquireToken(tokenStoreId, roomState.gameId, roomId, player.id, tokenId)
       ) {
         const store = roomState.initRoomState.getTokenStore(tokenStoreId);
         if (store) io.to(roomId).emit(`token-store:update:${roomId}:${tokenStoreId}`, store.getTokens());
@@ -476,12 +476,12 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     socket.on('timer:start', ({ duration, roomId }) => {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
-      stopTimer(roomId, roomState.gameName);
+      stopTimer(roomId, roomState.gameId);
       let rem = duration;
       io.to(roomId).emit('timer:start', { duration, roomId });
       const tick = () => {
         if (rem <= 0) {
-          stopTimer(roomId, roomState.gameName);
+          stopTimer(roomId, roomState.gameId);
           io.to(roomId).emit('timer:finish', { roomId });
           return;
         }
@@ -511,7 +511,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
 
         server_log(
           'game',
-          roomState.gameName,
+          roomState.gameId,
           roomId,
           `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, Round: ${roomState.currentRoundIndex})`,
         );

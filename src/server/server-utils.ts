@@ -1,4 +1,4 @@
-import { GameName, PlayerId, RoomId } from '@/types/definition.js';
+import { GameId, PlayerId, RoomId } from '@/types/definition.js';
 import { initialRoomState as IInitialRoomState, Position, ServerPlayer, TokenStoreDef } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 
@@ -42,7 +42,7 @@ export let LOG_CATEGORIES: Record<LogCategory, boolean> = {
 const ANSI_RED = '\x1b[31m';
 const ANSI_RESET = '\x1b[0m';
 
-export function server_log(tag: LogCategory, gamePresetId: GameName, roomId: RoomId, ...args: any[]): void {
+export function server_log(tag: LogCategory, gamePresetId: GameId, roomId: RoomId, ...args: any[]): void {
   if (!LOG_CATEGORIES[tag]) return;
   if (tag === 'warn') {
     console.warn(ANSI_RED + `[${tag}]` + ANSI_RESET, ...args.map((arg) => ANSI_RED + String(arg) + ANSI_RESET));
@@ -57,13 +57,13 @@ export const isExplored = (gameParam: IInitialRoomState, position: Position): bo
 
 export const markCellAsExplored = (
   gameParam: IInitialRoomState,
-  gameName: string,
+  gameId: GameId,
   roomId: RoomId,
   position: Position,
 ): boolean => {
   if (!isExplored(gameParam, position)) {
     gameParam.exploredCells.push(position);
-    server_log('cell', gameName, roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
+    server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
     return true;
   }
   return false;
@@ -71,7 +71,7 @@ export const markCellAsExplored = (
 
 export const unmarkCellAsExplored = (
   gameParam: IInitialRoomState,
-  gameName: string,
+  gameId: GameId,
   roomId: RoomId,
   position: Position,
 ): boolean => {
@@ -81,7 +81,7 @@ export const unmarkCellAsExplored = (
   );
   const wasRemoved = gameParam.exploredCells.length < initialLength;
   if (wasRemoved) {
-    server_log('cell', gameName, roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
+    server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
   }
   return wasRemoved;
 };
@@ -128,7 +128,7 @@ export const createRandomBoard = (initialBoard: any[][]): any[][] => {
 
 export const applyCellEffect = (
   gameParam: IInitialRoomState,
-  gameName: string,
+  gameId: GameId,
   roomId: RoomId,
   playerId: PlayerId,
   position: Position,
@@ -140,13 +140,13 @@ export const applyCellEffect = (
 ): void => {
   const { row, col } = position;
   if (row < 0 || row >= gameParam.board.length || col < 0 || col >= gameParam.board[row].length) {
-    server_log('warn', gameName, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
+    server_log('warn', gameId, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
     return;
   }
   const cell = gameParam.board[row][col];
   const effect = cellEffects[cell.name];
   if (effect) {
-    server_log('cell', gameName, roomId, `マス効果発動: ${cell.name} by ${playerId}`);
+    server_log('cell', gameId, roomId, `マス効果発動: ${cell.name} by ${playerId}`);
     try {
       effect({
         playerId,
@@ -156,10 +156,10 @@ export const applyCellEffect = (
         requirePopup: requirePopup,
       });
     } catch (e) {
-      server_log('warn', gameName, roomId, `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
+      server_log('warn', gameId, roomId, `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
     }
   } else {
-    server_log('cell', gameName, roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
+    server_log('cell', gameId, roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
   }
 };
 
@@ -208,13 +208,13 @@ export class RoomManager {
     return this.tokenStores.get(tokenStoreId);
   }
 
-  acquireToken(tokenStoreId: string, gameName: string, roomId: RoomId, playerId: PlayerId, tokenId: string): boolean {
+  acquireToken(tokenStoreId: string, gameId: GameId, roomId: RoomId, playerId: PlayerId, tokenId: string): boolean {
     const player = this.players.find((p) => p.id === playerId);
     if (!player) return false;
     if (tokenStoreId === 'scoreboard-acquisition') {
       server_log(
         'token',
-        gameName,
+        gameId,
         roomId,
         `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`,
       );
@@ -231,7 +231,7 @@ export class RoomManager {
       player.tokens.push(token);
       server_log(
         'token',
-        gameName,
+        gameId,
         roomId,
         `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`,
       );
@@ -248,7 +248,7 @@ export class RoomManager {
         player.tokens.push(acquiredToken);
         server_log(
           'token',
-          gameName,
+          gameId,
           roomId,
           `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
         );
