@@ -1,6 +1,6 @@
-import { PieceId, RoomId } from "@/types/definition.js";
-import type { CSSProperties, ReactNode } from "react";
-import type { Socket } from "socket.io-client";
+import { PieceId, RoomId } from '@/types/definition.js';
+import type { CSSProperties, ReactNode } from 'react';
+import type { Socket } from 'socket.io-client';
 interface GridBounds {
     left: number;
     top: number;

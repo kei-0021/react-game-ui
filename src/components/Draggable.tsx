@@ -1,9 +1,9 @@
 // src/components/Draggable.tsx
-import { PieceId, RoomId } from "@/types/definition.js";
-import type { CSSProperties, ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
-import type { Socket } from "socket.io-client";
-import styles from "./Draggable.module.css";
+import { PieceId, RoomId } from '@/types/definition.js';
+import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { Socket } from 'socket.io-client';
+import styles from './Draggable.module.css';
 
 interface GridBounds {
   left: number;
@@ -38,7 +38,7 @@ export function Draggable({
   initialX = 500,
   initialY = 500,
   size = 100,
-  color = "yellow",
+  color = 'yellow',
   isTransparent = false,
   children,
   style = {},
@@ -52,6 +52,8 @@ export function Draggable({
   const [pos, setPos] = useState({ x: initialX, y: initialY });
   const [rotation, setRotation] = useState(0);
   const posRef = useRef(pos);
+  // ドラッグ中かどうかを保持するRef（再レンダリングをトリガーしないようRefで管理）
+  const isDraggingRef = useRef(false);
 
   useEffect(() => {
     posRef.current = pos;
@@ -59,13 +61,10 @@ export function Draggable({
 
   useEffect(() => {
     if (!socket || !pieceId) return;
-    const eventName = "draggable:update";
-    const handleRemoteMove = (move: {
-      pieceId: string;
-      x: number;
-      y: number;
-    }) => {
-      if (move.pieceId === pieceId) {
+    const eventName = 'draggable:update';
+    const handleRemoteMove = (move: { pieceId: string; x: number; y: number }) => {
+      // 自分がドラッグ中の時は、サーバーからの座標更新を無視する
+      if (move.pieceId === pieceId && !isDraggingRef.current) {
         setPos({ x: move.x, y: move.y });
       }
     };
@@ -78,9 +77,12 @@ export function Draggable({
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
 
+    // ドラッグ開始
+    isDraggingRef.current = true;
+
     const fixedContainer = containerRef?.current;
     if (!fixedContainer) {
-      console.error("containerRef がセットされていません！");
+      console.error('containerRef がセットされていません！');
       return;
     }
     const fixedContainerRect = fixedContainer.getBoundingClientRect();
@@ -91,7 +93,7 @@ export function Draggable({
     const offsetY = clientY_relative - pos.y;
 
     let lastTime = 0;
-    const targetFPS = 50;
+    const targetFPS = 60; // 50から60へ微調整
     const interval = 1000 / targetFPS;
 
     const handleMouseMove = (ev: MouseEvent) => {
@@ -111,44 +113,49 @@ export function Draggable({
       posRef.current = newPos;
 
       if (socket && roomId && pieceId) {
-        socket.emit("draggable:moved", { roomId, pieceId, ...newPos });
+        socket.emit('draggable:moved', { roomId, pieceId, ...newPos });
       }
     };
 
     const handleMouseUp = () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
 
       const { x, y } = posRef.current;
       if (socket && roomId && pieceId) {
-        socket.emit("draggable:moved", { roomId, pieceId, x, y });
+        socket.emit('draggable:moved', { roomId, pieceId, x, y });
       }
+
+      // ドラッグ終了（少し遅らせることで、最後に飛んできた自分の古い座標を捨てる）
+      setTimeout(() => {
+        isDraggingRef.current = false;
+      }, 50);
+
       onDragEnd?.(x, y);
     };
 
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleDoubleClick = () => setRotation((prev) => prev + 90);
 
-  // "maskImage" や "url" という単語を静的解析から隠す
-  const MASK_PROP = ["mask", "Image"].join("");
-  const WEBKIT_MASK_PROP = ["Webkit", "Mask", "Image"].join("");
-  const URL_FUNC = ["u", "r", "l"].join("");
+  const MASK_PROP = ['mask', 'Image'].join('');
+  const WEBKIT_MASK_PROP = ['Webkit', 'Mask', 'Image'].join('');
+  const URL_FUNC = ['u', 'r', 'l'].join('');
 
   const maskStyle: any =
     mask && image
       ? {
           [WEBKIT_MASK_PROP]: `${URL_FUNC}("${image}")`,
           [MASK_PROP]: `${URL_FUNC}("${image}")`,
-          WebkitMaskSize: "contain",
-          maskSize: "contain",
-          WebkitMaskRepeat: "no-repeat",
-          maskRepeat: "no-repeat",
-          WebkitMaskPosition: "center",
-          maskPosition: "center",
-          backgroundColor: color || "yellow",
+          WebkitMaskSize: 'contain',
+          maskSize: 'contain',
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+          maskPosition: 'center',
+          backgroundColor: color || 'yellow',
         }
       : {};
 
@@ -157,14 +164,13 @@ export function Draggable({
     top: `${pos.y}px`,
     width: `${size}px`,
     height: `${size}px`,
-    background:
-      mask && image ? undefined : isTransparent ? "transparent" : color,
+    background: mask && image ? undefined : isTransparent ? 'transparent' : color,
     transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-    position: "absolute",
-    cursor: "grab",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    position: 'absolute',
+    cursor: 'grab',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     ...maskStyle,
     ...style,
   };
@@ -181,12 +187,12 @@ export function Draggable({
           src={image}
           alt=""
           style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            pointerEvents: "none",
-            userSelect: "none",
-            mixBlendMode: mask ? "multiply" : "normal",
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            mixBlendMode: mask ? 'multiply' : 'normal',
           }}
         />
       ) : (

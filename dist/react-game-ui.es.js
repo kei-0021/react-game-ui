@@ -1252,6 +1252,7 @@ function Draggable({
   const [pos, setPos] = useState({ x: initialX, y: initialY });
   const [rotation, setRotation] = useState(0);
   const posRef = useRef(pos);
+  const isDraggingRef = useRef(false);
   useEffect(() => {
     posRef.current = pos;
   }, [pos]);
@@ -1259,7 +1260,7 @@ function Draggable({
     if (!socket || !pieceId) return;
     const eventName = "draggable:update";
     const handleRemoteMove = (move) => {
-      if (move.pieceId === pieceId) {
+      if (move.pieceId === pieceId && !isDraggingRef.current) {
         setPos({ x: move.x, y: move.y });
       }
     };
@@ -1270,6 +1271,7 @@ function Draggable({
   }, [socket, pieceId]);
   const handleMouseDown = (e) => {
     e.preventDefault();
+    isDraggingRef.current = true;
     const fixedContainer = containerRef?.current;
     if (!fixedContainer) {
       console.error("containerRef がセットされていません！");
@@ -1281,7 +1283,7 @@ function Draggable({
     const offsetX = clientX_relative - pos.x;
     const offsetY = clientY_relative - pos.y;
     let lastTime = 0;
-    const targetFPS = 50;
+    const targetFPS = 60;
     const interval = 1e3 / targetFPS;
     const handleMouseMove = (ev) => {
       const now = performance.now();
@@ -1306,6 +1308,9 @@ function Draggable({
       if (socket && roomId && pieceId) {
         socket.emit("draggable:moved", { roomId, pieceId, x, y });
       }
+      setTimeout(() => {
+        isDraggingRef.current = false;
+      }, 50);
       onDragEnd?.(x, y);
     };
     document.addEventListener("mousemove", handleMouseMove);
