@@ -570,6 +570,22 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
       });
     });
 
+    // スコア加算
+    socket.on('room:player:add-score', ({ roomId, targetPlayerId, points }) => {
+      const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
+
+      addScore(roomId, targetPlayerId, points);
+    });
+
+    // リソース加算
+    socket.on('room:player:update-resource', ({ roomId, playerId, resourceId, amount }) => {
+      const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
+
+      updatePlayerResource(roomId, playerId, resourceId, amount);
+    });
+
     // --- カスタムイベント ---
     const customEvents = options.customEvents ? options.customEvents() : {};
     for (const [event, handler] of Object.entries(customEvents)) {

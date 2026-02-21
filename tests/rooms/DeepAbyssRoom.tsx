@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Deck from '../../src/components/Deck';
 import { PlayField } from '../../src/components/PlayField';
-import ScoreBoard from '../../src/components/ScoreBoard';
+import { ScoreBoard } from '../../src/components/ScoreBoard';
 import TokenStore from '../../src/components/TokenStore';
 import { useSocket } from '../../src/hooks/useSocket';
 import type { Player } from '../../src/types/player';
@@ -288,6 +288,7 @@ export function DeepAbyssRoom() {
             currentPlayerId={currentPlayerId}
             myPlayerId={myPlayerId}
             playCardLimit={2}
+            isDebug={true}
           />
         </div>
       </div>

@@ -42,10 +42,7 @@
   box-shadow: none !important;
   transform: translateX(-24px) !important;
   z-index: 1;
-  background-color: var(
-    --player-color-active,
-    var(--player-color-bg)
-  ) !important;
+  background-color: var(--player-color-active, var(--player-color-bg)) !important;
 }
 
 .playerHeader {
@@ -218,4 +215,41 @@
 .buttonGroup {
   display: flex;
   gap: 6px;
+}
+
+.scoreArea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.debugScoreButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.debugBtn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 背景色を指定の rgba に合わせました */
+  background: rgba(0, 0, 0, 0.4);
+  /* 境界線も馴染むように透過を持たせています */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.debugBtn:hover {
+  /* ホバー時は少し明るくして操作感を出します */
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
 }

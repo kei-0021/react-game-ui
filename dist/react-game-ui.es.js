@@ -1771,30 +1771,33 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const container = "_container_9hhf7_1";
-const title = "_title_9hhf7_13";
-const playerList = "_playerList_9hhf7_22";
-const playerItem = "_playerItem_9hhf7_27";
-const activePlayer = "_activePlayer_9hhf7_40";
-const playerHeader = "_playerHeader_9hhf7_51";
-const playerName = "_playerName_9hhf7_57";
-const playerScore = "_playerScore_9hhf7_65";
-const resourceSection = "_resourceSection_9hhf7_74";
-const resourceList = "_resourceList_9hhf7_79";
-const resourceBadge = "_resourceBadge_9hhf7_85";
-const tokenList = "_tokenList_9hhf7_93";
-const tokenBadge = "_tokenBadge_9hhf7_102";
-const tokenBadgeOwner = "_tokenBadgeOwner_9hhf7_117";
-const tokenBadgeGuest = "_tokenBadgeGuest_9hhf7_122";
-const cardList = "_cardList_9hhf7_128";
-const cardBase = "_cardBase_9hhf7_136";
-const cardSelected = "_cardSelected_9hhf7_157";
-const cardImage = "_cardImage_9hhf7_163";
-const cardNameText = "_cardNameText_9hhf7_169";
-const tooltip = "_tooltip_9hhf7_173";
-const buttonArea = "_buttonArea_9hhf7_198";
-const limitMessage = "_limitMessage_9hhf7_204";
-const buttonGroup = "_buttonGroup_9hhf7_218";
+const container = "_container_1wg24_1";
+const title = "_title_1wg24_13";
+const playerList = "_playerList_1wg24_22";
+const playerItem = "_playerItem_1wg24_27";
+const activePlayer = "_activePlayer_1wg24_40";
+const playerHeader = "_playerHeader_1wg24_48";
+const playerName = "_playerName_1wg24_54";
+const playerScore = "_playerScore_1wg24_62";
+const resourceSection = "_resourceSection_1wg24_71";
+const resourceList = "_resourceList_1wg24_76";
+const resourceBadge = "_resourceBadge_1wg24_82";
+const tokenList = "_tokenList_1wg24_90";
+const tokenBadge = "_tokenBadge_1wg24_99";
+const tokenBadgeOwner = "_tokenBadgeOwner_1wg24_114";
+const tokenBadgeGuest = "_tokenBadgeGuest_1wg24_119";
+const cardList = "_cardList_1wg24_125";
+const cardBase = "_cardBase_1wg24_133";
+const cardSelected = "_cardSelected_1wg24_154";
+const cardImage = "_cardImage_1wg24_160";
+const cardNameText = "_cardNameText_1wg24_166";
+const tooltip = "_tooltip_1wg24_170";
+const buttonArea = "_buttonArea_1wg24_195";
+const limitMessage = "_limitMessage_1wg24_201";
+const buttonGroup = "_buttonGroup_1wg24_215";
+const scoreArea = "_scoreArea_1wg24_220";
+const debugScoreButtons = "_debugScoreButtons_1wg24_226";
+const debugBtn = "_debugBtn_1wg24_231";
 const styles = {
   container,
   title,
@@ -1819,46 +1822,38 @@ const styles = {
   tooltip,
   buttonArea,
   limitMessage,
-  buttonGroup
+  buttonGroup,
+  scoreArea,
+  debugScoreButtons,
+  debugBtn
 };
-const CardDisplayContent = React.memo(
-  ({ card: card2, canSeeFront }) => {
-    if (!canSeeFront) return null;
-    if (card2.frontImage) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "img",
-        {
-          src: card2.frontImage,
-          alt: card2.name,
-          className: styles.cardImage
-        }
-      );
-    }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles.cardNameText, children: card2.name });
+const CardDisplayContent = React.memo(({ card: card2, canSeeFront }) => {
+  if (!canSeeFront) return null;
+  if (card2.frontImage) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: styles.cardImage });
   }
-);
-const TokenDisplayContent = React.memo(
-  ({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
-    const isMyToken = myPlayerId === playerIdBeingDisplayed;
-    if (!tokens || tokens.length === 0) return null;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.tokenList, children: tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        className: `${styles.tokenBadge} ${isMyToken ? styles.tokenBadgeOwner : styles.tokenBadgeGuest}`,
-        onClick: () => {
-          if (!isMyToken) return;
-          socket.emit("token:reclaim", {
-            roomId,
-            playerId: myPlayerId,
-            tokenId: token.id
-          });
-        },
-        children: token.name
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles.cardNameText, children: card2.name });
+});
+const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
+  const isMyToken = myPlayerId === playerIdBeingDisplayed;
+  if (!tokens || tokens.length === 0) return null;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.tokenList, children: tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: `${styles.tokenBadge} ${isMyToken ? styles.tokenBadgeOwner : styles.tokenBadgeGuest}`,
+      onClick: () => {
+        if (!isMyToken) return;
+        socket.emit("token:reclaim", {
+          roomId,
+          playerId: myPlayerId,
+          tokenId: token.id
+        });
       },
-      token.id
-    )) });
-  }
-);
+      children: token.name
+    },
+    token.id
+  )) });
+});
 const PlayerListItem = React.memo(
   ({
     player,
@@ -1867,86 +1862,92 @@ const PlayerListItem = React.memo(
     selectedCards,
     toggleCardSelection,
     socket,
-    roomId
+    roomId,
+    isDebug
   }) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = player.color || "#aaaaaa";
     const isOwner = player.id === myPlayerId;
+    const handleAddScore = (points) => {
+      socket.emit("room:player:add-score", {
+        roomId,
+        targetPlayerId: player.id,
+        points
+      });
+    };
     const customStyles = {
       "--player-color": playerColor,
       "--player-color-bg": playerColor.replace("hsl", "hsla").replace(")", ", 0.3)"),
       "--player-color-glow": playerColor.replace("hsl", "hsla").replace(")", ", 0.5)")
     };
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "li",
-      {
-        className: `${styles.playerItem} ${isActive ? styles.activePlayer : ""}`,
-        style: customStyles,
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.playerHeader, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.playerName, children: [
-              isActive && "ᐅ ",
-              isOwner && "★ ME ",
-              player.name
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.playerScore, children: [
-              "スコア: ",
-              player.score
-            ] })
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("li", { className: `${styles.playerItem} ${isActive ? styles.activePlayer : ""}`, style: customStyles, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.playerHeader, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.playerName, children: [
+          isActive && "ᐅ ",
+          isOwner && "★ ME ",
+          player.name
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.scoreArea, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.playerScore, children: [
+            "スコア: ",
+            player.score
           ] }),
-          player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.resourceSection, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.resourceList, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.resourceBadge, children: [
-            resource.icon,
-            " ",
-            resource.name,
-            ": ",
-            resource.currentValue,
-            " /",
-            " ",
-            resource.maxValue
-          ] }, resource.id)) }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            TokenDisplayContent,
-            {
-              tokens: player.tokens,
-              socket,
-              roomId,
-              myPlayerId,
-              playerIdBeingDisplayed: player.id
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.cardList, children: player.cards.map((card2) => {
-            const isSelected = selectedCards.includes(card2.id);
-            const canSeeFront = !!card2.isFaceUp || isOwner;
-            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "div",
-              {
-                draggable: isOwner,
-                onDragStart: (e) => {
-                  if (!isOwner) return;
-                  e.dataTransfer.setData("cardId", card2.id);
-                  e.dataTransfer.setData("deckId", card2.deckId);
-                  e.dataTransfer.effectAllowed = "move";
-                },
-                className: `${styles.cardBase} rg-playfield-card-wrapper ${isSelected ? styles.cardSelected : ""} ${card2.isFaceUp ? styles.cardSuperRevealed : ""}`,
-                style: {
-                  "--owner-color": playerColor,
-                  "backgroundColor": canSeeFront ? "#fff" : card2.backColor,
-                  "cursor": isOwner ? "grab" : "default",
-                  "border": card2.isFaceUp ? "3px solid #00ffff" : "1px solid #ccc",
-                  "boxShadow": card2.isFaceUp ? "0 0 10px #00ffff" : "none"
-                },
-                onClick: () => toggleCardSelection(card2.id, isOwner),
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
-                  canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles.tooltip, children: card2.description })
-                ]
-              },
-              card2.id
-            );
-          }) })
-        ]
-      }
-    );
+          isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.debugScoreButtons, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(-1), className: styles.debugBtn, children: "-" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), className: styles.debugBtn, children: "+" })
+          ] })
+        ] })
+      ] }),
+      player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.resourceSection, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.resourceList, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.resourceBadge, children: [
+        resource.icon,
+        " ",
+        resource.name,
+        ": ",
+        resource.currentValue,
+        " / ",
+        resource.maxValue
+      ] }, resource.id)) }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        TokenDisplayContent,
+        {
+          tokens: player.tokens,
+          socket,
+          roomId,
+          myPlayerId,
+          playerIdBeingDisplayed: player.id
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.cardList, children: player.cards.map((card2) => {
+        const isSelected = selectedCards.includes(card2.id);
+        const canSeeFront = !!card2.isFaceUp || isOwner;
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            draggable: isOwner,
+            onDragStart: (e) => {
+              if (!isOwner) return;
+              e.dataTransfer.setData("cardId", card2.id);
+              e.dataTransfer.setData("deckId", card2.deckId);
+              e.dataTransfer.effectAllowed = "move";
+            },
+            className: `${styles.cardBase} rg-playfield-card-wrapper ${isSelected ? styles.cardSelected : ""} ${card2.isFaceUp ? styles.cardSuperRevealed : ""}`,
+            style: {
+              "--owner-color": playerColor,
+              backgroundColor: canSeeFront ? "#fff" : card2.backColor,
+              cursor: isOwner ? "grab" : "default",
+              border: card2.isFaceUp ? "3px solid #00ffff" : "1px solid #ccc",
+              boxShadow: card2.isFaceUp ? "0 0 10px #00ffff" : "none"
+            },
+            onClick: () => toggleCardSelection(card2.id, isOwner),
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
+              canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles.tooltip, children: card2.description })
+            ]
+          },
+          card2.id
+        );
+      }) })
+    ] });
   }
 );
 function ScoreBoard({
@@ -1956,7 +1957,8 @@ function ScoreBoard({
   myPlayerId,
   roomId,
   playCardLimit,
-  autoNextTurnOnCardPlay = false
+  autoNextTurnOnCardPlay = false,
+  isDebug = false
 }) {
   const displayedPlayers = React.useMemo(() => {
     return (players || []).map((p) => ({
@@ -1968,19 +1970,13 @@ function ScoreBoard({
     }));
   }, [players]);
   const [selectedCards, setSelectedCards] = React.useState([]);
-  const toggleCardSelection = React.useCallback(
-    (cardId, isOwner) => {
-      if (!isOwner) return;
-      setSelectedCards(
-        (prev) => prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
-      );
-    },
-    []
-  );
+  const toggleCardSelection = React.useCallback((cardId, isOwner) => {
+    if (!isOwner) return;
+    setSelectedCards((prev) => prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]);
+  }, []);
   const revealSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit)
-      return;
+    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) return;
     socket.emit("card:reveal", {
       roomId,
       playerId: myPlayerId,
@@ -1988,18 +1984,10 @@ function ScoreBoard({
     });
     if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
     setSelectedCards([]);
-  }, [
-    selectedCards,
-    myPlayerId,
-    socket,
-    roomId,
-    playCardLimit,
-    autoNextTurnOnCardPlay
-  ]);
+  }, [selectedCards, myPlayerId, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
   const playSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit)
-      return;
+    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) return;
     const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
     if (!myPlayer) return;
     const cardsByDeck = {};
@@ -2019,21 +2007,12 @@ function ScoreBoard({
         cardIds,
         playerId: myPlayerId,
         playLocation: targetPlayLocation,
-        // ボタン経由の場合は中央(50, 50)に設定
         position: { x: 50, y: 50 }
       });
     });
     if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
     setSelectedCards([]);
-  }, [
-    selectedCards,
-    myPlayerId,
-    displayedPlayers,
-    socket,
-    roomId,
-    playCardLimit,
-    autoNextTurnOnCardPlay
-  ]);
+  }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
   const nextTurn = () => socket.emit("game:next-turn", { roomId });
   const isOverLimit = playCardLimit !== void 0 && selectedCards.length > playCardLimit;
   const isActionDisabled = selectedCards.length === 0 || isOverLimit;
@@ -2048,7 +2027,8 @@ function ScoreBoard({
         selectedCards,
         toggleCardSelection,
         socket,
-        roomId
+        roomId,
+        isDebug
       },
       player.id
     )) }),

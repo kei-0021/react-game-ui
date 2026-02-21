@@ -1,18 +1,18 @@
 /// <reference types="vite/client" />
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import Deck from "../../src/components/Deck";
-import Dice from "../../src/components/Dice";
-import { Draggable } from "../../src/components/Draggable";
-import { RemoteCursor } from "../../src/components/RemoteCursor";
-import ScoreBoard from "../../src/components/ScoreBoard";
-import Timer from "../../src/components/Timer";
-import { useSocket } from "../../src/hooks/useSocket";
-import type { PlayerWithResources } from "../../src/types/playerWithResources";
-import "./SampleRoom.css";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import Deck from '../../src/components/Deck';
+import Dice from '../../src/components/Dice';
+import { Draggable } from '../../src/components/Draggable';
+import { RemoteCursor } from '../../src/components/RemoteCursor';
+import { ScoreBoard } from '../../src/components/ScoreBoard';
+import Timer from '../../src/components/Timer';
+import { useSocket } from '../../src/hooks/useSocket';
+import type { PlayerWithResources } from '../../src/types/playerWithResources';
+import './SampleRoom.css';
 
-const SERVER_URL = "http://127.0.0.1:4000";
-const DRAGGABLE_IMAGE_PATH = "/hanabishi.svg";
+const SERVER_URL = 'http://127.0.0.1:4000';
+const DRAGGABLE_IMAGE_PATH = '/hanabishi.svg';
 
 interface TurnUpdatePayload {
   playerId: string;
@@ -24,7 +24,7 @@ export function SampleRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
 
-  const [userName, setUserName] = useState<string>("");
+  const [userName, setUserName] = useState<string>('');
   const [isJoining, setIsJoining] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
 
@@ -36,13 +36,13 @@ export function SampleRoom() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number>(1);
 
-  const GAME_PRESET_ID = "sample";
+  const GAME_PRESET_ID = 'sample';
 
   const handleJoinRoom = useCallback(() => {
-    if (!socket || !roomId || userName.trim() === "" || isJoining) return;
+    if (!socket || !roomId || userName.trim() === '' || isJoining) return;
 
     setIsJoining(true);
-    socket.emit("room:join", {
+    socket.emit('room:join', {
       roomId,
       playerName: userName.trim(),
       gamePresetId: GAME_PRESET_ID,
@@ -63,7 +63,7 @@ export function SampleRoom() {
     };
 
     const handleGameTurn = (data: TurnUpdatePayload | string) => {
-      if (typeof data === "string") {
+      if (typeof data === 'string') {
         setCurrentPlayerId(data);
       } else {
         setCurrentPlayerId(data.playerId);
@@ -71,14 +71,14 @@ export function SampleRoom() {
       }
     };
 
-    socket.on("player:assign-id", handleAssignId);
-    socket.on("players:update", handlePlayersUpdate);
-    socket.on("game:turn", handleGameTurn);
+    socket.on('player:assign-id', handleAssignId);
+    socket.on('players:update', handlePlayersUpdate);
+    socket.on('game:turn', handleGameTurn);
 
     return () => {
-      socket.off("player:assign-id", handleAssignId);
-      socket.off("players:update", handlePlayersUpdate);
-      socket.off("game:turn", handleGameTurn);
+      socket.off('player:assign-id', handleAssignId);
+      socket.off('players:update', handlePlayersUpdate);
+      socket.off('game:turn', handleGameTurn);
     };
   }, [socket, roomId]);
 
@@ -95,14 +95,11 @@ export function SampleRoom() {
           value={userName}
           onChange={(e) => setUserName(e.target.value)}
           disabled={isJoining}
-          onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
+          onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
           autoFocus
         />
-        <button
-          onClick={handleJoinRoom}
-          disabled={userName.trim() === "" || isJoining}
-        >
-          {isJoining ? "参加中..." : "ルームに参加"}
+        <button onClick={handleJoinRoom} disabled={userName.trim() === '' || isJoining}>
+          {isJoining ? '参加中...' : 'ルームに参加'}
         </button>
       </div>
     );
@@ -126,36 +123,15 @@ export function SampleRoom() {
         roomId={roomId}
         sides={3}
         customFaces={[
-          <img
-            key="f1"
-            src="/weather_sunny.png"
-            style={{ width: "100%", height: "100%", objectFit: "contain" }}
-          />,
-          <img
-            key="f2"
-            src="/weather_cloud.png"
-            style={{ width: "100%", height: "100%", objectFit: "contain" }}
-          />,
-          <img
-            key="f3"
-            src="/weather_wind.png"
-            style={{ width: "100%", height: "100%", objectFit: "contain" }}
-          />,
-          <img
-            key="f4"
-            src="/weather_rain.png"
-            style={{ width: "100%", height: "100%", objectFit: "contain" }}
-          />,
+          <img key="f1" src="/weather_sunny.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
+          <img key="f2" src="/weather_cloud.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
+          <img key="f3" src="/weather_wind.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
+          <img key="f4" src="/weather_rain.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
         ]}
       />
 
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>
-      <Deck
-        socket={socket}
-        roomId={roomId}
-        deckId="numberDeck"
-        name="数字カード"
-      ></Deck>
+      <Deck socket={socket} roomId={roomId} deckId="numberDeck" name="数字カード"></Deck>
       <Draggable
         image={DRAGGABLE_IMAGE_PATH}
         mask={true}
@@ -174,7 +150,7 @@ export function SampleRoom() {
         roomId={roomId}
         myPlayerId={myPlayerId}
         players={players.map((p) => ({
-          name: p.name || "Unknown",
+          name: p.name || 'Unknown',
           socketId: String(p.id),
           color: p.color,
         }))}

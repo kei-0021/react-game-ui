@@ -1,11 +1,11 @@
-import * as React from "react";
-import { Socket } from "socket.io-client";
-import { Card } from "../types/card.js";
-import { PlayerId, RoomId } from "../types/definition.js";
-import { PlayerWithResources } from "../types/playerWithResources.js";
-import type { Resource } from "../types/resource.js";
-import { Token } from "../types/token.js";
-import styles from "./ScoreBoard.module.css";
+import * as React from 'react';
+import { Socket } from 'socket.io-client';
+import { Card } from '../types/card.js';
+import { PlayerId, RoomId } from '../types/definition.js';
+import { PlayerWithResources } from '../types/playerWithResources.js';
+import type { Resource } from '../types/resource.js';
+import { Token } from '../types/token.js';
+import styles from './ScoreBoard.module.css';
 
 type DisplayedPlayer = PlayerWithResources & {
   score: number;
@@ -22,53 +22,42 @@ type PlayerListItemProps = {
   toggleCardSelection: (cardId: string, isOwner: boolean) => void;
   socket: Socket;
   roomId: RoomId;
+  isDebug?: boolean; // デバッグ用フラグを追加
 };
 
-const CardDisplayContent = React.memo(
-  ({ card, canSeeFront }: { card: Card; canSeeFront: boolean }) => {
-    if (!canSeeFront) return null;
-    if (card.frontImage) {
-      return (
-        <img
-          src={card.frontImage}
-          alt={card.name}
-          className={styles.cardImage}
-        />
-      );
-    }
-    return <strong className={styles.cardNameText}>{card.name}</strong>;
-  },
-);
+const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: Card; canSeeFront: boolean }) => {
+  if (!canSeeFront) return null;
+  if (card.frontImage) {
+    return <img src={card.frontImage} alt={card.name} className={styles.cardImage} />;
+  }
+  return <strong className={styles.cardNameText}>{card.name}</strong>;
+});
 
-const TokenDisplayContent = React.memo(
-  ({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }: any) => {
-    const isMyToken = myPlayerId === playerIdBeingDisplayed;
-    if (!tokens || tokens.length === 0) return null;
+const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }: any) => {
+  const isMyToken = myPlayerId === playerIdBeingDisplayed;
+  if (!tokens || tokens.length === 0) return null;
 
-    return (
-      <div className={styles.tokenList}>
-        {tokens.map((token: Token) => (
-          <div
-            key={token.id}
-            className={`${styles.tokenBadge} ${
-              isMyToken ? styles.tokenBadgeOwner : styles.tokenBadgeGuest
-            }`}
-            onClick={() => {
-              if (!isMyToken) return;
-              socket.emit("token:reclaim", {
-                roomId,
-                playerId: myPlayerId,
-                tokenId: token.id,
-              });
-            }}
-          >
-            {token.name}
-          </div>
-        ))}
-      </div>
-    );
-  },
-);
+  return (
+    <div className={styles.tokenList}>
+      {tokens.map((token: Token) => (
+        <div
+          key={token.id}
+          className={`${styles.tokenBadge} ${isMyToken ? styles.tokenBadgeOwner : styles.tokenBadgeGuest}`}
+          onClick={() => {
+            if (!isMyToken) return;
+            socket.emit('token:reclaim', {
+              roomId,
+              playerId: myPlayerId,
+              tokenId: token.id,
+            });
+          }}
+        >
+          {token.name}
+        </div>
+      ))}
+    </div>
+  );
+});
 
 const PlayerListItem = React.memo(
   ({
@@ -79,33 +68,48 @@ const PlayerListItem = React.memo(
     toggleCardSelection,
     socket,
     roomId,
+    isDebug,
   }: PlayerListItemProps) => {
     const isActive = player.id === currentPlayerId;
-    const playerColor = (player as any).color || "#aaaaaa";
+    const playerColor = (player as any).color || '#aaaaaa';
     const isOwner = player.id === myPlayerId;
 
+    // スコア増減ハンドラ
+    const handleAddScore = (points: number) => {
+      socket.emit('room:player:add-score', {
+        roomId,
+        targetPlayerId: player.id,
+        points,
+      });
+    };
+
     const customStyles = {
-      "--player-color": playerColor,
-      "--player-color-bg": playerColor
-        .replace("hsl", "hsla")
-        .replace(")", ", 0.3)"),
-      "--player-color-glow": playerColor
-        .replace("hsl", "hsla")
-        .replace(")", ", 0.5)"),
+      '--player-color': playerColor,
+      '--player-color-bg': playerColor.replace('hsl', 'hsla').replace(')', ', 0.3)'),
+      '--player-color-glow': playerColor.replace('hsl', 'hsla').replace(')', ', 0.5)'),
     } as React.CSSProperties;
 
     return (
-      <li
-        className={`${styles.playerItem} ${isActive ? styles.activePlayer : ""}`}
-        style={customStyles}
-      >
+      <li className={`${styles.playerItem} ${isActive ? styles.activePlayer : ''}`} style={customStyles}>
         <div className={styles.playerHeader}>
           <span className={styles.playerName}>
-            {isActive && "ᐅ "}
-            {isOwner && "★ ME "}
+            {isActive && 'ᐅ '}
+            {isOwner && '★ ME '}
             {player.name}
           </span>
-          <span className={styles.playerScore}>スコア: {player.score}</span>
+          <div className={styles.scoreArea}>
+            <span className={styles.playerScore}>スコア: {player.score}</span>
+            {isDebug && (
+              <div className={styles.debugScoreButtons}>
+                <button onClick={() => handleAddScore(-1)} className={styles.debugBtn}>
+                  -
+                </button>
+                <button onClick={() => handleAddScore(1)} className={styles.debugBtn}>
+                  +
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {player.resources?.length > 0 && (
@@ -113,8 +117,7 @@ const PlayerListItem = React.memo(
             <div className={styles.resourceList}>
               {player.resources.map((resource: Resource) => (
                 <span key={resource.id} className={styles.resourceBadge}>
-                  {resource.icon} {resource.name}: {resource.currentValue} /{" "}
-                  {resource.maxValue}
+                  {resource.icon} {resource.name}: {resource.currentValue} / {resource.maxValue}
                 </span>
               ))}
             </div>
@@ -140,32 +143,26 @@ const PlayerListItem = React.memo(
                 draggable={isOwner}
                 onDragStart={(e) => {
                   if (!isOwner) return;
-                  // ドラッグ開始時にカード情報をセット
-                  e.dataTransfer.setData("cardId", card.id);
-                  e.dataTransfer.setData("deckId", card.deckId);
-                  // ゴースト画像の挙動設定
-                  e.dataTransfer.effectAllowed = "move";
+                  e.dataTransfer.setData('cardId', card.id);
+                  e.dataTransfer.setData('deckId', card.deckId);
+                  e.dataTransfer.effectAllowed = 'move';
                 }}
                 className={`${styles.cardBase} rg-playfield-card-wrapper ${
-                  isSelected ? styles.cardSelected : ""
-                } ${card.isFaceUp ? styles.cardSuperRevealed : ""}`}
+                  isSelected ? styles.cardSelected : ''
+                } ${card.isFaceUp ? styles.cardSuperRevealed : ''}`}
                 style={
                   {
-                    "--owner-color": playerColor,
-                    "backgroundColor": canSeeFront ? "#fff" : card.backColor,
-                    "cursor": isOwner ? "grab" : "default",
-                    "border": card.isFaceUp
-                      ? "3px solid #00ffff"
-                      : "1px solid #ccc",
-                    "boxShadow": card.isFaceUp ? "0 0 10px #00ffff" : "none",
+                    '--owner-color': playerColor,
+                    backgroundColor: canSeeFront ? '#fff' : card.backColor,
+                    cursor: isOwner ? 'grab' : 'default',
+                    border: card.isFaceUp ? '3px solid #00ffff' : '1px solid #ccc',
+                    boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
                   } as React.CSSProperties
                 }
                 onClick={() => toggleCardSelection(card.id, isOwner)}
               >
                 <CardDisplayContent card={card} canSeeFront={canSeeFront} />
-                {canSeeFront && card.description && (
-                  <span className={styles.tooltip}>{card.description}</span>
-                )}
+                {canSeeFront && card.description && <span className={styles.tooltip}>{card.description}</span>}
               </div>
             );
           })}
@@ -175,7 +172,19 @@ const PlayerListItem = React.memo(
   },
 );
 
-export default function ScoreBoard({
+/**
+ * スコアボードコンポーネント
+ * プレイヤーの一覧、現在のターン、各プレイヤーのスコアやトークン数を表示する
+ * @param {Socket} socket - Socket.ioのインスタンス
+ * @param {PlayerWithResources[]} players - ルームに参加しているプレイヤーのリスト
+ * @param {string | null} currentPlayerId - 現在の手番のプレイヤーID
+ * @param {string | null} myPlayerId - ローカルプレイヤーのID
+ * @param {string} roomId - 現在のルームID
+ * @param {number} playCardLimit - 1ターンにプレイ可能なカードの上限枚数
+ * @param {boolean} autoNextTurnOnCardPlay=false - カードプレイ時に自動でターンを終了するかどうか
+ * @param {booleam} isDebug=false - スコアを手動で増減できるようにするかどうか (デバッグ用)
+ */
+export function ScoreBoard({
   socket,
   players,
   currentPlayerId,
@@ -183,6 +192,7 @@ export default function ScoreBoard({
   roomId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
+  isDebug = false,
 }: {
   socket: Socket;
   players: PlayerWithResources[];
@@ -191,6 +201,7 @@ export default function ScoreBoard({
   roomId: RoomId;
   playCardLimit?: number;
   autoNextTurnOnCardPlay?: boolean;
+  isDebug?: boolean;
 }) {
   const displayedPlayers: DisplayedPlayer[] = React.useMemo(() => {
     return (players || []).map((p: PlayerWithResources) => ({
@@ -204,44 +215,28 @@ export default function ScoreBoard({
 
   const [selectedCards, setSelectedCards] = React.useState<string[]>([]);
 
-  const toggleCardSelection = React.useCallback(
-    (cardId: string, isOwner: boolean) => {
-      if (!isOwner) return;
-      setSelectedCards((prev) =>
-        prev.includes(cardId)
-          ? prev.filter((id) => id !== cardId)
-          : [...prev, cardId],
-      );
-    },
-    [],
-  );
+  const toggleCardSelection = React.useCallback((cardId: string, isOwner: boolean) => {
+    if (!isOwner) return;
+    setSelectedCards((prev) => (prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]));
+  }, []);
 
   const revealSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== undefined && selectedCards.length > playCardLimit)
-      return;
+    if (playCardLimit !== undefined && selectedCards.length > playCardLimit) return;
 
-    socket.emit("card:reveal", {
+    socket.emit('card:reveal', {
       roomId,
       playerId: myPlayerId,
       cardIds: selectedCards,
     });
 
-    if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
+    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId });
     setSelectedCards([]);
-  }, [
-    selectedCards,
-    myPlayerId,
-    socket,
-    roomId,
-    playCardLimit,
-    autoNextTurnOnCardPlay,
-  ]);
+  }, [selectedCards, myPlayerId, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
 
   const playSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== undefined && selectedCards.length > playCardLimit)
-      return;
+    if (playCardLimit !== undefined && selectedCards.length > playCardLimit) return;
 
     const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
     if (!myPlayer) return;
@@ -260,33 +255,23 @@ export default function ScoreBoard({
     if (!targetPlayLocation) return;
 
     Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
-      socket.emit("card:play", {
+      socket.emit('card:play', {
         roomId,
         deckId,
         cardIds,
         playerId: myPlayerId,
         playLocation: targetPlayLocation,
-        // ボタン経由の場合は中央(50, 50)に設定
         position: { x: 50, y: 50 },
       });
     });
 
-    if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
+    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId });
     setSelectedCards([]);
-  }, [
-    selectedCards,
-    myPlayerId,
-    displayedPlayers,
-    socket,
-    roomId,
-    playCardLimit,
-    autoNextTurnOnCardPlay,
-  ]);
+  }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
 
-  const nextTurn = () => socket.emit("game:next-turn", { roomId });
+  const nextTurn = () => socket.emit('game:next-turn', { roomId });
 
-  const isOverLimit =
-    playCardLimit !== undefined && selectedCards.length > playCardLimit;
+  const isOverLimit = playCardLimit !== undefined && selectedCards.length > playCardLimit;
   const isActionDisabled = selectedCards.length === 0 || isOverLimit;
 
   return (
@@ -303,16 +288,13 @@ export default function ScoreBoard({
             toggleCardSelection={toggleCardSelection}
             socket={socket}
             roomId={roomId}
+            isDebug={isDebug}
           />
         ))}
       </ul>
 
       <div className={styles.buttonArea}>
-        {isOverLimit && (
-          <p className={styles.limitMessage}>
-            一度に出せるカードは {playCardLimit} 枚までです
-          </p>
-        )}
+        {isOverLimit && <p className={styles.limitMessage}>一度に出せるカードは {playCardLimit} 枚までです</p>}
 
         <div className={styles.buttonGroup}>
           <button onClick={playSelectedCards} disabled={isActionDisabled}>
