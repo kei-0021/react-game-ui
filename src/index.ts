@@ -15,17 +15,17 @@ export { default as TokenStore } from './components/TokenStore.js';
 // 型は拡張子なしで書く
 // 型（警告を無視）
 /* @ts-ignore */
-export * from './types/card';
+export type * from './types/card';
 /* @ts-ignore */
 export type { CardEffectParams } from './types/cardEffectParams';
 /* @ts-ignore */
-export * from './types/cardLocation';
+export type * from './types/cardLocation';
 /* @ts-ignore */
 export type { CellEffectParams } from './types/cellEffectParams';
 /* @ts-ignore */
-export * from './types/definition';
+export type * from './types/definition';
 /* @ts-ignore */
-export * from './types/player';
+export type * from './types/player';
 /* @ts-ignore */
 export type { PlayerWithResources } from './types/playerWithResources';
 /* @ts-ignore */
