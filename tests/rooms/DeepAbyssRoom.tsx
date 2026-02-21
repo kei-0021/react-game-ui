@@ -1,22 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import Deck from "../../src/components/Deck";
-import PlayField from "../../src/components/PlayField";
-import ScoreBoard from "../../src/components/ScoreBoard";
-import TokenStore from "../../src/components/TokenStore";
-import { useSocket } from "../../src/hooks/useSocket";
-import type { Player } from "../../src/types/player";
-import type { PlayerWithResources } from "../../src/types/playerWithResources";
-import MyBoard from "../components/MyBoard";
-import Popup from "../components/PopUp";
-import "./DeepAbyssRoom.css";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import Deck from '../../src/components/Deck';
+import { PlayField } from '../../src/components/PlayField';
+import ScoreBoard from '../../src/components/ScoreBoard';
+import TokenStore from '../../src/components/TokenStore';
+import { useSocket } from '../../src/hooks/useSocket';
+import type { Player } from '../../src/types/player';
+import type { PlayerWithResources } from '../../src/types/playerWithResources';
+import MyBoard from '../components/MyBoard';
+import Popup from '../components/PopUp';
+import './DeepAbyssRoom.css';
 
-const SERVER_URL = "http://127.0.0.1:4000";
+const SERVER_URL = 'http://127.0.0.1:4000';
 
 const RESOURCE_IDS = {
-  OXYGEN: "OXYGEN",
-  BATTERY: "BATTERY",
-  HULL: "HULL",
+  OXYGEN: 'OXYGEN',
+  BATTERY: 'BATTERY',
+  HULL: 'HULL',
 };
 
 interface PopupState {
@@ -48,12 +48,12 @@ export function DeepAbyssRoom() {
   const popupTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [popup, setPopup] = useState<PopupState>({
-    message: "",
-    color: "blue",
+    message: '',
+    color: 'blue',
     visible: false,
   });
 
-  const [userName, setUserName] = useState<string>("");
+  const [userName, setUserName] = useState<string>('');
   const [isJoining, setIsJoining] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
 
@@ -79,12 +79,12 @@ export function DeepAbyssRoom() {
     popupTimerRef.current = newTimerId;
   }, []);
 
-  const GAME_PRESET_ID = "deepsea";
+  const GAME_PRESET_ID = 'deepsea';
 
   const handleJoinRoom = useCallback(() => {
-    if (!socket || !roomId || userName.trim() === "" || isJoining) return;
+    if (!socket || !roomId || userName.trim() === '' || isJoining) return;
     setIsJoining(true);
-    socket.emit("room:join", {
+    socket.emit('room:join', {
       roomId,
       playerName: userName.trim(),
       gamePresetId: GAME_PRESET_ID,
@@ -94,7 +94,7 @@ export function DeepAbyssRoom() {
   useEffect(() => {
     if (!socket || !roomId) return;
 
-    const handleAssignId = (id: Player["id"]) => {
+    const handleAssignId = (id: Player['id']) => {
       setMyPlayerId(id);
       setDebugTargetId(id);
       setHasJoined(true);
@@ -106,7 +106,7 @@ export function DeepAbyssRoom() {
     };
 
     const handleGameTurn = (data: TurnUpdatePayload | string) => {
-      if (typeof data === "string") {
+      if (typeof data === 'string') {
         setCurrentPlayerId(data);
       } else {
         setCurrentPlayerId(data.playerId);
@@ -122,24 +122,24 @@ export function DeepAbyssRoom() {
       setGameResult(result);
     };
 
-    socket.on("player:assign-id", handleAssignId);
-    socket.on("players:update", handlePlayersUpdate);
-    socket.on("game:turn", handleGameTurn);
-    socket.on("client:show-popup", handleShowPopup);
-    socket.on("game:end", handleGameEnd);
+    socket.on('player:assign-id', handleAssignId);
+    socket.on('players:update', handlePlayersUpdate);
+    socket.on('game:turn', handleGameTurn);
+    socket.on('client:show-popup', handleShowPopup);
+    socket.on('game:end', handleGameEnd);
 
     return () => {
-      socket.off("player:assign-id", handleAssignId);
-      socket.off("players:update", handlePlayersUpdate);
-      socket.off("game:turn", handleGameTurn);
-      socket.off("client:show-popup", handleShowPopup);
-      socket.off("game:end", handleGameEnd);
+      socket.off('player:assign-id', handleAssignId);
+      socket.off('players:update', handlePlayersUpdate);
+      socket.off('game:turn', handleGameTurn);
+      socket.off('client:show-popup', handleShowPopup);
+      socket.off('game:end', handleGameEnd);
     };
   }, [socket, roomId, showPopup]);
 
   const handleDebugScore = (amount: number) => {
     if (!socket || !debugTargetId || !roomId) return;
-    socket.emit("room:player:add-score", {
+    socket.emit('room:player:add-score', {
       roomId,
       targetPlayerId: debugTargetId,
       points: amount,
@@ -148,7 +148,7 @@ export function DeepAbyssRoom() {
 
   const handleDebugResource = (resourceId: string, amount: number) => {
     if (!socket || !debugTargetId || !roomId) return;
-    socket.emit("room:player:update-resource", {
+    socket.emit('room:player:update-resource', {
       roomId,
       playerId: debugTargetId,
       resourceId,
@@ -156,8 +156,7 @@ export function DeepAbyssRoom() {
     });
   };
 
-  if (!roomId)
-    return <div className="deepsea-container">Room ID Not Found</div>;
+  if (!roomId) return <div className="deepsea-container">Room ID Not Found</div>;
   if (!socket) return <div className="deepsea-container">Connecting...</div>;
 
   if (!hasJoined) {
@@ -171,15 +170,11 @@ export function DeepAbyssRoom() {
             placeholder="名前を入力"
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
+            onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
             autoFocus={true}
           />
-          <button
-            className="join-form-button"
-            onClick={handleJoinRoom}
-            disabled={!userName.trim() || isJoining}
-          >
-            {isJoining ? "参加中..." : "ルームに参加"}
+          <button className="join-form-button" onClick={handleJoinRoom} disabled={!userName.trim() || isJoining}>
+            {isJoining ? '参加中...' : 'ルームに参加'}
           </button>
         </div>
       </div>
@@ -197,10 +192,7 @@ export function DeepAbyssRoom() {
             <p className="result-message">{gameResult.message}</p>
             <div className="result-ranking-list">
               {gameResult.rankings.map((res) => (
-                <div
-                  key={res.rank}
-                  className={`result-rank-card rank-${res.rank}`}
-                >
+                <div key={res.rank} className={`result-rank-card rank-${res.rank}`}>
                   <div className="rank-badge">{res.rank}</div>
                   <div className="player-info">
                     <span className="player-name">{res.name}</span>
@@ -211,10 +203,7 @@ export function DeepAbyssRoom() {
                 </div>
               ))}
             </div>
-            <button
-              className="result-exit-button"
-              onClick={() => navigate("/")}
-            >
+            <button className="result-exit-button" onClick={() => navigate('/')}>
               ロビーへ戻る
             </button>
           </div>
@@ -225,12 +214,8 @@ export function DeepAbyssRoom() {
       <Popup visible={popup.visible} color={popup.color}>
         {popup.message}
       </Popup>
-      <h1 className="deepsea-title-center">
-        ディープ・アビス (Deep Abyss) - Room ID: {roomId}
-      </h1>
-      <p className="deepsea-subtitle-center">
-        深海を調査して眠れる資源を見つけ出せ！
-      </p>
+      <h1 className="deepsea-title-center">ディープ・アビス (Deep Abyss) - Room ID: {roomId}</h1>
+      <p className="deepsea-subtitle-center">深海を調査して眠れる資源を見つけ出せ！</p>
       {/* ラウンド表示 */}
       <div className="round-display-container">
         <div className="round-label">MISSION ROUND:</div>
@@ -241,12 +226,7 @@ export function DeepAbyssRoom() {
       <div className="board-wrapper">
         <MyBoard socket={socket} roomId={roomId} myPlayerId={myPlayerId} />
       </div>
-      <TokenStore
-        socket={socket}
-        roomId={roomId}
-        tokenStoreId="ARTIFACT"
-        name="遺物"
-      />
+      <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" name="遺物" />
 
       <div className="game-main-layout">
         {/* 左側グループ：デッキ列とフィールド列を横に並べる塊 */}
@@ -275,7 +255,7 @@ export function DeepAbyssRoom() {
               socket={socket}
               roomId={roomId}
               deckId="deepSeaAction"
-              name="アクションカード"
+              title="アクションカード"
               myPlayerId={myPlayerId}
               players={players}
             />
@@ -283,9 +263,8 @@ export function DeepAbyssRoom() {
               socket={socket}
               roomId={roomId}
               deckId="deepSeaSpecies"
-              name="深海生物カード"
-              myPlayerId={myPlayerId}
               players={players}
+              myPlayerId={myPlayerId}
               layoutMode="grid"
             />
           </div>

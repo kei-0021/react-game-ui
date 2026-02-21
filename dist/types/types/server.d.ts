@@ -66,4 +66,5 @@ export interface RoomState {
     checkGameEnd: any;
     onGameEnd: any;
 }
+export { GameId };
 //# sourceMappingURL=server.d.ts.map

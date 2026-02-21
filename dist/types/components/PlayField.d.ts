@@ -1,17 +1,17 @@
 import { Socket } from 'socket.io-client';
-import type { DeckId, RoomId } from '../types/definition.js';
+import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
 import type { PlayerWithResources } from '../types/playerWithResources.js';
 import './PlayField.css';
 type PlayFieldProps = {
     socket: Socket;
     roomId: RoomId;
     deckId: DeckId;
-    name: string;
-    is_logging?: boolean;
+    title?: string;
     players: PlayerWithResources[];
-    myPlayerId: string | null;
+    myPlayerId: PlayerId | null;
     layoutMode?: 'grid' | 'free';
+    is_logging?: boolean;
 };
-export default function PlayField({ socket, roomId, deckId, name, is_logging, players, myPlayerId, layoutMode, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
+export declare function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode, is_logging, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=PlayField.d.ts.map

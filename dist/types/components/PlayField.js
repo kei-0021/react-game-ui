@@ -24,7 +24,7 @@ const CardDisplayContent = ({ card, isFaceUp }) => {
     }
     return (_jsx("div", { className: "rg-card-text-content", children: _jsx("strong", { className: "rg-card-name-label", children: card.name }) }));
 };
-export default function PlayField({ socket, roomId, deckId, name, is_logging = false, players, myPlayerId, layoutMode = 'free', }) {
+export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', is_logging = false, }) {
     const [playedCards, setPlayedCards] = React.useState([]);
     const [activeDraggingId, setActiveDraggingId] = React.useState(null);
     const containerRef = React.useRef(null);
@@ -126,33 +126,33 @@ export default function PlayField({ socket, roomId, deckId, name, is_logging = f
         }
         socket.emit('card:move-from-field', requestData);
     };
-    return (_jsxs("section", { className: `rg-playfield mode-${layoutMode}`, children: [_jsxs("h3", { className: "rg-playfield-title", children: ["\u30D7\u30EC\u30A4\u30A8\u30EA\u30A2 ", name && _jsxs("span", { className: "rg-playfield-subtitle", children: ["\uFF08", name, "\uFF09"] })] }), _jsxs("div", { ref: containerRef, className: "rg-playfield-container", onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
+    return (_jsxs("section", { className: `rg-playfield mode-${layoutMode}`, children: [_jsx("h3", { className: "rg-playfield-title", children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), ' ', _jsx("div", { ref: containerRef, className: "rg-playfield-container", onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
                     position: layoutMode === 'free' ? 'relative' : undefined,
                     minHeight: '600px',
                     touchAction: 'none',
                     overflow: 'hidden', // 枠外はみ出し防止
-                }, children: [playedCards.length === 0 && _jsx("div", { className: "rg-playfield-empty", children: "\uFF08\u307E\u3060\u30AB\u30FC\u30C9\u304C\u51FA\u3066\u3044\u307E\u305B\u3093\uFF09" }), playedCards.map((card, index) => {
-                        const owner = players.find((p) => p.id === card.ownerId);
-                        const isDragging = activeDraggingId === card.id;
-                        const isOverlapping = playedCards
-                            .slice(0, index)
-                            .some((other) => Math.abs((other.coordinate?.x ?? 50) - (card.coordinate?.x ?? 50)) < 1 &&
-                            Math.abs((other.coordinate?.y ?? 50) - (card.coordinate?.y ?? 50)) < 1);
-                        const visualOffset = isOverlapping ? index * 12 : 0;
-                        const freeStyle = layoutMode === 'free'
-                            ? {
-                                position: 'absolute',
-                                left: `${card.coordinate?.x ?? 50}%`,
-                                top: `${card.coordinate?.y ?? 50}%`,
-                                transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
-                                zIndex: isDragging ? 9999 : Math.floor((card.coordinate?.y ?? 0) * 100) + index,
-                            }
-                            : {};
-                        return (_jsxs("div", { onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, className: `${styles.card} rg-playfield-card-wrapper`, style: {
-                                '--owner-color': owner?.color || '#aaaaaa',
-                                ...freeStyle,
-                                touchAction: 'none',
-                                cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
-                            }, onDoubleClick: () => handleCardBack(card), children: [_jsx(CardDisplayContent, { card: card, isFaceUp: true }), card.ownerId && (_jsx("div", { className: "rg-playfield-owner-badge", title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && _jsx("span", { className: styles.tooltip, children: card.description })] }, card.id));
-                    })] })] }));
+                }, children: playedCards.map((card, index) => {
+                    const owner = players.find((p) => p.id === card.ownerId);
+                    const isDragging = activeDraggingId === card.id;
+                    const isOverlapping = playedCards
+                        .slice(0, index)
+                        .some((other) => Math.abs((other.coordinate?.x ?? 50) - (card.coordinate?.x ?? 50)) < 1 &&
+                        Math.abs((other.coordinate?.y ?? 50) - (card.coordinate?.y ?? 50)) < 1);
+                    const visualOffset = isOverlapping ? index * 12 : 0;
+                    const freeStyle = layoutMode === 'free'
+                        ? {
+                            position: 'absolute',
+                            left: `${card.coordinate?.x ?? 50}%`,
+                            top: `${card.coordinate?.y ?? 50}%`,
+                            transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
+                            zIndex: isDragging ? 9999 : Math.floor((card.coordinate?.y ?? 0) * 100) + index,
+                        }
+                        : {};
+                    return (_jsxs("div", { onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, className: `${styles.card} rg-playfield-card-wrapper`, style: {
+                            '--owner-color': owner?.color || '#aaaaaa',
+                            ...freeStyle,
+                            touchAction: 'none',
+                            cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
+                        }, onDoubleClick: () => handleCardBack(card), children: [_jsx(CardDisplayContent, { card: card, isFaceUp: true }), card.ownerId && (_jsx("div", { className: "rg-playfield-owner-badge", title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && _jsx("span", { className: styles.tooltip, children: card.description })] }, card.id));
+                }) })] }));
 }

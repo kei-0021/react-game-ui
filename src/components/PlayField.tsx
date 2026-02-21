@@ -41,22 +41,22 @@ type PlayFieldProps = {
   socket: Socket;
   roomId: RoomId;
   deckId: DeckId;
-  name: string;
-  is_logging?: boolean;
+  title?: string;
   players: PlayerWithResources[];
-  myPlayerId: string | null;
+  myPlayerId: PlayerId | null;
   layoutMode?: 'grid' | 'free';
+  is_logging?: boolean;
 };
 
-export default function PlayField({
+export function PlayField({
   socket,
   roomId,
   deckId,
-  name,
-  is_logging = false,
+  title,
   players,
   myPlayerId,
   layoutMode = 'free',
+  is_logging = false,
 }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(null);
@@ -186,8 +186,8 @@ export default function PlayField({
   return (
     <section className={`rg-playfield mode-${layoutMode}`}>
       <h3 className="rg-playfield-title">
-        プレイエリア {name && <span className="rg-playfield-subtitle">（{name}）</span>}
-      </h3>
+        {title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})`}
+      </h3>{' '}
       <div
         ref={containerRef}
         className="rg-playfield-container"
@@ -201,7 +201,6 @@ export default function PlayField({
           overflow: 'hidden', // 枠外はみ出し防止
         }}
       >
-        {playedCards.length === 0 && <div className="rg-playfield-empty">（まだカードが出ていません）</div>}
         {playedCards.map((card, index) => {
           const owner = players.find((p) => p.id === card.ownerId);
           const isDragging = activeDraggingId === card.id;
