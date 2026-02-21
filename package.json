@@ -23,7 +23,8 @@
     "./server-utils": {
       "types": "./dist/server/server-utils.d.ts",
       "import": "./dist/server/server-utils.js"
-    }
+    },
+    "./dist/react-game-ui.css": "./dist/react-game-ui.css"
   },
   "files": [
     "dist"
