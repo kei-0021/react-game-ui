@@ -2,7 +2,7 @@
   "compilerOptions": {
     /* 基本設定 */
     "rootDir": "src",
-    "outDir": "dist/types",
+    "outDir": "dist",
     "target": "ESNext",
     "module": "node16",
     "moduleResolution": "node16",
@@ -17,9 +17,8 @@
     "allowJs": true,
     "checkJs": false,
     "declaration": true,
-    "declarationDir": "dist/types",
     "emitDeclarationOnly": false,
-    "declarationMap": true, // 利用者が型定義からソースへジャンプ可能に
+    "declarationMap": true,
 
     /* パス解決 */
     "baseUrl": ".",
@@ -40,11 +39,5 @@
     "src/server/server.ts",
     "src/server/server-utils.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "src/__mocks__",
-    "src/setupTests.ts",
-    "src/components/__tests__",
-    "tests/data"
-  ]
+  "exclude": ["node_modules", "src/__mocks__", "src/setupTests.ts", "src/components/__tests__", "tests/data"]
 }
