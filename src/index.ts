@@ -30,4 +30,4 @@ export { type PlayerWithResources } from './types/playerWithResources.js';
 /* @ts-ignore */
 export { type PieceData } from './types/piece.js';
 /* @ts-ignore */
-export { type RoomState } from './types/server.js';
+export { type RoomMeta, type RoomParam, type RoomState } from './types/server.js';

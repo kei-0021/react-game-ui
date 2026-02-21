@@ -11,7 +11,7 @@ import {
 } from './server-utils.js';
 
 import { DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
-import { RoomParam, RoomState } from '@/types/server.js';
+import { RoomMeta, RoomParam, RoomState } from '@/types/server.js';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
 import type { GameServerOptions } from './server.js';
@@ -20,14 +20,14 @@ const activeRooms = new Map<string, RoomState>();
 const roomTimers = new Map<string, NodeJS.Timeout>();
 
 // --- ルームメタ情報取得 ---
-function getRoomMeta(roomId: RoomId) {
+function getRoomMeta(roomId: RoomId): RoomMeta | null {
   const roomState = activeRooms.get(roomId);
   if (!roomState) return null;
   return {
     id: roomId,
     gameId: roomState.gameId,
     playerCount: roomState.initRoomState.players.length,
-    maxPlayers: 4,
+    maxPlayers: roomState.maxPlayers,
     createdAt: roomState.createdAt,
   };
 }
@@ -88,8 +88,9 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
 
   const roomState: RoomState = {
     roomId,
-    createdAt: Date.now(),
     gameId: roomParam.gameId || '不明なゲーム',
+    createdAt: Date.now(),
+    maxPlayers: roomParam.maxPlayers,
     currentTurnIndex: 0,
     currentRoundIndex: 0,
     decks,

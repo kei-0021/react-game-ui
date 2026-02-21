@@ -23,8 +23,16 @@ export type Coordinate = {
     x: number;
     y: number;
 };
+export type RoomMeta = {
+    id: RoomId;
+    gameId: GameId;
+    playerCount: number;
+    maxPlayers?: number;
+    createdAt: number;
+};
 export type RoomParam = {
     gameId: GameId;
+    maxPlayers?: number;
     initialDecks: Deck[];
     initialHand?: {
         deckId: DeckId;
@@ -56,6 +64,7 @@ export interface RoomState {
     roomId: RoomId;
     gameId: GameId;
     createdAt: number;
+    maxPlayers?: number;
     currentRoundIndex: number;
     currentTurnIndex: number;
     decks: Record<DeckId, Card[]>;

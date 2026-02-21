@@ -10,7 +10,7 @@ function getRoomMeta(roomId) {
         id: roomId,
         gameId: roomState.gameId,
         playerCount: roomState.initRoomState.players.length,
-        maxPlayers: 4,
+        maxPlayers: roomState.maxPlayers,
         createdAt: roomState.createdAt,
     };
 }
@@ -64,8 +64,9 @@ function initializeRoom(roomId, roomParam) {
     });
     const roomState = {
         roomId,
-        createdAt: Date.now(),
         gameId: roomParam.gameId || '不明なゲーム',
+        createdAt: Date.now(),
+        maxPlayers: roomParam.maxPlayers,
         currentTurnIndex: 0,
         currentRoundIndex: 0,
         decks,

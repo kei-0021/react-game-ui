@@ -115,6 +115,7 @@ async function startServer() {
     sample: {
       initialDecks: [{ deckId: 'numberDeck', name: '数字カード', cards: numberCardsJson, backColor: '#000000ff' }],
       initialBoard: [[{ id: 'start', type: 'START', position: { row: 0, col: 0 }, effect: 'start' }]],
+      maxPlayers: 1,
     },
     deepsea: {
       initialDecks: [
