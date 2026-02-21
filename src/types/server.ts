@@ -69,11 +69,3 @@ export interface RoomState {
   checkGameEnd: any;
   onGameEnd: any;
 }
-
-/** トークンストア初期化用の定義型 */
-export interface TokenStoreDef {
-  tokenStoreId: string;
-  name: string;
-  tokens: Token[];
-}
-export { GameId };

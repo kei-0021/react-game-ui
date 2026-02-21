@@ -1,6 +1,7 @@
 import { GameId, PlayerId, RoomId } from '@/types/definition.js';
-import { initialRoomState as IInitialRoomState, Position, ServerPlayer, TokenStoreDef } from '@/types/server.js';
+import { initialRoomState as IInitialRoomState, Position, ServerPlayer } from '@/types/server.js';
 import { Token } from '@/types/token.js';
+import { TokenStoreDef } from '@/types/tokenStore.js';
 
 export type LogCategory =
   | 'connection'
