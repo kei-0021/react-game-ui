@@ -10,13 +10,12 @@ export { RemoteCursor } from './components/RemoteCursor.js';
 export { default as ScoreBoard } from './components/ScoreBoard.js';
 export { default as Timer } from './components/Timer.js';
 export { default as TokenStore } from './components/TokenStore.js';
-// 型は拡張子なしで書く
 // 型（警告を無視）
 /* @ts-ignore */
-export * from './types/card';
+export * from './types/card.js';
 /* @ts-ignore */
-export * from './types/cardLocation';
+export * from './types/cardLocation.js';
 /* @ts-ignore */
-export * from './types/definition';
+export * from './types/definition.js';
 /* @ts-ignore */
-export * from './types/player';
+export * from './types/player.js';
