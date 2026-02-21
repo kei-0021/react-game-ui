@@ -16,4 +16,5 @@ export * from './types/definition';
 export * from './types/player';
 export type { PlayerWithResources } from './types/playerWithResources';
 export type { PieceData } from './types/piece';
+export type { RoomState } from './types/server';
 //# sourceMappingURL=index.d.ts.map
