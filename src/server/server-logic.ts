@@ -3,6 +3,7 @@ import {
   applyCellEffect,
   createRandomBoard,
   generateColorFromId,
+  LOG_CATEGORIES,
   markCellAsExplored,
   RoomManager,
   server_log,
@@ -31,13 +32,23 @@ function getRoomMeta(roomId: RoomId) {
   };
 }
 
-// --- ルーム初期化 ---
-function initializeRoom(roomId: RoomId, settings: RoomParam): RoomState {
-  const initialDecks = settings.initialDecks || [];
-  const initialResources = settings.initialResources || [];
-  const initialTokenStores = Array.isArray(settings.initialTokenStores) ? settings.initialTokenStores : [];
-  const initialTokens = settings.initialTokens || [];
-  const initialBoard = settings.initialBoard || [];
+/**
+ * 新しいゲームルームの状態を初期化し、実行中のルーム管理（activeRooms）に追加する。
+ *
+ * 1. 設定（settings）に基づいたボードのランダム生成
+ * 2. RoomManager インスタンスの生成
+ * 3. 各デッキ内のカードに対して固有の `instanceId` を付与し、初期位置を設定
+ * 4. 最終的な `RoomState` オブジェクトの構築とメモリへの保存
+ * @param roomId - ルームID
+ * @param roomParam - ゲーム開始時に必要な初期パラメータ
+ * @returns 初期化が完了した {@link RoomState} オブジェクト
+ */
+function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
+  const initialDecks = roomParam.initialDecks || [];
+  const initialResources = roomParam.initialResources || [];
+  const initialTokenStores = Array.isArray(roomParam.initialTokenStores) ? roomParam.initialTokenStores : [];
+  const initialTokens = roomParam.initialTokens || [];
+  const initialBoard = roomParam.initialBoard || [];
 
   const Cells = createRandomBoard(initialBoard);
 
@@ -52,8 +63,6 @@ function initializeRoom(roomId: RoomId, settings: RoomParam): RoomState {
   };
 
   const initRoomState: RoomManager = new RoomManager(initialParam as any, initialTokenStores);
-
-  // これで acquireToken が呼べるようになりま
 
   const decks: Record<string, Card[]> = {};
   const drawnCards: Record<string, Card[]> = {};
@@ -74,13 +83,13 @@ function initializeRoom(roomId: RoomId, settings: RoomParam): RoomState {
     drawnCards[deck.deckId] = [];
     playFieldCards[deck.deckId] = [];
     discardPile[deck.deckId] = [];
-    server_log('deck', settings.gameName || 'Standard', roomId, `デッキ "${deck.deckId}" 初期化完了`);
+    server_log('deck', roomParam.gameName || 'Standard', roomId, `デッキ "${deck.deckId}" 初期化完了`);
   });
 
   const roomState: RoomState = {
     roomId,
     createdAt: Date.now(),
-    gameName: settings.gameName || '不明なゲーム',
+    gameName: roomParam.gameName || '不明なゲーム',
     currentTurnIndex: 0,
     currentRoundIndex: 0,
     decks,
@@ -88,8 +97,8 @@ function initializeRoom(roomId: RoomId, settings: RoomParam): RoomState {
     playFieldCards,
     discardPile,
     initRoomState: initRoomState,
-    checkGameEnd: settings.checkGameEnd,
-    onGameEnd: settings.onGameEnd,
+    checkGameEnd: roomParam.checkGameEnd,
+    onGameEnd: roomParam.onGameEnd,
   };
 
   activeRooms.set(roomId, roomState);
@@ -101,42 +110,47 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
   const gamePresets = options.gamePresets || {};
   const cellEffects = options.cellEffects || {};
 
+  if (options.initialLogCategories) {
+    Object.assign(LOG_CATEGORIES, options.initialLogCategories);
+    console.log('[log] ログカテゴリをオプションで初期化しました。', LOG_CATEGORIES);
+  }
+
   // --- ヘルパー関数 ---
   const emitPlayerUpdate = (roomId: RoomId) => {
-    const roomInfo = activeRooms.get(roomId);
-    if (roomInfo) io.to(roomId).emit('players:update', roomInfo.initRoomState.players);
+    const roomState = activeRooms.get(roomId);
+    if (roomState) io.to(roomId).emit('players:update', roomState.initRoomState.players);
   };
 
   const emitDeckUpdate = (roomId: RoomId, deckId: DeckId) => {
-    const roomInfo = activeRooms.get(roomId);
-    if (!roomInfo) return;
+    const roomState = activeRooms.get(roomId);
+    if (!roomState) return;
 
     io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, {
-      currentDeck: roomInfo.decks[deckId].filter((c) => c.location === 'deck'),
-      drawnCards: roomInfo.drawnCards[deckId],
-      playFieldCards: roomInfo.playFieldCards[deckId],
-      discardPile: roomInfo.discardPile[deckId],
+      currentDeck: roomState.decks[deckId].filter((c) => c.location === 'deck'),
+      drawnCards: roomState.drawnCards[deckId],
+      playFieldCards: roomState.playFieldCards[deckId],
+      discardPile: roomState.discardPile[deckId],
     });
     emitPlayerUpdate(roomId);
   };
 
   const addScore = (roomId: RoomId, playerId: PlayerId, points: number) => {
-    const roomInfo = activeRooms.get(roomId);
-    const player = roomInfo?.initRoomState.players.find((p) => p.id === playerId);
+    const roomState = activeRooms.get(roomId);
+    const player = roomState?.initRoomState.players.find((p) => p.id === playerId);
     if (player) {
       player.score = (player.score || 0) + points;
-      server_log('addScore', roomInfo!.gameName, roomId, `${player.name} に ${points}pt 加算`);
+      server_log('addScore', roomState!.gameName, roomId, `${player.name} に ${points}pt 加算`);
       emitPlayerUpdate(roomId);
     }
   };
 
   const updatePlayerResource = (roomId: RoomId, playerId: PlayerId, resourceId: ResourceId, amount: number) => {
-    const roomInfo = activeRooms.get(roomId);
-    const player = roomInfo?.initRoomState.players.find((p) => p.id === playerId);
+    const roomState = activeRooms.get(roomId);
+    const player = roomState?.initRoomState.players.find((p) => p.id === playerId);
     const resource = player?.resources?.find((r) => r.id === resourceId);
     if (resource) {
       resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
-      server_log('resource', roomInfo!.gameName, roomId, `${player!.name}: ${resource.name} 更新`);
+      server_log('resource', roomState!.gameName, roomId, `${player!.name}: ${resource.name} 更新`);
       emitPlayerUpdate(roomId);
       return true;
     }
@@ -144,12 +158,12 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
   };
 
   const updatePlayerToken = (roomId: RoomId, playerId: PlayerId, tokenId: TokenId, amount: number) => {
-    const roomInfo = activeRooms.get(roomId);
-    const player = roomInfo?.initRoomState.players.find((p) => p.id === playerId);
+    const roomState = activeRooms.get(roomId);
+    const player = roomState?.initRoomState.players.find((p) => p.id === playerId);
     const token = player?.tokens?.find((t) => t.id === tokenId);
     if (token) {
       token.count = Math.max(0, (token.count || 0) + amount);
-      server_log('token', roomInfo!.gameName, roomId, `${player!.name}: ${tokenId} 更新`);
+      server_log('token', roomState!.gameName, roomId, `${player!.name}: ${tokenId} 更新`);
       emitPlayerUpdate(roomId);
       return true;
     }
@@ -166,15 +180,17 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
   };
 
   const shuffleDeck = (roomId: RoomId, deckId: DeckId) => {
-    const roomInfo = activeRooms.get(roomId);
-    if (!roomInfo || !roomInfo.decks[deckId]) return;
-    const currentDeck = roomInfo.decks[deckId].filter((c) => c.location === 'deck');
-    const otherCards = roomInfo.decks[deckId].filter((c) => c.location !== 'deck');
+    const roomState = activeRooms.get(roomId);
+    if (!roomState || !roomState.decks[deckId]) return;
+
+    server_log('deck', roomState.gameName, roomId, `${deckId} をシャッフル`);
+    const currentDeck = roomState.decks[deckId].filter((c) => c.location === 'deck');
+    const otherCards = roomState.decks[deckId].filter((c) => c.location !== 'deck');
     for (let i = currentDeck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
     }
-    roomInfo.decks[deckId] = currentDeck.concat(otherCards);
+    roomState.decks[deckId] = currentDeck.concat(otherCards);
   };
 
   io.on('connection', (socket: Socket) => {
@@ -187,17 +203,17 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     // 参加
     socket.on('room:join', async ({ roomId, playerName, gamePresetId }) => {
       if (!roomId) return;
-      let roomInfo = activeRooms.get(roomId);
+      let roomState = activeRooms.get(roomId);
       const roomParam = gamePresets[gamePresetId] || options;
 
-      if (!roomInfo) {
-        roomInfo = initializeRoom(roomId, { ...roomParam, gameName: gamePresetId });
-        Object.keys(roomInfo.decks).forEach((id) => shuffleDeck(roomId, id));
+      if (!roomState) {
+        roomState = initializeRoom(roomId, { ...roomParam, gameName: gamePresetId });
+        Object.keys(roomState.decks).forEach((id) => shuffleDeck(roomId, id));
         io.emit('lobby:room-update');
       }
 
       await socket.join(roomId);
-      const { initRoomState: gameParam, decks } = roomInfo;
+      const { initRoomState: gameParam, decks } = roomState;
       let player = gameParam.players.find((p) => p.socketId === socket.id);
 
       if (!player) {
@@ -260,64 +276,103 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     });
 
     socket.on('game:explore-cell', ({ roomId, targetPosition }) => {
-      const roomInfo = activeRooms.get(roomId);
-      if (roomInfo && markCellAsExplored(roomInfo.initRoomState, roomInfo.gameName, roomId, targetPosition)) {
-        io.to(roomId).emit('board-update', roomInfo.initRoomState.exploredCells);
+      const roomState = activeRooms.get(roomId);
+      if (roomState && markCellAsExplored(roomState.initRoomState, roomState.gameName, roomId, targetPosition)) {
+        io.to(roomId).emit('board-update', roomState.initRoomState.exploredCells);
       }
     });
 
     socket.on('game:unexplore-cell', ({ roomId, targetPosition }) => {
-      const roomInfo = activeRooms.get(roomId);
-      if (roomInfo && unmarkCellAsExplored(roomInfo.initRoomState, roomInfo.gameName, roomId, targetPosition)) {
-        io.to(roomId).emit('board-update', roomInfo.initRoomState.exploredCells);
+      const roomState = activeRooms.get(roomId);
+      if (roomState && unmarkCellAsExplored(roomState.initRoomState, roomState.gameName, roomId, targetPosition)) {
+        io.to(roomId).emit('board-update', roomState.initRoomState.exploredCells);
       }
     });
 
-    // デッキ操作
+    // カードを引く
     socket.on('deck:draw', ({ roomId, deckId, playerId, drawLocation = 'hand' }) => {
-      const roomInfo = activeRooms.get(roomId);
-      if (!roomInfo || !roomInfo.decks[deckId]) return;
-      const deck = roomInfo.decks[deckId].filter((c) => c.location === 'deck');
-      if (deck.length === 0) return;
+      const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
 
-      const card = deck[0];
-      if (drawLocation === 'discard') {
-        card.location = 'discard';
-        roomInfo.discardPile[deckId].push(card);
-      } else if (playerId) {
-        const p = roomInfo.initRoomState.players.find((p) => p.id === playerId);
-        if (p) {
-          card.location = drawLocation as any;
-          card.ownerId = playerId;
-          p.cards.push(card);
-        }
-      } else {
-        card.location = 'field';
-        roomInfo.playFieldCards[deckId].push(card);
+      const { decks } = roomState;
+      // デッキにあるカードのみをフィルタリング
+      const currentDeck = decks[deckId].filter((c) => c.location === 'deck');
+      if (!currentDeck.length) {
+        server_log('warn', roomState.gameName, roomId, `デッキ ${deckId} は空です。`);
+        return;
       }
-      server_log('deck', roomInfo.gameName, roomId, `DRAW: ${card.name}`);
+
+      // 先頭のカードを取得
+      const card = currentDeck[0];
+
+      let destination = '';
+
+      // --- 移動ロジック開始 ---
+
+      // A. 引いた瞬間に捨て札にする場合
+      if (drawLocation == 'discard') {
+        card.location = 'discard';
+        card.ownerId = null;
+        card.isFaceUp = true;
+        roomState.discardPile[deckId].push(card);
+        destination = 'discard';
+      }
+      // B. プレイヤーを指定して引く場合
+      else if (playerId) {
+        const player = roomState.initRoomState.players.find((p) => p.id === playerId);
+        if (player) {
+          player.cards = player.cards || [];
+          card.location = drawLocation;
+          card.isFaceUp = false;
+          card.ownerId = playerId;
+          player.cards.push(card);
+          destination = playerId;
+        }
+      }
+      // C. 場に出す場合
+      else {
+        card.ownerId = null;
+        card.location = 'field';
+        card.isFaceUp = true;
+        roomState.playFieldCards[deckId].push(card);
+        destination = 'field';
+      }
+
+      server_log('deck', roomState.gameName, roomId, `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination})`);
+
+      emitDeckUpdate(roomId, deckId);
+      emitPlayerUpdate(roomId);
+    });
+
+    // デッキシャッフル
+    socket.on('deck:shuffle', ({ roomId, deckId }) => {
+      const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
+
+      shuffleDeck(roomId, deckId);
       emitDeckUpdate(roomId, deckId);
     });
 
     socket.on('deck:reset', ({ roomId, deckId }) => {
-      const roomInfo = activeRooms.get(roomId);
-      if (!roomInfo) return;
-      roomInfo.decks[deckId].forEach((c) => {
+      const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
+      server_log('deck', roomState.gameName, roomId, `${deckId} を山札に戻した`);
+      roomState.decks[deckId].forEach((c) => {
         if (c.location === 'discard') {
           c.location = 'deck';
           c.isFaceUp = false;
           c.ownerId = null;
         }
       });
-      roomInfo.discardPile[deckId] = [];
+      roomState.discardPile[deckId] = [];
       shuffleDeck(roomId, deckId);
       emitDeckUpdate(roomId, deckId);
     });
 
-    // カード位置同期 (不具合修正版)
+    // カード位置同期
     socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {
-      const roomInfo = activeRooms.get(roomId);
-      const card = roomInfo?.decks[deckId]?.find((c) => c.id === cardId);
+      const roomState = activeRooms.get(roomId);
+      const card = roomState?.decks[deckId]?.find((c) => c.id === cardId);
       if (card) {
         card.coordinate = coordinate;
         emitDeckUpdate(roomId, deckId);
@@ -325,34 +380,34 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     });
 
     socket.on('card:play', ({ roomId, deckId, cardIds, playerId, playLocation = 'field', coordinate }) => {
-      const roomInfo = activeRooms.get(roomId);
-      if (!roomInfo) return;
+      const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
 
       const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 
       ids.forEach((id) => {
-        const card = roomInfo.decks[deckId]?.find((c) => c.id === id);
+        const card = roomState.decks[deckId]?.find((c) => c.id === id);
         if (!card) return;
 
         if (playerId) {
-          const p = roomInfo.initRoomState.players.find((p) => p.id === playerId);
+          const p = roomState.initRoomState.players.find((p) => p.id === playerId);
           if (p) p.cards = p.cards.filter((c) => c.id !== id);
         }
 
         card.location = playLocation as any;
         if (coordinate?.x != null && coordinate?.y != null) {
           card.coordinate = coordinate;
-          server_log('card', roomInfo.gameName, roomId, `Update Coord: x=${coordinate.x}, y=${coordinate.y}`);
+          server_log('card', roomState.gameName, roomId, `Update Coord: x=${coordinate.x}, y=${coordinate.y}`);
         }
         card.isFaceUp = true;
 
-        roomInfo.playFieldCards[deckId] = roomInfo.playFieldCards[deckId].filter((c) => c.id !== id);
-        roomInfo.discardPile[deckId] = roomInfo.discardPile[deckId].filter((c) => c.id !== id);
+        roomState.playFieldCards[deckId] = roomState.playFieldCards[deckId].filter((c) => c.id !== id);
+        roomState.discardPile[deckId] = roomState.discardPile[deckId].filter((c) => c.id !== id);
 
         if (playLocation === 'discard') {
-          roomInfo.discardPile[deckId].push(card);
+          roomState.discardPile[deckId].push(card);
         } else {
-          roomInfo.playFieldCards[deckId].push(card);
+          roomState.playFieldCards[deckId].push(card);
         }
       });
 
@@ -361,8 +416,8 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
 
     // ドラッグ中も監視
     socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {
-      const roomInfo = activeRooms.get(roomId);
-      const card = roomInfo?.decks[deckId]?.find((c) => c.id === cardId);
+      const roomState = activeRooms.get(roomId);
+      const card = roomState?.decks[deckId]?.find((c) => c.id === cardId);
       if (card && coordinate) {
         card.coordinate = coordinate;
         emitDeckUpdate(roomId, deckId);
@@ -370,8 +425,8 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     });
 
     socket.on('card:reveal', ({ roomId, playerId, cardIds }) => {
-      const roomInfo = activeRooms.get(roomId);
-      const p = roomInfo?.initRoomState.players.find((p) => p.id === playerId);
+      const roomState = activeRooms.get(roomId);
+      const p = roomState?.initRoomState.players.find((p) => p.id === playerId);
       if (p) {
         const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
         p.cards.forEach((c) => {
@@ -383,22 +438,22 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
 
     // トークン・ダイス
     socket.on('game:acquire-token', ({ roomId, tokenStoreId, tokenId }) => {
-      const roomInfo = activeRooms.get(roomId);
-      const player = roomInfo?.initRoomState.players.find((p) => p.socketId === socket.id);
+      const roomState = activeRooms.get(roomId);
+      const player = roomState?.initRoomState.players.find((p) => p.socketId === socket.id);
       if (
-        roomInfo &&
+        roomState &&
         player &&
-        roomInfo.initRoomState.acquireToken(tokenStoreId, roomInfo.gameName, roomId, player.id, tokenId)
+        roomState.initRoomState.acquireToken(tokenStoreId, roomState.gameName, roomId, player.id, tokenId)
       ) {
-        const store = roomInfo.initRoomState.getTokenStore(tokenStoreId);
+        const store = roomState.initRoomState.getTokenStore(tokenStoreId);
         if (store) io.to(roomId).emit(`token-store:update:${roomId}:${tokenStoreId}`, store.getTokens());
         emitPlayerUpdate(roomId);
       }
     });
 
     socket.on('dice:roll', ({ roomId, diceId, sides }) => {
-      const roomInfo = activeRooms.get(roomId);
-      if (roomInfo) {
+      const roomState = activeRooms.get(roomId);
+      if (roomState) {
         const val = Math.floor(Math.random() * sides) + 1;
         io.to(roomId).emit(`dice:rolled:${roomId}:${diceId}`, val);
       }
@@ -406,14 +461,14 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
 
     // タイマー・その他同期
     socket.on('timer:start', ({ duration, roomId }) => {
-      const roomInfo = activeRooms.get(roomId);
-      if (!roomInfo) return;
-      stopTimer(roomId, roomInfo.gameName);
+      const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
+      stopTimer(roomId, roomState.gameName);
       let rem = duration;
       io.to(roomId).emit('timer:start', { duration, roomId });
       const tick = () => {
         if (rem <= 0) {
-          stopTimer(roomId, roomInfo.gameName);
+          stopTimer(roomId, roomState.gameName);
           io.to(roomId).emit('timer:finish', { roomId });
           return;
         }
@@ -434,15 +489,15 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     });
 
     socket.on('game:next-turn', ({ roomId }) => {
-      const roomInfo = activeRooms.get(roomId);
-      if (roomInfo && roomInfo.initRoomState.players.length > 0) {
-        const nextIdx = (roomInfo.currentTurnIndex + 1) % roomInfo.initRoomState.players.length;
-        if (nextIdx === 0) roomInfo.currentRoundIndex++;
-        roomInfo.currentTurnIndex = nextIdx;
-        const curr = roomInfo.initRoomState.players[nextIdx];
+      const roomState = activeRooms.get(roomId);
+      if (roomState && roomState.initRoomState.players.length > 0) {
+        const nextIdx = (roomState.currentTurnIndex + 1) % roomState.initRoomState.players.length;
+        if (nextIdx === 0) roomState.currentRoundIndex++;
+        roomState.currentTurnIndex = nextIdx;
+        const curr = roomState.initRoomState.players[nextIdx];
         io.to(roomId).emit('game:turn', {
           playerId: curr.id,
-          currentRound: roomInfo.currentRoundIndex,
+          currentRound: roomState.currentRoundIndex,
           currentTurnIndex: nextIdx,
         });
       }
