@@ -211,7 +211,7 @@ export function initGameServer(io, options = {}) {
             socket.emit('player:assign-id', player.id);
             socket.emit('game:init-board', gameParam.board);
             Object.keys(decks).forEach((id) => emitDeckUpdate(roomId, id));
-            server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, Round: ${roomState.currentRoundIndex})`);
+            server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`);
             io.to(roomId).emit('game:turn', {
                 playerId: roomState.initRoomState.players[roomState.currentTurnIndex]?.id,
                 currentRound: roomState.currentRoundIndex,
@@ -464,21 +464,30 @@ export function initGameServer(io, options = {}) {
             const { roomId, ...move } = data;
             socket.to(roomId).emit('draggable:update', move);
         });
+        // 次のターン
         socket.on('game:next-turn', ({ roomId }) => {
             const roomState = activeRooms.get(roomId);
-            if (roomState && roomState.initRoomState.players.length > 0) {
-                const nextIdx = (roomState.currentTurnIndex + 1) % roomState.initRoomState.players.length;
-                if (nextIdx === 0)
-                    roomState.currentRoundIndex++;
-                roomState.currentTurnIndex = nextIdx;
-                const curr = roomState.initRoomState.players[nextIdx];
-                server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, Round: ${roomState.currentRoundIndex})`);
-                io.to(roomId).emit('game:turn', {
-                    playerId: curr.id,
-                    currentRound: roomState.currentRoundIndex,
-                    currentTurnIndex: nextIdx,
-                });
+            if (!roomState)
+                return;
+            const { initRoomState } = roomState;
+            if (initRoomState.players.length === 0)
+                return;
+            if (typeof roomState.checkGameEnd === 'function' && roomState.checkGameEnd(roomState)) {
+                const results = typeof roomState.onGameEnd === 'function' ? roomState.onGameEnd(roomState) : { message: 'Game Over' };
+                io.to(roomId).emit('game:end', results);
+                return;
             }
+            const nextIndex = (roomState.currentTurnIndex + 1) % initRoomState.players.length;
+            if (nextIndex === 0)
+                roomState.currentRoundIndex += 1;
+            roomState.currentTurnIndex = nextIndex;
+            const currentPlayer = initRoomState.players[roomState.currentTurnIndex];
+            server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`);
+            io.to(roomId).emit('game:turn', {
+                playerId: currentPlayer?.id,
+                currentRound: roomState.currentRoundIndex,
+                currentTurnIndex: roomState.currentTurnIndex,
+            });
         });
         // --- カスタムイベント ---
         const customEvents = options.customEvents ? options.customEvents() : {};

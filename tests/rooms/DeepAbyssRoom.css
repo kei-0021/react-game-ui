@@ -13,9 +13,20 @@
     30px 30px,
     30px 30px !important;
   background-position: center !important;
-  padding: 20px;
-  font-family: "Roboto", sans-serif;
+  font-family: 'Roboto', sans-serif;
   color: white;
+}
+
+.deepabyss-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  background-color: rgba(10, 25, 47, 0.95);
+  border-bottom: 1px solid rgba(139, 233, 253, 0.2);
+  padding: 10px 0;
+  backdrop-filter: blur(5px);
 }
 
 .deepsea-title-center {

@@ -214,12 +214,21 @@ export function DeepAbyssRoom() {
       <Popup visible={popup.visible} color={popup.color}>
         {popup.message}
       </Popup>
-      <h1 className="deepsea-title-center">ディープ・アビス (Deep Abyss) - Room ID: {roomId}</h1>
-      <p className="deepsea-subtitle-center">深海を調査して眠れる資源を見つけ出せ！</p>
-      {/* ラウンド表示 */}
-      <div className="round-display-container">
-        <div className="round-label">MISSION ROUND:</div>
-        <div className="round-number">{currentRound}</div>
+
+      <div className="deepabyss-header">
+        <h1 className="deepsea-title-center">ディープ・アビス - Room ID: {roomId}</h1>
+        <p className="deepsea-subtitle-center">
+          深海を調査して眠れる資源を
+          <strong style={{ color: '#8be9fd', fontSize: '1.2em', textShadow: '0 0 8px rgba(139, 233, 253, 0.6)' }}>
+            5ラウンド
+          </strong>
+          以内に見つけ出せ！
+        </p>
+        {/* ラウンド表示 */}
+        <div className="round-display-container">
+          <div className="round-label">MISSION ROUND:</div>
+          <div className="round-number">{currentRound}</div>
+        </div>
       </div>
 
       {/* ボードラッパー */}

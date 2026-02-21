@@ -9,6 +9,7 @@ import { cardEffects } from './data/cardEffects.js';
 // @ts-ignore
 import { cellEffects } from './data/cellEffects.js';
 // @ts-ignore
+import { GameId, RoomState } from '../src/types/server.js';
 import { customEvents } from './data/customEvents.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -110,7 +111,7 @@ async function startServer() {
     );
 
   // --- プリセット定義 ---
-  const GAME_PRESETS_COLLECTION: Record<string, any> = {
+  const GAME_PRESETS_COLLECTION: Record<GameId, any> = {
     sample: {
       initialDecks: [{ deckId: 'numberDeck', name: '数字カード', cards: numberCardsJson, backColor: '#000000ff' }],
       initialBoard: [[{ id: 'start', type: 'START', position: { row: 0, col: 0 }, effect: 'start' }]],
@@ -128,12 +129,14 @@ async function startServer() {
       initialHand: { deckId: 'deepSeaAction', count: 6 },
       initialBoard: completeDeepSeaCells2D,
       cellEffects,
-      checkGameEnd: (room: any) => room.currentRoundIndex >= 4,
-      onGameEnd: (room: any) => {
-        const rankings = [...room.gameParam.players]
+      checkGameEnd: (room: RoomState) =>
+        // 終了条件: 5ラウンド終了 (5ラウンド目の最後 かつ 最後のプレイヤーの手番時)
+        room.currentRoundIndex >= 4 && room.currentTurnIndex == room.initRoomState.players.length - 1,
+      onGameEnd: (room: RoomState) => {
+        const rankings = [...room.initRoomState.players]
           .sort((a, b) => b.score - a.score)
           .map((p, index) => ({ rank: index + 1, name: p.name, score: p.score }));
-        return { message: '潜水任務完了。', rankings, finalRound: room.currentRoundIndex };
+        return { message: '潜水任務完了', rankings, finalRound: room.currentRoundIndex };
       },
     },
   };
