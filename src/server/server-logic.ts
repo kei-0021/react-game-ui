@@ -507,7 +507,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
       if (!roomState) return;
       const val = Math.floor(Math.random() * sides) + 1;
 
-      server_log('game', roomState.gameId, `Dice ${diceId} rolled. Result: ${val}`);
+      server_log('dice', roomState.gameId, `Dice ${diceId} rolled. Result: ${val}`);
       io.to(roomId).emit(`dice:rolled:${roomId}:${diceId}`, val);
     });
 
