@@ -117,18 +117,23 @@ export function SampleRoom() {
         myPlayerId={myPlayerId}
       />
 
-      <Dice
-        socket={socket}
-        diceId="1"
-        roomId={roomId}
-        sides={3}
-        customFaces={[
-          <img key="f1" src="/weather_sunny.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-          <img key="f2" src="/weather_cloud.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-          <img key="f3" src="/weather_wind.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-          <img key="f4" src="/weather_rain.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-        ]}
-      />
+      <div style={{ display: 'flex', gap: '16px' }}>
+        <Dice
+          socket={socket}
+          diceId="天気"
+          roomId={roomId}
+          title="天気ダイス"
+          sides={4}
+          customFaces={[
+            <img key="f1" src="/weather_sunny.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
+            <img key="f2" src="/weather_cloud.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
+            <img key="f3" src="/weather_wind.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
+            <img key="f4" src="/weather_rain.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
+          ]}
+          tooltipText="快晴・曇り・風・雨"
+        />
+        <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" />
+      </div>
 
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>
       <Deck socket={socket} roomId={roomId} deckId="numberDeck" name="数字カード"></Deck>

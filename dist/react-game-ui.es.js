@@ -969,7 +969,7 @@ const Cell = ({
   );
 };
 const card = "_card_1mv54_3";
-const tooltip$1 = "_tooltip_1mv54_23";
+const tooltip$2 = "_tooltip_1mv54_23";
 const deckContainer = "_deckContainer_1mv54_59";
 const deckCard = "_deckCard_1mv54_66";
 const deckCardFront = "_deckCardFront_1mv54_78";
@@ -977,7 +977,7 @@ const deckSection = "_deckSection_1mv54_95";
 const discardPileWrapper = "_discardPileWrapper_1mv54_103";
 const styles$5 = {
   card,
-  tooltip: tooltip$1,
+  tooltip: tooltip$2,
   deckContainer,
   deckCard,
   deckCardFront,
@@ -1129,14 +1129,20 @@ function Deck({
     )
   ] });
 }
-const dice = "_dice_9d2ym_1";
-const diceRolling = "_diceRolling_9d2ym_20";
-const diceNotRolling = "_diceNotRolling_9d2ym_24";
-const faceImage = "_faceImage_9d2ym_28";
-const faceContainer = "_faceContainer_9d2ym_34";
-const defaultText = "_defaultText_9d2ym_42";
+const diceWrapper = "_diceWrapper_1yy8i_1";
+const diceTitle = "_diceTitle_1yy8i_9";
+const dice = "_dice_1yy8i_1";
+const tooltip$1 = "_tooltip_1yy8i_41";
+const diceRolling = "_diceRolling_1yy8i_69";
+const diceNotRolling = "_diceNotRolling_1yy8i_74";
+const faceImage = "_faceImage_1yy8i_78";
+const faceContainer = "_faceContainer_1yy8i_85";
+const defaultText = "_defaultText_1yy8i_93";
 const styles$4 = {
+  diceWrapper,
+  diceTitle,
   dice,
+  tooltip: tooltip$1,
   diceRolling,
   diceNotRolling,
   faceImage,
@@ -1162,16 +1168,15 @@ function Dice({
   socket = null,
   diceId,
   roomId,
+  title: title2,
   onRoll,
-  customFaces
+  customFaces,
+  tooltipText
 }) {
   const [value, setValue] = useState(1);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef(null);
-  const rollEventName = useMemo(
-    () => `dice:rolled:${roomId}:${diceId}`,
-    [roomId, diceId]
-  );
+  const rollEventName = useMemo(() => `dice:rolled:${roomId}:${diceId}`, [roomId, diceId]);
   useEffect(() => {
     if (!socket || !roomId) return;
     const handleRoll = (rolledValue) => {
@@ -1208,25 +1213,17 @@ function Dice({
       return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.faceContainer, children: customFaces[value - 1] });
     }
     if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "img",
-        {
-          src: defaultDiceImages[value],
-          alt: `Dice face ${value}`,
-          className: styles$4.faceImage
-        }
-      );
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$4.faceImage });
     }
     return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$4.defaultText, children: value });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      className: `${styles$4.dice} ${rolling ? styles$4.diceRolling : styles$4.diceNotRolling}`,
-      onClick: roll,
-      children: renderDiceFace()
-    }
-  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.diceWrapper, children: [
+    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.diceTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$4.dice} ${rolling ? styles$4.diceRolling : styles$4.diceNotRolling}`, onClick: roll, children: [
+      renderDiceFace(),
+      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.tooltip, children: tooltipText })
+    ] })
+  ] });
 }
 const draggable = "_draggable_1bsjy_3";
 const styles$3 = {

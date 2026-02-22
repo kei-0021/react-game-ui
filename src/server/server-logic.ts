@@ -504,10 +504,11 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
 
     socket.on('dice:roll', ({ roomId, diceId, sides }) => {
       const roomState = activeRooms.get(roomId);
-      if (roomState) {
-        const val = Math.floor(Math.random() * sides) + 1;
-        io.to(roomId).emit(`dice:rolled:${roomId}:${diceId}`, val);
-      }
+      if (!roomState) return;
+      const val = Math.floor(Math.random() * sides) + 1;
+
+      server_log('game', roomState.gameId, `Dice ${diceId} rolled. Result: ${val}`);
+      io.to(roomId).emit(`dice:rolled:${roomId}:${diceId}`, val);
     });
 
     // タイマー・その他同期
