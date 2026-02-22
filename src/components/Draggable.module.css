@@ -1,0 +1,17 @@
+/* src/components/Draggable.module.css */
+
+.draggable {
+  position: absolute;
+  border-radius: 8px;
+  cursor: grab;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  z-index: 90;
+}
+
+.draggable:active {
+  cursor: grabbing;
+}

@@ -1,11 +1,12 @@
 // src/types/card.ts
 
-import { CardLocation } from "./cardLocation.js";
-import { CardId, DeckId, PlayerId } from "./definition.js";
+import { CardLocation } from './cardLocation.js';
+import { CardId, DeckId, PlayerId } from './definition.js';
+import { Coordinate } from './server.js';
 
 export type Card = {
   id: CardId;
-  deckId: DeckId
+  deckId: DeckId;
   name: string;
   description?: string;
   onPlay?: (...args: any[]) => void;
@@ -17,4 +18,5 @@ export type Card = {
   isFaceUp?: boolean;
   frontImage?: string;
   backColor: string;
+  coordinate?: Coordinate;
 };

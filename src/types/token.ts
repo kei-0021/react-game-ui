@@ -8,5 +8,6 @@ export type Token = {
   name: string;
   imageSrc: string; // トークン画像へのパス（例: '/assets/gold.png'）
   description?: string;
+  count: number;
   color?: string; // 背景色やボーダー色
 };

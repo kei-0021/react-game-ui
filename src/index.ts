@@ -4,28 +4,30 @@
 export { Cell } from './components/Cell.js';
 export { default as Deck } from './components/Deck.js';
 export { default as Dice } from './components/Dice.js';
+export { Draggable } from './components/Draggable.js';
 export { default as GridBoard } from './components/GridBoard.js';
-export { default as PlayField } from './components/PlayField.js';
-export { default as ScoreBoard } from './components/ScoreBoard.js';
+export { PlayField } from './components/PlayField.js';
+export { RemoteCursor } from './components/RemoteCursor.js';
+export { ScoreBoard } from './components/ScoreBoard.js';
 export { default as Timer } from './components/Timer.js';
 export { default as TokenStore } from './components/TokenStore.js';
 
-// 型は拡張子なしで書く
 // 型（警告を無視）
 /* @ts-ignore */
-export * from './types/card';
+export * from './types/card.js';
 /* @ts-ignore */
-export type { CardEffectParams } from './types/cardEffectParams';
+export { type CardEffectParams } from './types/cardEffectParams.js';
 /* @ts-ignore */
-export * from './types/cardLocation';
+export * from './types/cardLocation.js';
 /* @ts-ignore */
-export type { CellEffectParams } from './types/cellEffectParams';
+export { type CellEffectParams } from './types/cellEffectParams.js';
 /* @ts-ignore */
-export * from './types/definition';
+export * from './types/definition.js';
 /* @ts-ignore */
-export * from './types/player';
+export * from './types/player.js';
 /* @ts-ignore */
-export type { PlayerWithResources } from './types/playerWithResources';
+export { type PlayerWithResources } from './types/playerWithResources.js';
 /* @ts-ignore */
-export type { PieceData } from './types/piece';
-
+export { type PieceData } from './types/piece.js';
+/* @ts-ignore */
+export { type RoomMeta, type RoomParam, type RoomState } from './types/server.js';

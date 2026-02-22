@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    /* 基本設定 */
     "rootDir": "src",
     "outDir": "dist",
     "target": "ESNext",
@@ -11,33 +12,32 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+
+    /* JS共存とビルド設定 */
+    "allowJs": true,
+    "checkJs": false,
     "declaration": true,
-    "declarationDir": "dist/types",
-    "emitDeclarationOnly": true,
-    "typeRoots": ["./node_modules/@types", "./node_modules"],
-    "types": ["node", "react", "react-dom"],
-    
-    // 💡 エイリアス解決のために追加
+    "emitDeclarationOnly": false,
+    "declarationMap": true,
+
+    /* パス解決 */
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
-    // 💡 エイリアス解決のために追加
+    },
+
+    /* 型定義の参照 */
+    "typeRoots": ["./node_modules/@types", "./node_modules"],
+    "types": ["node", "react", "react-dom"]
   },
   "include": [
-    "src/components",
-    "src/types",
-    "src/global.d.ts",
     "src/index.ts",
-    "src/hooks", // ⚠️ hooksフォルダがexcludeされているため、TypeScriptでhooksを使うにはincludeが必要
-    "src/server" // ⚠️ serverフォルダの型定義も必要であれば追加
+    "src/global.d.ts",
+    "src/components/**/*",
+    "src/hooks/**/*",
+    "src/types/**/*",
+    "src/server/server.ts",
+    "src/server/server-utils.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "src/__mocks__",
-    "src/setupTests.ts",
-    "src/components/__tests__",
-    "tests/data",
-    // ⚠️ src/hooks を include に移動したので、ここから削除
-  ]
+  "exclude": ["node_modules", "src/__mocks__", "src/setupTests.ts", "src/components/__tests__", "tests/data"]
 }
