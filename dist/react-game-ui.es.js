@@ -1001,24 +1001,11 @@ const deckStyles = {
 const CardContent = ({ card: card2 }) => {
   if (!card2.isFaceUp) return null;
   if (card2.frontImage) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "img",
-      {
-        src: card2.frontImage,
-        alt: card2.name,
-        className: deckStyles.cardImage
-      }
-    );
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: deckStyles.cardImage });
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: deckStyles.cardNameText, children: card2.name }) });
 };
-function Deck({
-  socket,
-  roomId,
-  deckId,
-  name,
-  playerId = null
-}) {
+function Deck({ socket, roomId, deckId, title: title2, currentPlayerId, myPlayerId, alwaysDraw = false }) {
   const [deckCards, setDeckCards] = React.useState([]);
   const [drawnCards, setDrawnCards] = React.useState([]);
   const [discardPile, setDiscardPile] = React.useState([]);
@@ -1048,85 +1035,79 @@ function Deck({
       deckId,
       drawLocation
     };
-    if (drawLocation === "hand" && playerId) {
-      requestData.playerId = playerId;
+    if (drawLocation === "hand") {
+      const canDrawToHand = alwaysDraw || currentPlayerId === myPlayerId;
+      if (canDrawToHand && myPlayerId) {
+        requestData.playerId = myPlayerId;
+      } else {
+        console.warn("手札に引く権限がありません。");
+        return;
+      }
     }
     socket.emit("deck:draw", requestData);
   };
   const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$5.deckSection, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: deckStyles.deckTitle, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: deckStyles.deckTitle, children: title2 }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.deckControls, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, children: "シャッフル" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
-      {
-        className: `${styles$5.deckWrapper} ${deckStyles.deckWrapperFlex}`,
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              className: styles$5.deckCard,
-              style: {
-                zIndex: deckCards.length - i,
-                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                backgroundColor: c.backColor
-              }
-            },
-            c.id
-          )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              className: styles$5.deckCardFront,
-              style: {
-                zIndex: i + 1,
-                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
-              },
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c })
-            },
-            c.id
-          )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              className: `${styles$5.deckContainer} ${styles$5.discardPileWrapper}`,
-              children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                "div",
-                {
-                  className: styles$5.deckCardFront,
-                  style: {
-                    zIndex: i + 1,
-                    transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                    pointerEvents: i === discardPile.length - 1 ? "auto" : "none"
-                  },
-                  onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true),
-                  onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false),
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c }),
-                    i === discardPile.length - 1 && c.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      "span",
-                      {
-                        className: `${styles$5.tooltip} ${deckStyles.tooltipBase}`,
-                        style: {
-                          visibility: isDiscardHovered ? "visible" : "hidden",
-                          opacity: isDiscardHovered ? 1 : 0
-                        },
-                        children: c.description
-                      }
-                    )
-                  ]
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$5.deckWrapper} ${deckStyles.deckWrapperFlex}`, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          className: styles$5.deckCard,
+          style: {
+            zIndex: deckCards.length - i,
+            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
+            backgroundColor: c.backColor
+          }
+        },
+        c.id
+      )) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          className: styles$5.deckCardFront,
+          style: {
+            zIndex: i + 1,
+            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
+          },
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c })
+        },
+        c.id
+      )) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles$5.deckContainer} ${styles$5.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          className: styles$5.deckCardFront,
+          style: {
+            zIndex: i + 1,
+            transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+            pointerEvents: i === discardPile.length - 1 ? "auto" : "none"
+          },
+          onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true),
+          onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false),
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c }),
+            i === discardPile.length - 1 && c.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "span",
+              {
+                className: `${styles$5.tooltip} ${deckStyles.tooltipBase}`,
+                style: {
+                  visibility: isDiscardHovered ? "visible" : "hidden",
+                  opacity: isDiscardHovered ? 1 : 0
                 },
-                c.id
-              ))
-            }
-          )
-        ]
-      }
-    )
+                children: c.description
+              }
+            )
+          ]
+        },
+        c.id
+      )) })
+    ] })
   ] });
 }
 const diceWrapper = "_diceWrapper_1yy8i_1";

@@ -84,7 +84,7 @@ async function startServer() {
   };
 
   // 深海アドベンチャー用のデータ準備
-  const deepSeaActionCardsTwoSets = createUniqueCards(deepSeaActionCardsBaseJson, 2);
+  const deepSeaActionCardsThreeSets = createUniqueCards(deepSeaActionCardsBaseJson, 3);
   const completeDeepSeaCells2D = (() => {
     const cells1D = createBoardCells(deepSeaCellsBaseJson, CELL_COUNTS);
     const cells2D: any[][] = [];
@@ -120,7 +120,12 @@ async function startServer() {
     deepsea: {
       initialDecks: [
         { deckId: 'deepSeaSpecies', name: '深海生物カード', cards: deepSeaSpeciesDeckJson, backColor: '#0d3c99ff' },
-        { deckId: 'deepSeaAction', name: 'アクションカード', cards: deepSeaActionCardsTwoSets, backColor: '#0d8999ff' },
+        {
+          deckId: 'deepSeaAction',
+          name: 'アクションカード',
+          cards: deepSeaActionCardsThreeSets,
+          backColor: '#0d8999ff',
+        },
       ],
       cardEffects,
       initialResources: DEEP_SEA_RESOURCES,

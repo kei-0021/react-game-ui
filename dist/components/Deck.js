@@ -1,17 +1,27 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 // src/components/Deck.tsx
-import * as React from "react";
-import cardStyles from "./Card.module.css";
-import deckStyles from "./Deck.module.css";
+import * as React from 'react';
+import cardStyles from './Card.module.css';
+import deckStyles from './Deck.module.css';
 const CardContent = ({ card }) => {
     if (!card.isFaceUp)
         return null;
     if (card.frontImage) {
-        return (_jsx("img", { src: card.frontImage, alt: card.name, className: deckStyles.cardImage }));
+        return _jsx("img", { src: card.frontImage, alt: card.name, className: deckStyles.cardImage });
     }
     return (_jsx("div", { className: deckStyles.cardNameWrapper, children: _jsx("strong", { className: deckStyles.cardNameText, children: card.name }) }));
 };
-export default function Deck({ socket, roomId, deckId, name, playerId = null, }) {
+/**
+ * 山札の描画、シャッフル、ドローの制御を行う。
+ * @param socket - 通信用のSocket.ioインスタンス
+ * @param roomId - 対象のルームID
+ * @param deckId - 山札を識別する一意のID
+ * @param title - 山札の表示名
+ * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
+ * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
+ * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
+ */
+export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerId, alwaysDraw = false }) {
     const [deckCards, setDeckCards] = React.useState([]);
     const [drawnCards, setDrawnCards] = React.useState([]);
     const [discardPile, setDiscardPile] = React.useState([]);
@@ -36,20 +46,32 @@ export default function Deck({ socket, roomId, deckId, name, playerId = null, })
         if (deckCards.length === 0)
             return;
         const cardToDraw = deckCards[0];
-        const drawLocation = cardToDraw?.drawLocation || "hand";
+        const drawLocation = cardToDraw?.drawLocation || 'hand';
         const requestData = {
             roomId,
             deckId,
             drawLocation,
         };
-        if (drawLocation === "hand" && playerId) {
-            requestData.playerId = playerId;
+        // drawLocation が 'hand' の場合のみ playerId を付与する
+        if (drawLocation === 'hand') {
+            // 判定条件:
+            // 1. alwaysDraw が true である
+            // 2. または、自分のターンである (currentPlayerId === myPlayerId)
+            const canDrawToHand = alwaysDraw || currentPlayerId === myPlayerId;
+            if (canDrawToHand && myPlayerId) {
+                requestData.playerId = myPlayerId;
+            }
+            else {
+                // 自分のターンでない、または自分が何者か不明な場合は処理を中断
+                console.warn('手札に引く権限がありません。');
+                return;
+            }
         }
-        socket.emit("deck:draw", requestData);
+        socket.emit('deck:draw', requestData);
     };
-    const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
-    const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
-    return (_jsxs("section", { className: cardStyles.deckSection, children: [_jsx("h3", { className: deckStyles.deckTitle, children: name }), _jsxs("div", { className: cardStyles.deckControls, children: [_jsx("button", { onClick: shuffle, children: "\u30B7\u30E3\u30C3\u30D5\u30EB" }), _jsx("button", { onClick: resetDeck, children: "\u5C71\u672D\u306B\u623B\u3059" })] }), _jsxs("div", { className: `${cardStyles.deckWrapper} ${deckStyles.deckWrapperFlex}`, children: [_jsx("div", { className: cardStyles.deckContainer, onClick: draw, children: deckCards.map((c, i) => (_jsx("div", { className: cardStyles.deckCard, style: {
+    const shuffle = () => socket.emit('deck:shuffle', { roomId, deckId });
+    const resetDeck = () => socket.emit('deck:reset', { roomId, deckId });
+    return (_jsxs("section", { className: cardStyles.deckSection, children: [_jsx("h3", { className: deckStyles.deckTitle, children: title }), _jsxs("div", { className: cardStyles.deckControls, children: [_jsx("button", { onClick: shuffle, children: "\u30B7\u30E3\u30C3\u30D5\u30EB" }), _jsx("button", { onClick: resetDeck, children: "\u5C71\u672D\u306B\u623B\u3059" })] }), _jsxs("div", { className: `${cardStyles.deckWrapper} ${deckStyles.deckWrapperFlex}`, children: [_jsx("div", { className: cardStyles.deckContainer, onClick: draw, children: deckCards.map((c, i) => (_jsx("div", { className: cardStyles.deckCard, style: {
                                 zIndex: deckCards.length - i,
                                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
                                 backgroundColor: c.backColor,
@@ -59,9 +81,9 @@ export default function Deck({ socket, roomId, deckId, name, playerId = null, })
                             }, children: _jsx(CardContent, { card: c }) }, c.id))) }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => (_jsxs("div", { className: cardStyles.deckCardFront, style: {
                                 zIndex: i + 1,
                                 transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                                pointerEvents: i === discardPile.length - 1 ? "auto" : "none",
+                                pointerEvents: i === discardPile.length - 1 ? 'auto' : 'none',
                             }, onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true), onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false), children: [_jsx(CardContent, { card: c }), i === discardPile.length - 1 && c.description && (_jsx("span", { className: `${cardStyles.tooltip} ${deckStyles.tooltipBase}`, style: {
-                                        visibility: isDiscardHovered ? "visible" : "hidden",
+                                        visibility: isDiscardHovered ? 'visible' : 'hidden',
                                         opacity: isDiscardHovered ? 1 : 0,
                                     }, children: c.description }))] }, c.id))) })] })] }));
 }

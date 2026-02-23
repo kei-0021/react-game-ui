@@ -13,9 +13,9 @@ npm install github:kei-0021/react-game-ui
 ```tsx
 const demoServer = new GameServer({
   port: 4000,
-  clientDistPath: path.resolve("./tests"),
-  libDistPath: path.resolve("../dist"),
-  corsOrigins: ["http://localhost:5173", "http://localhost:4000"],
+  clientDistPath: path.resolve('./tests'),
+  libDistPath: path.resolve('../dist'),
+  corsOrigins: ['http://localhost:5173', 'http://localhost:4000'],
   onServerStart: (url) => {
     console.log(`🎮 Demo server running at: ${url}`);
   },
@@ -108,10 +108,10 @@ export const cardEffects: Record<string, (params: CardEffectParams) => void> = {
 ```js
 const initialDecks = [
   {
-    deckId: "fantasy",
-    name: "ファンタジーカード",
+    deckId: 'fantasy',
+    name: 'ファンタジーカード',
     cards: fantasyDeckJson,
-    backColor: "#c25656ff",
+    backColor: '#c25656ff',
   },
 ];
 
@@ -124,9 +124,12 @@ const demoServer = new GameServer({
 ```tsx
 <Deck
   socket={socket}
+  roomId={roomId}
   deckId="fantasy"
-  name="ファンタジーカード"
-  playerId={currentPlayerId}
+  title="ファンタジーカード"
+  currentplayerId={currentPlayerId}
+  myPlayerId={myPlayerId}
+  alwaysDraw={ture} //自分のターン以外でもドローできるようにするフラグ
 />
 ```
 
@@ -141,5 +144,5 @@ const demoServer = new GameServer({
 
 ```tsx
 // コンポーネントとして配置
-<Timer socket={socket} onFinish={() => console.log("タイマー終了！")} />
+<Timer socket={socket} onFinish={() => console.log('タイマー終了！')} />
 ```

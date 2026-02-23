@@ -1,18 +1,20 @@
 // src/components/Deck.tsx
-import * as React from "react";
-import { Socket } from "socket.io-client";
-import type { Card } from "../types/card.js";
-import { CardLocation } from "../types/cardLocation.js";
-import type { DeckId, PlayerId, RoomId } from "../types/definition.js";
-import cardStyles from "./Card.module.css";
-import deckStyles from "./Deck.module.css";
+import * as React from 'react';
+import { Socket } from 'socket.io-client';
+import type { Card } from '../types/card.js';
+import { CardLocation } from '../types/cardLocation.js';
+import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
+import cardStyles from './Card.module.css';
+import deckStyles from './Deck.module.css';
 
 type DeckProps = {
   socket: Socket;
   roomId: RoomId;
   deckId: DeckId;
-  name: string;
-  playerId?: PlayerId | null;
+  title: string;
+  currentPlayerId: PlayerId | null;
+  myPlayerId: PlayerId | null;
+  alwaysDraw?: boolean;
 };
 
 type DeckUpdateData = {
@@ -25,13 +27,7 @@ const CardContent = ({ card }: { card: Card }) => {
   if (!card.isFaceUp) return null;
 
   if (card.frontImage) {
-    return (
-      <img
-        src={card.frontImage}
-        alt={card.name}
-        className={deckStyles.cardImage}
-      />
-    );
+    return <img src={card.frontImage} alt={card.name} className={deckStyles.cardImage} />;
   }
 
   return (
@@ -41,13 +37,17 @@ const CardContent = ({ card }: { card: Card }) => {
   );
 };
 
-export default function Deck({
-  socket,
-  roomId,
-  deckId,
-  name,
-  playerId = null,
-}: DeckProps) {
+/**
+ * 山札の描画、シャッフル、ドローの制御を行う。
+ * @param socket - 通信用のSocket.ioインスタンス
+ * @param roomId - 対象のルームID
+ * @param deckId - 山札を識別する一意のID
+ * @param title - 山札の表示名
+ * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
+ * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
+ * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
+ */
+export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerId, alwaysDraw = false }: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
   const [drawnCards, setDrawnCards] = React.useState<Card[]>([]);
   const [discardPile, setDiscardPile] = React.useState<Card[]>([]);
@@ -75,7 +75,7 @@ export default function Deck({
   const draw = () => {
     if (deckCards.length === 0) return;
     const cardToDraw = deckCards[0];
-    const drawLocation = cardToDraw?.drawLocation || "hand";
+    const drawLocation = cardToDraw?.drawLocation || 'hand';
 
     const requestData: {
       roomId: RoomId;
@@ -88,27 +88,37 @@ export default function Deck({
       drawLocation,
     };
 
-    if (drawLocation === "hand" && playerId) {
-      requestData.playerId = playerId;
+    // drawLocation が 'hand' の場合のみ playerId を付与する
+    if (drawLocation === 'hand') {
+      // 判定条件:
+      // 1. alwaysDraw が true である
+      // 2. または、自分のターンである (currentPlayerId === myPlayerId)
+      const canDrawToHand = alwaysDraw || currentPlayerId === myPlayerId;
+
+      if (canDrawToHand && myPlayerId) {
+        requestData.playerId = myPlayerId;
+      } else {
+        // 自分のターンでない、または自分が何者か不明な場合は処理を中断
+        console.warn('手札に引く権限がありません。');
+        return;
+      }
     }
-    socket.emit("deck:draw", requestData);
+    socket.emit('deck:draw', requestData);
   };
 
-  const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
-  const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
+  const shuffle = () => socket.emit('deck:shuffle', { roomId, deckId });
+  const resetDeck = () => socket.emit('deck:reset', { roomId, deckId });
 
   return (
     <section className={cardStyles.deckSection}>
-      <h3 className={deckStyles.deckTitle}>{name}</h3>
+      <h3 className={deckStyles.deckTitle}>{title}</h3>
 
       <div className={cardStyles.deckControls}>
         <button onClick={shuffle}>シャッフル</button>
         <button onClick={resetDeck}>山札に戻す</button>
       </div>
 
-      <div
-        className={`${cardStyles.deckWrapper} ${deckStyles.deckWrapperFlex}`}
-      >
+      <div className={`${cardStyles.deckWrapper} ${deckStyles.deckWrapperFlex}`}>
         {/* 山札 */}
         <div className={cardStyles.deckContainer} onClick={draw}>
           {deckCards.map((c, i) => (
@@ -141,9 +151,7 @@ export default function Deck({
         </div>
 
         {/* 捨て札 */}
-        <div
-          className={`${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`}
-        >
+        <div className={`${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`}>
           {discardPile.map((c, i) => (
             <div
               key={c.id}
@@ -151,14 +159,10 @@ export default function Deck({
               style={{
                 zIndex: i + 1,
                 transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                pointerEvents: i === discardPile.length - 1 ? "auto" : "none",
+                pointerEvents: i === discardPile.length - 1 ? 'auto' : 'none',
               }}
-              onMouseEnter={() =>
-                i === discardPile.length - 1 && setIsDiscardHovered(true)
-              }
-              onMouseLeave={() =>
-                i === discardPile.length - 1 && setIsDiscardHovered(false)
-              }
+              onMouseEnter={() => i === discardPile.length - 1 && setIsDiscardHovered(true)}
+              onMouseLeave={() => i === discardPile.length - 1 && setIsDiscardHovered(false)}
             >
               <CardContent card={c} />
 
@@ -166,7 +170,7 @@ export default function Deck({
                 <span
                   className={`${cardStyles.tooltip} ${deckStyles.tooltipBase}`}
                   style={{
-                    visibility: isDiscardHovered ? "visible" : "hidden",
+                    visibility: isDiscardHovered ? 'visible' : 'hidden',
                     opacity: isDiscardHovered ? 1 : 0,
                   }}
                 >

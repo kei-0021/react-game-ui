@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import Deck from '../../src/components/Deck';
+import { Deck } from '../../src/components/Deck';
 import Dice from '../../src/components/Dice';
 import { Draggable } from '../../src/components/Draggable';
 import { RemoteCursor } from '../../src/components/RemoteCursor';
@@ -136,7 +136,14 @@ export function SampleRoom() {
       </div>
 
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>
-      <Deck socket={socket} roomId={roomId} deckId="numberDeck" name="数字カード"></Deck>
+      <Deck
+        socket={socket}
+        roomId={roomId}
+        deckId="numberDeck"
+        title="数字カード"
+        currentPlayerId={currentPlayerId}
+        myPlayerId={myPlayerId}
+      ></Deck>
       <Draggable
         image={DRAGGABLE_IMAGE_PATH}
         mask={true}

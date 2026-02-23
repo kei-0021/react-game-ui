@@ -1,6 +1,7 @@
+// tests/rooms/DeepAbyssRoom.tsx
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Deck from '../../src/components/Deck';
+import { Deck } from '../../src/components/Deck';
 import { PlayField } from '../../src/components/PlayField';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
 import TokenStore from '../../src/components/TokenStore';
@@ -12,12 +13,6 @@ import Popup from '../components/PopUp';
 import './DeepAbyssRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
-
-const RESOURCE_IDS = {
-  OXYGEN: 'OXYGEN',
-  BATTERY: 'BATTERY',
-  HULL: 'HULL',
-};
 
 interface PopupState {
   message: string;
@@ -63,10 +58,6 @@ export function DeepAbyssRoom() {
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
 
-  const [debugTargetId, setDebugTargetId] = useState<string | null>(null);
-  const [debugScoreAmount, setDebugScoreAmount] = useState<number>(10);
-  const [debugResourceAmount, setDebugResourceAmount] = useState<number>(1);
-
   const showPopup = useCallback((message: string, color: string) => {
     if (popupTimerRef.current) {
       clearTimeout(popupTimerRef.current);
@@ -96,7 +87,6 @@ export function DeepAbyssRoom() {
 
     const handleAssignId = (id: Player['id']) => {
       setMyPlayerId(id);
-      setDebugTargetId(id);
       setHasJoined(true);
       setIsJoining(false);
     };
@@ -136,25 +126,6 @@ export function DeepAbyssRoom() {
       socket.off('game:end', handleGameEnd);
     };
   }, [socket, roomId, showPopup]);
-
-  const handleDebugScore = (amount: number) => {
-    if (!socket || !debugTargetId || !roomId) return;
-    socket.emit('room:player:add-score', {
-      roomId,
-      targetPlayerId: debugTargetId,
-      points: amount,
-    });
-  };
-
-  const handleDebugResource = (resourceId: string, amount: number) => {
-    if (!socket || !debugTargetId || !roomId) return;
-    socket.emit('room:player:update-resource', {
-      roomId,
-      playerId: debugTargetId,
-      resourceId,
-      amount,
-    });
-  };
 
   if (!roomId) return <div className="deepsea-container">Room ID Not Found</div>;
   if (!socket) return <div className="deepsea-container">Connecting...</div>;
@@ -246,15 +217,17 @@ export function DeepAbyssRoom() {
               socket={socket}
               roomId={roomId}
               deckId="deepSeaAction"
-              name="アクションカード"
-              playerId={currentPlayerId}
+              title="アクションカード"
+              currentPlayerId={currentPlayerId}
+              myPlayerId={myPlayerId}
             />
             <Deck
               socket={socket}
               roomId={roomId}
               deckId="deepSeaSpecies"
-              name="深海生物カード"
-              playerId={currentPlayerId}
+              title="深海生物カード"
+              currentPlayerId={currentPlayerId}
+              myPlayerId={myPlayerId}
             />
           </div>
 
