@@ -1,4 +1,4 @@
-import { GameId, PlayerId, RoomId } from '@/types/definition.js';
+import { BoardId, GameId, PlayerId, RoomId } from '@/types/definition.js';
 import { initialRoomState as IInitialRoomState, Position, ServerPlayer } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import { TokenStoreDef } from '@/types/tokenStore.js';
@@ -30,7 +30,7 @@ export declare class RoomManager {
     initialResources: any[];
     initialTokenStores: any[];
     initialTokens: any[];
-    board: any[][];
+    board: Record<BoardId, any[][]>;
     exploredCells: Position[];
     turn: number;
     tokenStores: Map<string, TokenStore>;

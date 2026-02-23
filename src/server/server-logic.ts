@@ -49,9 +49,15 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
   const initialResources = roomParam.initialResources || [];
   const initialTokenStores = Array.isArray(roomParam.initialTokenStores) ? roomParam.initialTokenStores : [];
   const initialTokens = roomParam.initialTokens || [];
-  const initialBoard = roomParam.initialBoard || [];
+  const initialBoard = roomParam.initialBoard || {};
 
-  const Cells = createRandomBoard(initialBoard);
+  let Cells: Record<string, any> = {};
+  const boardEntries = Object.entries(initialBoard);
+
+  boardEntries.forEach(([boardId, boardData]) => {
+    Cells[boardId] = createRandomBoard(boardData as any[][]);
+    server_log('cell', roomParam.gameId, roomId, `ボード "${boardId}" を初期化完了`);
+  });
 
   const initialParam = {
     players: [],
@@ -248,7 +254,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
       }
 
       socket.emit('player:assign-id', player.id);
-      socket.emit('game:init-board', gameParam.board);
+      Object.values(gameParam.board).forEach((board) => socket.emit('game:init-board', board));
       Object.keys(decks).forEach((id) => emitDeckUpdate(roomId, id));
 
       server_log(

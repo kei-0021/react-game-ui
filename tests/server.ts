@@ -122,7 +122,6 @@ async function startServer() {
     sample: {
       gameId: 'sample',
       initialDecks: [{ deckId: 'numberDeck', name: '数字カード', cards: numberCardsJson, backColor: '#000000ff' }],
-      initialBoard: [[{ id: 'start', type: 'START', position: { row: 0, col: 0 }, effect: 'start' }]],
       maxPlayers: 1,
     },
     deepsea: {
@@ -142,7 +141,7 @@ async function startServer() {
         { tokenStoreId: 'ARTIFACT', name: '遺物', tokens: createUniqueTokens(DEEP_SEA_TOKENS_ARTIFACT, 10) },
       ],
       initialHand: { deckId: 'deepSeaAction', count: 6 },
-      initialBoard: completeDeepSeaCells2D,
+      initialBoard: { deepAbyssBoard: completeDeepSeaCells2D },
       cellEffects,
       checkGameEnd: (room: RoomState) =>
         // 終了条件: 5ラウンド終了 (5ラウンド目の最後 かつ 最後のプレイヤーの手番時)

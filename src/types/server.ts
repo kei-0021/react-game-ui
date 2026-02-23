@@ -5,9 +5,10 @@
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
-import { DeckId, GameId, PlayerId, RoomId, TokenId } from './definition.js';
+import { BoardId, DeckId, GameId, PlayerId, RoomId, TokenId } from './definition.js';
 import { Resource } from './resource.js';
 import { Token } from './token.js';
+import { TokenStoreDef } from './tokenStore.js';
 
 export interface ServerPlayer {
   id: PlayerId;
@@ -56,14 +57,14 @@ export type RoomParam = {
     count: number;
   };
   initialResources?: Resource[];
-  initialTokenStores?: any;
+  initialTokenStores?: TokenStoreDef[];
   initialTokens?: {
     tokenId: TokenId;
     count: number;
   };
   cardEffects?: any;
   cellEffects?: any;
-  initialBoard?: any;
+  initialBoard?: Record<BoardId, any>;
   checkGameEnd?: any;
   onGameEnd?: any;
 };
@@ -73,7 +74,7 @@ export type initialRoomState = {
   initialResources: any[];
   initialTokenStores: any[];
   initialTokens: any[];
-  board: any[][];
+  board: Record<BoardId, any[][]>;
   exploredCells: Position[];
   turn: number;
 };

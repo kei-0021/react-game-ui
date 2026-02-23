@@ -68,7 +68,6 @@ const shuffleArray = (array) => {
 };
 export const createRandomBoard = (initialBoard) => {
     if (!initialBoard || initialBoard.length === 0 || initialBoard[0].length === 0) {
-        server_log('warn', 'SYSTEM', 'N/A', 'createRandomBoard: initialBoardが空です。');
         return [];
     }
     const rows = initialBoard.length;
@@ -100,11 +99,11 @@ export const createRandomBoard = (initialBoard) => {
 };
 export const applyCellEffect = (gameParam, gameId, roomId, playerId, position, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
     const { row, col } = position;
-    if (row < 0 || row >= gameParam.board.length || col < 0 || col >= gameParam.board[row].length) {
+    if (row < 0 || row >= gameParam.board[0].length || col < 0 || col >= gameParam.board[row].length) {
         server_log('warn', gameId, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
         return;
     }
-    const cell = gameParam.board[row][col];
+    const cell = gameParam.board[0][row][col];
     const effect = cellEffects[cell.name];
     if (effect) {
         server_log('cell', gameId, roomId, `マス効果発動: ${cell.name} by ${playerId}`);

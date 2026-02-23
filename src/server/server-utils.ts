@@ -1,4 +1,4 @@
-import { GameId, PlayerId, RoomId } from '@/types/definition.js';
+import { BoardId, GameId, PlayerId, RoomId } from '@/types/definition.js';
 import { initialRoomState as IInitialRoomState, Position, ServerPlayer } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import { TokenStoreDef } from '@/types/tokenStore.js';
@@ -117,7 +117,6 @@ const shuffleArray = <T>(array: T[]): T[] => {
 
 export const createRandomBoard = (initialBoard: any[][]): any[][] => {
   if (!initialBoard || initialBoard.length === 0 || initialBoard[0].length === 0) {
-    server_log('warn', 'SYSTEM', 'N/A', 'createRandomBoard: initialBoardが空です。');
     return [];
   }
   const rows = initialBoard.length;
@@ -160,11 +159,11 @@ export const applyCellEffect = (
   requirePopup: (params: any) => void,
 ): void => {
   const { row, col } = position;
-  if (row < 0 || row >= gameParam.board.length || col < 0 || col >= gameParam.board[row].length) {
+  if (row < 0 || row >= gameParam.board[0].length || col < 0 || col >= gameParam.board[row].length) {
     server_log('warn', gameId, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
     return;
   }
-  const cell = gameParam.board[row][col];
+  const cell = gameParam.board[0][row][col];
   const effect = cellEffects[cell.name];
   if (effect) {
     server_log('cell', gameId, roomId, `マス効果発動: ${cell.name} by ${playerId}`);
@@ -203,7 +202,7 @@ export class RoomManager {
   public initialResources: any[];
   public initialTokenStores: any[];
   public initialTokens: any[];
-  public board: any[][];
+  public board: Record<BoardId, any[][]>;
   public exploredCells: Position[];
   public turn: number;
   public tokenStores: Map<string, TokenStore>;
