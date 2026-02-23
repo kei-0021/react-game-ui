@@ -5,7 +5,7 @@
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
-import { DeckId, GameId, PlayerId, ResourceId, RoomId, TokenId } from './definition.js';
+import { DeckId, GameId, PlayerId, RoomId, TokenId } from './definition.js';
 import { Resource } from './resource.js';
 import { Token } from './token.js';
 
@@ -32,6 +32,21 @@ export type RoomMeta = {
   createdAt: number;
 };
 
+/**
+ * ゲームルーム作成時の初期設定パラメータ。
+ * @param gameId - ゲームを一意に識別するID。
+ * @param maxPlayers - 最大プレイヤー数（任意）。
+ * @param initialDecks - デッキの初期構成リスト。
+ * @param initialHand - 初期手札設定。{ deckId, count }
+ * @param initialResources - プレイヤーの初期リソース。
+ * @param initialTokenStores - 共有トークンの保管場所。
+ * @param initialTokens - ボード上の初期配置トークン。
+ * @param cardEffects - カードの特殊効果定義。
+ * @param cellEffects - セルの特殊効果定義。
+ * @param initialBoard - ボードの初期レイアウト。
+ * @param checkGameEnd - 終了判定ロジック。
+ * @param onGameEnd - リザルト生成ロジック。
+ */
 export type RoomParam = {
   gameId: GameId;
   maxPlayers?: number;
@@ -40,18 +55,17 @@ export type RoomParam = {
     deckId: DeckId;
     count: number;
   };
-  initialResources?: {
-    resouceId: ResourceId;
-    count: number;
-  };
-  initialTokenStores: any;
+  initialResources?: Resource[];
+  initialTokenStores?: any;
   initialTokens?: {
     tokenId: TokenId;
     count: number;
   };
-  initialBoard: any;
-  checkGameEnd: any;
-  onGameEnd: any;
+  cardEffects?: any;
+  cellEffects?: any;
+  initialBoard?: any;
+  checkGameEnd?: any;
+  onGameEnd?: any;
 };
 
 export type initialRoomState = {

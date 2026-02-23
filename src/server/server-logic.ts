@@ -149,7 +149,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
   const updatePlayerResource = (roomId: RoomId, playerId: PlayerId, resourceId: ResourceId, amount: number) => {
     const roomState = activeRooms.get(roomId);
     const player = roomState?.initRoomState.players.find((p) => p.id === playerId);
-    const resource = player?.resources?.find((r) => r.id === resourceId);
+    const resource = player?.resources?.find((r) => r.resourceId === resourceId);
     if (resource) {
       resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
       server_log('resource', roomState!.gameId, roomId, `${player!.name}: ${resource.name} 更新`);

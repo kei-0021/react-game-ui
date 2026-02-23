@@ -116,7 +116,7 @@ const PlayerListItem = React.memo(
           <div className={styles.resourceSection}>
             <div className={styles.resourceList}>
               {player.resources.map((resource: Resource) => (
-                <span key={resource.id} className={styles.resourceBadge}>
+                <span key={resource.resourceId} className={styles.resourceBadge}>
                   {resource.icon} {resource.name}: {resource.currentValue} / {resource.maxValue}
                 </span>
               ))}

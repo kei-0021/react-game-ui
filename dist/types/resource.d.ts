@@ -1,6 +1,6 @@
-import { ResourceId } from "./definition.js";
+import { ResourceId } from './definition.js';
 export type Resource = {
-    id: ResourceId;
+    resourceId: ResourceId;
     name: string;
     icon?: string;
     currentValue: number;

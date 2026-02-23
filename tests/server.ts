@@ -3,14 +3,13 @@ import path from 'path';
 import { GameServer, type GameServerOptions } from 'react-game-ui/server';
 import { fileURLToPath } from 'url';
 
-// データファイルのインポート（TS化されている想定、または @ts-ignore で対応）
 // @ts-ignore
 import { cardEffects } from './data/cardEffects.js';
 // @ts-ignore
 import { cellEffects } from './data/cellEffects.js';
 // @ts-ignore
 import { Card } from '../src/types/card.js';
-import { GameId, RoomState } from '../src/types/server.js';
+import { GameId, RoomParam, RoomState } from '../src/types/server.js';
 import { customEvents } from './data/customEvents.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -96,8 +95,15 @@ async function startServer() {
   })();
 
   const DEEP_SEA_RESOURCES = [
-    { id: 'OXYGEN', name: '酸素', icon: '🫧', currentValue: 50, maxValue: 50, type: 'CONSUMABLE' },
-    { id: 'BATTERY', name: 'バッテリー', icon: '🔋', currentValue: 6, maxValue: 6, type: 'CONSUMABLE' },
+    { resourceId: 'OXYGEN', name: '酸素', icon: '🫧', currentValue: 50, maxValue: 50, type: 'CONSUMABLE' as const },
+    {
+      resourceId: 'BATTERY',
+      name: 'バッテリー',
+      icon: '🔋',
+      currentValue: 6,
+      maxValue: 6,
+      type: 'CONSUMABLE' as const,
+    },
   ];
 
   const DEEP_SEA_TOKENS_ARTIFACT = [{ id: 'ARTIFACT', name: '💰', color: '#D4AF37' }];
@@ -112,13 +118,15 @@ async function startServer() {
     );
 
   // --- プリセット定義 ---
-  const GAME_PRESETS_COLLECTION: Record<GameId, any> = {
+  const GAME_PRESETS_COLLECTION: Record<GameId, RoomParam> = {
     sample: {
+      gameId: 'sample',
       initialDecks: [{ deckId: 'numberDeck', name: '数字カード', cards: numberCardsJson, backColor: '#000000ff' }],
       initialBoard: [[{ id: 'start', type: 'START', position: { row: 0, col: 0 }, effect: 'start' }]],
       maxPlayers: 1,
     },
     deepsea: {
+      gameId: 'deepsea',
       initialDecks: [
         { deckId: 'deepSeaSpecies', name: '深海生物カード', cards: deepSeaSpeciesDeckJson, backColor: '#0d3c99ff' },
         {
