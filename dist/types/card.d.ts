@@ -13,7 +13,7 @@ export type Card = {
     drawCondition: [CardLocation, CardState];
     playLocation: CardLocation;
     fieldBackLocation: CardLocation;
-    isFaceUp?: boolean;
+    isFaceUp: boolean;
     frontImage?: string;
     backColor: string;
     coordinate?: Coordinate;

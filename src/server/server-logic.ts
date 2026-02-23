@@ -90,7 +90,7 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
     drawnCards[deck.deckId] = [];
     playFieldCards[deck.deckId] = [];
     discardPile[deck.deckId] = [];
-    server_log('deck', roomParam.gameId || 'Standard', roomId, `デッキ "${deck.deckId}" 初期化完了`);
+    server_log('deck', roomParam.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
   });
 
   const roomState: RoomState = {
@@ -237,6 +237,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
           position: { row: 0, col: 0 },
         };
         gameParam.players.push(player);
+        server_log('game', roomParam.gameId, roomId, `${player.name} (${player.id})が参加しました`);
 
         const hand = roomParam.initialHand;
         if (hand && decks[hand.deckId]) {
@@ -244,10 +245,20 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
           for (let i = 0; i < hand.count; i++) {
             const idx = target.findIndex((c) => c.location === 'deck');
             if (idx === -1) break;
-            target[idx].location = 'hand';
-            target[idx].ownerId = player.id;
-            player.cards.push(target[idx]);
+
+            const card = target[idx];
+            card.location = 'hand';
+            card.ownerId = player.id;
+            card.isFaceUp = card.drawCondition[1] === 'face' ? true : false;
+
+            player.cards.push(card);
           }
+          server_log(
+            'deck',
+            roomParam.gameId,
+            roomId,
+            `デッキ "${hand.deckId}" から初期手札 ${hand.count}枚 を配布しました`,
+          );
         }
       } else {
         player.socketId = socket.id;
