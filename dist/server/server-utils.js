@@ -18,14 +18,25 @@ export let LOG_CATEGORIES = {
 };
 const ANSI_RED = '\x1b[31m';
 const ANSI_RESET = '\x1b[0m';
-export function server_log(tag, gamePresetId, roomId, ...args) {
-    if (!LOG_CATEGORIES[tag])
-        return;
+/**
+ * サーバーの実行ログを出力する
+ * @param tag - ログのカテゴリ
+ * @param gamePresetId - 対象のゲームプリセットID
+ * @param roomId - 対象のルームID
+ * @param firstArg - ログのメイン内容（1つ以上の引数が必須）
+ * @param args - 追加のログ情報
+ */
+export function server_log(tag, gamePresetId, roomId, firstArg, ...args) {
+    if (!LOG_CATEGORIES[tag]) {
+        throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
+    }
+    const fullArgs = [firstArg, ...args];
     if (tag === 'warn') {
-        console.warn(ANSI_RED + `[${tag}]` + ANSI_RESET, ...args.map((arg) => ANSI_RED + String(arg) + ANSI_RESET));
+        const header = `[${tag}] [${gamePresetId} (${roomId})]`;
+        console.warn(ANSI_RED + header + ANSI_RESET, ...fullArgs.map((arg) => ANSI_RED + String(arg) + ANSI_RESET));
     }
     else {
-        console.log(`[${tag}] [${gamePresetId} (${roomId})]`, ...args);
+        console.log(`[${tag}] [${gamePresetId} (${roomId})]`, ...fullArgs);
     }
 }
 export const isExplored = (gameParam, position) => {

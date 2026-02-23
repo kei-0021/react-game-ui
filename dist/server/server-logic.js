@@ -436,7 +436,7 @@ export function initGameServer(io, options = {}) {
             if (!roomState)
                 return;
             const val = Math.floor(Math.random() * sides) + 1;
-            server_log('dice', roomState.gameId, `Dice ${diceId} rolled. Result: ${val}`);
+            server_log('dice', roomState.gameId, roomId, `Dice ${diceId} rolled. Result: ${val}`);
             io.to(roomId).emit(`dice:rolled:${roomId}:${diceId}`, val);
         });
         // タイマー・その他同期

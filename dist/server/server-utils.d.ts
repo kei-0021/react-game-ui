@@ -4,7 +4,15 @@ import { Token } from '@/types/token.js';
 import { TokenStoreDef } from '@/types/tokenStore.js';
 export type LogCategory = 'connection' | 'deck' | 'card' | 'cell' | 'game' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'room' | 'lobby' | 'disconnect' | 'warn' | 'popup' | 'custom_event';
 export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
-export declare function server_log(tag: LogCategory, gamePresetId: GameId, roomId: RoomId, ...args: any[]): void;
+/**
+ * サーバーの実行ログを出力する
+ * @param tag - ログのカテゴリ
+ * @param gamePresetId - 対象のゲームプリセットID
+ * @param roomId - 対象のルームID
+ * @param firstArg - ログのメイン内容（1つ以上の引数が必須）
+ * @param args - 追加のログ情報
+ */
+export declare function server_log(tag: LogCategory, gamePresetId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void;
 export declare const isExplored: (gameParam: IInitialRoomState, position: Position) => boolean;
 export declare const markCellAsExplored: (gameParam: IInitialRoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
 export declare const unmarkCellAsExplored: (gameParam: IInitialRoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
