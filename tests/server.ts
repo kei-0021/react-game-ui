@@ -9,6 +9,7 @@ import { cardEffects } from './data/cardEffects.js';
 // @ts-ignore
 import { cellEffects } from './data/cellEffects.js';
 // @ts-ignore
+import { Card } from '../src/types/card.js';
 import { GameId, RoomState } from '../src/types/server.js';
 import { customEvents } from './data/customEvents.js';
 
@@ -34,10 +35,10 @@ async function startServer() {
   // 複数のJSONファイルを並行してロード
   const [numberCardsJson, deepSeaActionCardsBaseJson, deepSeaCellsBaseJson, deepSeaSpeciesDeckJson] = await Promise.all(
     [
-      loadJson<any[]>('./data/numberCards.json'),
-      loadJson<any[]>('./data/deepSeaActionCards.json'),
+      loadJson<Card[]>('./data/numberCards.json'),
+      loadJson<Card[]>('./data/deepSeaActionCards.json'),
       loadJson<any[]>('./data/deepSeaCells.json'),
-      loadJson<any[]>('./data/deepSeaSpeciesCards.json'),
+      loadJson<Card[]>('./data/deepSeaSpeciesCards.json'),
     ],
   );
 
@@ -55,8 +56,8 @@ async function startServer() {
   const ROWS = 8;
   const COLS = 8;
 
-  const createUniqueCards = (cards: any[], numSets: number) => {
-    const allCards: any[] = [];
+  const createUniqueCards = (cards: Card[], numSets: number): Card[] => {
+    const allCards: Card[] = [];
     for (let i = 1; i <= numSets; i++) {
       cards.forEach((card) => allCards.push({ ...card, id: `${card.id}-set${i}` }));
     }

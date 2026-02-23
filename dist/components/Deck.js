@@ -1,5 +1,4 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-// src/components/Deck.tsx
 import * as React from 'react';
 import cardStyles from './Card.module.css';
 import deckStyles from './Deck.module.css';
@@ -43,26 +42,23 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
         };
     }, [socket, roomId, deckId]);
     const draw = () => {
-        if (deckCards.length === 0)
+        if (!deckCards || deckCards.length === 0)
             return;
         const cardToDraw = deckCards[0];
-        const drawLocation = cardToDraw?.drawLocation || 'hand';
+        const [targetLocation, targetState] = cardToDraw.drawCondition || ['hand', 'back'];
+        // 送信用データの作成
         const requestData = {
             roomId,
             deckId,
-            drawLocation,
+            drawCondition: [targetLocation, targetState],
         };
-        // drawLocation が 'hand' の場合のみ playerId を付与する
-        if (drawLocation === 'hand') {
-            // 判定条件:
-            // 1. alwaysDraw が true である
-            // 2. または、自分のターンである (currentPlayerId === myPlayerId)
+        // 権限チェック
+        if (targetLocation === 'hand') {
             const canDrawToHand = alwaysDraw || currentPlayerId === myPlayerId;
             if (canDrawToHand && myPlayerId) {
                 requestData.playerId = myPlayerId;
             }
             else {
-                // 自分のターンでない、または自分が何者か不明な場合は処理を中断
                 console.warn('手札に引く権限がありません。');
                 return;
             }

@@ -12,6 +12,7 @@ import {
 
 import { DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
 import { RoomMeta, RoomParam, RoomState } from '@/types/server.js';
+import { DeckDrawSocketData } from '@/types/socketData.js';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
 import type { GameServerOptions } from './server.js';
@@ -304,7 +305,10 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     });
 
     // カードを引く
-    socket.on('deck:draw', ({ roomId, deckId, playerId, drawLocation = 'hand' }) => {
+    socket.on('deck:draw', (data: DeckDrawSocketData) => {
+      const { roomId, deckId, playerId, drawCondition } = data;
+      const [targetLocation, targetState] = drawCondition;
+
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
 
@@ -321,23 +325,24 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
 
       let destination = '';
 
+      // 状態（表裏）を反映
+      card.isFaceUp = targetState === 'face';
+
       // --- 移動ロジック開始 ---
 
       // A. 引いた瞬間に捨て札にする場合
-      if (drawLocation == 'discard') {
+      if (targetLocation === 'discard') {
         card.location = 'discard';
         card.ownerId = null;
-        card.isFaceUp = true;
         roomState.discardPile[deckId].push(card);
         destination = 'discard';
       }
       // B. プレイヤーを指定して引く場合
-      else if (playerId) {
+      else if (playerId && targetLocation === 'hand') {
         const player = roomState.initRoomState.players.find((p) => p.id === playerId);
         if (player) {
           player.cards = player.cards || [];
-          card.location = drawLocation;
-          card.isFaceUp = false;
+          card.location = 'hand';
           card.ownerId = playerId;
           player.cards.push(card);
           destination = playerId;
@@ -347,12 +352,16 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
       else {
         card.ownerId = null;
         card.location = 'field';
-        card.isFaceUp = true;
         roomState.playFieldCards[deckId].push(card);
         destination = 'field';
       }
 
-      server_log('deck', roomState.gameId, roomId, `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination})`);
+      server_log(
+        'deck',
+        roomState.gameId,
+        roomId,
+        `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`,
+      );
 
       emitDeckUpdate(roomId, deckId);
       emitPlayerUpdate(roomId);

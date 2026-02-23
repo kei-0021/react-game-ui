@@ -4,7 +4,7 @@
     "name": "ファイアボール",
     "description": "敵に大ダメージを与える炎の魔法。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   },
   {
@@ -12,7 +12,7 @@
     "name": "ヒーリング",
     "description": "味方を回復させる光の魔法。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   },
   {
@@ -20,7 +20,7 @@
     "name": "ゴブリン兵",
     "description": "フィールドに出すと物理攻撃を行う。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   },
   {
@@ -28,7 +28,7 @@
     "name": "シールド",
     "description": "一時的に防御力を高める。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   },
   {
@@ -36,7 +36,7 @@
     "name": "ファイアボール",
     "description": "敵に大ダメージを与える炎の魔法。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   },
   {
@@ -44,7 +44,7 @@
     "name": "ヒーリング",
     "description": "味方を回復させる光の魔法。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   },
   {
@@ -52,7 +52,7 @@
     "name": "ゴブリン兵",
     "description": "フィールドに出すと物理攻撃を行う。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   },
   {
@@ -60,7 +60,7 @@
     "name": "シールド",
     "description": "一時的に防御力を高める。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   },
   {
@@ -68,7 +68,7 @@
     "name": "ファイアボール",
     "description": "敵に大ダメージを与える炎の魔法。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   },
   {
@@ -76,7 +76,7 @@
     "name": "ヒーリング",
     "description": "味方を回復させる光の魔法。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   }
 ]

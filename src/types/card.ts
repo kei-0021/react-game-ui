@@ -1,6 +1,7 @@
 // src/types/card.ts
 
 import { CardLocation } from './cardLocation.js';
+import { CardState } from './cardState.js';
 import { CardId, DeckId, PlayerId } from './definition.js';
 import { Coordinate } from './server.js';
 
@@ -12,7 +13,7 @@ export type Card = {
   onPlay?: (...args: any[]) => void;
   ownerId: PlayerId | null;
   location: CardLocation;
-  drawLocation: CardLocation;
+  drawCondition: [CardLocation, CardState];
   playLocation: CardLocation;
   fieldBackLocation: CardLocation;
   isFaceUp?: boolean;

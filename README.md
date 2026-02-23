@@ -73,7 +73,7 @@ pnpm run dev:multi
     "name": "ファイアボール",
     "description": "敵に大ダメージを与える炎の魔法。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   },
   {
@@ -81,7 +81,7 @@ pnpm run dev:multi
     "name": "ヒーリング",
     "description": "味方を回復させる光の魔法。",
     "location": "deck",
-    "drawLocation": "hand",
+    "drawCondition": ["hand", "back"],
     "playLocation": "field"
   },
 ]
