@@ -30,7 +30,7 @@ export interface GameServerOptions {
   initialTokens?: Record<string, Token[]>;
   initialResources?: any[];
   initialBoard?: any[][];
-  cellEffects?: Record<string, any>; // any[] から変更
+  cellEffects?: Record<string, any>;
   customEvents?: any;
   initialLogCategories?: Record<string, boolean> | null;
   onServerStart?: (url: string) => void;
@@ -54,8 +54,8 @@ export class GameServer {
   private initialTokens: Record<string, Token[]>;
   private initialResources: any[];
   private initialBoard: any[][];
-  private cellEffects: Record<string, any>; // any[] から修正
-  private customEvents: any; // any[] から修正
+  private cellEffects: Record<string, any>;
+  private customEvents: any;
   private initialLogCategories: Record<string, boolean> | null;
 
   public app: express.Application;
@@ -69,10 +69,13 @@ export class GameServer {
     this.corsOrigins = options.corsOrigins || ['http://localhost:5173'];
     this.onServerStart = options.onServerStart;
 
+    // プリセット情報を保持（各ルームはこの情報を元に生成される）
     this.gamePresets = options.gamePresets || {};
+
     this.checkGameEnd = options.checkGameEnd || null;
     this.onGameEnd = options.onGameEnd || null;
 
+    // サーバー全体のデフォルト設定
     this.initialDecks = options.initialDecks || [];
     this.cardEffects = options.cardEffects || {};
     this.initialTokenStores = options.initialTokenStores || {};
@@ -80,8 +83,8 @@ export class GameServer {
     this.initialTokens = options.initialTokens || {};
     this.initialResources = options.initialResources || [];
     this.initialBoard = options.initialBoard || [];
-    this.cellEffects = options.cellEffects || {}; // [] から {} に修正
-    this.customEvents = options.customEvents || {}; // [] から {} に修正
+    this.cellEffects = options.cellEffects || {};
+    this.customEvents = options.customEvents || {};
     this.initialLogCategories = options.initialLogCategories || null;
 
     this.app = express();
@@ -122,10 +125,17 @@ export class GameServer {
     }
   }
 
+  /**
+   * ゲームロジックの初期化
+   * 各プリセット情報をそのまま渡すことで、ルームごとに独立した効果を適用可能にする
+   */
   private initSocketLogic(): void {
     try {
       initGameServer(this.io, {
+        // プリセットをそのまま流し込む
         gamePresets: this.gamePresets,
+
+        // 共通設定・フォールバック用
         checkGameEnd: this.checkGameEnd,
         onGameEnd: this.onGameEnd,
         initialDecks: this.initialDecks,

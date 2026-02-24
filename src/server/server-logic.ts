@@ -116,11 +116,31 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
 
 export function initGameServer(io: Server, options: GameServerOptions = {}) {
   const gamePresets = options.gamePresets || {};
-  const cellEffects = options.cellEffects || {};
+
+  // サーバー全体のデフォルト設定（もしあれば）
+  const defaultCardEffects = options.cardEffects || {};
+  const defaultCellEffects = options.cellEffects || {};
 
   if (options.initialLogCategories) {
     Object.assign(LOG_CATEGORIES, options.initialLogCategories);
     console.log('[log] ログカテゴリをオプションで初期化しました。', LOG_CATEGORIES);
+  }
+
+  // --- 修正：プリセットごとの中身をスキャンしてログに出す ---
+  Object.entries(gamePresets).forEach(([gameId, preset]) => {
+    if (preset.cardEffects) {
+      const keys = Object.keys(preset.cardEffects);
+      console.log(`[log] プリセット [${gameId}] cardEffects (${keys.length}件): [ ${keys.join(', ')} ]`);
+    }
+    if (preset.cellEffects) {
+      const keys = Object.keys(preset.cellEffects);
+      console.log(`[log] プリセット [${gameId}] cellEffects (${keys.length}件): [ ${keys.join(', ')} ]`);
+    }
+  });
+
+  // サーバー全体のデフォルト設定がある場合のみ表示
+  if (Object.keys(defaultCardEffects).length > 0) {
+    console.log(`[log] 共通(default) cardEffects: [ ${Object.keys(defaultCardEffects).join(', ')} ]`);
   }
 
   // --- ヘルパー関数 ---
@@ -298,7 +318,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
           roomId,
           playerId,
           newPosition,
-          cellEffects,
+          defaultCellEffects,
           (pId, pts) => addScore(roomId, pId, pts),
           (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt),
           (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt),
@@ -478,7 +498,6 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
           card.location = playLocation as any;
           if (coordinate?.x != null && coordinate?.y != null) {
             card.coordinate = coordinate;
-            server_log('card', roomState.gameId, roomId, `Update Coord: x=${coordinate.x}, y=${coordinate.y}`);
           }
           card.isFaceUp = true;
 
@@ -489,6 +508,22 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
             roomState.discardPile[deckId].push(card);
           } else {
             roomState.playFieldCards[deckId].push(card);
+          }
+
+          server_log('card', roomState.gameId, roomId, `"${card.name}" をプレイした`);
+
+          // カード効果
+          const preset = gamePresets[roomState.gameId];
+          const effect = preset?.cardEffects?.[card.name] || defaultCardEffects[card.name];
+          if (effect) {
+            server_log('card', roomState.gameId, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
+            effect({
+              playerId,
+              addScore: (points: number) => addScore(roomId, playerId, points),
+              updateResource: (resourceId: string, amount: number) =>
+                updatePlayerResource(roomId, playerId, resourceId, amount),
+              updateToken: (tokenId: string, amount: number) => updatePlayerToken(roomId, playerId, tokenId, amount),
+            });
           }
         });
 

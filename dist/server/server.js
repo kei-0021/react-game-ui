@@ -23,8 +23,8 @@ export class GameServer {
     initialTokens;
     initialResources;
     initialBoard;
-    cellEffects; // any[] から修正
-    customEvents; // any[] から修正
+    cellEffects;
+    customEvents;
     initialLogCategories;
     app;
     httpServer;
@@ -35,9 +35,11 @@ export class GameServer {
         this.clientDistPath = options.clientDistPath || path.resolve(__dirname, '../tests');
         this.corsOrigins = options.corsOrigins || ['http://localhost:5173'];
         this.onServerStart = options.onServerStart;
+        // プリセット情報を保持（各ルームはこの情報を元に生成される）
         this.gamePresets = options.gamePresets || {};
         this.checkGameEnd = options.checkGameEnd || null;
         this.onGameEnd = options.onGameEnd || null;
+        // サーバー全体のデフォルト設定
         this.initialDecks = options.initialDecks || [];
         this.cardEffects = options.cardEffects || {};
         this.initialTokenStores = options.initialTokenStores || {};
@@ -45,8 +47,8 @@ export class GameServer {
         this.initialTokens = options.initialTokens || {};
         this.initialResources = options.initialResources || [];
         this.initialBoard = options.initialBoard || [];
-        this.cellEffects = options.cellEffects || {}; // [] から {} に修正
-        this.customEvents = options.customEvents || {}; // [] から {} に修正
+        this.cellEffects = options.cellEffects || {};
+        this.customEvents = options.customEvents || {};
         this.initialLogCategories = options.initialLogCategories || null;
         this.app = express();
         this.httpServer = createServer(this.app);
@@ -84,10 +86,16 @@ export class GameServer {
             });
         }
     }
+    /**
+     * ゲームロジックの初期化
+     * 各プリセット情報をそのまま渡すことで、ルームごとに独立した効果を適用可能にする
+     */
     initSocketLogic() {
         try {
             initGameServer(this.io, {
+                // プリセットをそのまま流し込む
                 gamePresets: this.gamePresets,
+                // 共通設定・フォールバック用
                 checkGameEnd: this.checkGameEnd,
                 onGameEnd: this.onGameEnd,
                 initialDecks: this.initialDecks,

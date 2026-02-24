@@ -50,6 +50,10 @@ export declare class GameServer {
     io: SocketIOServer;
     constructor(options?: GameServerOptions);
     private setupStaticRoutes;
+    /**
+     * ゲームロジックの初期化
+     * 各プリセット情報をそのまま渡すことで、ルームごとに独立した効果を適用可能にする
+     */
     private initSocketLogic;
     start(): void;
 }

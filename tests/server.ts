@@ -3,11 +3,7 @@ import path from 'path';
 import { GameServer, type GameServerOptions } from 'react-game-ui/server';
 import { fileURLToPath } from 'url';
 
-// @ts-ignore
-import { cardEffects } from './data/cardEffects.js';
-// @ts-ignore
-import { cellEffects } from './data/cellEffects.js';
-// @ts-ignore
+// 型定義のインポート（実行用データは startServer 内で動的に読む）
 import { Card } from '../src/types/card.js';
 import { GameId, RoomParam, RoomState } from '../src/types/server.js';
 import { customEvents } from './data/customEvents.js';
@@ -31,6 +27,16 @@ async function loadJson<T>(relativePath: string): Promise<T> {
 
 // --- メインサーバー起動ロジック ---
 async function startServer() {
+  // 動的インポートにより、タイミング問題を回避して効果データを取得
+  const [cardEffectsModule, cellEffectsModule] = await Promise.all([
+    import('./data/cardEffects.js').catch(() => ({ cardEffects: {} })),
+    import('./data/cellEffects.js').catch(() => ({ cellEffects: {} })),
+  ]);
+
+  // module.cardEffects から取得
+  const activeCardEffects = cardEffectsModule.cardEffects || {};
+  const activeCellEffects = cellEffectsModule.cellEffects || {};
+
   // 複数のJSONファイルを並行してロード
   const [numberCardsJson, deepSeaActionCardsBaseJson, deepSeaCellsBaseJson, deepSeaSpeciesDeckJson] = await Promise.all(
     [
@@ -135,14 +141,14 @@ async function startServer() {
           backColor: '#0d8999ff',
         },
       ],
-      cardEffects,
+      cardEffects: activeCardEffects, // 動的ロードしたデータを適用
       initialResources: DEEP_SEA_RESOURCES,
       initialTokenStores: [
         { tokenStoreId: 'ARTIFACT', name: '遺物', tokens: createUniqueTokens(DEEP_SEA_TOKENS_ARTIFACT, 10) },
       ],
       initialHand: { deckId: 'deepSeaAction', count: 6 },
       initialBoard: { deepAbyssBoard: completeDeepSeaCells2D },
-      cellEffects,
+      cellEffects: activeCellEffects, // 動적ロードしたデータを適用
       checkGameEnd: (room: RoomState) =>
         // 終了条件: 5ラウンド終了 (5ラウンド目の最後 かつ 最後のプレイヤーの手番時)
         room.currentRoundIndex >= 4 && room.currentTurnIndex == room.initRoomState.players.length - 1,
