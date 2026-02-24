@@ -9,7 +9,9 @@
     "location": "deck",
     "drawCondition": ["hand", "face"],
     "playLocation": "field",
-    "fieldBackLocation": "hand"
+    "fieldBackLocation": "hand",
+    "freeShape": "true",
+    "frontImage": "/hanabishi.svg"
   },
   {
     "id": "card-A-02",

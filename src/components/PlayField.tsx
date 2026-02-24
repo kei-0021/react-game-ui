@@ -1,5 +1,6 @@
 // src/components/PlayField.tsx
 
+import { CardMoveFromFieldData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
@@ -166,12 +167,7 @@ export function PlayField({
 
   const handleCardBack = (card: Card) => {
     const backTo = card.fieldBackLocation || 'discard';
-    const requestData: {
-      roomId: RoomId;
-      deckId: DeckId;
-      cardId: string;
-      targetPlayerId?: PlayerId;
-    } = {
+    const requestData: CardMoveFromFieldData = {
       roomId,
       deckId: card.deckId || deckId,
       cardId: card.id,
@@ -212,6 +208,9 @@ export function PlayField({
           const owner = players.find((p) => p.id === card.ownerId);
           const isDragging = activeDraggingId === card.id;
 
+          // 画像がないのに freeShape が true になっている事故を防ぐための判定
+          const isActuallyFreeShape = !!(card.freeShape && card.frontImage);
+
           const isOverlapping = playedCards
             .slice(0, index)
             .some(
@@ -239,13 +238,24 @@ export function PlayField({
               key={card.id}
               onPointerDown={(e) => handlePointerDown(e, card)}
               onPointerUp={handlePointerUp}
-              className={`${styles.card} rg-playfield-card-wrapper`}
+              className={`${isActuallyFreeShape ? '' : styles.card} rg-playfield-card-wrapper`}
               style={
                 {
                   '--owner-color': owner?.color || '#aaaaaa',
                   ...freeStyle,
                   touchAction: 'none',
                   cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
+                  // サイズを固定して安定させる
+                  width: '80px',
+                  height: '112px',
+                  ...(isActuallyFreeShape
+                    ? {
+                        background: 'transparent',
+                        border: 'none',
+                        boxShadow: 'none',
+                        padding: 0,
+                      }
+                    : {}),
                 } as React.CSSProperties
               }
               onDoubleClick={() => handleCardBack(card)}
