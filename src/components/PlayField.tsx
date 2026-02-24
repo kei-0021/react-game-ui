@@ -46,6 +46,7 @@ type PlayFieldProps = {
   myPlayerId: PlayerId | null;
   layoutMode?: 'grid' | 'free';
   is_logging?: boolean;
+  backgroundImage?: string;
 };
 
 export function PlayField({
@@ -57,6 +58,7 @@ export function PlayField({
   myPlayerId,
   layoutMode = 'free',
   is_logging = false,
+  backgroundImage,
 }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(null);
@@ -148,7 +150,7 @@ export function PlayField({
       playerId: myPlayerId,
       // サーバー側の strict な if 文に合わせて "field" 固定で送る
       playLocation: 'field',
-      coordinate: { x, y }, // 座標を渡す
+      coordinate: { x, y },
     });
 
     if (is_logging) {
@@ -198,7 +200,11 @@ export function PlayField({
           position: layoutMode === 'free' ? 'relative' : undefined,
           minHeight: '600px',
           touchAction: 'none',
-          overflow: 'hidden', // 枠外はみ出し防止
+          overflow: 'hidden',
+          backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }}
       >
         {playedCards.map((card, index) => {

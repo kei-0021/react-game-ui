@@ -240,6 +240,7 @@ export function DeepAbyssRoom() {
               title="アクションカード"
               myPlayerId={myPlayerId}
               players={players}
+              backgroundImage="/gameboard.png"
             />
             <PlayField
               socket={socket}
