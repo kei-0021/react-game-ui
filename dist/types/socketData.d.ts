@@ -7,4 +7,10 @@ export type DeckDrawSocketData = {
     playerId?: PlayerId | null;
     drawCondition: [CardLocation, CardState];
 };
+export type CardMoveFromFieldData = {
+    roomId: RoomId;
+    deckId: DeckId;
+    cardId: string;
+    targetPlayerId?: PlayerId;
+};
 //# sourceMappingURL=socketData.d.ts.map

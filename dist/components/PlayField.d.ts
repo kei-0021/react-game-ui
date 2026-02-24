@@ -11,7 +11,8 @@ type PlayFieldProps = {
     myPlayerId: PlayerId | null;
     layoutMode?: 'grid' | 'free';
     is_logging?: boolean;
+    backgroundImage?: string;
 };
-export declare function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode, is_logging, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
+export declare function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode, is_logging, backgroundImage, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=PlayField.d.ts.map
