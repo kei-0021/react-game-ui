@@ -1,3 +1,5 @@
+import { CardLocation } from '@/types/cardLocation.js';
+import { CardPlayData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import { Card } from '../types/card.js';
@@ -242,27 +244,30 @@ export function ScoreBoard({
     if (!myPlayer) return;
 
     const cardsByDeck: Record<string, string[]> = {};
-    let targetPlayLocation: string | undefined;
+    let targetPlayLocation: CardLocation | undefined;
 
     selectedCards.forEach((cardId) => {
       const card = myPlayer.cards.find((c) => c.id === cardId);
       if (!card) return;
-      if (!targetPlayLocation) targetPlayLocation = card.playLocation as string;
+      if (!targetPlayLocation) targetPlayLocation = card.playLocation as CardLocation;
       if (!cardsByDeck[card.deckId]) cardsByDeck[card.deckId] = [];
       cardsByDeck[card.deckId].push(card.id);
     });
 
     if (!targetPlayLocation) return;
+    const finalLocation: CardLocation = targetPlayLocation;
 
     Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
-      socket.emit('card:play', {
+      const playData: CardPlayData = {
         roomId,
         deckId,
         cardIds,
         playerId: myPlayerId,
-        playLocation: targetPlayLocation,
-        position: { x: 50, y: 50 },
-      });
+        playLocation: finalLocation,
+        coordinate: { x: 50, y: 50 },
+      };
+
+      socket.emit('card:play', playData);
     });
 
     if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId });

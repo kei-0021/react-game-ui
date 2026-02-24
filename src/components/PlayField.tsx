@@ -1,6 +1,6 @@
 // src/components/PlayField.tsx
 
-import { CardMoveFromFieldData, DeckUpdateData } from '@/types/socketData.js';
+import { CardMoveFromFieldData, CardPlayData, DeckUpdateData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
@@ -143,15 +143,16 @@ export function PlayField({
     y = Math.max(0, Math.min(100, y));
 
     // サーバーへ「この場所にプレイする」と送信
-    socket.emit('card:play', {
+    const playData: CardPlayData = {
       roomId,
       deckId: droppedDeckId,
       cardIds: [droppedCardId],
       playerId: myPlayerId,
-      // サーバー側の strict な if 文に合わせて "field" 固定で送る
       playLocation: 'field',
       coordinate: { x, y },
-    });
+    };
+
+    socket.emit('card:play', playData);
 
     if (is_logging) {
       client_log('playField', `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`);

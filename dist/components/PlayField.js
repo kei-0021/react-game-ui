@@ -92,15 +92,15 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         x = Math.max(0, Math.min(100, x));
         y = Math.max(0, Math.min(100, y));
         // サーバーへ「この場所にプレイする」と送信
-        socket.emit('card:play', {
+        const playData = {
             roomId,
             deckId: droppedDeckId,
             cardIds: [droppedCardId],
             playerId: myPlayerId,
-            // サーバー側の strict な if 文に合わせて "field" 固定で送る
             playLocation: 'field',
             coordinate: { x, y },
-        });
+        };
+        socket.emit('card:play', playData);
         if (is_logging) {
             client_log('playField', `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`);
         }

@@ -12,7 +12,7 @@ import {
 
 import { DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
 import { RoomMeta, RoomParam, RoomState } from '@/types/server.js';
-import { DeckDrawData, DeckUpdateData } from '@/types/socketData.js';
+import { CardPlayData, DeckDrawData, DeckUpdateData } from '@/types/socketData.js';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
 import type { GameServerOptions } from './server.js';
@@ -458,40 +458,43 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
       }
     });
 
-    socket.on('card:play', ({ roomId, deckId, cardIds, playerId, playLocation = 'field', coordinate }) => {
-      const roomState = activeRooms.get(roomId);
-      if (!roomState) return;
+    socket.on(
+      'card:play',
+      ({ roomId, deckId, cardIds, playerId, playLocation = 'field', coordinate }: CardPlayData) => {
+        const roomState = activeRooms.get(roomId);
+        if (!roomState) return;
 
-      const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+        const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 
-      ids.forEach((id) => {
-        const card = roomState.decks[deckId]?.find((c) => c.id === id);
-        if (!card) return;
+        ids.forEach((id) => {
+          const card = roomState.decks[deckId]?.find((c) => c.id === id);
+          if (!card) return;
 
-        if (playerId) {
-          const p = roomState.initRoomState.players.find((p) => p.id === playerId);
-          if (p) p.cards = p.cards.filter((c) => c.id !== id);
-        }
+          if (playerId) {
+            const p = roomState.initRoomState.players.find((p) => p.id === playerId);
+            if (p) p.cards = p.cards.filter((c) => c.id !== id);
+          }
 
-        card.location = playLocation as any;
-        if (coordinate?.x != null && coordinate?.y != null) {
-          card.coordinate = coordinate;
-          server_log('card', roomState.gameId, roomId, `Update Coord: x=${coordinate.x}, y=${coordinate.y}`);
-        }
-        card.isFaceUp = true;
+          card.location = playLocation as any;
+          if (coordinate?.x != null && coordinate?.y != null) {
+            card.coordinate = coordinate;
+            server_log('card', roomState.gameId, roomId, `Update Coord: x=${coordinate.x}, y=${coordinate.y}`);
+          }
+          card.isFaceUp = true;
 
-        roomState.playFieldCards[deckId] = roomState.playFieldCards[deckId].filter((c) => c.id !== id);
-        roomState.discardPile[deckId] = roomState.discardPile[deckId].filter((c) => c.id !== id);
+          roomState.playFieldCards[deckId] = roomState.playFieldCards[deckId].filter((c) => c.id !== id);
+          roomState.discardPile[deckId] = roomState.discardPile[deckId].filter((c) => c.id !== id);
 
-        if (playLocation === 'discard') {
-          roomState.discardPile[deckId].push(card);
-        } else {
-          roomState.playFieldCards[deckId].push(card);
-        }
-      });
+          if (playLocation === 'discard') {
+            roomState.discardPile[deckId].push(card);
+          } else {
+            roomState.playFieldCards[deckId].push(card);
+          }
+        });
 
-      emitDeckUpdate(roomId, deckId);
-    });
+        emitDeckUpdate(roomId, deckId);
+      },
+    );
 
     // ドラッグ中も監視
     socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {

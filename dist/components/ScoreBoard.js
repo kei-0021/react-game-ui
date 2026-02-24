@@ -122,15 +122,17 @@ export function ScoreBoard({ socket, players, currentPlayerId, myPlayerId, roomI
         });
         if (!targetPlayLocation)
             return;
+        const finalLocation = targetPlayLocation;
         Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
-            socket.emit('card:play', {
+            const playData = {
                 roomId,
                 deckId,
                 cardIds,
                 playerId: myPlayerId,
-                playLocation: targetPlayLocation,
-                position: { x: 50, y: 50 },
-            });
+                playLocation: finalLocation,
+                coordinate: { x: 50, y: 50 },
+            };
+            socket.emit('card:play', playData);
         });
         if (autoNextTurnOnCardPlay)
             socket.emit('game:next-turn', { roomId });
