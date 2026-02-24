@@ -1,3 +1,4 @@
+// src/components/ScoreBoard.tsx
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardPlayData } from '@/types/socketData.js';
 import * as React from 'react';

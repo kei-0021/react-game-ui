@@ -146,9 +146,20 @@
   word-break: break-all;
   text-align: center;
   padding: 4px;
+  /* ドラッグ＆ドロップの感触を向上 */
+  cursor: grab;
+  user-select: none;
   transition:
     transform 0.2s,
-    box-shadow 0.2s;
+    box-shadow 0.2s,
+    opacity 0.2s;
+}
+
+/* ドラッグ開始時（元いた場所）の見た目 */
+.cardBase:active {
+  cursor: grabbing;
+  opacity: 0.5;
+  transform: scale(0.95);
 }
 
 .cardSelected {
@@ -161,6 +172,8 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  /* 画像そのものがドラッグを邪魔しないように設定 */
+  pointer-events: none;
 }
 
 .cardNameText {
@@ -235,9 +248,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* 背景色を指定の rgba に合わせました */
   background: rgba(0, 0, 0, 0.4);
-  /* 境界線も馴染むように透過を持たせています */
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   border-radius: 4px;
@@ -249,7 +260,6 @@
 }
 
 .debugBtn:hover {
-  /* ホバー時は少し明るくして操作感を出します */
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.4);
 }
