@@ -91,7 +91,6 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         let y = ((e.clientY - rect.top) / rect.height) * 100;
         x = Math.max(0, Math.min(100, x));
         y = Math.max(0, Math.min(100, y));
-        // サーバーへ「この場所にプレイする」と送信
         const playData = {
             roomId,
             deckId: droppedDeckId,
@@ -106,7 +105,6 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         }
     };
     const handleDragOver = (e) => {
-        // ドロップを有効にするために必須
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
     };
@@ -126,7 +124,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
     };
     return (_jsxs("section", { className: `rg-playfield mode-${layoutMode}`, style: {
             background: backgroundImage ? `url(${backgroundImage}) center/cover no-repeat` : undefined,
-        }, children: [_jsx("h3", { className: "rg-playfield-title", children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), ' ', _jsx("div", { ref: containerRef, className: "rg-playfield-container", onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
+        }, children: [_jsx("h3", { className: "rg-playfield-title", children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsx("div", { ref: containerRef, className: "rg-playfield-container", onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
                     position: 'relative',
                     minHeight: '600px',
                     touchAction: 'none',
@@ -134,7 +132,6 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                 }, children: playedCards.map((card, index) => {
                     const owner = players.find((p) => p.id === card.ownerId);
                     const isDragging = activeDraggingId === card.id;
-                    // 画像がないのに freeShape が true になっている事故を防ぐための判定
                     const isActuallyFreeShape = !!(card.freeShape && card.frontImage);
                     const isOverlapping = playedCards
                         .slice(0, index)
@@ -147,24 +144,23 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                             left: `${card.coordinate?.x ?? 50}%`,
                             top: `${card.coordinate?.y ?? 50}%`,
                             transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
-                            // ドラッグ中は 4、静止中は 2 前後になるよう調整
-                            // タイトル(1) < カード(2) < ドラッグ中(4) < 一般的なポップアップ(10〜)
                             zIndex: isDragging ? 4 : 2,
+                            transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                         }
                         : {};
-                    return (_jsxs("div", { onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, className: `${isActuallyFreeShape ? '' : styles.card} rg-playfield-card-wrapper`, style: {
+                    return (_jsxs("div", { draggable: false, onDragStart: (e) => e.preventDefault(), onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, onPointerCancel: handlePointerUp, className: `${isActuallyFreeShape ? '' : styles.card} rg-playfield-card-wrapper`, style: {
                             '--owner-color': owner?.color || '#aaaaaa',
                             ...freeStyle,
                             touchAction: 'none',
                             cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
-                            // サイズを固定して安定させる
                             width: '80px',
                             height: '112px',
+                            // freeShape 時の設定
                             ...(isActuallyFreeShape
                                 ? {
                                     background: 'transparent',
                                     border: 'none',
-                                    boxShadow: 'none',
+                                    boxShadow: isDragging ? '0 0 15px var(--owner-color)' : 'none',
                                     padding: 0,
                                 }
                                 : {}),

@@ -142,7 +142,6 @@ export function PlayField({
     x = Math.max(0, Math.min(100, x));
     y = Math.max(0, Math.min(100, y));
 
-    // サーバーへ「この場所にプレイする」と送信
     const playData: CardPlayData = {
       roomId,
       deckId: droppedDeckId,
@@ -160,7 +159,6 @@ export function PlayField({
   };
 
   const handleDragOver = (e: React.DragEvent) => {
-    // ドロップを有効にするために必須
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };
@@ -190,7 +188,7 @@ export function PlayField({
     >
       <h3 className="rg-playfield-title">
         {title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})`}
-      </h3>{' '}
+      </h3>
       <div
         ref={containerRef}
         className="rg-playfield-container"
@@ -207,8 +205,6 @@ export function PlayField({
         {playedCards.map((card, index) => {
           const owner = players.find((p) => p.id === card.ownerId);
           const isDragging = activeDraggingId === card.id;
-
-          // 画像がないのに freeShape が true になっている事故を防ぐための判定
           const isActuallyFreeShape = !!(card.freeShape && card.frontImage);
 
           const isOverlapping = playedCards
@@ -227,17 +223,19 @@ export function PlayField({
                   left: `${card.coordinate?.x ?? 50}%`,
                   top: `${card.coordinate?.y ?? 50}%`,
                   transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
-                  // ドラッグ中は 4、静止中は 2 前後になるよう調整
-                  // タイトル(1) < カード(2) < ドラッグ中(4) < 一般的なポップアップ(10〜)
                   zIndex: isDragging ? 4 : 2,
+                  transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                 }
               : {};
 
           return (
             <div
               key={card.id}
+              draggable={false}
+              onDragStart={(e) => e.preventDefault()}
               onPointerDown={(e) => handlePointerDown(e, card)}
               onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
               className={`${isActuallyFreeShape ? '' : styles.card} rg-playfield-card-wrapper`}
               style={
                 {
@@ -245,14 +243,14 @@ export function PlayField({
                   ...freeStyle,
                   touchAction: 'none',
                   cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
-                  // サイズを固定して安定させる
                   width: '80px',
                   height: '112px',
+                  // freeShape 時の設定
                   ...(isActuallyFreeShape
                     ? {
                         background: 'transparent',
                         border: 'none',
-                        boxShadow: 'none',
+                        boxShadow: isDragging ? '0 0 15px var(--owner-color)' : 'none',
                         padding: 0,
                       }
                     : {}),
