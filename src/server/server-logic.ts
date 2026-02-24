@@ -12,7 +12,7 @@ import {
 
 import { DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
 import { RoomMeta, RoomParam, RoomState } from '@/types/server.js';
-import { DeckDrawData } from '@/types/socketData.js';
+import { DeckDrawData, DeckUpdateData } from '@/types/socketData.js';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
 import type { GameServerOptions } from './server.js';
@@ -133,12 +133,14 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     const roomState = activeRooms.get(roomId);
     if (!roomState) return;
 
-    io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, {
+    const updateData: DeckUpdateData = {
       currentDeck: roomState.decks[deckId].filter((c) => c.location === 'deck'),
       drawnCards: roomState.drawnCards[deckId],
       playFieldCards: roomState.playFieldCards[deckId],
       discardPile: roomState.discardPile[deckId],
-    });
+    };
+
+    io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, updateData);
     emitPlayerUpdate(roomId);
   };
 

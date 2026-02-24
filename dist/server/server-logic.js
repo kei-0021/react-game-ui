@@ -103,12 +103,13 @@ export function initGameServer(io, options = {}) {
         const roomState = activeRooms.get(roomId);
         if (!roomState)
             return;
-        io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, {
+        const updateData = {
             currentDeck: roomState.decks[deckId].filter((c) => c.location === 'deck'),
             drawnCards: roomState.drawnCards[deckId],
             playFieldCards: roomState.playFieldCards[deckId],
             discardPile: roomState.discardPile[deckId],
-        });
+        };
+        io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, updateData);
         emitPlayerUpdate(roomId);
     };
     const addScore = (roomId, playerId, points) => {

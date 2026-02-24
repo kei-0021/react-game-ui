@@ -1,6 +1,6 @@
 // src/components/PlayField.tsx
 
-import { CardMoveFromFieldData } from '@/types/socketData.js';
+import { CardMoveFromFieldData, DeckUpdateData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
@@ -67,17 +67,16 @@ export function PlayField({
   const draggingIdRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
-    const handleUpdate = (data: { playFieldCards?: Card[] }) => {
+    socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
       const newCards = data.playFieldCards || [];
       if (is_logging) {
         client_log('playField', `[${deckId}] 場の更新: ${newCards.length}枚`);
       }
       setPlayedCards(newCards);
-    };
+    });
 
-    socket.on(`deck:update:${roomId}:${deckId}`, handleUpdate);
     return () => {
-      socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
+      socket.off(`deck:update:${roomId}:${deckId}`);
     };
   }, [socket, roomId, deckId, is_logging]);
 

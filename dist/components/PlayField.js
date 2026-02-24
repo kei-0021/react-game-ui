@@ -29,16 +29,15 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
     const containerRef = React.useRef(null);
     const draggingIdRef = React.useRef(null);
     React.useEffect(() => {
-        const handleUpdate = (data) => {
+        socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
             const newCards = data.playFieldCards || [];
             if (is_logging) {
                 client_log('playField', `[${deckId}] 場の更新: ${newCards.length}枚`);
             }
             setPlayedCards(newCards);
-        };
-        socket.on(`deck:update:${roomId}:${deckId}`, handleUpdate);
+        });
         return () => {
-            socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
+            socket.off(`deck:update:${roomId}:${deckId}`);
         };
     }, [socket, roomId, deckId, is_logging]);
     // リアルタイム送信ロジック（境界制限付き）

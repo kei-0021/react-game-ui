@@ -8,6 +8,7 @@ import { DeckId, PlayerId, RoomId } from './definition.js';
 export type DeckUpdateData = {
   currentDeck: Card[];
   drawnCards: Card[];
+  playFieldCards: Card[];
   discardPile: Card[];
 };
 
