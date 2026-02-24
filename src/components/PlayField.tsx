@@ -186,7 +186,12 @@ export function PlayField({
   };
 
   return (
-    <section className={`rg-playfield mode-${layoutMode}`}>
+    <section
+      className={`rg-playfield mode-${layoutMode}`}
+      style={{
+        background: backgroundImage ? `url(${backgroundImage}) center/cover no-repeat` : undefined,
+      }}
+    >
       <h3 className="rg-playfield-title">
         {title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})`}
       </h3>{' '}
@@ -201,10 +206,6 @@ export function PlayField({
           minHeight: '600px',
           touchAction: 'none',
           overflow: 'hidden',
-          backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
         }}
       >
         {playedCards.map((card, index) => {

@@ -80,7 +80,6 @@
    2. ライブラリ(rg-)要素の上書き
    ========================================== */
 .rg-playfield {
-  background: #0a192f !important;
   border: 2px solid #8be9fd !important;
   width: 100% !important;
   max-width: 800px !important;
