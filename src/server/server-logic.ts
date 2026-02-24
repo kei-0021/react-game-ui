@@ -12,7 +12,7 @@ import {
 
 import { DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
 import { RoomMeta, RoomParam, RoomState } from '@/types/server.js';
-import { DeckDrawSocketData } from '@/types/socketData.js';
+import { DeckDrawData } from '@/types/socketData.js';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
 import type { GameServerOptions } from './server.js';
@@ -322,7 +322,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     });
 
     // カードを引く
-    socket.on('deck:draw', (data: DeckDrawSocketData) => {
+    socket.on('deck:draw', (data: DeckDrawData) => {
       const { roomId, deckId, playerId, drawCondition } = data;
       const [targetLocation, targetState] = drawCondition;
 

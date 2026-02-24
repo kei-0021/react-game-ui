@@ -1,5 +1,5 @@
 // src/components/Deck.tsx
-import { DeckDrawSocketData } from '@/types/socketData.js';
+import { DeckDrawData, DeckUpdateData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
@@ -15,12 +15,6 @@ type DeckProps = {
   currentPlayerId: PlayerId | null;
   myPlayerId: PlayerId | null;
   alwaysDraw?: boolean;
-};
-
-type DeckUpdateData = {
-  currentDeck: Card[];
-  drawnCards: Card[];
-  discardPile: Card[];
 };
 
 const CardContent = ({ card }: { card: Card }) => {
@@ -54,12 +48,6 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
   const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
 
   React.useEffect(() => {
-    socket.on(`deck:init:${roomId}:${deckId}`, (data: DeckUpdateData) => {
-      setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
-      setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
-      setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
-    });
-
     socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
       setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
@@ -67,7 +55,6 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
     });
 
     return () => {
-      socket.off(`deck:init:${roomId}:${deckId}`);
       socket.off(`deck:update:${roomId}:${deckId}`);
     };
   }, [socket, roomId, deckId]);
@@ -78,7 +65,7 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
     const [targetLocation, targetState] = cardToDraw.drawCondition || ['hand', 'back'];
 
     // 送信用データの作成
-    const requestData: DeckDrawSocketData = {
+    const requestData: DeckDrawData = {
       roomId,
       deckId,
       drawCondition: [targetLocation, targetState],

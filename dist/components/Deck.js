@@ -26,18 +26,12 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
     const [discardPile, setDiscardPile] = React.useState([]);
     const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
     React.useEffect(() => {
-        socket.on(`deck:init:${roomId}:${deckId}`, (data) => {
-            setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
-            setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
-            setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
-        });
         socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
             setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
             setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
             setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
         });
         return () => {
-            socket.off(`deck:init:${roomId}:${deckId}`);
             socket.off(`deck:update:${roomId}:${deckId}`);
         };
     }, [socket, roomId, deckId]);
