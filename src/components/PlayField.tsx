@@ -202,10 +202,10 @@ export function PlayField({
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         style={{
-          position: layoutMode === 'free' ? 'relative' : undefined,
+          position: 'relative',
           minHeight: '600px',
           touchAction: 'none',
-          overflow: 'hidden',
+          overflow: 'visible',
         }}
       >
         {playedCards.map((card, index) => {
@@ -228,7 +228,9 @@ export function PlayField({
                   left: `${card.coordinate?.x ?? 50}%`,
                   top: `${card.coordinate?.y ?? 50}%`,
                   transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
-                  zIndex: isDragging ? 9999 : Math.floor((card.coordinate?.y ?? 0) * 100) + index,
+                  // ドラッグ中は 4、静止中は 2 前後になるよう調整
+                  // タイトル(1) < カード(2) < ドラッグ中(4) < 一般的なポップアップ(10〜)
+                  zIndex: isDragging ? 4 : 2,
                 }
               : {};
 
