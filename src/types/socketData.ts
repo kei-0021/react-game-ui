@@ -33,5 +33,4 @@ export type CardMoveFromFieldData = {
   deckId: DeckId;
   cardId: string;
   playerId?: PlayerId | null;
-  moveFromFieldCondition: [CardLocation, CardState];
 };

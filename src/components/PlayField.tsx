@@ -171,7 +171,6 @@ export function PlayField({
       roomId,
       deckId: card.deckId || deckId,
       cardId: card.id,
-      moveFromFieldCondition: card.fieldBackCondition,
     };
 
     if (backTo === 'hand') {

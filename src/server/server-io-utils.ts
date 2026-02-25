@@ -7,7 +7,23 @@ import { Resource } from '../types/resource.js';
 // --- 型バリデーター関数群 ---
 export const Validators = {
   isCardArray: (data: any): data is Card[] =>
-    Array.isArray(data) && data.every((item) => 'id' in item && 'name' in item),
+    Array.isArray(data) &&
+    data.every((item) => {
+      // 最低限の必須項目チェック（これがないとCardとして成立しない）
+      if (!('id' in item) || !('name' in item)) return false;
+
+      // 「もし存在するなら」型が一致しているか全項目チェック
+      const checks = [
+        item.deckId === undefined || typeof item.deckId === 'string',
+        item.description === undefined || typeof item.description === 'string',
+        item.location === undefined || typeof item.location === 'string',
+        item.isFaceUp === undefined || typeof item.isFaceUp === 'boolean',
+        item.backColor === undefined || typeof item.backColor === 'string',
+        item.drawCondition === undefined || (Array.isArray(item.drawCondition) && item.drawCondition.length === 2),
+      ];
+
+      return checks.every(Boolean);
+    }),
 
   isResourceArray: (data: any): data is Resource[] =>
     Array.isArray(data) && data.every((item) => 'resourceId' in item && 'currentValue' in item),

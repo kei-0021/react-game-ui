@@ -116,7 +116,6 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
             roomId,
             deckId: card.deckId || deckId,
             cardId: card.id,
-            moveFromFieldCondition: card.fieldBackCondition,
         };
         if (backTo === 'hand') {
             requestData.playerId = myPlayerId;

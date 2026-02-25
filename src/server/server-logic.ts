@@ -424,49 +424,46 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     });
 
     // フィールドから「手札」または「捨て札」へ移動
-    socket.on(
-      'card:move-from-field',
-      ({ roomId, deckId, cardId, playerId, moveFromFieldCondition }: CardMoveFromFieldData) => {
-        const roomState = activeRooms.get(roomId);
-        if (!roomState) return;
-        const { decks, playFieldCards, initRoomState } = roomState;
-        // 対象カードを特定
-        const card = decks[deckId]?.find((c) => c.id === cardId);
-        if (!card) return;
-        // PlayFieldから削除（共通処理）
-        const fieldIndex = playFieldCards[deckId]?.findIndex((c) => c.id === cardId);
-        if (fieldIndex !== -1) {
-          playFieldCards[deckId].splice(fieldIndex, 1);
-        }
-        // 行き先の判定と処理
-        if (playerId) {
-          // --- 手札に戻す場合 ---
-          const player = initRoomState.players.find((p) => p.id === playerId);
-          if (player) {
-            card.location = 'hand';
-            card.ownerId = playerId;
-            card.isFaceUp = card.fieldBackCondition[1] === 'face' ? true : false;
-            player.cards = player.cards || [];
-            player.cards.push(card);
-            server_log(
-              'card',
-              roomState.gameId,
-              roomId,
-              `Return: ${card.name} -> Player:${playerId}, state: ${card.isFaceUp}`,
-            );
-          }
-        } else {
-          // --- 捨て札に送る場合 ---
-          card.location = 'discard';
-          card.ownerId = null;
+    socket.on('card:move-from-field', ({ roomId, deckId, cardId, playerId }: CardMoveFromFieldData) => {
+      const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
+      const { decks, playFieldCards, initRoomState } = roomState;
+      // 対象カードを特定
+      const card = decks[deckId]?.find((c) => c.id === cardId);
+      if (!card) return;
+      // PlayFieldから削除（共通処理）
+      const fieldIndex = playFieldCards[deckId]?.findIndex((c) => c.id === cardId);
+      if (fieldIndex !== -1) {
+        playFieldCards[deckId].splice(fieldIndex, 1);
+      }
+      // 行き先の判定と処理
+      if (playerId) {
+        // --- 手札に戻す場合 ---
+        const player = initRoomState.players.find((p) => p.id === playerId);
+        if (player) {
+          card.location = 'hand';
+          card.ownerId = playerId;
           card.isFaceUp = card.fieldBackCondition[1] === 'face' ? true : false;
-          roomState.discardPile[deckId].push(card);
-          server_log('card', roomState.gameId, roomId, `Return: ${card.name} -> discard, state: ${card.isFaceUp}`);
+          player.cards = player.cards || [];
+          player.cards.push(card);
+          server_log(
+            'card',
+            roomState.gameId,
+            roomId,
+            `Return: ${card.name} -> Player:${playerId}, state: ${card.isFaceUp}`,
+          );
         }
-        emitDeckUpdate(roomId, deckId);
-        emitPlayerUpdate(roomId);
-      },
-    );
+      } else {
+        // --- 捨て札に送る場合 ---
+        card.location = 'discard';
+        card.ownerId = null;
+        card.isFaceUp = card.fieldBackCondition[1] === 'face' ? true : false;
+        roomState.discardPile[deckId].push(card);
+        server_log('card', roomState.gameId, roomId, `Return: ${card.name} -> discard, state: ${card.isFaceUp}`);
+      }
+      emitDeckUpdate(roomId, deckId);
+      emitPlayerUpdate(roomId);
+    });
 
     // カード位置同期
     socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {

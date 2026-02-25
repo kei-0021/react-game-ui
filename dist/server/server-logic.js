@@ -341,7 +341,7 @@ export function initGameServer(io, options) {
             emitDeckUpdate(roomId, deckId);
         });
         // フィールドから「手札」または「捨て札」へ移動
-        socket.on('card:move-from-field', ({ roomId, deckId, cardId, playerId, moveFromFieldCondition }) => {
+        socket.on('card:move-from-field', ({ roomId, deckId, cardId, playerId }) => {
             const roomState = activeRooms.get(roomId);
             if (!roomState)
                 return;
