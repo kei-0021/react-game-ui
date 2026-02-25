@@ -1,5 +1,5 @@
+// src/server.ts
 import { RoomParam } from '@/types/server.js';
-import { Token } from '@/types/token.js';
 import express from 'express';
 import fs from 'fs';
 import { createServer, Server as HttpServer } from 'http';
@@ -7,6 +7,7 @@ import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { initGameServer } from './server-logic.js';
+import { LogCategory } from './server-utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,25 +15,16 @@ const __dirname = path.dirname(__filename);
 /**
  * サーバー設定の型定義
  */
-export interface GameServerOptions {
+export type GameServerOptions = {
   port?: number;
   libDistPath?: string;
   clientDistPath?: string;
   corsOrigins?: string[];
-  gamePresets?: Record<string, RoomParam>;
-  checkGameEnd?: ((gameState: any) => boolean) | null;
-  onGameEnd?: ((results: any) => void) | null;
-  initialDecks?: any[];
-  initialTokenStores?: Record<string, any>;
-  initialHand?: Record<string, any>;
-  initialTokens?: Record<string, Token[]>;
-  initialResources?: any[];
-  initialBoard?: any[][];
-  cellEffects?: Record<string, any>;
-  customEvents?: any;
-  initialLogCategories?: Record<string, boolean> | null;
   onServerStart?: (url: string) => void;
-}
+  gamePresets: Record<string, RoomParam>;
+  customEvents?: any;
+  initialLogCategories?: Record<LogCategory, boolean> | null;
+};
 
 export class GameServer {
   private port: number;
@@ -42,12 +34,6 @@ export class GameServer {
   private onServerStart?: (url: string) => void;
 
   private gamePresets: Record<string, RoomParam>;
-  private checkGameEnd: ((gameState: any) => boolean) | null;
-  private onGameEnd: ((results: any) => void) | null;
-
-  private initialResources: any[];
-  private initialBoard: any[][];
-  private cellEffects: Record<string, any>;
   private customEvents: any;
   private initialLogCategories: Record<string, boolean> | null;
 
@@ -55,23 +41,17 @@ export class GameServer {
   public httpServer: HttpServer;
   public io: SocketIOServer;
 
-  constructor(options: GameServerOptions = {}) {
+  constructor(options: GameServerOptions) {
     this.port = Number(process.env.PORT) || options.port || 3000;
     this.libDistPath = options.libDistPath || path.resolve(__dirname, '../../dist');
     this.clientDistPath = options.clientDistPath || path.resolve(__dirname, '../tests');
     this.corsOrigins = options.corsOrigins || ['http://localhost:5173'];
     this.onServerStart = options.onServerStart;
 
-    // プリセット情報を保持（各ルームはこの情報を元に生成される）
-    this.gamePresets = options.gamePresets || {};
-
-    this.checkGameEnd = options.checkGameEnd || null;
-    this.onGameEnd = options.onGameEnd || null;
+    // プリセット情報を保持（必須項目として代入）
+    this.gamePresets = options.gamePresets;
 
     // サーバー全体のデフォルト設定
-    this.initialResources = options.initialResources || [];
-    this.initialBoard = options.initialBoard || [];
-    this.cellEffects = options.cellEffects || {};
     this.customEvents = options.customEvents || {};
     this.initialLogCategories = options.initialLogCategories || null;
 
@@ -120,15 +100,7 @@ export class GameServer {
   private initSocketLogic(): void {
     try {
       initGameServer(this.io, {
-        // プリセットをそのまま流し込む
         gamePresets: this.gamePresets,
-
-        // 共通設定・フォールバック用
-        checkGameEnd: this.checkGameEnd,
-        onGameEnd: this.onGameEnd,
-        initialResources: this.initialResources,
-        initialBoard: this.initialBoard,
-        cellEffects: this.cellEffects,
         customEvents: this.customEvents,
         initialLogCategories: this.initialLogCategories,
       });

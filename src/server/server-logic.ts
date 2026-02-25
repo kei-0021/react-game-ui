@@ -114,11 +114,8 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
   return roomState;
 }
 
-export function initGameServer(io: Server, options: GameServerOptions = {}) {
+export function initGameServer(io: Server, options: GameServerOptions) {
   const gamePresets = options.gamePresets || {};
-
-  // サーバー全体のデフォルト設定（もしあれば）
-  const defaultCellEffects = options.cellEffects || {};
 
   if (options.initialLogCategories) {
     Object.assign(LOG_CATEGORIES, options.initialLogCategories);
@@ -306,13 +303,14 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
       if (player && roomState) {
         player.position = newPosition;
         const updated = markCellAsExplored(roomState.initRoomState, roomState.gameId, roomId, newPosition);
+        const preset = gamePresets[roomState.gameId];
         applyCellEffect(
           roomState.initRoomState,
           roomState.gameId,
           roomId,
           playerId,
           newPosition,
-          defaultCellEffects,
+          preset?.cardEffects,
           (pId, pts) => addScore(roomId, pId, pts),
           (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt),
           (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt),

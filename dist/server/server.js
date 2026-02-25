@@ -14,30 +14,20 @@ export class GameServer {
     corsOrigins;
     onServerStart;
     gamePresets;
-    checkGameEnd;
-    onGameEnd;
-    initialResources;
-    initialBoard;
-    cellEffects;
     customEvents;
     initialLogCategories;
     app;
     httpServer;
     io;
-    constructor(options = {}) {
+    constructor(options) {
         this.port = Number(process.env.PORT) || options.port || 3000;
         this.libDistPath = options.libDistPath || path.resolve(__dirname, '../../dist');
         this.clientDistPath = options.clientDistPath || path.resolve(__dirname, '../tests');
         this.corsOrigins = options.corsOrigins || ['http://localhost:5173'];
         this.onServerStart = options.onServerStart;
-        // プリセット情報を保持（各ルームはこの情報を元に生成される）
-        this.gamePresets = options.gamePresets || {};
-        this.checkGameEnd = options.checkGameEnd || null;
-        this.onGameEnd = options.onGameEnd || null;
+        // プリセット情報を保持（必須項目として代入）
+        this.gamePresets = options.gamePresets;
         // サーバー全体のデフォルト設定
-        this.initialResources = options.initialResources || [];
-        this.initialBoard = options.initialBoard || [];
-        this.cellEffects = options.cellEffects || {};
         this.customEvents = options.customEvents || {};
         this.initialLogCategories = options.initialLogCategories || null;
         this.app = express();
@@ -83,14 +73,7 @@ export class GameServer {
     initSocketLogic() {
         try {
             initGameServer(this.io, {
-                // プリセットをそのまま流し込む
                 gamePresets: this.gamePresets,
-                // 共通設定・フォールバック用
-                checkGameEnd: this.checkGameEnd,
-                onGameEnd: this.onGameEnd,
-                initialResources: this.initialResources,
-                initialBoard: this.initialBoard,
-                cellEffects: this.cellEffects,
                 customEvents: this.customEvents,
                 initialLogCategories: this.initialLogCategories,
             });

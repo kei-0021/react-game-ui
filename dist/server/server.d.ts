@@ -1,30 +1,21 @@
 import { RoomParam } from '@/types/server.js';
-import { Token } from '@/types/token.js';
 import express from 'express';
 import { Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import { LogCategory } from './server-utils.js';
 /**
  * サーバー設定の型定義
  */
-export interface GameServerOptions {
+export type GameServerOptions = {
     port?: number;
     libDistPath?: string;
     clientDistPath?: string;
     corsOrigins?: string[];
-    gamePresets?: Record<string, RoomParam>;
-    checkGameEnd?: ((gameState: any) => boolean) | null;
-    onGameEnd?: ((results: any) => void) | null;
-    initialDecks?: any[];
-    initialTokenStores?: Record<string, any>;
-    initialHand?: Record<string, any>;
-    initialTokens?: Record<string, Token[]>;
-    initialResources?: any[];
-    initialBoard?: any[][];
-    cellEffects?: Record<string, any>;
-    customEvents?: any;
-    initialLogCategories?: Record<string, boolean> | null;
     onServerStart?: (url: string) => void;
-}
+    gamePresets: Record<string, RoomParam>;
+    customEvents?: any;
+    initialLogCategories?: Record<LogCategory, boolean> | null;
+};
 export declare class GameServer {
     private port;
     private libDistPath;
@@ -32,17 +23,12 @@ export declare class GameServer {
     private corsOrigins;
     private onServerStart?;
     private gamePresets;
-    private checkGameEnd;
-    private onGameEnd;
-    private initialResources;
-    private initialBoard;
-    private cellEffects;
     private customEvents;
     private initialLogCategories;
     app: express.Application;
     httpServer: HttpServer;
     io: SocketIOServer;
-    constructor(options?: GameServerOptions);
+    constructor(options: GameServerOptions);
     private setupStaticRoutes;
     /**
      * ゲームロジックの初期化

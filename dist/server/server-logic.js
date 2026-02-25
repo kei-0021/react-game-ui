@@ -86,10 +86,8 @@ function initializeRoom(roomId, roomParam) {
     server_log('room', roomState.gameId, roomId, `ルーム初期化完了`);
     return roomState;
 }
-export function initGameServer(io, options = {}) {
+export function initGameServer(io, options) {
     const gamePresets = options.gamePresets || {};
-    // サーバー全体のデフォルト設定（もしあれば）
-    const defaultCellEffects = options.cellEffects || {};
     if (options.initialLogCategories) {
         Object.assign(LOG_CATEGORIES, options.initialLogCategories);
         console.log('[log] ログカテゴリをオプションで初期化しました。', LOG_CATEGORIES);
@@ -250,7 +248,8 @@ export function initGameServer(io, options = {}) {
             if (player && roomState) {
                 player.position = newPosition;
                 const updated = markCellAsExplored(roomState.initRoomState, roomState.gameId, roomId, newPosition);
-                applyCellEffect(roomState.initRoomState, roomState.gameId, roomId, playerId, newPosition, defaultCellEffects, (pId, pts) => addScore(roomId, pId, pts), (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
+                const preset = gamePresets[roomState.gameId];
+                applyCellEffect(roomState.initRoomState, roomState.gameId, roomId, playerId, newPosition, preset?.cardEffects, (pId, pts) => addScore(roomId, pId, pts), (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
                 emitPlayerUpdate(roomId);
                 if (updated)
                     io.to(roomId).emit('board-update', roomState.initRoomState.exploredCells);
