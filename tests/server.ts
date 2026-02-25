@@ -1,11 +1,15 @@
 // tests/server.ts
 import path from 'path';
+import type { GameId, RoomParam, RoomState } from 'react-game-ui';
 import { GameServer, type GameServerOptions } from 'react-game-ui/server';
+import {
+  chunkTo2D,
+  generateFromTemplates,
+  loadJsonAssert,
+  replicateData,
+  Validators,
+} from 'react-game-ui/server-io-utils';
 import { fileURLToPath } from 'url';
-import { chunkTo2D, generateFromTemplates, replicateData } from '../src/server/data-helper.js';
-import { loadJsonAssert, Validators } from '../src/server/json-loader.js';
-
-import type { GameId, RoomParam, RoomState } from '../src/types/server.js';
 import { customEvents } from './data/customEvents.js';
 
 const __filename = fileURLToPath(import.meta.url);

@@ -16,13 +16,9 @@
       "types": "./dist/server/server.d.ts",
       "import": "./dist/server/server.js"
     },
-    "./server-logic": {
-      "types": "./dist/server/server-logic.d.ts",
-      "import": "./dist/server/server-logic.js"
-    },
-    "./server-utils": {
-      "types": "./dist/server/server-utils.d.ts",
-      "import": "./dist/server/server-utils.js"
+    "./server-io-utils": {
+      "types": "./dist/server/server-io-utils.d.ts",
+      "import": "./dist/server/server-io-utils.js"
     },
     "./dist/react-game-ui.css": "./dist/react-game-ui.css"
   },

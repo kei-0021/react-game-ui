@@ -36,8 +36,8 @@
     "src/components/**/*",
     "src/hooks/**/*",
     "src/types/**/*",
-    "src/server/server.ts",
-    "src/server/server-utils.ts"
+    "src/utils/**/*",
+    "src/server/**/*"
   ],
   "exclude": ["node_modules", "src/__mocks__", "src/setupTests.ts", "src/components/__tests__", "tests/data"]
 }
