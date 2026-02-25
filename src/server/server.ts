@@ -1,4 +1,3 @@
-import { Card } from '@/types/card.js';
 import { RoomParam } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import express from 'express';
@@ -24,7 +23,6 @@ export interface GameServerOptions {
   checkGameEnd?: ((gameState: any) => boolean) | null;
   onGameEnd?: ((results: any) => void) | null;
   initialDecks?: any[];
-  cardEffects?: Record<string, any>;
   initialTokenStores?: Record<string, any>;
   initialHand?: Record<string, any>;
   initialTokens?: Record<string, Token[]>;
@@ -47,11 +45,6 @@ export class GameServer {
   private checkGameEnd: ((gameState: any) => boolean) | null;
   private onGameEnd: ((results: any) => void) | null;
 
-  private initialDecks: any[];
-  private cardEffects: Record<string, any>;
-  private initialTokenStores: Record<string, any>;
-  private initialHand: Record<string, Card[]>;
-  private initialTokens: Record<string, Token[]>;
   private initialResources: any[];
   private initialBoard: any[][];
   private cellEffects: Record<string, any>;
@@ -76,11 +69,6 @@ export class GameServer {
     this.onGameEnd = options.onGameEnd || null;
 
     // サーバー全体のデフォルト設定
-    this.initialDecks = options.initialDecks || [];
-    this.cardEffects = options.cardEffects || {};
-    this.initialTokenStores = options.initialTokenStores || {};
-    this.initialHand = options.initialHand || {};
-    this.initialTokens = options.initialTokens || {};
     this.initialResources = options.initialResources || [];
     this.initialBoard = options.initialBoard || [];
     this.cellEffects = options.cellEffects || {};
@@ -138,12 +126,7 @@ export class GameServer {
         // 共通設定・フォールバック用
         checkGameEnd: this.checkGameEnd,
         onGameEnd: this.onGameEnd,
-        initialDecks: this.initialDecks,
-        cardEffects: this.cardEffects,
         initialResources: this.initialResources,
-        initialHand: this.initialHand,
-        initialTokenStores: this.initialTokenStores,
-        initialTokens: this.initialTokens,
         initialBoard: this.initialBoard,
         cellEffects: this.cellEffects,
         customEvents: this.customEvents,

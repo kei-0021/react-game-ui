@@ -1,5 +1,5 @@
 import { BoardId, GameId, PlayerId, RoomId } from '@/types/definition.js';
-import { initialRoomState as IInitialRoomState, Position, ServerPlayer } from '@/types/server.js';
+import { initialRoomState as InitialRoomState, Position, ServerPlayer } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import { TokenStoreDef } from '@/types/tokenStore.js';
 
@@ -72,12 +72,12 @@ export function server_log(
   }
 }
 
-export const isExplored = (gameParam: IInitialRoomState, position: Position): boolean => {
+export const isExplored = (gameParam: InitialRoomState, position: Position): boolean => {
   return gameParam.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
 
 export const markCellAsExplored = (
-  gameParam: IInitialRoomState,
+  gameParam: InitialRoomState,
   gameId: GameId,
   roomId: RoomId,
   position: Position,
@@ -91,7 +91,7 @@ export const markCellAsExplored = (
 };
 
 export const unmarkCellAsExplored = (
-  gameParam: IInitialRoomState,
+  gameParam: InitialRoomState,
   gameId: GameId,
   roomId: RoomId,
   position: Position,
@@ -147,7 +147,7 @@ export const createRandomBoard = (initialBoard: any[][]): any[][] => {
 };
 
 export const applyCellEffect = (
-  gameParam: IInitialRoomState,
+  gameParam: InitialRoomState,
   gameId: GameId,
   roomId: RoomId,
   playerId: PlayerId,
@@ -159,12 +159,20 @@ export const applyCellEffect = (
   requirePopup: (params: any) => void,
 ): void => {
   const { row, col } = position;
-  if (row < 0 || row >= gameParam.board[0].length || col < 0 || col >= gameParam.board[row].length) {
-    server_log('warn', gameId, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
+
+  // Record（オブジェクト）の最初の値（ボード配列）を取得
+  const targetBoard = Object.values(gameParam.board)[0];
+
+  // ボードが存在しない、または座標が範囲外の場合のガード
+  if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
+    server_log('warn', gameId, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`);
     return;
   }
-  const cell = gameParam.board[0][row][col];
+
+  // 特定したボードからセルを取得
+  const cell = targetBoard[row][col];
   const effect = cellEffects[cell.name];
+
   if (effect) {
     server_log('cell', gameId, roomId, `マス効果発動: ${cell.name} by ${playerId}`);
     try {
@@ -207,7 +215,7 @@ export class RoomManager {
   public turn: number;
   public tokenStores: Map<string, TokenStore>;
 
-  constructor(initialState: IInitialRoomState, initialTokenStoresDef: TokenStoreDef[]) {
+  constructor(initialState: InitialRoomState, initialTokenStoresDef: TokenStoreDef[]) {
     this.players = initialState.players;
     this.initialResources = initialState.initialResources;
     this.initialTokenStores = initialState.initialTokenStores;
@@ -278,7 +286,7 @@ export class RoomManager {
     return false;
   }
 
-  getFullState(): IInitialRoomState {
+  getFullState(): InitialRoomState {
     return {
       players: this.players,
       initialResources: this.initialResources,

@@ -15,7 +15,6 @@ export interface GameServerOptions {
     checkGameEnd?: ((gameState: any) => boolean) | null;
     onGameEnd?: ((results: any) => void) | null;
     initialDecks?: any[];
-    cardEffects?: Record<string, any>;
     initialTokenStores?: Record<string, any>;
     initialHand?: Record<string, any>;
     initialTokens?: Record<string, Token[]>;
@@ -35,11 +34,6 @@ export declare class GameServer {
     private gamePresets;
     private checkGameEnd;
     private onGameEnd;
-    private initialDecks;
-    private cardEffects;
-    private initialTokenStores;
-    private initialHand;
-    private initialTokens;
     private initialResources;
     private initialBoard;
     private cellEffects;

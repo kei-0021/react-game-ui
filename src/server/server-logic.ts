@@ -118,7 +118,6 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
   const gamePresets = options.gamePresets || {};
 
   // サーバー全体のデフォルト設定（もしあれば）
-  const defaultCardEffects = options.cardEffects || {};
   const defaultCellEffects = options.cellEffects || {};
 
   if (options.initialLogCategories) {
@@ -126,22 +125,17 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
     console.log('[log] ログカテゴリをオプションで初期化しました。', LOG_CATEGORIES);
   }
 
-  // --- 修正：プリセットごとの中身をスキャンしてログに出す ---
+  // --- プリセットごとの中身をスキャンしてログに出す ---
   Object.entries(gamePresets).forEach(([gameId, preset]) => {
     if (preset.cardEffects) {
       const keys = Object.keys(preset.cardEffects);
-      console.log(`[log] プリセット [${gameId}] cardEffects (${keys.length}件): [ ${keys.join(', ')} ]`);
+      console.log(`[log][${gameId}] cardEffects (${keys.length}件): [ ${keys.join(', ')} ]`);
     }
     if (preset.cellEffects) {
       const keys = Object.keys(preset.cellEffects);
-      console.log(`[log] プリセット [${gameId}] cellEffects (${keys.length}件): [ ${keys.join(', ')} ]`);
+      console.log(`[log][${gameId}] cellEffects (${keys.length}件): [ ${keys.join(', ')} ]`);
     }
   });
-
-  // サーバー全体のデフォルト設定がある場合のみ表示
-  if (Object.keys(defaultCardEffects).length > 0) {
-    console.log(`[log] 共通(default) cardEffects: [ ${Object.keys(defaultCardEffects).join(', ')} ]`);
-  }
 
   // --- ヘルパー関数 ---
   const emitPlayerUpdate = (roomId: RoomId) => {
@@ -514,7 +508,7 @@ export function initGameServer(io: Server, options: GameServerOptions = {}) {
 
           // カード効果
           const preset = gamePresets[roomState.gameId];
-          const effect = preset?.cardEffects?.[card.name] || defaultCardEffects[card.name];
+          const effect = preset?.cardEffects?.[card.name];
           if (effect) {
             server_log('card', roomState.gameId, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
             effect({

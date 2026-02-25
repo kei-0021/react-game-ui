@@ -99,11 +99,15 @@ export const createRandomBoard = (initialBoard) => {
 };
 export const applyCellEffect = (gameParam, gameId, roomId, playerId, position, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
     const { row, col } = position;
-    if (row < 0 || row >= gameParam.board[0].length || col < 0 || col >= gameParam.board[row].length) {
-        server_log('warn', gameId, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
+    // Record（オブジェクト）の最初の値（ボード配列）を取得
+    const targetBoard = Object.values(gameParam.board)[0];
+    // ボードが存在しない、または座標が範囲外の場合のガード
+    if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
+        server_log('warn', gameId, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`);
         return;
     }
-    const cell = gameParam.board[0][row][col];
+    // 特定したボードからセルを取得
+    const cell = targetBoard[row][col];
     const effect = cellEffects[cell.name];
     if (effect) {
         server_log('cell', gameId, roomId, `マス効果発動: ${cell.name} by ${playerId}`);

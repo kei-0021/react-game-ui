@@ -1,29 +1,15 @@
-import * as fs from 'fs/promises';
 import path from 'path';
 import { GameServer, type GameServerOptions } from 'react-game-ui/server';
 import { fileURLToPath } from 'url';
 
 // 型定義のインポート（実行用データは startServer 内で動的に読む）
+import { loadJsonAssert, Validators } from '../src/server/json-loader.js';
 import { Card } from '../src/types/card.js';
 import { GameId, RoomParam, RoomState } from '../src/types/server.js';
 import { customEvents } from './data/customEvents.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-/**
- * 外部JSONファイルを非同期で読み込み、パースするヘルパー関数
- */
-async function loadJson<T>(relativePath: string): Promise<T> {
-  const jsonPath = path.join(__dirname, relativePath);
-  try {
-    const data = await fs.readFile(jsonPath, 'utf-8');
-    return JSON.parse(data) as T;
-  } catch (error) {
-    console.error(`Error loading JSON file: ${relativePath}`, error);
-    throw new Error(`Failed to load critical data from ${relativePath}`);
-  }
-}
 
 // --- メインサーバー起動ロジック ---
 async function startServer() {
@@ -40,10 +26,10 @@ async function startServer() {
   // 複数のJSONファイルを並行してロード
   const [numberCardsJson, deepSeaActionCardsBaseJson, deepSeaCellsBaseJson, deepSeaSpeciesDeckJson] = await Promise.all(
     [
-      loadJson<Card[]>('./data/numberCards.json'),
-      loadJson<Card[]>('./data/deepSeaActionCards.json'),
-      loadJson<any[]>('./data/deepSeaCells.json'),
-      loadJson<Card[]>('./data/deepSeaSpeciesCards.json'),
+      loadJsonAssert(path.join(__dirname, 'data/numberCards.json'), Validators.isCardArray),
+      loadJsonAssert(path.join(__dirname, 'data/deepSeaActionCards.json'), Validators.isCardArray),
+      loadJsonAssert(path.join(__dirname, 'data/deepSeaCells.json'), Validators.isCellArray),
+      loadJsonAssert(path.join(__dirname, 'data/deepSeaSpeciesCards.json'), Validators.isCardArray),
     ],
   );
 

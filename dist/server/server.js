@@ -16,11 +16,6 @@ export class GameServer {
     gamePresets;
     checkGameEnd;
     onGameEnd;
-    initialDecks;
-    cardEffects;
-    initialTokenStores;
-    initialHand;
-    initialTokens;
     initialResources;
     initialBoard;
     cellEffects;
@@ -40,11 +35,6 @@ export class GameServer {
         this.checkGameEnd = options.checkGameEnd || null;
         this.onGameEnd = options.onGameEnd || null;
         // サーバー全体のデフォルト設定
-        this.initialDecks = options.initialDecks || [];
-        this.cardEffects = options.cardEffects || {};
-        this.initialTokenStores = options.initialTokenStores || {};
-        this.initialHand = options.initialHand || {};
-        this.initialTokens = options.initialTokens || {};
         this.initialResources = options.initialResources || [];
         this.initialBoard = options.initialBoard || [];
         this.cellEffects = options.cellEffects || {};
@@ -98,12 +88,7 @@ export class GameServer {
                 // 共通設定・フォールバック用
                 checkGameEnd: this.checkGameEnd,
                 onGameEnd: this.onGameEnd,
-                initialDecks: this.initialDecks,
-                cardEffects: this.cardEffects,
                 initialResources: this.initialResources,
-                initialHand: this.initialHand,
-                initialTokenStores: this.initialTokenStores,
-                initialTokens: this.initialTokens,
                 initialBoard: this.initialBoard,
                 cellEffects: this.cellEffects,
                 customEvents: this.customEvents,

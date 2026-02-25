@@ -1,5 +1,5 @@
 import { BoardId, GameId, PlayerId, RoomId } from '@/types/definition.js';
-import { initialRoomState as IInitialRoomState, Position, ServerPlayer } from '@/types/server.js';
+import { initialRoomState as InitialRoomState, Position, ServerPlayer } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import { TokenStoreDef } from '@/types/tokenStore.js';
 export type LogCategory = 'connection' | 'deck' | 'card' | 'cell' | 'game' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'room' | 'lobby' | 'disconnect' | 'warn' | 'popup' | 'custom_event';
@@ -13,11 +13,11 @@ export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
  * @param args - 追加のログ情報
  */
 export declare function server_log(tag: LogCategory, gamePresetId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void;
-export declare const isExplored: (gameParam: IInitialRoomState, position: Position) => boolean;
-export declare const markCellAsExplored: (gameParam: IInitialRoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
-export declare const unmarkCellAsExplored: (gameParam: IInitialRoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
+export declare const isExplored: (gameParam: InitialRoomState, position: Position) => boolean;
+export declare const markCellAsExplored: (gameParam: InitialRoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
+export declare const unmarkCellAsExplored: (gameParam: InitialRoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
 export declare const createRandomBoard: (initialBoard: any[][]) => any[][];
-export declare const applyCellEffect: (gameParam: IInitialRoomState, gameId: GameId, roomId: RoomId, playerId: PlayerId, position: Position, cellEffects: Record<string, (params: any) => void>, addScore: (playerId: PlayerId, points: number) => void, updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
+export declare const applyCellEffect: (gameParam: InitialRoomState, gameId: GameId, roomId: RoomId, playerId: PlayerId, position: Position, cellEffects: Record<string, (params: any) => void>, addScore: (playerId: PlayerId, points: number) => void, updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
 export declare class TokenStore {
     id: string;
     name: string;
@@ -34,10 +34,10 @@ export declare class RoomManager {
     exploredCells: Position[];
     turn: number;
     tokenStores: Map<string, TokenStore>;
-    constructor(initialState: IInitialRoomState, initialTokenStoresDef: TokenStoreDef[]);
+    constructor(initialState: InitialRoomState, initialTokenStoresDef: TokenStoreDef[]);
     getTokenStore(tokenStoreId: string): TokenStore | undefined;
     acquireToken(tokenStoreId: string, gameId: GameId, roomId: RoomId, playerId: PlayerId, tokenId: string): boolean;
-    getFullState(): IInitialRoomState;
+    getFullState(): InitialRoomState;
 }
 export declare const generateColorFromId: (id: string) => string;
 //# sourceMappingURL=server-utils.d.ts.map
