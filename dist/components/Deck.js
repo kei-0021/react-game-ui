@@ -1,15 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
+import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
 import deckStyles from './Deck.module.css';
-const CardContent = ({ card }) => {
-    if (!card.isFaceUp)
-        return null;
-    if (card.frontImage) {
-        return _jsx("img", { src: card.frontImage, alt: card.name, className: deckStyles.cardImage });
-    }
-    return (_jsx("div", { className: deckStyles.cardNameWrapper, children: _jsx("strong", { className: deckStyles.cardNameText, children: card.name }) }));
-};
 /**
  * 山札の描画、シャッフル、ドローの制御を行う。
  * @param socket - 通信用のSocket.ioインスタンス
@@ -68,11 +61,11 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
                             } }, c.id))) }), _jsx("div", { className: cardStyles.deckContainer, children: drawnCards.map((c, i) => (_jsx("div", { className: cardStyles.deckCardFront, style: {
                                 zIndex: i + 1,
                                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                            }, children: _jsx(CardContent, { card: c }) }, c.id))) }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => (_jsxs("div", { className: cardStyles.deckCardFront, style: {
+                            }, children: _jsx(CardDisplayContent, { card: c, canSeeFront: true }) }, c.id))) }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => (_jsxs("div", { className: cardStyles.deckCardFront, style: {
                                 zIndex: i + 1,
                                 transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
                                 pointerEvents: i === discardPile.length - 1 ? 'auto' : 'none',
-                            }, onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true), onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false), children: [_jsx(CardContent, { card: c }), i === discardPile.length - 1 && c.description && (_jsx("span", { className: `${cardStyles.tooltip} ${deckStyles.tooltipBase}`, style: {
+                            }, onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true), onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false), children: [_jsx(CardDisplayContent, { card: c, canSeeFront: true }), i === discardPile.length - 1 && c.description && (_jsx("span", { className: `${cardStyles.tooltip} ${deckStyles.tooltipBase}`, style: {
                                         visibility: isDiscardHovered ? 'visible' : 'hidden',
                                         opacity: isDiscardHovered ? 1 : 0,
                                     }, children: c.description }))] }, c.id))) })] })] }));

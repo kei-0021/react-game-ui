@@ -1,7 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
 import { client_log } from '../utils/client-log.js';
-import styles from './Card.module.css';
+import { CardDisplayContent } from './Card.js';
+import cardStyles from './Card.module.css';
 import './PlayField.css';
 // 通信量制限用の throttle
 function throttle(func, limit) {
@@ -14,15 +15,6 @@ function throttle(func, limit) {
         }
     };
 }
-const CardDisplayContent = ({ card, isFaceUp }) => {
-    if (!isFaceUp) {
-        return null;
-    }
-    if (card.frontImage) {
-        return _jsx("img", { src: card.frontImage, alt: card.name, className: "rg-card-image" });
-    }
-    return (_jsx("div", { className: "rg-card-text-content", children: _jsx("strong", { className: "rg-card-name-label", children: card.name }) }));
-};
 export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', is_logging = false, backgroundImage, }) {
     const [playedCards, setPlayedCards] = React.useState([]);
     const [activeDraggingId, setActiveDraggingId] = React.useState(null);
@@ -148,7 +140,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                             transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                         }
                         : {};
-                    return (_jsxs("div", { draggable: false, onDragStart: (e) => e.preventDefault(), onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, onPointerCancel: handlePointerUp, className: `${isActuallyFreeShape ? '' : styles.card} rg-playfield-card-wrapper`, style: {
+                    return (_jsxs("div", { draggable: false, onDragStart: (e) => e.preventDefault(), onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, onPointerCancel: handlePointerUp, className: `${isActuallyFreeShape ? '' : cardStyles.card} rg-playfield-card-wrapper`, style: {
                             '--owner-color': owner?.color || '#aaaaaa',
                             ...freeStyle,
                             touchAction: 'none',
@@ -164,6 +156,6 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                     padding: 0,
                                 }
                                 : {}),
-                        }, onDoubleClick: () => handleCardBack(card), children: [_jsx(CardDisplayContent, { card: card, isFaceUp: true }), card.ownerId && (_jsx("div", { className: "rg-playfield-owner-badge", title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && _jsx("span", { className: styles.tooltip, children: card.description })] }, card.id));
+                        }, onDoubleClick: () => handleCardBack(card), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.ownerId && (_jsx("div", { className: "rg-playfield-owner-badge", title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && _jsx("span", { className: cardStyles.tooltip, children: card.description })] }, card.id));
                 }) })] }));
 }

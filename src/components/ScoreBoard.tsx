@@ -8,6 +8,7 @@ import { PlayerId, RoomId } from '../types/definition.js';
 import { PlayerWithResources } from '../types/playerWithResources.js';
 import type { Resource } from '../types/resource.js';
 import { Token } from '../types/token.js';
+import { CardDisplayContent } from './Card.js';
 import styles from './ScoreBoard.module.css';
 
 type DisplayedPlayer = PlayerWithResources & {
@@ -25,16 +26,8 @@ type PlayerListItemProps = {
   toggleCardSelection: (cardId: string, isOwner: boolean) => void;
   socket: Socket;
   roomId: RoomId;
-  isDebug?: boolean; // デバッグ用フラグを追加
+  isDebug?: boolean;
 };
-
-const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: Card; canSeeFront: boolean }) => {
-  if (!canSeeFront) return null;
-  if (card.frontImage) {
-    return <img src={card.frontImage} alt={card.name} className={styles.cardImage} />;
-  }
-  return <strong className={styles.cardNameText}>{card.name}</strong>;
-});
 
 const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }: any) => {
   const isMyToken = myPlayerId === playerIdBeingDisplayed;
@@ -77,7 +70,6 @@ const PlayerListItem = React.memo(
     const playerColor = (player as any).color || '#aaaaaa';
     const isOwner = player.id === myPlayerId;
 
-    // スコア増減ハンドラ
     const handleAddScore = (points: number) => {
       socket.emit('room:player:add-score', {
         roomId,
@@ -155,11 +147,16 @@ const PlayerListItem = React.memo(
                 } ${card.isFaceUp ? styles.cardSuperRevealed : ''}`}
                 style={
                   {
-                    '--owner-color': playerColor,
-                    backgroundColor: canSeeFront ? '#fff' : card.backColor,
                     cursor: isOwner ? 'grab' : 'default',
                     border: card.isFaceUp ? '3px solid #00ffff' : '1px solid #ccc',
                     boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
+                    // パディングが原因でズレるのを防ぐ
+                    padding: 0,
+                    overflow: 'hidden', // 中身がはみ出して角から漏れないようにする
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'stretch',
+                    justifyContent: 'stretch',
                   } as React.CSSProperties
                 }
                 onClick={() => toggleCardSelection(card.id, isOwner)}

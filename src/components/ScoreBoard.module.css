@@ -168,18 +168,6 @@
   transform: translateY(-5px);
 }
 
-.cardImage {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  /* 画像そのものがドラッグを邪魔しないように設定 */
-  pointer-events: none;
-}
-
-.cardNameText {
-  width: 100%;
-}
-
 .tooltip {
   display: none;
   position: absolute;
@@ -198,10 +186,6 @@
   word-break: break-all;
   white-space: normal;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-}
-
-.cardBase:hover .tooltip {
-  display: block;
 }
 
 /* --- 操作エリア --- */

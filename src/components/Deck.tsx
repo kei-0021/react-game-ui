@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
+import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
 import deckStyles from './Deck.module.css';
 
@@ -15,20 +16,6 @@ type DeckProps = {
   currentPlayerId: PlayerId | null;
   myPlayerId: PlayerId | null;
   alwaysDraw?: boolean;
-};
-
-const CardContent = ({ card }: { card: Card }) => {
-  if (!card.isFaceUp) return null;
-
-  if (card.frontImage) {
-    return <img src={card.frontImage} alt={card.name} className={deckStyles.cardImage} />;
-  }
-
-  return (
-    <div className={deckStyles.cardNameWrapper}>
-      <strong className={deckStyles.cardNameText}>{card.name}</strong>
-    </div>
-  );
 };
 
 /**
@@ -125,7 +112,7 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
               }}
             >
-              <CardContent card={c} />
+              <CardDisplayContent card={c} canSeeFront={true} />
             </div>
           ))}
         </div>
@@ -144,7 +131,7 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
               onMouseEnter={() => i === discardPile.length - 1 && setIsDiscardHovered(true)}
               onMouseLeave={() => i === discardPile.length - 1 && setIsDiscardHovered(false)}
             >
-              <CardContent card={c} />
+              <CardDisplayContent card={c} canSeeFront={true} />
 
               {i === discardPile.length - 1 && c.description && (
                 <span

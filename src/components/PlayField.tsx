@@ -7,7 +7,8 @@ import type { Card } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
 import type { PlayerWithResources } from '../types/playerWithResources.js';
 import { client_log } from '../utils/client-log.js';
-import styles from './Card.module.css';
+import { CardDisplayContent } from './Card.js';
+import cardStyles from './Card.module.css';
 import './PlayField.css';
 
 // 通信量制限用の throttle
@@ -21,22 +22,6 @@ function throttle<T extends (...args: any[]) => any>(func: T, limit: number) {
     }
   };
 }
-
-const CardDisplayContent = ({ card, isFaceUp }: { card: Card; isFaceUp: boolean }) => {
-  if (!isFaceUp) {
-    return null;
-  }
-
-  if (card.frontImage) {
-    return <img src={card.frontImage} alt={card.name} className="rg-card-image" />;
-  }
-
-  return (
-    <div className="rg-card-text-content">
-      <strong className="rg-card-name-label">{card.name}</strong>
-    </div>
-  );
-};
 
 type PlayFieldProps = {
   socket: Socket;
@@ -237,7 +222,7 @@ export function PlayField({
               onPointerDown={(e) => handlePointerDown(e, card)}
               onPointerUp={handlePointerUp}
               onPointerCancel={handlePointerUp}
-              className={`${isActuallyFreeShape ? '' : styles.card} rg-playfield-card-wrapper`}
+              className={`${isActuallyFreeShape ? '' : cardStyles.card} rg-playfield-card-wrapper`}
               style={
                 {
                   '--owner-color': owner?.color || '#aaaaaa',
@@ -259,7 +244,7 @@ export function PlayField({
               }
               onDoubleClick={() => handleCardBack(card)}
             >
-              <CardDisplayContent card={card} isFaceUp={true} />
+              <CardDisplayContent card={card} canSeeFront={true} />
 
               {card.ownerId && (
                 <div className="rg-playfield-owner-badge" title={`所有者: ${owner?.name || '不明'}`}>
@@ -267,7 +252,7 @@ export function PlayField({
                 </div>
               )}
 
-              {card.description && !isDragging && <span className={styles.tooltip}>{card.description}</span>}
+              {card.description && !isDragging && <span className={cardStyles.tooltip}>{card.description}</span>}
             </div>
           );
         })}

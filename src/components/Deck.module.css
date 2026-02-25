@@ -4,17 +4,6 @@
   object-fit: contain;
 }
 
-.cardNameWrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #fff;
-  color: #000;
-  height: 100%;
-  width: 100%;
-  padding: 5px;
-}
-
 .cardNameText {
   font-size: 1em;
   word-break: break-all;

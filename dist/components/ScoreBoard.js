@@ -1,14 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
+import { CardDisplayContent } from './Card.js';
 import styles from './ScoreBoard.module.css';
-const CardDisplayContent = React.memo(({ card, canSeeFront }) => {
-    if (!canSeeFront)
-        return null;
-    if (card.frontImage) {
-        return _jsx("img", { src: card.frontImage, alt: card.name, className: styles.cardImage });
-    }
-    return _jsx("strong", { className: styles.cardNameText, children: card.name });
-});
 const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
     const isMyToken = myPlayerId === playerIdBeingDisplayed;
     if (!tokens || tokens.length === 0)
@@ -27,7 +20,6 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, select
     const isActive = player.id === currentPlayerId;
     const playerColor = player.color || '#aaaaaa';
     const isOwner = player.id === myPlayerId;
-    // スコア増減ハンドラ
     const handleAddScore = (points) => {
         socket.emit('room:player:add-score', {
             roomId,
@@ -50,11 +42,16 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, select
                             e.dataTransfer.setData('deckId', card.deckId);
                             e.dataTransfer.effectAllowed = 'move';
                         }, className: `${styles.cardBase} rg-playfield-card-wrapper ${isSelected ? styles.cardSelected : ''} ${card.isFaceUp ? styles.cardSuperRevealed : ''}`, style: {
-                            '--owner-color': playerColor,
-                            backgroundColor: canSeeFront ? '#fff' : card.backColor,
                             cursor: isOwner ? 'grab' : 'default',
                             border: card.isFaceUp ? '3px solid #00ffff' : '1px solid #ccc',
                             boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
+                            // パディングが原因でズレるのを防ぐ
+                            padding: 0,
+                            overflow: 'hidden', // 中身がはみ出して角から漏れないようにする
+                            position: 'relative',
+                            display: 'flex',
+                            alignItems: 'stretch',
+                            justifyContent: 'stretch',
                         }, onClick: () => toggleCardSelection(card.id, isOwner), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront }), canSeeFront && card.description && _jsx("span", { className: styles.tooltip, children: card.description })] }, card.id));
                 }) })] }));
 });
