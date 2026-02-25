@@ -109,6 +109,8 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         e.dataTransfer.dropEffect = 'move';
     };
     const handleCardBack = (card) => {
+        if (!myPlayerId)
+            return;
         const backTo = card.fieldBackLocation || 'discard';
         const requestData = {
             roomId,
@@ -118,7 +120,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         if (backTo === 'hand') {
             if (!card.ownerId)
                 return;
-            requestData.targetPlayerId = card.ownerId;
+            requestData.targetPlayerId = myPlayerId;
         }
         socket.emit('card:move-from-field', requestData);
     };
