@@ -111,16 +111,15 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
     const handleCardBack = (card) => {
         if (!myPlayerId)
             return;
-        const backTo = card.fieldBackLocation || 'discard';
+        const backTo = card.fieldBackCondition[0] || 'discard';
         const requestData = {
             roomId,
             deckId: card.deckId || deckId,
             cardId: card.id,
+            moveFromFieldCondition: card.fieldBackCondition,
         };
         if (backTo === 'hand') {
-            if (!card.ownerId)
-                return;
-            requestData.targetPlayerId = myPlayerId;
+            requestData.playerId = myPlayerId;
         }
         socket.emit('card:move-from-field', requestData);
     };

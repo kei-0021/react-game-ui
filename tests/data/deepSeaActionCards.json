@@ -9,7 +9,7 @@
     "location": "deck",
     "drawCondition": ["hand", "face"],
     "playLocation": "field",
-    "fieldBackLocation": "hand",
+    "fieldBackCondition": ["hand", "face"],
     "freeShape": "true",
     "frontImage": "/hanabishi.svg"
   },
@@ -23,7 +23,7 @@
     "location": "deck",
     "drawCondition": ["hand", "face"],
     "playLocation": "field",
-    "fieldBackLocation": "hand"
+    "fieldBackCondition": ["hand", "face"]
   },
   {
     "id": "card-B-01",
@@ -35,7 +35,7 @@
     "location": "deck",
     "drawCondition": ["hand", "back"],
     "playLocation": "field",
-    "fieldBackLocation": "hand"
+    "fieldBackCondition": ["hand", "face"]
   },
   {
     "id": "card-B-02",
@@ -47,7 +47,7 @@
     "location": "deck",
     "drawCondition": ["hand", "back"],
     "playLocation": "field",
-    "fieldBackLocation": "hand"
+    "fieldBackCondition": ["hand", "face"]
   },
   {
     "id": "card-C-01",
@@ -59,7 +59,7 @@
     "location": "deck",
     "drawCondition": ["hand", "back"],
     "playLocation": "field",
-    "fieldBackLocation": "hand"
+    "fieldBackCondition": ["hand", "face"]
   },
   {
     "id": "card-D-01",
@@ -71,6 +71,6 @@
     "location": "deck",
     "drawCondition": ["hand", "back"],
     "playLocation": "field",
-    "fieldBackLocation": "hand"
+    "fieldBackCondition": ["hand", "face"]
   }
 ]

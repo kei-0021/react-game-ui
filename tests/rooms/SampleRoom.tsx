@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Deck } from '../../src/components/Deck';
 import Dice from '../../src/components/Dice';
 import { Draggable } from '../../src/components/Draggable';
+import { PlayField } from '../../src/components/PlayField';
 import { RemoteCursor } from '../../src/components/RemoteCursor';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
 import Timer from '../../src/components/Timer';
@@ -144,6 +145,14 @@ export function SampleRoom() {
         currentPlayerId={currentPlayerId}
         myPlayerId={myPlayerId}
       ></Deck>
+      <PlayField
+        socket={socket}
+        roomId={roomId}
+        deckId="numberDeck"
+        title="数字カード"
+        myPlayerId={myPlayerId}
+        players={players}
+      />
       <Draggable
         image={DRAGGABLE_IMAGE_PATH}
         mask={true}

@@ -29,6 +29,7 @@ export type CardMoveFromFieldData = {
     roomId: RoomId;
     deckId: DeckId;
     cardId: string;
-    targetPlayerId?: PlayerId;
+    playerId?: PlayerId | null;
+    moveFromFieldCondition: [CardLocation, CardState];
 };
 //# sourceMappingURL=socketData.d.ts.map
