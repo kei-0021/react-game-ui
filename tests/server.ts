@@ -1,29 +1,27 @@
+// tests/server.ts
 import path from 'path';
 import { GameServer, type GameServerOptions } from 'react-game-ui/server';
 import { fileURLToPath } from 'url';
-
-// 型定義のインポート（実行用データは startServer 内で動的に読む）
+import { chunkTo2D, generateFromTemplates, replicateData } from '../src/server/data-helper.js';
 import { loadJsonAssert, Validators } from '../src/server/json-loader.js';
-import { Card } from '../src/types/card.js';
-import { GameId, RoomParam, RoomState } from '../src/types/server.js';
+
+import type { GameId, RoomParam, RoomState } from '../src/types/server.js';
 import { customEvents } from './data/customEvents.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --- メインサーバー起動ロジック ---
 async function startServer() {
-  // 動的インポートにより、タイミング問題を回避して効果データを取得
+  // エフェクトデータの動的ロード
   const [cardEffectsModule, cellEffectsModule] = await Promise.all([
     import('./data/cardEffects.js').catch(() => ({ cardEffects: {} })),
     import('./data/cellEffects.js').catch(() => ({ cellEffects: {} })),
   ]);
 
-  // module.cardEffects から取得
   const activeCardEffects = cardEffectsModule.cardEffects || {};
   const activeCellEffects = cellEffectsModule.cellEffects || {};
 
-  // 複数のJSONファイルを並行してロード
+  // JSONデータのロードとバリデーション
   const [numberCardsJson, deepSeaActionCardsBaseJson, deepSeaCellsBaseJson, deepSeaSpeciesDeckJson] = await Promise.all(
     [
       loadJsonAssert(path.join(__dirname, 'data/numberCards.json'), Validators.isCardArray),
@@ -33,83 +31,10 @@ async function startServer() {
     ],
   );
 
-  // --- カード・セルの生成用ヘルパー ---
-  const CELL_COUNTS = {
-    RA: 5,
-    RB: 10,
-    B_NORM: 4,
-    B_TRACK: 3,
-    T_VOL: 7,
-    T_CRF: 6,
-    N_A: 12,
-    N_B: 17,
-  };
-  const ROWS = 8;
-  const COLS = 8;
+  // 設定定数
+  const CELL_COUNTS = { RA: 5, RB: 10, B_NORM: 4, B_TRACK: 3, T_VOL: 7, T_CRF: 6, N_A: 12, N_B: 17 };
 
-  const createUniqueCards = (cards: Card[], numSets: number): Card[] => {
-    const allCards: Card[] = [];
-    for (let i = 1; i <= numSets; i++) {
-      cards.forEach((card) => allCards.push({ ...card, id: `${card.id}-set${i}` }));
-    }
-    return allCards;
-  };
-
-  const createBoardCells = (baseCells: any[], counts: Record<string, number>) => {
-    const templateMap = baseCells.reduce(
-      (map, t) => {
-        map[t.templateId] = t;
-        return map;
-      },
-      {} as Record<string, any>,
-    );
-
-    const finalCells: any[] = [];
-    for (const templateId in counts) {
-      const template = templateMap[templateId];
-      if (!template) continue;
-      for (let i = 1; i <= counts[templateId]; i++) {
-        finalCells.push({ ...template, id: `${templateId}-${i}` });
-      }
-    }
-    return finalCells;
-  };
-
-  // 深海アドベンチャー用のデータ準備
-  const deepSeaActionCardsThreeSets = createUniqueCards(deepSeaActionCardsBaseJson, 3);
-  const completeDeepSeaCells2D = (() => {
-    const cells1D = createBoardCells(deepSeaCellsBaseJson, CELL_COUNTS);
-    const cells2D: any[][] = [];
-    for (let r = 0; r < ROWS; r++) {
-      cells2D.push(cells1D.slice(r * COLS, (r + 1) * COLS));
-    }
-    return cells2D;
-  })();
-
-  const DEEP_SEA_RESOURCES = [
-    { resourceId: 'OXYGEN', name: '酸素', icon: '🫧', currentValue: 50, maxValue: 50, type: 'CONSUMABLE' as const },
-    {
-      resourceId: 'BATTERY',
-      name: 'バッテリー',
-      icon: '🔋',
-      currentValue: 6,
-      maxValue: 6,
-      type: 'CONSUMABLE' as const,
-    },
-  ];
-
-  const DEEP_SEA_TOKENS_ARTIFACT = [{ id: 'ARTIFACT', name: '💰', color: '#D4AF37' }];
-
-  const createUniqueTokens = (templates: any[], count: number) =>
-    templates.flatMap((t) =>
-      Array.from({ length: count }, (_, i) => ({
-        ...t,
-        id: `${t.id}-${i + 1}`,
-        templateId: t.id,
-      })),
-    );
-
-  // --- プリセット定義 ---
+  // プリセット定義
   const GAME_PRESETS_COLLECTION: Record<GameId, RoomParam> = {
     sample: {
       gameId: 'sample',
@@ -123,18 +48,32 @@ async function startServer() {
         {
           deckId: 'deepSeaAction',
           name: 'アクションカード',
-          cards: deepSeaActionCardsThreeSets,
+          cards: replicateData(deepSeaActionCardsBaseJson, 3),
           backColor: '#0d8999ff',
         },
       ],
-      cardEffects: activeCardEffects, // 動的ロードしたデータを適用
-      initialResources: DEEP_SEA_RESOURCES,
+      cardEffects: activeCardEffects,
+      initialResources: [
+        { resourceId: 'OXYGEN', name: '酸素', icon: '🫧', currentValue: 50, maxValue: 50, type: 'CONSUMABLE' as const },
+        {
+          resourceId: 'BATTERY',
+          name: 'バッテリー',
+          icon: '🔋',
+          currentValue: 6,
+          maxValue: 6,
+          type: 'CONSUMABLE' as const,
+        },
+      ],
       initialTokenStores: [
-        { tokenStoreId: 'ARTIFACT', name: '遺物', tokens: createUniqueTokens(DEEP_SEA_TOKENS_ARTIFACT, 10) },
+        {
+          tokenStoreId: 'ARTIFACT',
+          name: '遺物',
+          tokens: replicateData([{ id: 'ARTIFACT', name: '💰', color: '#D4AF37', imageSrc: '', count: 1 }], 10),
+        },
       ],
       initialHand: { deckId: 'deepSeaAction', count: 6 },
-      initialBoard: { deepAbyssBoard: completeDeepSeaCells2D },
-      cellEffects: activeCellEffects, // 動적ロードしたデータを適用
+      initialBoard: { deepAbyssBoard: chunkTo2D(generateFromTemplates(deepSeaCellsBaseJson, CELL_COUNTS), 8) },
+      cellEffects: activeCellEffects,
       checkGameEnd: (room: RoomState) =>
         // 終了条件: 5ラウンド終了 (5ラウンド目の最後 かつ 最後のプレイヤーの手番時)
         room.currentRoundIndex >= 4 && room.currentTurnIndex == room.initRoomState.players.length - 1,
@@ -147,7 +86,7 @@ async function startServer() {
     },
   };
 
-  // --- GameServer インスタンス作成 ---
+  // サーバーオプションの設定
   const options: GameServerOptions = {
     port: 4000,
     clientDistPath: path.resolve(__dirname, '..', 'dist'),
