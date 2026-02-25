@@ -14,7 +14,7 @@ export type GameServerOptions = {
     onServerStart?: (url: string) => void;
     gamePresets: Record<string, RoomParam>;
     customEvents?: any;
-    initialLogCategories?: Record<LogCategory, boolean> | null;
+    initialLogCategories?: Partial<Record<LogCategory, boolean>> | null;
 };
 export declare class GameServer {
     private port;

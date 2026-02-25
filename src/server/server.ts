@@ -23,7 +23,7 @@ export type GameServerOptions = {
   onServerStart?: (url: string) => void;
   gamePresets: Record<string, RoomParam>;
   customEvents?: any;
-  initialLogCategories?: Record<LogCategory, boolean> | null;
+  initialLogCategories?: Partial<Record<LogCategory, boolean>> | null;
 };
 
 export class GameServer {
@@ -35,7 +35,7 @@ export class GameServer {
 
   private gamePresets: Record<string, RoomParam>;
   private customEvents: any;
-  private initialLogCategories: Record<string, boolean> | null;
+  private initialLogCategories: Partial<Record<LogCategory, boolean>> | null;
 
   public app: express.Application;
   public httpServer: HttpServer;
