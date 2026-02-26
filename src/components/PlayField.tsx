@@ -6,7 +6,6 @@ import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
 import type { PlayerWithResources } from '../types/playerWithResources.js';
-import { client_log } from '../utils/client-log.js';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
 import './PlayField.css';
@@ -31,10 +30,22 @@ type PlayFieldProps = {
   players: PlayerWithResources[];
   myPlayerId: PlayerId | null;
   layoutMode?: 'grid' | 'free';
-  is_logging?: boolean;
   backgroundImage?: string;
+  is_logging?: boolean;
 };
 
+/**
+ * カードを自由配置（Free Mode）またはグリッド配置し、移動やドロップ操作を管理する
+ * @param {Socket} socket - Socket.ioのインスタンス
+ * @param {RoomId} roomId - 現在のルームID
+ * @param {DeckId} deckId - このフィールドが紐付いているデッキのID
+ * @param {string} [title] - フィールドの表示タイトル
+ * @param {PlayerWithResources[]} players - ルームに参加しているプレイヤー情報（オーナー表示用）
+ * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
+ * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
+ * @param {string} [backgroundImage] - フィールドの背景画像URL
+ * @param {boolean} [is_logging=false] - デバッグログを出力するかどうか
+ */
 export function PlayField({
   socket,
   roomId,
@@ -55,7 +66,14 @@ export function PlayField({
     socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
       const newCards = data.playFieldCards || [];
       if (is_logging) {
-        client_log('playField', `[${deckId}] 場の更新: ${newCards.length}枚`);
+        console.table(
+          newCards.map((c: Card) => ({
+            id: c.id,
+            name: c.name,
+            faceUp: c.isFaceUp,
+            owner: c.ownerId,
+          })),
+        );
       }
       setPlayedCards(newCards);
     });
@@ -137,10 +155,6 @@ export function PlayField({
     };
 
     socket.emit('card:play', playData);
-
-    if (is_logging) {
-      client_log('playField', `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`);
-    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {

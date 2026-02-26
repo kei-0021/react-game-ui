@@ -1,6 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
-import { client_log } from '../utils/client-log.js';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
 import './PlayField.css';
@@ -15,6 +14,18 @@ function throttle(func, limit) {
         }
     };
 }
+/**
+ * カードを自由配置（Free Mode）またはグリッド配置し、移動やドロップ操作を管理する
+ * @param {Socket} socket - Socket.ioのインスタンス
+ * @param {RoomId} roomId - 現在のルームID
+ * @param {DeckId} deckId - このフィールドが紐付いているデッキのID
+ * @param {string} [title] - フィールドの表示タイトル
+ * @param {PlayerWithResources[]} players - ルームに参加しているプレイヤー情報（オーナー表示用）
+ * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
+ * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
+ * @param {string} [backgroundImage] - フィールドの背景画像URL
+ * @param {boolean} [is_logging=false] - デバッグログを出力するかどうか
+ */
 export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', is_logging = false, backgroundImage, }) {
     const [playedCards, setPlayedCards] = React.useState([]);
     const [activeDraggingId, setActiveDraggingId] = React.useState(null);
@@ -24,7 +35,12 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
             const newCards = data.playFieldCards || [];
             if (is_logging) {
-                client_log('playField', `[${deckId}] 場の更新: ${newCards.length}枚`);
+                console.table(newCards.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    faceUp: c.isFaceUp,
+                    owner: c.ownerId,
+                })));
             }
             setPlayedCards(newCards);
         });
@@ -92,9 +108,6 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
             coordinate: { x, y },
         };
         socket.emit('card:play', playData);
-        if (is_logging) {
-            client_log('playField', `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`);
-        }
     };
     const handleDragOver = (e) => {
         e.preventDefault();

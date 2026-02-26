@@ -148,7 +148,6 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
 
   React.useEffect(() => {
     const handlePlayersUpdate = (updatedPlayers: ServerPlayer[]) => {
-      console.log('[Socket] Players updated.', updatedPlayers);
       setServerPlayers(updatedPlayers);
     };
     socket.on('players:update', handlePlayersUpdate);

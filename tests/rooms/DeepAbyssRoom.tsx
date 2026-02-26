@@ -241,6 +241,7 @@ export function DeepAbyssRoom() {
               myPlayerId={myPlayerId}
               players={players}
               backgroundImage="/gameboard.png"
+              is_logging={true}
             />
             <PlayField
               socket={socket}
