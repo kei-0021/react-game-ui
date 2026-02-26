@@ -1,15 +1,3 @@
-.cardImage {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.cardNameText {
-  font-size: 1em;
-  word-break: break-all;
-  text-align: center;
-}
-
 .deckTitle {
   margin-bottom: 6px;
   color: #333;

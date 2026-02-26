@@ -9,7 +9,7 @@ import { PlayerWithResources } from '../types/playerWithResources.js';
 import type { Resource } from '../types/resource.js';
 import { Token } from '../types/token.js';
 import { CardDisplayContent } from './Card.js';
-import styles from './ScoreBoard.module.css';
+import scoreBoardStyles from './ScoreBoard.module.css';
 
 type DisplayedPlayer = PlayerWithResources & {
   score: number;
@@ -34,11 +34,11 @@ const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, pl
   if (!tokens || tokens.length === 0) return null;
 
   return (
-    <div className={styles.tokenList}>
+    <div className={scoreBoardStyles.tokenList}>
       {tokens.map((token: Token) => (
         <div
           key={token.id}
-          className={`${styles.tokenBadge} ${isMyToken ? styles.tokenBadgeOwner : styles.tokenBadgeGuest}`}
+          className={`${scoreBoardStyles.tokenBadge} ${isMyToken ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`}
           onClick={() => {
             if (!isMyToken) return;
             socket.emit('token:reclaim', {
@@ -85,21 +85,24 @@ const PlayerListItem = React.memo(
     } as React.CSSProperties;
 
     return (
-      <li className={`${styles.playerItem} ${isActive ? styles.activePlayer : ''}`} style={customStyles}>
-        <div className={styles.playerHeader}>
-          <span className={styles.playerName}>
+      <li
+        className={`${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ''}`}
+        style={customStyles}
+      >
+        <div className={scoreBoardStyles.playerHeader}>
+          <span className={scoreBoardStyles.playerName}>
             {isActive && 'ᐅ '}
             {isOwner && '★ ME '}
             {player.name}
           </span>
-          <div className={styles.scoreArea}>
-            <span className={styles.playerScore}>スコア: {player.score}</span>
+          <div className={scoreBoardStyles.scoreArea}>
+            <span className={scoreBoardStyles.playerScore}>スコア: {player.score}</span>
             {isDebug && (
-              <div className={styles.debugScoreButtons}>
-                <button onClick={() => handleAddScore(-1)} className={styles.debugBtn}>
+              <div className={scoreBoardStyles.debugScoreButtons}>
+                <button onClick={() => handleAddScore(-1)} className={scoreBoardStyles.debugBtn}>
                   -
                 </button>
-                <button onClick={() => handleAddScore(1)} className={styles.debugBtn}>
+                <button onClick={() => handleAddScore(1)} className={scoreBoardStyles.debugBtn}>
                   +
                 </button>
               </div>
@@ -108,10 +111,10 @@ const PlayerListItem = React.memo(
         </div>
 
         {player.resources?.length > 0 && (
-          <div className={styles.resourceSection}>
-            <div className={styles.resourceList}>
+          <div className={scoreBoardStyles.resourceSection}>
+            <div className={scoreBoardStyles.resourceList}>
               {player.resources.map((resource: Resource) => (
-                <span key={resource.resourceId} className={styles.resourceBadge}>
+                <span key={resource.resourceId} className={scoreBoardStyles.resourceBadge}>
                   {resource.icon} {resource.name}: {resource.currentValue} / {resource.maxValue}
                 </span>
               ))}
@@ -127,7 +130,7 @@ const PlayerListItem = React.memo(
           playerIdBeingDisplayed={player.id}
         />
 
-        <div className={styles.cardList}>
+        <div className={scoreBoardStyles.cardList}>
           {player.cards.map((card: Card) => {
             const isSelected = selectedCards.includes(card.id);
             const canSeeFront = !!card.isFaceUp || isOwner;
@@ -142,17 +145,16 @@ const PlayerListItem = React.memo(
                   e.dataTransfer.setData('deckId', card.deckId);
                   e.dataTransfer.effectAllowed = 'move';
                 }}
-                className={`${styles.cardBase} rg-playfield-card-wrapper ${
-                  isSelected ? styles.cardSelected : ''
-                } ${card.isFaceUp ? styles.cardSuperRevealed : ''}`}
+                className={`${scoreBoardStyles.cardBase} rg-playfield-card-wrapper ${
+                  isSelected ? scoreBoardStyles.cardSelected : ''
+                } ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}`}
                 style={
                   {
                     cursor: isOwner ? 'grab' : 'default',
                     border: card.isFaceUp ? '3px solid #00ffff' : '1px solid #ccc',
                     boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
-                    // パディングが原因でズレるのを防ぐ
                     padding: 0,
-                    overflow: 'hidden', // 中身がはみ出して角から漏れないようにする
+                    overflow: 'hidden',
                     position: 'relative',
                     display: 'flex',
                     alignItems: 'stretch',
@@ -162,7 +164,9 @@ const PlayerListItem = React.memo(
                 onClick={() => toggleCardSelection(card.id, isOwner)}
               >
                 <CardDisplayContent card={card} canSeeFront={canSeeFront} />
-                {canSeeFront && card.description && <span className={styles.tooltip}>{card.description}</span>}
+                {canSeeFront && card.description && (
+                  <span className={scoreBoardStyles.tooltip}>{card.description}</span>
+                )}
               </div>
             );
           })}
@@ -278,9 +282,9 @@ export function ScoreBoard({
   const isActionDisabled = selectedCards.length === 0 || isOverLimit;
 
   return (
-    <div className={styles.container}>
-      <h2 className={styles.title}>ゲームスコアボード</h2>
-      <ul className={styles.playerList}>
+    <div className={scoreBoardStyles.container}>
+      <h2 className={scoreBoardStyles.title}>ゲームスコアボード</h2>
+      <ul className={scoreBoardStyles.playerList}>
         {displayedPlayers.map((player) => (
           <PlayerListItem
             key={player.id}
@@ -296,10 +300,12 @@ export function ScoreBoard({
         ))}
       </ul>
 
-      <div className={styles.buttonArea}>
-        {isOverLimit && <p className={styles.limitMessage}>一度に出せるカードは {playCardLimit} 枚までです</p>}
+      <div className={scoreBoardStyles.buttonArea}>
+        {isOverLimit && (
+          <p className={scoreBoardStyles.limitMessage}>一度に出せるカードは {playCardLimit} 枚までです</p>
+        )}
 
-        <div className={styles.buttonGroup}>
+        <div className={scoreBoardStyles.buttonGroup}>
           <button onClick={playSelectedCards} disabled={isActionDisabled}>
             選択カードを出す
           </button>

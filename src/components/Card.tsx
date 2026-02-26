@@ -11,10 +11,6 @@ export const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: Car
         className={cardStyles.deckCard}
         style={{
           backgroundColor: card.backColor || '#333',
-          width: '100%',
-          height: '100%',
-          display: 'block',
-          borderRadius: 'inherit', // 親の角丸を引き継ぐ
         }}
       />
     );
@@ -22,37 +18,12 @@ export const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: Car
 
   // 表向き かつ 画像がある場合
   if (card.frontImage) {
-    return (
-      <img
-        src={card.frontImage}
-        alt={card.name}
-        className={cardStyles.cardImage}
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: 'block',
-          borderRadius: 'inherit',
-        }}
-      />
-    );
+    return <img src={card.frontImage} alt={card.name} className={cardStyles.cardImage} style={{}} />;
   }
 
-  // 表向き かつ 画像がない場合（名前を表示）
-  // ズレを解消するため、背景色（白など）とサイズを固定
+  // 表向き かつ 画像がない場合、名前を表示
   return (
-    <div
-      className={cardStyles.cardNameWrapper}
-      style={{
-        backgroundColor: '#ffffff', // 明示的に白を指定して下の色を隠す
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 'inherit',
-      }}
-    >
+    <div className={cardStyles.cardNameWrapper} style={{}}>
       <strong className={cardStyles.cardNameText}>{card.name}</strong>
     </div>
   );

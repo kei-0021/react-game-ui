@@ -1,12 +1,12 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
 import { CardDisplayContent } from './Card.js';
-import styles from './ScoreBoard.module.css';
+import scoreBoardStyles from './ScoreBoard.module.css';
 const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
     const isMyToken = myPlayerId === playerIdBeingDisplayed;
     if (!tokens || tokens.length === 0)
         return null;
-    return (_jsx("div", { className: styles.tokenList, children: tokens.map((token) => (_jsx("div", { className: `${styles.tokenBadge} ${isMyToken ? styles.tokenBadgeOwner : styles.tokenBadgeGuest}`, onClick: () => {
+    return (_jsx("div", { className: scoreBoardStyles.tokenList, children: tokens.map((token) => (_jsx("div", { className: `${scoreBoardStyles.tokenBadge} ${isMyToken ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`, onClick: () => {
                 if (!isMyToken)
                     return;
                 socket.emit('token:reclaim', {
@@ -32,7 +32,7 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, select
         '--player-color-bg': playerColor.replace('hsl', 'hsla').replace(')', ', 0.3)'),
         '--player-color-glow': playerColor.replace('hsl', 'hsla').replace(')', ', 0.5)'),
     };
-    return (_jsxs("li", { className: `${styles.playerItem} ${isActive ? styles.activePlayer : ''}`, style: customStyles, children: [_jsxs("div", { className: styles.playerHeader, children: [_jsxs("span", { className: styles.playerName, children: [isActive && 'ᐅ ', isOwner && '★ ME ', player.name] }), _jsxs("div", { className: styles.scoreArea, children: [_jsxs("span", { className: styles.playerScore, children: ["\u30B9\u30B3\u30A2: ", player.score] }), isDebug && (_jsxs("div", { className: styles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), className: styles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), className: styles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: styles.resourceSection, children: _jsx("div", { className: styles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: styles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx(TokenDisplayContent, { tokens: player.tokens, socket: socket, roomId: roomId, myPlayerId: myPlayerId, playerIdBeingDisplayed: player.id }), _jsx("div", { className: styles.cardList, children: player.cards.map((card) => {
+    return (_jsxs("li", { className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ''}`, style: customStyles, children: [_jsxs("div", { className: scoreBoardStyles.playerHeader, children: [_jsxs("span", { className: scoreBoardStyles.playerName, children: [isActive && 'ᐅ ', isOwner && '★ ME ', player.name] }), _jsxs("div", { className: scoreBoardStyles.scoreArea, children: [_jsxs("span", { className: scoreBoardStyles.playerScore, children: ["\u30B9\u30B3\u30A2: ", player.score] }), isDebug && (_jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), className: scoreBoardStyles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), className: scoreBoardStyles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: scoreBoardStyles.resourceSection, children: _jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx(TokenDisplayContent, { tokens: player.tokens, socket: socket, roomId: roomId, myPlayerId: myPlayerId, playerIdBeingDisplayed: player.id }), _jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card) => {
                     const isSelected = selectedCards.includes(card.id);
                     const canSeeFront = !!card.isFaceUp || isOwner;
                     return (_jsxs("div", { draggable: isOwner, onDragStart: (e) => {
@@ -41,18 +41,17 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, select
                             e.dataTransfer.setData('cardId', card.id);
                             e.dataTransfer.setData('deckId', card.deckId);
                             e.dataTransfer.effectAllowed = 'move';
-                        }, className: `${styles.cardBase} rg-playfield-card-wrapper ${isSelected ? styles.cardSelected : ''} ${card.isFaceUp ? styles.cardSuperRevealed : ''}`, style: {
+                        }, className: `${scoreBoardStyles.cardBase} rg-playfield-card-wrapper ${isSelected ? scoreBoardStyles.cardSelected : ''} ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}`, style: {
                             cursor: isOwner ? 'grab' : 'default',
                             border: card.isFaceUp ? '3px solid #00ffff' : '1px solid #ccc',
                             boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
-                            // パディングが原因でズレるのを防ぐ
                             padding: 0,
-                            overflow: 'hidden', // 中身がはみ出して角から漏れないようにする
+                            overflow: 'hidden',
                             position: 'relative',
                             display: 'flex',
                             alignItems: 'stretch',
                             justifyContent: 'stretch',
-                        }, onClick: () => toggleCardSelection(card.id, isOwner), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront }), canSeeFront && card.description && _jsx("span", { className: styles.tooltip, children: card.description })] }, card.id));
+                        }, onClick: () => toggleCardSelection(card.id, isOwner), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront }), canSeeFront && card.description && (_jsx("span", { className: scoreBoardStyles.tooltip, children: card.description }))] }, card.id));
                 }) })] }));
 });
 /**
@@ -138,5 +137,5 @@ export function ScoreBoard({ socket, players, currentPlayerId, myPlayerId, roomI
     const nextTurn = () => socket.emit('game:next-turn', { roomId });
     const isOverLimit = playCardLimit !== undefined && selectedCards.length > playCardLimit;
     const isActionDisabled = selectedCards.length === 0 || isOverLimit;
-    return (_jsxs("div", { className: styles.container, children: [_jsx("h2", { className: styles.title, children: "\u30B2\u30FC\u30E0\u30B9\u30B3\u30A2\u30DC\u30FC\u30C9" }), _jsx("ul", { className: styles.playerList, children: displayedPlayers.map((player) => (_jsx(PlayerListItem, { player: player, currentPlayerId: currentPlayerId, myPlayerId: myPlayerId, selectedCards: selectedCards, toggleCardSelection: toggleCardSelection, socket: socket, roomId: roomId, isDebug: isDebug }, player.id))) }), _jsxs("div", { className: styles.buttonArea, children: [isOverLimit && _jsxs("p", { className: styles.limitMessage, children: ["\u4E00\u5EA6\u306B\u51FA\u305B\u308B\u30AB\u30FC\u30C9\u306F ", playCardLimit, " \u679A\u307E\u3067\u3067\u3059"] }), _jsxs("div", { className: styles.buttonGroup, children: [_jsx("button", { onClick: playSelectedCards, disabled: isActionDisabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u51FA\u3059" }), _jsx("button", { onClick: revealSelectedCards, disabled: isActionDisabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u516C\u958B\u3059\u308B" }), _jsx("button", { onClick: nextTurn, children: "\u30BF\u30FC\u30F3\u3092\u30B9\u30AD\u30C3\u30D7" })] })] })] }));
+    return (_jsxs("div", { className: scoreBoardStyles.container, children: [_jsx("h2", { className: scoreBoardStyles.title, children: "\u30B2\u30FC\u30E0\u30B9\u30B3\u30A2\u30DC\u30FC\u30C9" }), _jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => (_jsx(PlayerListItem, { player: player, currentPlayerId: currentPlayerId, myPlayerId: myPlayerId, selectedCards: selectedCards, toggleCardSelection: toggleCardSelection, socket: socket, roomId: roomId, isDebug: isDebug }, player.id))) }), _jsxs("div", { className: scoreBoardStyles.buttonArea, children: [isOverLimit && (_jsxs("p", { className: scoreBoardStyles.limitMessage, children: ["\u4E00\u5EA6\u306B\u51FA\u305B\u308B\u30AB\u30FC\u30C9\u306F ", playCardLimit, " \u679A\u307E\u3067\u3067\u3059"] })), _jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [_jsx("button", { onClick: playSelectedCards, disabled: isActionDisabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u51FA\u3059" }), _jsx("button", { onClick: revealSelectedCards, disabled: isActionDisabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u516C\u958B\u3059\u308B" }), _jsx("button", { onClick: nextTurn, children: "\u30BF\u30FC\u30F3\u3092\u30B9\u30AD\u30C3\u30D7" })] })] })] }));
 }
