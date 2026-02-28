@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Deck } from '../../src/components/Deck';
+import { Draggable } from '../../src/components/Draggable';
 import { PlayField } from '../../src/components/PlayField';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
 import TokenStore from '../../src/components/TokenStore';
@@ -57,6 +58,8 @@ export function DeepAbyssRoom() {
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const showPopup = useCallback((message: string, color: string) => {
     if (popupTimerRef.current) {
@@ -154,7 +157,7 @@ export function DeepAbyssRoom() {
 
   // ゲーム本編
   return (
-    <div className="deepsea-container">
+    <div className="deepsea-container" ref={containerRef}>
       {/* ゲーム終了リザルトモーダル */}
       {gameResult && (
         <div className="result-overlay">
@@ -266,6 +269,15 @@ export function DeepAbyssRoom() {
             isDebug={true}
           />
         </div>
+        <Draggable
+          socket={socket}
+          roomId={roomId}
+          initialXY={{ x: 1000, y: 500 }}
+          key={`piece`}
+          draggableId={`piece`}
+          size={{ width: 200, height: 100 }}
+          containerRef={containerRef}
+        ></Draggable>
       </div>
     </div>
   );
