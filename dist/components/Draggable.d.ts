@@ -16,7 +16,11 @@ type DraggableProps = {
     image?: string;
     mask?: boolean;
     initialXY?: Coordinate;
-    size?: number;
+    /** 要素のサイズ。数値指定時は正方形、オブジェクト指定時は長方形となる */
+    size?: number | {
+        width: number;
+        height: number;
+    };
     color?: string;
     isTransparent?: boolean;
     children?: ReactNode;
@@ -24,7 +28,7 @@ type DraggableProps = {
     onDragEnd?: (x: number, y: number) => void;
     gridBounds?: GridBounds;
     scale?: number;
-    containerRef?: React.RefObject<HTMLElement | null>;
+    containerRef: React.RefObject<HTMLElement | null>;
 };
 /**
  * ドラッグ移動と移動のリアルタイムな位置同期機能を提供する
@@ -33,8 +37,8 @@ type DraggableProps = {
  * @param {DraggableId} [draggableId] - この要素を一意に識別するためのID
  * @param {string} [image] - 表示する画像URL
  * @param {boolean} [mask=false] - 画像を背景色(color)でマスク（切り抜き）表示するかどうか
- * @param {number} [initialXY={x:500, y:500}] - 初期配置のXY座標
- * @param {number} [size=100] - 要素の基本サイズ（幅・高さ共通）
+ * @param {Coordinate} [initialXY={x:500, y:500}] - 初期配置のXY座標
+ * @param {number | {width: number, height: number}} [size=100] - 要素のサイズ（数値なら正方形、オブジェクトなら長方形）
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
  * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
