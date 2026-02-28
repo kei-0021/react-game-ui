@@ -12,7 +12,13 @@ import {
 
 import { DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
 import { RoomMeta, RoomParam, RoomState } from '@/types/server.js';
-import { CardMoveFromFieldData, CardPlayData, DeckDrawData, DeckUpdateData } from '@/types/socketData.js';
+import {
+  CardMoveFromFieldData,
+  CardPlayData,
+  DeckDrawData,
+  DeckUpdateData,
+  DraggableMovedData,
+} from '@/types/socketData.js';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
 import type { GameServerOptions } from './server.js';
@@ -598,7 +604,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       socket.to(roomId).emit('cursor:update', { playerId: socket.id, x, y });
     });
 
-    socket.on('draggable:moved', (data) => {
+    socket.on('draggable:moved', (data: DraggableMovedData) => {
       const { roomId, ...move } = data;
       socket.to(roomId).emit('draggable:update', move);
     });

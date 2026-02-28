@@ -1,7 +1,26 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { useEffect, useRef, useState } from 'react';
-import styles from './Draggable.module.css';
-export function Draggable({ image, mask = false, initialX = 500, initialY = 500, size = 100, color = 'yellow', isTransparent = false, children, style = {}, socket, roomId, pieceId, onDragEnd, scale = 1, containerRef, }) {
+import draggableStyles from './Draggable.module.css';
+/**
+ * ドラッグ移動と移動のリアルタイムな位置同期機能を提供する
+ * @param {Socket} [socket] - リアルタイム同期用のSocket.ioインスタンス
+ * @param {RoomId} [roomId] - 同期対象のルームID
+ * @param {DraggableId} [draggableId] - この要素を一意に識別するためのID
+ * @param {string} [image] - 表示する画像URL
+ * @param {boolean} [mask=false] - 画像を背景色(color)でマスク（切り抜き）表示するかどうか
+ * @param {number} [initialX=500] - 初期配置のX座標
+ * @param {number} [initialY=500] - 初期配置のY座標
+ * @param {number} [size=100] - 要素の基本サイズ（幅・高さ共通）
+ * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
+ * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
+ * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
+ * @param {CSSProperties} [style] - 外側から適用する追加のスタイル
+ * @param {(x: number, y: number) => void} [onDragEnd] - ドラッグ終了時に確定座標を通知するハンドラ
+ * @param {GridBounds} [gridBounds] - スナップ移動を制御するためのグリッド境界情報
+ * @param {number} [scale=1] - 親コンテナのズーム倍率（座標計算の補正に使用）
+ * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
+ */
+export function Draggable({ image, mask = false, initialX = 500, initialY = 500, size = 100, color = 'yellow', isTransparent = false, children, style = {}, socket, roomId, draggableId, onDragEnd, scale = 1, containerRef, }) {
     const [pos, setPos] = useState({ x: initialX, y: initialY });
     const [rotation, setRotation] = useState(0);
     const posRef = useRef(pos);
@@ -11,20 +30,19 @@ export function Draggable({ image, mask = false, initialX = 500, initialY = 500,
         posRef.current = pos;
     }, [pos]);
     useEffect(() => {
-        if (!socket || !pieceId)
+        if (!socket || !draggableId)
             return;
-        const eventName = 'draggable:update';
         const handleRemoteMove = (move) => {
             // 自分がドラッグ中の時は、サーバーからの座標更新を無視する
-            if (move.pieceId === pieceId && !isDraggingRef.current) {
+            if (move.draggableId === draggableId && !isDraggingRef.current) {
                 setPos({ x: move.x, y: move.y });
             }
         };
-        socket.on(eventName, handleRemoteMove);
+        socket.on('draggable:update', handleRemoteMove);
         return () => {
-            socket.off(eventName, handleRemoteMove);
+            socket.off('draggable:update', handleRemoteMove);
         };
-    }, [socket, pieceId]);
+    }, [socket, draggableId]);
     const handleMouseDown = (e) => {
         e.preventDefault();
         // ドラッグ開始
@@ -55,16 +73,27 @@ export function Draggable({ image, mask = false, initialX = 500, initialY = 500,
             };
             setPos(newPos);
             posRef.current = newPos;
-            if (socket && roomId && pieceId) {
-                socket.emit('draggable:moved', { roomId, pieceId, ...newPos });
+            if (socket && roomId && draggableId) {
+                const movedData = {
+                    roomId: roomId,
+                    draggableId: draggableId,
+                    ...newPos,
+                };
+                socket.emit('draggable:moved', movedData);
             }
         };
         const handleMouseUp = () => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
             const { x, y } = posRef.current;
-            if (socket && roomId && pieceId) {
-                socket.emit('draggable:moved', { roomId, pieceId, x, y });
+            if (socket && roomId && draggableId) {
+                const movedData = {
+                    roomId: roomId,
+                    draggableId: draggableId,
+                    x: x,
+                    y: y,
+                };
+                socket.emit('draggable:moved', movedData);
             }
             // ドラッグ終了（少し遅らせることで、最後に飛んできた自分の古い座標を捨てる）
             setTimeout(() => {
@@ -107,7 +136,7 @@ export function Draggable({ image, mask = false, initialX = 500, initialY = 500,
         ...maskStyle,
         ...style,
     };
-    return (_jsx("div", { onMouseDown: handleMouseDown, onDoubleClick: handleDoubleClick, className: styles.draggable, style: dynamicStyle, children: image ? (_jsx("img", { src: image, alt: "", style: {
+    return (_jsx("div", { onMouseDown: handleMouseDown, onDoubleClick: handleDoubleClick, className: draggableStyles.draggable, style: dynamicStyle, children: image ? (_jsx("img", { src: image, alt: "", style: {
                 width: '100%',
                 height: '100%',
                 objectFit: 'contain',

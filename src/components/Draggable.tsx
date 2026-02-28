@@ -1,9 +1,10 @@
 // src/components/Draggable.tsx
-import { PieceId, RoomId } from '@/types/definition.js';
+import { DraggableId, RoomId } from '@/types/definition.js';
+import { DraggableMovedData, DraggableUpdateData } from '@/types/socketData.js';
 import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import type { Socket } from 'socket.io-client';
-import styles from './Draggable.module.css';
+import draggableStyles from './Draggable.module.css';
 
 interface GridBounds {
   left: number;
@@ -13,7 +14,10 @@ interface GridBounds {
   cellSize: number;
 }
 
-interface DraggableProps {
+type DraggableProps = {
+  socket?: Socket;
+  roomId?: RoomId;
+  draggableId?: DraggableId;
   image?: string;
   mask?: boolean;
   initialX?: number;
@@ -23,15 +27,31 @@ interface DraggableProps {
   isTransparent?: boolean;
   children?: ReactNode;
   style?: CSSProperties;
-  socket?: Socket;
-  roomId?: RoomId;
-  pieceId?: PieceId;
   onDragEnd?: (x: number, y: number) => void;
   gridBounds?: GridBounds;
   scale?: number;
   containerRef?: React.RefObject<HTMLElement | null>;
-}
+};
 
+/**
+ * ドラッグ移動と移動のリアルタイムな位置同期機能を提供する
+ * @param {Socket} [socket] - リアルタイム同期用のSocket.ioインスタンス
+ * @param {RoomId} [roomId] - 同期対象のルームID
+ * @param {DraggableId} [draggableId] - この要素を一意に識別するためのID
+ * @param {string} [image] - 表示する画像URL
+ * @param {boolean} [mask=false] - 画像を背景色(color)でマスク（切り抜き）表示するかどうか
+ * @param {number} [initialX=500] - 初期配置のX座標
+ * @param {number} [initialY=500] - 初期配置のY座標
+ * @param {number} [size=100] - 要素の基本サイズ（幅・高さ共通）
+ * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
+ * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
+ * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
+ * @param {CSSProperties} [style] - 外側から適用する追加のスタイル
+ * @param {(x: number, y: number) => void} [onDragEnd] - ドラッグ終了時に確定座標を通知するハンドラ
+ * @param {GridBounds} [gridBounds] - スナップ移動を制御するためのグリッド境界情報
+ * @param {number} [scale=1] - 親コンテナのズーム倍率（座標計算の補正に使用）
+ * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
+ */
 export function Draggable({
   image,
   mask = false,
@@ -44,7 +64,7 @@ export function Draggable({
   style = {},
   socket,
   roomId,
-  pieceId,
+  draggableId,
   onDragEnd,
   scale = 1,
   containerRef,
@@ -60,19 +80,18 @@ export function Draggable({
   }, [pos]);
 
   useEffect(() => {
-    if (!socket || !pieceId) return;
-    const eventName = 'draggable:update';
-    const handleRemoteMove = (move: { pieceId: string; x: number; y: number }) => {
+    if (!socket || !draggableId) return;
+    const handleRemoteMove = (move: DraggableUpdateData) => {
       // 自分がドラッグ中の時は、サーバーからの座標更新を無視する
-      if (move.pieceId === pieceId && !isDraggingRef.current) {
+      if (move.draggableId === draggableId && !isDraggingRef.current) {
         setPos({ x: move.x, y: move.y });
       }
     };
-    socket.on(eventName, handleRemoteMove);
+    socket.on('draggable:update', handleRemoteMove);
     return () => {
-      socket.off(eventName, handleRemoteMove);
+      socket.off('draggable:update', handleRemoteMove);
     };
-  }, [socket, pieceId]);
+  }, [socket, draggableId]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -112,8 +131,13 @@ export function Draggable({
       setPos(newPos);
       posRef.current = newPos;
 
-      if (socket && roomId && pieceId) {
-        socket.emit('draggable:moved', { roomId, pieceId, ...newPos });
+      if (socket && roomId && draggableId) {
+        const movedData: DraggableMovedData = {
+          roomId: roomId,
+          draggableId: draggableId,
+          ...newPos,
+        };
+        socket.emit('draggable:moved', movedData);
       }
     };
 
@@ -122,8 +146,14 @@ export function Draggable({
       document.removeEventListener('mouseup', handleMouseUp);
 
       const { x, y } = posRef.current;
-      if (socket && roomId && pieceId) {
-        socket.emit('draggable:moved', { roomId, pieceId, x, y });
+      if (socket && roomId && draggableId) {
+        const movedData: DraggableMovedData = {
+          roomId: roomId,
+          draggableId: draggableId,
+          x: x,
+          y: y,
+        };
+        socket.emit('draggable:moved', movedData);
       }
 
       // ドラッグ終了（少し遅らせることで、最後に飛んできた自分の古い座標を捨てる）
@@ -179,7 +209,7 @@ export function Draggable({
     <div
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
-      className={styles.draggable}
+      className={draggableStyles.draggable}
       style={dynamicStyle}
     >
       {image ? (
