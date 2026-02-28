@@ -1,6 +1,7 @@
 import { Card } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
+import { Coordinate } from './coodinate.js';
 import { CardId, DeckId, DraggableId, PlayerId, RoomId } from './definition.js';
 export type DeckUpdateData = {
     currentDeck: Card[];
@@ -20,10 +21,7 @@ export type CardPlayData = {
     cardIds: CardId[];
     playerId: PlayerId;
     playLocation: CardLocation;
-    coordinate: {
-        x: number;
-        y: number;
-    };
+    coordinate: Coordinate;
 };
 export type CardMoveFromFieldData = {
     roomId: RoomId;
@@ -34,12 +32,10 @@ export type CardMoveFromFieldData = {
 export type DraggableMovedData = {
     roomId: RoomId;
     draggableId: DraggableId;
-    x: number;
-    y: number;
+    coordinate: Coordinate;
 };
 export type DraggableUpdateData = {
     draggableId: DraggableId;
-    x: number;
-    y: number;
+    coordinate: Coordinate;
 };
 //# sourceMappingURL=socketData.d.ts.map

@@ -154,14 +154,13 @@ export function SampleRoom() {
         players={players}
       />
       <Draggable
-        image={DRAGGABLE_IMAGE_PATH}
-        mask={true}
-        key={`piece`}
-        pieceId={`piece`}
         socket={socket}
         roomId={roomId}
-        initialX={1000}
-        initialY={500}
+        image={DRAGGABLE_IMAGE_PATH}
+        mask={true}
+        initialXY={{ x: 1000, y: 500 }}
+        key={`piece`}
+        draggableId={`piece`}
         containerRef={containerRef}
         color="red"
         size={150}

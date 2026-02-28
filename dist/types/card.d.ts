@@ -1,7 +1,7 @@
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
+import { Coordinate } from './coodinate.js';
 import { CardId, DeckId, PlayerId } from './definition.js';
-import { Coordinate } from './server.js';
 /**
  * @property {CardId} id - カードの一意な識別子
  * @property {DeckId} deckId - 所属するデッキのID

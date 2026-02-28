@@ -20,10 +20,6 @@ export type Position = {
     col: number;
     row: number;
 };
-export type Coordinate = {
-    x: number;
-    y: number;
-};
 export type RoomMeta = {
     id: RoomId;
     gameId: GameId;
