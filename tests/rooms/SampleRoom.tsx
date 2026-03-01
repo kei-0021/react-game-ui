@@ -10,7 +10,7 @@ import { RemoteCursor } from '../../src/components/RemoteCursor';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
 import Timer from '../../src/components/Timer';
 import { useSocket } from '../../src/hooks/useSocket';
-import type { PlayerWithResources } from '../../src/types/playerWithResources';
+import { Player } from '../../src/types/player';
 import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
 import './SampleRoom.css';
 
@@ -26,7 +26,7 @@ export function SampleRoom() {
   const [hasJoined, setHasJoined] = useState<boolean>(false);
 
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
-  const [players, setPlayers] = useState<PlayerWithResources[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
 
@@ -55,7 +55,7 @@ export function SampleRoom() {
       setIsJoining(false);
     };
 
-    const handlePlayersUpdate = (updatedPlayers: PlayerWithResources[]) => {
+    const handlePlayersUpdate = (updatedPlayers: Player[]) => {
       setPlayers(updatedPlayers);
     };
 

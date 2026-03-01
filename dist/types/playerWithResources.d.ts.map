@@ -1,1 +1,0 @@
-{"version":3,"file":"playerWithResources.d.ts","sourceRoot":"","sources":["../../src/types/playerWithResources.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,aAAa,CAAC;AAC1C,OAAO,KAAK,EAAE,QAAQ,EAAE,MAAM,eAAe,CAAC;AAE9C,MAAM,MAAM,mBAAmB,GAAG,MAAM,GAAG;IAAE,SAAS,EAAE,QAAQ,EAAE,CAAA;CAAE,CAAC"}

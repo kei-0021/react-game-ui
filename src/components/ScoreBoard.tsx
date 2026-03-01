@@ -1,25 +1,18 @@
 // src/components/ScoreBoard.tsx
 import { CardLocation } from '@/types/cardLocation.js';
+import { Player } from '@/types/player.js';
 import { CardPlayData, GameNextTrunData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import { Card } from '../types/card.js';
 import { PlayerId, RoomId } from '../types/definition.js';
-import { PlayerWithResources } from '../types/playerWithResources.js';
 import type { Resource } from '../types/resource.js';
 import { Token } from '../types/token.js';
 import { CardDisplayContent } from './Card.js';
 import scoreBoardStyles from './ScoreBoard.module.css';
 
-type DisplayedPlayer = PlayerWithResources & {
-  score: number;
-  cards: Card[];
-  resources: Resource[];
-  tokens: Token[];
-};
-
 type PlayerListItemProps = {
-  player: DisplayedPlayer;
+  player: Player;
   currentPlayerId: PlayerId | null | undefined;
   myPlayerId: PlayerId | null;
   selectedCards: string[];
@@ -180,7 +173,7 @@ const PlayerListItem = React.memo(
  * スコアボードコンポーネント
  * プレイヤーの一覧、現在のターン、各プレイヤーのスコアやトークン数を表示する
  * @param {Socket} socket - Socket.ioのインスタンス
- * @param {PlayerWithResources[]} players - ルームに参加しているプレイヤーのリスト
+ * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
  * @param {string | null} currentPlayerId - 現在の手番のプレイヤーID
  * @param {string | null} myPlayerId - ローカルプレイヤーのID
  * @param {string} roomId - 現在のルームID
@@ -199,7 +192,7 @@ export function ScoreBoard({
   isDebug = false,
 }: {
   socket: Socket;
-  players: PlayerWithResources[];
+  players: Player[];
   currentPlayerId?: PlayerId | null;
   myPlayerId: PlayerId | null;
   roomId: RoomId;
@@ -207,8 +200,8 @@ export function ScoreBoard({
   autoNextTurnOnCardPlay?: boolean;
   isDebug?: boolean;
 }) {
-  const displayedPlayers: DisplayedPlayer[] = React.useMemo(() => {
-    return (players || []).map((p: PlayerWithResources) => ({
+  const displayedPlayers: Player[] = React.useMemo(() => {
+    return (players || []).map((p: Player) => ({
       ...p,
       score: p.score ?? 0,
       cards: p.cards ?? [],

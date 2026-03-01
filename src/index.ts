@@ -26,8 +26,6 @@ export * from './types/definition.js';
 /* @ts-ignore */
 export * from './types/player.js';
 /* @ts-ignore */
-export { type PlayerWithResources } from './types/playerWithResources.js';
-/* @ts-ignore */
 export { type PieceData } from './types/piece.js';
 /* @ts-ignore */
 export { type RoomMeta, type RoomParam, type RoomState } from './types/server.js';

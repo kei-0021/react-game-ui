@@ -1,11 +1,11 @@
+import { Player } from '@/types/player.js';
 import { Socket } from 'socket.io-client';
 import { PlayerId, RoomId } from '../types/definition.js';
-import { PlayerWithResources } from '../types/playerWithResources.js';
 /**
  * スコアボードコンポーネント
  * プレイヤーの一覧、現在のターン、各プレイヤーのスコアやトークン数を表示する
  * @param {Socket} socket - Socket.ioのインスタンス
- * @param {PlayerWithResources[]} players - ルームに参加しているプレイヤーのリスト
+ * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
  * @param {string | null} currentPlayerId - 現在の手番のプレイヤーID
  * @param {string | null} myPlayerId - ローカルプレイヤーのID
  * @param {string} roomId - 現在のルームID
@@ -15,7 +15,7 @@ import { PlayerWithResources } from '../types/playerWithResources.js';
  */
 export declare function ScoreBoard({ socket, players, currentPlayerId, myPlayerId, roomId, playCardLimit, autoNextTurnOnCardPlay, isDebug, }: {
     socket: Socket;
-    players: PlayerWithResources[];
+    players: Player[];
     currentPlayerId?: PlayerId | null;
     myPlayerId: PlayerId | null;
     roomId: RoomId;

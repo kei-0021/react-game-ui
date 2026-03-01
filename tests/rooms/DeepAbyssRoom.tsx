@@ -8,7 +8,6 @@ import { ScoreBoard } from '../../src/components/ScoreBoard';
 import TokenStore from '../../src/components/TokenStore';
 import { useSocket } from '../../src/hooks/useSocket';
 import type { Player } from '../../src/types/player';
-import type { PlayerWithResources } from '../../src/types/playerWithResources';
 import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
 import MyBoard from '../components/MyBoard';
 import Popup from '../components/PopUp';
@@ -52,7 +51,7 @@ export function DeepAbyssRoom() {
   const [hasJoined, setHasJoined] = useState<boolean>(false);
 
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
-  const [players, setPlayers] = useState<PlayerWithResources[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
@@ -92,7 +91,7 @@ export function DeepAbyssRoom() {
       setIsJoining(false);
     };
 
-    const handlePlayersUpdate = (updatedPlayers: PlayerWithResources[]) => {
+    const handlePlayersUpdate = (updatedPlayers: Player[]) => {
       setPlayers(updatedPlayers);
     };
 

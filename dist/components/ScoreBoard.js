@@ -58,7 +58,7 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, select
  * スコアボードコンポーネント
  * プレイヤーの一覧、現在のターン、各プレイヤーのスコアやトークン数を表示する
  * @param {Socket} socket - Socket.ioのインスタンス
- * @param {PlayerWithResources[]} players - ルームに参加しているプレイヤーのリスト
+ * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
  * @param {string | null} currentPlayerId - 現在の手番のプレイヤーID
  * @param {string | null} myPlayerId - ローカルプレイヤーのID
  * @param {string} roomId - 現在のルームID

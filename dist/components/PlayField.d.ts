@@ -1,13 +1,13 @@
+import { Player } from '@/types/player.js';
 import { Socket } from 'socket.io-client';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
-import type { PlayerWithResources } from '../types/playerWithResources.js';
 import './PlayField.css';
 type PlayFieldProps = {
     socket: Socket;
     roomId: RoomId;
     deckId: DeckId;
     title?: string;
-    players: PlayerWithResources[];
+    players: Player[];
     myPlayerId: PlayerId | null;
     layoutMode?: 'grid' | 'free';
     backgroundImage?: string;
@@ -20,7 +20,7 @@ type PlayFieldProps = {
  * @param {RoomId} roomId - 現在のルームID
  * @param {DeckId} deckId - このフィールドが紐付いているデッキのID
  * @param {string} [title] - フィールドの表示タイトル
- * @param {PlayerWithResources[]} players - ルームに参加しているプレイヤー情報（オーナー表示用）
+ * @param {Player[]} players - ルームに参加しているプレイヤー情報（オーナー表示用）
  * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
