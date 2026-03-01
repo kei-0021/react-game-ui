@@ -77,24 +77,33 @@ export function Draggable({
   // 重なり順を内部状態として管理
   const [currentZ, setCurrentZ] = useState(zIndex);
 
+  // 右クリックメニューの表示状態
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+
   const [isDragging, setIsDragging] = useState(false);
   const posRef = useRef(pos);
-  // ドラッグ中かどうかを保持するRef（再レンダリングをトリガーしないようRefで管理）
   const isDraggingRef = useRef(false);
 
   useEffect(() => {
     posRef.current = pos;
   }, [pos]);
 
-  // PropsのzIndexが変わった場合に同期
   useEffect(() => {
     setCurrentZ(zIndex);
   }, [zIndex]);
 
+  // メニュー外クリックで閉じる処理
+  useEffect(() => {
+    const closeMenu = () => setContextMenu(null);
+    if (contextMenu) {
+      window.addEventListener('click', closeMenu);
+    }
+    return () => window.removeEventListener('click', closeMenu);
+  }, [contextMenu]);
+
   useEffect(() => {
     if (!socket || !draggableId) return;
     const handleRemoteMove = (data: DraggableUpdateData) => {
-      // 自分がドラッグ中の時は、サーバーからの座標更新を無視する
       if (data.draggableId === draggableId && !isDraggingRef.current) {
         setPos({ x: data.coordinate.x, y: data.coordinate.y });
       }
@@ -106,7 +115,7 @@ export function Draggable({
   }, [socket, draggableId]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    // 右クリック時はドラッグを開始しない（メニュー用）
+    // 右クリック(button: 2)時はドラッグを開始しない
     if (e.button !== 0) return;
 
     e.preventDefault();
@@ -180,12 +189,12 @@ export function Draggable({
   };
 
   /**
-   * ダブルクリック時の処理：90度回転 ＋ 最前面へ(+100)
+   * 右クリックメニューを表示
    */
-  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    setRotation((prev) => prev + 90);
-    setCurrentZ((prev) => prev + 100);
+    setContextMenu({ x: e.clientX, y: e.clientY });
   }, []);
 
   const MASK_PROP = ['mask', 'Image'].join('');
@@ -211,7 +220,6 @@ export function Draggable({
   const width = typeof size === 'number' ? size : size.width;
   const height = typeof size === 'number' ? size : size.height;
 
-  // ドラッグ中は一時的に 9999、それ以外は currentZ を使用
   const dynamicZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
 
   const dynamicStyle: CSSProperties = {
@@ -238,29 +246,67 @@ export function Draggable({
   };
 
   return (
-    <div
-      onMouseDown={handleMouseDown}
-      onDoubleClick={handleDoubleClick}
-      className={draggableStyles.draggable}
-      style={dynamicStyle}
-      data-draggable-id={draggableId} // 外部からの識別に必要
-    >
-      {image ? (
-        <img
-          src={image}
-          alt=""
+    <>
+      <div
+        onMouseDown={handleMouseDown}
+        onContextMenu={handleContextMenu}
+        className={draggableStyles.draggable}
+        style={dynamicStyle}
+        data-draggable-id={draggableId}
+      >
+        {image ? (
+          <img
+            src={image}
+            alt=""
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              pointerEvents: 'none',
+              userSelect: 'none',
+              mixBlendMode: mask ? 'multiply' : 'normal',
+            }}
+          />
+        ) : (
+          children
+        )}
+      </div>
+
+      {/* 簡易右クリックメニュー */}
+      {contextMenu && (
+        <div
           style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-            pointerEvents: 'none',
-            userSelect: 'none',
-            mixBlendMode: mask ? 'multiply' : 'normal',
+            position: 'fixed',
+            top: contextMenu.y,
+            left: contextMenu.x,
+            zIndex: 10001,
+            background: '#222',
+            color: '#fff',
+            border: '1px solid #444',
+            borderRadius: '4px',
+            padding: '4px 0',
+            fontSize: '12px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
           }}
-        />
-      ) : (
-        children
+        >
+          <div
+            style={{ padding: '8px 16px', cursor: 'pointer' }}
+            onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
+            onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+            onClick={() => setRotation((prev) => prev + 90)}
+          >
+            🔄 90度回転
+          </div>
+          <div
+            style={{ padding: '8px 16px', cursor: 'pointer' }}
+            onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
+            onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+            onClick={() => setCurrentZ((prev) => prev + 100)}
+          >
+            🔼 最前面へ
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 }
