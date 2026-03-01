@@ -87,14 +87,14 @@ export const deepAbyssConfig: RoomConfig = {
           player.score = player.score + 2;
         });
       },
-      checkGameEnd: (room: RoomState) =>
+      checkGameEnd: (state: RoomState) =>
         // 終了条件: 5ラウンド終了 (5ラウンド目の最後 かつ 最後のプレイヤーの手番時)
-        room.currentRoundIndex >= 4 && room.currentTurnIndex == room.initRoomState.players.length - 1,
-      onGameEnd: (room: RoomState) => {
-        const rankings = [...room.initRoomState.players]
+        state.currentRoundIndex >= 4 && state.currentTurnIndex == state.initRoomState.players.length - 1,
+      onGameEnd: (state: RoomState) => {
+        const rankings = [...state.initRoomState.players]
           .sort((a, b) => b.score - a.score)
           .map((p, index) => ({ rank: index + 1, name: p.name, score: p.score }));
-        return { message: '潜水任務完了', rankings, finalRound: room.currentRoundIndex };
+        return { message: '潜水任務完了', rankings, finalRound: state.currentRoundIndex };
       },
     };
   },

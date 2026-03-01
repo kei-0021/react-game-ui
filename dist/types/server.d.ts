@@ -5,7 +5,7 @@ import { Deck } from './deck.js';
 import { BoardId, DeckId, GameId, RoomId, TokenId } from './definition.js';
 import { Position } from './position.js';
 import { Resource } from './resource.js';
-import { CardPlayData } from './socketData.js';
+import { CardPlayData, DeckDrawData } from './socketData.js';
 import { TokenStoreDef } from './tokenStore.js';
 /**
  * ゲームルーム作成時の初期設定パラメータ。
@@ -41,10 +41,10 @@ export type RoomParam = {
     initialBoard?: Record<BoardId, any>;
     cardEffects?: Record<string, any>;
     cellEffects?: any;
-    onDeckDraw?: any;
+    onDeckDraw?: (param: RoomParam, state: RoomState, data: DeckDrawData) => void;
     onCardPlay?: (param: RoomParam, state: RoomState, data: CardPlayData) => void;
-    checkGameEnd?: any;
-    onGameEnd?: any;
+    checkGameEnd?: (state: RoomState) => void;
+    onGameEnd?: (state: RoomState) => any;
 };
 export type InitialRoomState = {
     players: Player[];

@@ -518,6 +518,7 @@ export function initGameServer(io, options) {
             if (initRoomState.players.length === 0)
                 return;
             if (typeof roomParam.checkGameEnd === 'function' && roomParam.checkGameEnd(roomState)) {
+                // カスタムフック処理
                 const results = typeof roomParam.onGameEnd === 'function' ? roomParam.onGameEnd(roomState) : { message: 'Game Over' };
                 io.to(roomId).emit('game:end', results);
                 return;
