@@ -71,10 +71,9 @@ export function Draggable({
   scale = 1,
   containerRef,
 }: DraggableProps) {
+  // 座標と回転、重なり順を内部状態として管理
   const [pos, setPos] = useState(initialXY);
   const [rotation, setRotation] = useState(0);
-
-  // 重なり順を内部状態として管理
   const [currentZ, setCurrentZ] = useState(zIndex);
 
   // 右クリックメニューの表示状態
@@ -82,7 +81,24 @@ export function Draggable({
 
   const [isDragging, setIsDragging] = useState(false);
   const posRef = useRef(pos);
+  // ドラッグ中かどうかを保持するRef（再レンダリングをトリガーしないようRefで管理）
   const isDraggingRef = useRef(false);
+
+  // サーバーへの同期送信を共通化
+  const emitUpdate = useCallback(
+    (targetPos: Coordinate, targetRot: number, targetZ: number) => {
+      if (socket && roomId && draggableId) {
+        socket.emit('draggable:moved', {
+          roomId: roomId,
+          draggableId: draggableId,
+          coordinate: targetPos,
+          rotation: targetRot,
+          zIndex: targetZ,
+        } as DraggableMovedData);
+      }
+    },
+    [socket, roomId, draggableId],
+  );
 
   useEffect(() => {
     posRef.current = pos;
@@ -104,8 +120,12 @@ export function Draggable({
   useEffect(() => {
     if (!socket || !draggableId) return;
     const handleRemoteMove = (data: DraggableUpdateData) => {
+      // 自分がドラッグ中の時は、サーバーからの座標更新を無視する
       if (data.draggableId === draggableId && !isDraggingRef.current) {
         setPos({ x: data.coordinate.x, y: data.coordinate.y });
+        // 他人からの回転と重なり順の更新を反映
+        if (data.rotation !== undefined) setRotation(data.rotation);
+        if (data.zIndex !== undefined) setCurrentZ(data.zIndex);
       }
     };
     socket.on('draggable:update', handleRemoteMove);
@@ -156,27 +176,16 @@ export function Draggable({
       setPos(newPos);
       posRef.current = newPos;
 
-      if (socket && roomId && draggableId) {
-        socket.emit('draggable:moved', {
-          roomId: roomId,
-          draggableId: draggableId,
-          coordinate: newPos,
-        } as DraggableMovedData);
-      }
+      // 移動中も最新の rotation と currentZ を含めて送信
+      emitUpdate(newPos, rotation, currentZ);
     };
 
     const handleMouseUp = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
 
-      const { x, y } = posRef.current;
-      if (socket && roomId && draggableId) {
-        socket.emit('draggable:moved', {
-          roomId: roomId,
-          draggableId: draggableId,
-          coordinate: { x: x, y: y },
-        } as DraggableMovedData);
-      }
+      // 最終座標を確定送信
+      emitUpdate(posRef.current, rotation, currentZ);
 
       setIsDragging(false);
       setTimeout(() => {
@@ -196,6 +205,24 @@ export function Draggable({
     e.stopPropagation();
     setContextMenu({ x: e.clientX, y: e.clientY });
   }, []);
+
+  /**
+   * メニューアクション：回転
+   */
+  const onRotateClick = () => {
+    const nextRot = rotation + 90;
+    setRotation(nextRot);
+    emitUpdate(pos, nextRot, currentZ);
+  };
+
+  /**
+   * メニューアクション：最前面
+   */
+  const onBringToFrontClick = () => {
+    const nextZ = currentZ + 100;
+    setCurrentZ(nextZ);
+    emitUpdate(pos, rotation, nextZ);
+  };
 
   const MASK_PROP = ['mask', 'Image'].join('');
   const WEBKIT_MASK_PROP = ['Webkit', 'Mask', 'Image'].join('');
@@ -220,6 +247,7 @@ export function Draggable({
   const width = typeof size === 'number' ? size : size.width;
   const height = typeof size === 'number' ? size : size.height;
 
+  // ドラッグ中は一時的に 9999、それ以外は currentZ を使用
   const dynamicZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
 
   const dynamicStyle: CSSProperties = {
@@ -293,7 +321,7 @@ export function Draggable({
             style={{ padding: '8px 16px', cursor: 'pointer' }}
             onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
             onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-            onClick={() => setRotation((prev) => prev + 90)}
+            onClick={onRotateClick}
           >
             🔄 90度回転
           </div>
@@ -301,7 +329,7 @@ export function Draggable({
             style={{ padding: '8px 16px', cursor: 'pointer' }}
             onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
             onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-            onClick={() => setCurrentZ((prev) => prev + 100)}
+            onClick={onBringToFrontClick}
           >
             🔼 最前面へ
           </div>

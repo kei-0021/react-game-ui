@@ -33,9 +33,13 @@ export type DraggableMovedData = {
     roomId: RoomId;
     draggableId: DraggableId;
     coordinate: Coordinate;
+    rotation: number;
+    zIndex: number;
 };
 export type DraggableUpdateData = {
     draggableId: DraggableId;
     coordinate: Coordinate;
+    rotation: number;
+    zIndex: number;
 };
 //# sourceMappingURL=socketData.d.ts.map

@@ -1,4 +1,4 @@
-import { jsx as _jsx } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import draggableStyles from './Draggable.module.css';
 /**
@@ -22,21 +22,42 @@ import draggableStyles from './Draggable.module.css';
  * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
  */
 export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y: 500 }, image, mask = false, size = 100, color = 'yellow', isTransparent = false, zIndex = 100, isFrontOnDragging = false, children, style = {}, scale = 1, containerRef, }) {
+    // 座標と回転、重なり順を内部状態として管理
     const [pos, setPos] = useState(initialXY);
     const [rotation, setRotation] = useState(0);
-    // 重なり順を内部状態として管理
     const [currentZ, setCurrentZ] = useState(zIndex);
+    // 右クリックメニューの表示状態
+    const [contextMenu, setContextMenu] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
     const posRef = useRef(pos);
     // ドラッグ中かどうかを保持するRef（再レンダリングをトリガーしないようRefで管理）
     const isDraggingRef = useRef(false);
+    // サーバーへの同期送信を共通化
+    const emitUpdate = useCallback((targetPos, targetRot, targetZ) => {
+        if (socket && roomId && draggableId) {
+            socket.emit('draggable:moved', {
+                roomId: roomId,
+                draggableId: draggableId,
+                coordinate: targetPos,
+                rotation: targetRot,
+                zIndex: targetZ,
+            });
+        }
+    }, [socket, roomId, draggableId]);
     useEffect(() => {
         posRef.current = pos;
     }, [pos]);
-    // PropsのzIndexが変わった場合に同期
     useEffect(() => {
         setCurrentZ(zIndex);
     }, [zIndex]);
+    // メニュー外クリックで閉じる処理
+    useEffect(() => {
+        const closeMenu = () => setContextMenu(null);
+        if (contextMenu) {
+            window.addEventListener('click', closeMenu);
+        }
+        return () => window.removeEventListener('click', closeMenu);
+    }, [contextMenu]);
     useEffect(() => {
         if (!socket || !draggableId)
             return;
@@ -44,6 +65,11 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
             // 自分がドラッグ中の時は、サーバーからの座標更新を無視する
             if (data.draggableId === draggableId && !isDraggingRef.current) {
                 setPos({ x: data.coordinate.x, y: data.coordinate.y });
+                // 他人からの回転と重なり順の更新を反映
+                if (data.rotation !== undefined)
+                    setRotation(data.rotation);
+                if (data.zIndex !== undefined)
+                    setCurrentZ(data.zIndex);
             }
         };
         socket.on('draggable:update', handleRemoteMove);
@@ -52,7 +78,7 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
         };
     }, [socket, draggableId]);
     const handleMouseDown = (e) => {
-        // 右クリック時はドラッグを開始しない（メニュー用）
+        // 右クリック(button: 2)時はドラッグを開始しない
         if (e.button !== 0)
             return;
         e.preventDefault();
@@ -85,25 +111,14 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
             };
             setPos(newPos);
             posRef.current = newPos;
-            if (socket && roomId && draggableId) {
-                socket.emit('draggable:moved', {
-                    roomId: roomId,
-                    draggableId: draggableId,
-                    coordinate: newPos,
-                });
-            }
+            // 移動中も最新の rotation と currentZ を含めて送信
+            emitUpdate(newPos, rotation, currentZ);
         };
         const handleMouseUp = () => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
-            const { x, y } = posRef.current;
-            if (socket && roomId && draggableId) {
-                socket.emit('draggable:moved', {
-                    roomId: roomId,
-                    draggableId: draggableId,
-                    coordinate: { x: x, y: y },
-                });
-            }
+            // 最終座標を確定送信
+            emitUpdate(posRef.current, rotation, currentZ);
             setIsDragging(false);
             setTimeout(() => {
                 isDraggingRef.current = false;
@@ -113,13 +128,29 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
         document.addEventListener('mouseup', handleMouseUp);
     };
     /**
-     * ダブルクリック時の処理：90度回転 ＋ 最前面へ(+100)
+     * 右クリックメニューを表示
      */
-    const handleDoubleClick = useCallback((e) => {
+    const handleContextMenu = useCallback((e) => {
+        e.preventDefault();
         e.stopPropagation();
-        setRotation((prev) => prev + 90);
-        setCurrentZ((prev) => prev + 100);
+        setContextMenu({ x: e.clientX, y: e.clientY });
     }, []);
+    /**
+     * メニューアクション：回転
+     */
+    const onRotateClick = () => {
+        const nextRot = rotation + 90;
+        setRotation(nextRot);
+        emitUpdate(pos, nextRot, currentZ);
+    };
+    /**
+     * メニューアクション：最前面
+     */
+    const onBringToFrontClick = () => {
+        const nextZ = currentZ + 100;
+        setCurrentZ(nextZ);
+        emitUpdate(pos, rotation, nextZ);
+    };
     const MASK_PROP = ['mask', 'Image'].join('');
     const WEBKIT_MASK_PROP = ['Webkit', 'Mask', 'Image'].join('');
     const URL_FUNC = ['u', 'r', 'l'].join('');
@@ -160,12 +191,24 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
         // マスク関連（これも特殊な計算結果なので最後に上書き）
         ...maskStyle,
     };
-    return (_jsx("div", { onMouseDown: handleMouseDown, onDoubleClick: handleDoubleClick, className: draggableStyles.draggable, style: dynamicStyle, "data-draggable-id": draggableId, children: image ? (_jsx("img", { src: image, alt: "", style: {
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                pointerEvents: 'none',
-                userSelect: 'none',
-                mixBlendMode: mask ? 'multiply' : 'normal',
-            } })) : (children) }));
+    return (_jsxs(_Fragment, { children: [_jsx("div", { onMouseDown: handleMouseDown, onContextMenu: handleContextMenu, className: draggableStyles.draggable, style: dynamicStyle, "data-draggable-id": draggableId, children: image ? (_jsx("img", { src: image, alt: "", style: {
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                        mixBlendMode: mask ? 'multiply' : 'normal',
+                    } })) : (children) }), contextMenu && (_jsxs("div", { style: {
+                    position: 'fixed',
+                    top: contextMenu.y,
+                    left: contextMenu.x,
+                    zIndex: 10001,
+                    background: '#222',
+                    color: '#fff',
+                    border: '1px solid #444',
+                    borderRadius: '4px',
+                    padding: '4px 0',
+                    fontSize: '12px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+                }, children: [_jsx("div", { style: { padding: '8px 16px', cursor: 'pointer' }, onMouseOver: (e) => (e.currentTarget.style.background = '#444'), onMouseOut: (e) => (e.currentTarget.style.background = 'transparent'), onClick: onRotateClick, children: "\uD83D\uDD04 90\u5EA6\u56DE\u8EE2" }), _jsx("div", { style: { padding: '8px 16px', cursor: 'pointer' }, onMouseOver: (e) => (e.currentTarget.style.background = '#444'), onMouseOut: (e) => (e.currentTarget.style.background = 'transparent'), onClick: onBringToFrontClick, children: "\uD83D\uDD3C \u6700\u524D\u9762\u3078" })] }))] }));
 }
