@@ -94,15 +94,40 @@ const chunkTo2D = (array, cols) => {
 /**
  * プリセット準備の関数群
  */
-export const helpers = {
-    assertCards: (data) => {
+export class SetupHelper {
+    /**
+     * カードデータのバリデーション
+     */
+    assertCards(data) {
         if (Validators.isCardArray(data))
             return data;
         throw new Error('Invalid card data');
-    },
-    createUniqueCards: replicateData,
-    createBoardLayout: (base, counts, cols) => chunkTo2D(generateFromTemplates(base, counts), cols),
-    createTokenStore: (_id, _name, templates, count) => {
+    }
+    /**
+     * カードに共通のプロパティ（location, drawConditionなど）をセットする
+     */
+    initializeCards(cards, defaults) {
+        return cards.map((card) => ({
+            ...card,
+            ...defaults,
+        }));
+    }
+    /**
+     * カードの複製（ユニーク化）
+     */
+    createUniqueCards(cards, numSets) {
+        return replicateData(cards, numSets);
+    }
+    /**
+     * ボードレイアウトの生成
+     */
+    createBoardLayout(base, counts, cols) {
+        return chunkTo2D(generateFromTemplates(base, counts), cols);
+    }
+    /**
+     * トークンストアの生成
+     */
+    createTokenStore(_id, _name, templates, count) {
         return replicateData(templates, count);
-    },
-};
+    }
+}

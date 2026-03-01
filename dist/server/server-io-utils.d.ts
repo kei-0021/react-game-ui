@@ -19,12 +19,26 @@ export type RoomConfig = {
 /**
  * プリセット準備の関数群
  */
-export declare const helpers: {
-    assertCards: (data: Card[]) => Card[];
-    createUniqueCards: <T extends {
-        id: string;
-    }>(data: T[], numSets: number) => T[];
-    createBoardLayout: (base: any[], counts: Record<string, number>, cols: number) => any[][];
-    createTokenStore: (_id: string, _name: string, templates: any[], count: number) => any[];
-};
+export declare class SetupHelper {
+    /**
+     * カードデータのバリデーション
+     */
+    assertCards(data: any): Card[];
+    /**
+     * カードに共通のプロパティ（location, drawConditionなど）をセットする
+     */
+    initializeCards(cards: any[], defaults: Partial<Card>): Card[];
+    /**
+     * カードの複製（ユニーク化）
+     */
+    createUniqueCards(cards: Card[], numSets: number): Card[];
+    /**
+     * ボードレイアウトの生成
+     */
+    createBoardLayout(base: any[], counts: Record<string, number>, cols: number): any[][];
+    /**
+     * トークンストアの生成
+     */
+    createTokenStore(_id: string, _name: string, templates: any[], count: number): any[];
+}
 //# sourceMappingURL=server-io-utils.d.ts.map

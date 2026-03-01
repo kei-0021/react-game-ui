@@ -1,7 +1,7 @@
 // tests/server/sampleConfig.ts
 
 import type { RoomParam } from 'react-game-ui';
-import { RoomConfig, helpers } from 'react-game-ui/server-io-utils';
+import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
 
 export const sampleConfig: RoomConfig = {
   gameId: 'sample',
@@ -9,7 +9,8 @@ export const sampleConfig: RoomConfig = {
     cards: './data/numberCards.json',
   },
   setup: async (loadedData: Record<string, any>): Promise<RoomParam> => {
-    const numberCards = helpers.createUniqueCards(helpers.assertCards(loadedData.cards), 1);
+    const helper = new SetupHelper();
+    const numberCards = helper.createUniqueCards(helper.assertCards(loadedData.cards), 1);
 
     return {
       gameId: 'sample',

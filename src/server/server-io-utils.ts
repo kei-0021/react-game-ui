@@ -126,16 +126,43 @@ export type RoomConfig = {
 /**
  * プリセット準備の関数群
  */
-export const helpers = {
-  assertCards: (data: Card[]): Card[] => {
+export class SetupHelper {
+  /**
+   * カードデータのバリデーション
+   */
+  assertCards(data: any): Card[] {
     if (Validators.isCardArray(data)) return data;
     throw new Error('Invalid card data');
-  },
-  createUniqueCards: replicateData,
-  createBoardLayout: (base: any[], counts: Record<string, number>, cols: number) =>
-    chunkTo2D(generateFromTemplates(base, counts), cols),
+  }
 
-  createTokenStore: (_id: string, _name: string, templates: any[], count: number): any[] => {
+  /**
+   * カードに共通のプロパティ（location, drawConditionなど）をセットする
+   */
+  initializeCards(cards: any[], defaults: Partial<Card>): Card[] {
+    return cards.map((card) => ({
+      ...card,
+      ...defaults,
+    }));
+  }
+
+  /**
+   * カードの複製（ユニーク化）
+   */
+  createUniqueCards(cards: Card[], numSets: number): Card[] {
+    return replicateData(cards, numSets);
+  }
+
+  /**
+   * ボードレイアウトの生成
+   */
+  createBoardLayout(base: any[], counts: Record<string, number>, cols: number): any[][] {
+    return chunkTo2D(generateFromTemplates(base, counts), cols);
+  }
+
+  /**
+   * トークンストアの生成
+   */
+  createTokenStore(_id: string, _name: string, templates: any[], count: number): any[] {
     return replicateData(templates, count);
-  },
-};
+  }
+}

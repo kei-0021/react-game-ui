@@ -1,7 +1,7 @@
 // src/server/deepAbyssConfig.ts
 
-import type { RoomParam, RoomState } from 'react-game-ui';
-import { helpers, RoomConfig } from 'react-game-ui/server-io-utils';
+import type { Card, RoomParam, RoomState } from 'react-game-ui';
+import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
 
 const CELL_COUNTS = { RA: 5, RB: 10, B_NORM: 4, B_TRACK: 3, T_VOL: 7, T_CRF: 6, N_A: 12, N_B: 17 };
 
@@ -13,12 +13,21 @@ export const deepAbyssConfig: RoomConfig = {
     deepAbyssCells: './data/deepSeaCells.json',
   },
   setup: async (loadedData: Record<string, any>): Promise<RoomParam> => {
-    const deepAbyssSpeciesDeckJson = helpers.createUniqueCards(
-      helpers.assertCards(loadedData.deepAbyssSpeciesCards),
+    const helper = new SetupHelper();
+
+    const defaults: Partial<Card> = {
+      location: 'deck',
+      drawCondition: ['field', 'back'],
+      playLocation: 'discard',
+      fieldBackCondition: ['hand', 'face'],
+    };
+
+    const deepAbyssSpeciesDeck = helper.createUniqueCards(
+      helper.initializeCards(helper.assertCards(loadedData.deepAbyssSpeciesCards), defaults),
       1,
     );
-    const deepAbyssActionDeckJson = helpers.createUniqueCards(helpers.assertCards(loadedData.deepAbyssActionCards), 3);
-    const deepAbyssCellsBaseJson: any[] = loadedData.deepAbyssCells;
+    const deepAbyssActionDeck = helper.createUniqueCards(helper.assertCards(loadedData.deepAbyssActionCards), 3);
+    const deepAbyssBoard = helper.createBoardLayout(loadedData.deepAbyssCells, CELL_COUNTS, 8);
 
     // エフェクトデータの動的ロード
     const [cardEffectsModule, cellEffectsModule] = await Promise.all([
@@ -35,13 +44,13 @@ export const deepAbyssConfig: RoomConfig = {
         {
           deckId: 'deepAbyssSpecies',
           name: '深海生物カード',
-          cards: deepAbyssSpeciesDeckJson,
+          cards: deepAbyssSpeciesDeck,
           backColor: '#0d3c99ff',
         },
         {
           deckId: 'deepAbyssAction',
           name: 'アクションカード',
-          cards: deepAbyssActionDeckJson,
+          cards: deepAbyssActionDeck,
           backColor: '#0d8999ff',
         },
       ],
@@ -49,7 +58,7 @@ export const deepAbyssConfig: RoomConfig = {
         {
           tokenStoreId: 'ARTIFACT',
           name: '遺物',
-          tokens: helpers.createTokenStore(
+          tokens: helper.createTokenStore(
             'ARTIFACT',
             '💰',
             [{ id: 'ARTIFACT', name: '💰', color: '#D4AF37', imageSrc: '', count: 1 }],
@@ -69,7 +78,7 @@ export const deepAbyssConfig: RoomConfig = {
         },
       ],
       initialHand: { deckId: 'deepAbyssAction', count: 6 },
-      initialBoard: { deepAbyssBoard: helpers.createBoardLayout(deepAbyssCellsBaseJson, CELL_COUNTS, 8) },
+      initialBoard: { deepAbyssBoard: deepAbyssBoard },
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,
       checkGameEnd: (room: RoomState) =>
