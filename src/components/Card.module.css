@@ -73,6 +73,7 @@
   height: '100%';
   display: 'block';
   border-radius: 'inherit';
+  transition: transform 0.2s;
 }
 
 .deckCardFront {
