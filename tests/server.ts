@@ -2,15 +2,7 @@
 import path from 'path';
 import type { RoomParam } from 'react-game-ui';
 import { GameServer, type GameServerOptions } from 'react-game-ui/server';
-import {
-  chunkTo2D,
-  Config,
-  generateFromTemplates,
-  loadJsonAssert,
-  replicateData,
-  SetupTools,
-  Validators,
-} from 'react-game-ui/server-io-utils';
+import { loadJsonAssert, RoomConfig } from 'react-game-ui/server-io-utils';
 import { fileURLToPath } from 'url';
 import { customEvents } from './data/customEvents.js';
 import { deepAbyssConfig } from './server/deepAbyssConfig.js';
@@ -19,28 +11,11 @@ import { sampleConfig } from './server/sampleConfig.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/**
- * 各Configのsetupに渡すためのツール群
- * 内部の古い関数から、ライブラリ標準の関数へ差し替え
- */
-const setupTools: SetupTools = {
-  assertCards: (data: any): any[] => {
-    if (Validators.isCardArray(data)) return data;
-    throw new Error('Invalid card data');
-  },
-  createUniqueCards: replicateData,
-  createBoardLayout: (base: any[], counts: Record<string, number>, cols: number) =>
-    chunkTo2D(generateFromTemplates(base, counts), cols),
-
-  createTokenStore: (_id: string, _name: string, templates: any[], count: number): any[] => {
-    return replicateData(templates, count);
-  },
-};
-
 async function startServer() {
   const gamePresets: Record<string, RoomParam> = {};
-  const configs: Config[] = [sampleConfig, deepAbyssConfig];
+  const configs: RoomConfig[] = [sampleConfig, deepAbyssConfig];
 
+  // プリセットを生成
   for (const config of configs) {
     const loadedData: Record<string, any> = {};
 
@@ -49,8 +24,7 @@ async function startServer() {
       loadedData[key] = await loadJsonAssert(finalPath, (data): data is any => true);
     }
 
-    // ツール群を渡してプリセットを生成
-    gamePresets[config.gameId] = await config.setup(loadedData, setupTools);
+    gamePresets[config.gameId] = await config.setup(loadedData);
   }
 
   // サーバーオプションの設定

@@ -1,25 +1,23 @@
 // src/server/deepAbyssConfig.ts
 
 import type { RoomParam, RoomState } from 'react-game-ui';
-import { chunkTo2D, Config, generateFromTemplates, replicateData, SetupTools } from 'react-game-ui/server-io-utils';
+import { helpers, RoomConfig } from 'react-game-ui/server-io-utils';
 
 const CELL_COUNTS = { RA: 5, RB: 10, B_NORM: 4, B_TRACK: 3, T_VOL: 7, T_CRF: 6, N_A: 12, N_B: 17 };
 
-export const deepAbyssConfig: Config = {
+export const deepAbyssConfig: RoomConfig = {
   gameId: 'deepabyss',
   dataFiles: {
-    cards: './data/deepSeaSpeciesCards.json',
+    deepAbyssSpeciesCards: './data/deepSeaSpeciesCards.json',
     deepAbyssActionCards: './data/deepSeaActionCards.json',
     deepAbyssCells: './data/deepSeaCells.json',
   },
-  // サーバー側でロードしたデータを setup に渡す
-  setup: async (loadedData: Record<string, any>, helpers: SetupTools): Promise<RoomParam> => {
-    // 固有ロジック：カードを3セット分複製してユニーク化
-    const deepAbyssSpeciesDeckJson = helpers.createUniqueCards(helpers.assertCards(loadedData.cards, 'deepAbyss'), 1);
-    const deepAbyssActionDeckJson = helpers.createUniqueCards(
-      helpers.assertCards(loadedData.deepAbyssActionCards, 'deepAbyss'),
-      3,
+  setup: async (loadedData: Record<string, any>): Promise<RoomParam> => {
+    const deepAbyssSpeciesDeckJson = helpers.createUniqueCards(
+      helpers.assertCards(loadedData.deepAbyssSpeciesCards),
+      1,
     );
+    const deepAbyssActionDeckJson = helpers.createUniqueCards(helpers.assertCards(loadedData.deepAbyssActionCards), 3);
     const deepAbyssCellsBaseJson: any[] = loadedData.deepAbyssCells;
 
     // エフェクトデータの動的ロード
@@ -51,7 +49,12 @@ export const deepAbyssConfig: Config = {
         {
           tokenStoreId: 'ARTIFACT',
           name: '遺物',
-          tokens: replicateData([{ id: 'ARTIFACT', name: '💰', color: '#D4AF37', imageSrc: '', count: 1 }], 10),
+          tokens: helpers.createTokenStore(
+            'ARTIFACT',
+            '💰',
+            [{ id: 'ARTIFACT', name: '💰', color: '#D4AF37', imageSrc: '', count: 1 }],
+            10,
+          ),
         },
       ],
       initialResources: [
@@ -66,7 +69,7 @@ export const deepAbyssConfig: Config = {
         },
       ],
       initialHand: { deckId: 'deepAbyssAction', count: 6 },
-      initialBoard: { deepAbyssBoard: chunkTo2D(generateFromTemplates(deepAbyssCellsBaseJson, CELL_COUNTS), 8) },
+      initialBoard: { deepAbyssBoard: helpers.createBoardLayout(deepAbyssCellsBaseJson, CELL_COUNTS, 8) },
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,
       checkGameEnd: (room: RoomState) =>

@@ -1,13 +1,14 @@
 // src/server/server-io-utils.ts
 
-import { DeckId, GameId } from '@/types/definition.js';
+import { GameId } from '@/types/definition.js';
+import { RoomParam } from '@/types/server.js';
 import fs from 'node:fs';
 import { Card } from '../types/card.js';
 import { Resource } from '../types/resource.js';
 
 // --- 型バリデーター関数群 ---
 export const Validators = {
-  isCardArray: (data: any): data is Card[] => {
+  isCardArray: (data: Card[]): data is Card[] => {
     if (!Array.isArray(data)) throw new Error('Data is not an array');
 
     return data.every((item, index) => {
@@ -74,7 +75,7 @@ export function loadJsonAssert<T>(relativePath: string, validator: (data: any) =
  * 指定した枚数分、IDをユニークにしながらデータを複製する
  * デッキのセット数を増やしたい時に便利
  */
-export const replicateData = <T extends { id: string }>(data: T[], numSets: number): T[] => {
+const replicateData = <T extends { id: string }>(data: T[], numSets: number): T[] => {
   return Array.from({ length: numSets }).flatMap((_, i) =>
     data.map((item) => ({ ...item, id: `${item.id}-s${i + 1}` })),
   );
@@ -83,7 +84,7 @@ export const replicateData = <T extends { id: string }>(data: T[], numSets: numb
 /**
  * テンプレート配列と個数設定から、フラットな配置用配列を作る
  */
-export const generateFromTemplates = <T extends { templateId: string }>(
+const generateFromTemplates = <T extends { templateId: string }>(
   templates: T[],
   counts: Record<string, number>,
 ): T[] => {
@@ -108,7 +109,7 @@ export const generateFromTemplates = <T extends { templateId: string }>(
 /**
  * 1次元配列を2次元（ボード形式）に変換する
  */
-export const chunkTo2D = <T>(array: T[], cols: number): T[][] => {
+const chunkTo2D = <T>(array: T[], cols: number): T[][] => {
   const rows: T[][] = [];
   for (let i = 0; i < array.length; i += cols) {
     rows.push(array.slice(i, i + cols));
@@ -116,15 +117,25 @@ export const chunkTo2D = <T>(array: T[], cols: number): T[][] => {
   return rows;
 };
 
-export type Config = {
+export type RoomConfig = {
   gameId: GameId;
   dataFiles: Record<string, any>;
-  setup: any;
+  setup: (loadedData: Record<string, any>) => Promise<RoomParam>;
 };
 
-export interface SetupTools {
-  assertCards: (cards: Card[], deckId: DeckId) => Card[];
-  createUniqueCards: (cards: Card[], numSets: number) => Card[];
-  createTokenStore: (id: string, name: string, templates: any[], count: number) => any[];
-  createBoardLayout: (baseCells: any[], cellCounts: Record<string, number>, rows: number, cols: number) => any[][];
-}
+/**
+ * プリセット準備の関数群
+ */
+export const helpers = {
+  assertCards: (data: Card[]): Card[] => {
+    if (Validators.isCardArray(data)) return data;
+    throw new Error('Invalid card data');
+  },
+  createUniqueCards: replicateData,
+  createBoardLayout: (base: any[], counts: Record<string, number>, cols: number) =>
+    chunkTo2D(generateFromTemplates(base, counts), cols),
+
+  createTokenStore: (_id: string, _name: string, templates: any[], count: number): any[] => {
+    return replicateData(templates, count);
+  },
+};

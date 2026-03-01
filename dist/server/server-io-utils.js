@@ -60,13 +60,13 @@ export function loadJsonAssert(relativePath, validator) {
  * 指定した枚数分、IDをユニークにしながらデータを複製する
  * デッキのセット数を増やしたい時に便利
  */
-export const replicateData = (data, numSets) => {
+const replicateData = (data, numSets) => {
     return Array.from({ length: numSets }).flatMap((_, i) => data.map((item) => ({ ...item, id: `${item.id}-s${i + 1}` })));
 };
 /**
  * テンプレート配列と個数設定から、フラットな配置用配列を作る
  */
-export const generateFromTemplates = (templates, counts) => {
+const generateFromTemplates = (templates, counts) => {
     const templateMap = templates.reduce((map, t) => {
         map[t.templateId] = t;
         return map;
@@ -84,10 +84,25 @@ export const generateFromTemplates = (templates, counts) => {
 /**
  * 1次元配列を2次元（ボード形式）に変換する
  */
-export const chunkTo2D = (array, cols) => {
+const chunkTo2D = (array, cols) => {
     const rows = [];
     for (let i = 0; i < array.length; i += cols) {
         rows.push(array.slice(i, i + cols));
     }
     return rows;
+};
+/**
+ * プリセット準備の関数群
+ */
+export const helpers = {
+    assertCards: (data) => {
+        if (Validators.isCardArray(data))
+            return data;
+        throw new Error('Invalid card data');
+    },
+    createUniqueCards: replicateData,
+    createBoardLayout: (base, counts, cols) => chunkTo2D(generateFromTemplates(base, counts), cols),
+    createTokenStore: (_id, _name, templates, count) => {
+        return replicateData(templates, count);
+    },
 };
