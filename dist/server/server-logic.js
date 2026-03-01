@@ -183,13 +183,13 @@ export function initGameServer(io, options) {
             socket.emit('lobby:rooms-list', roomList);
         });
         // 参加
-        socket.on('room:join', async ({ roomId, playerName, gamePresetId }) => {
+        socket.on('room:join', async ({ roomId, playerName, gameId }) => {
             if (!roomId)
                 return;
             let roomState = activeRooms.get(roomId);
-            const roomParam = gamePresets[gamePresetId] || options;
+            const roomParam = gamePresets[gameId] || options;
             if (!roomState) {
-                roomState = initializeRoom(roomId, { ...roomParam, gameId: gamePresetId });
+                roomState = initializeRoom(roomId, { ...roomParam, gameId: gameId });
                 Object.keys(roomState.decks).forEach((id) => shuffleDeck(roomId, id));
                 io.emit('lobby:room-update');
             }

@@ -2,18 +2,23 @@ import { Card } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
-import { CardId, DeckId, DraggableId, PlayerId, RoomId } from './definition.js';
-export type DeckUpdateData = {
-    currentDeck: Card[];
-    drawnCards: Card[];
-    playFieldCards: Card[];
-    discardPile: Card[];
+import { CardId, DeckId, DraggableId, GameId, PlayerId, RoomId } from './definition.js';
+export type RoomJoinData = {
+    roomId: RoomId;
+    gameId: GameId;
+    playerName: PlayerId;
 };
 export type DeckDrawData = {
     roomId: RoomId;
     deckId: DeckId;
     playerId?: PlayerId | null;
     drawCondition: [CardLocation, CardState];
+};
+export type DeckUpdateData = {
+    currentDeck: Card[];
+    drawnCards: Card[];
+    playFieldCards: Card[];
+    discardPile: Card[];
 };
 export type CardPlayData = {
     roomId: RoomId;

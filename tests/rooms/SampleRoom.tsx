@@ -1,3 +1,4 @@
+// src/rooms/SampleRoom.tsx
 /// <reference types="vite/client" />
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -10,7 +11,7 @@ import { ScoreBoard } from '../../src/components/ScoreBoard';
 import Timer from '../../src/components/Timer';
 import { useSocket } from '../../src/hooks/useSocket';
 import type { PlayerWithResources } from '../../src/types/playerWithResources';
-import type { GameTurnUpdateData } from '../../src/types/socketData';
+import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
 import './SampleRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
@@ -40,9 +41,9 @@ export function SampleRoom() {
     setIsJoining(true);
     socket.emit('room:join', {
       roomId,
+      gameId: GAME_PRESET_ID,
       playerName: userName.trim(),
-      gamePresetId: GAME_PRESET_ID,
-    });
+    } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);
 
   useEffect(() => {

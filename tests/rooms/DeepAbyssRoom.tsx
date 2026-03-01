@@ -9,7 +9,7 @@ import TokenStore from '../../src/components/TokenStore';
 import { useSocket } from '../../src/hooks/useSocket';
 import type { Player } from '../../src/types/player';
 import type { PlayerWithResources } from '../../src/types/playerWithResources';
-import type { GameTurnUpdateData } from '../../src/types/socketData';
+import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
 import MyBoard from '../components/MyBoard';
 import Popup from '../components/PopUp';
 import './DeepAbyssRoom.css';
@@ -78,9 +78,9 @@ export function DeepAbyssRoom() {
     setIsJoining(true);
     socket.emit('room:join', {
       roomId,
+      gameId: GAME_PRESET_ID,
       playerName: userName.trim(),
-      gamePresetId: GAME_PRESET_ID,
-    });
+    } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);
 
   useEffect(() => {
