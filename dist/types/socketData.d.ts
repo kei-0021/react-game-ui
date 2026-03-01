@@ -42,4 +42,12 @@ export type DraggableUpdateData = {
     rotation: number;
     zIndex: number;
 };
+export type GameNextTrunData = {
+    roomId: RoomId;
+};
+export type GameTurnUpdateData = {
+    currentPlayerId: PlayerId;
+    currentRoundIndex: number;
+    currentTurnIndex: number;
+};
 //# sourceMappingURL=socketData.d.ts.map

@@ -1,6 +1,6 @@
 // src/components/ScoreBoard.tsx
 import { CardLocation } from '@/types/cardLocation.js';
-import { CardPlayData } from '@/types/socketData.js';
+import { CardPlayData, GameNextTrunData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import { Card } from '../types/card.js';
@@ -234,7 +234,7 @@ export function ScoreBoard({
       cardIds: selectedCards,
     });
 
-    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId });
+    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId } as GameNextTrunData);
     setSelectedCards([]);
   }, [selectedCards, myPlayerId, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
 
@@ -272,11 +272,11 @@ export function ScoreBoard({
       socket.emit('card:play', playData);
     });
 
-    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId });
+    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId } as GameNextTrunData);
     setSelectedCards([]);
   }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
 
-  const nextTurn = () => socket.emit('game:next-turn', { roomId });
+  const nextTurn = () => socket.emit('game:next-turn', { roomId } as GameNextTrunData);
 
   const isOverLimit = playCardLimit !== undefined && selectedCards.length > playCardLimit;
   const isActionDisabled = selectedCards.length === 0 || isOverLimit;

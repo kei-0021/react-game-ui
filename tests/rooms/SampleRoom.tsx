@@ -10,16 +10,11 @@ import { ScoreBoard } from '../../src/components/ScoreBoard';
 import Timer from '../../src/components/Timer';
 import { useSocket } from '../../src/hooks/useSocket';
 import type { PlayerWithResources } from '../../src/types/playerWithResources';
+import type { GameTurnUpdateData } from '../../src/types/socketData';
 import './SampleRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
 const DRAGGABLE_IMAGE_PATH = '/hanabishi.svg';
-
-interface TurnUpdatePayload {
-  playerId: string;
-  currentRound: number;
-  currentTurnIndex: number;
-}
 
 export function SampleRoom() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -63,12 +58,10 @@ export function SampleRoom() {
       setPlayers(updatedPlayers);
     };
 
-    const handleGameTurn = (data: TurnUpdatePayload | string) => {
-      if (typeof data === 'string') {
-        setCurrentPlayerId(data);
-      } else {
-        setCurrentPlayerId(data.playerId);
-        setCurrentRound(data.currentRound);
+    const handleGameTurn = (data: GameTurnUpdateData) => {
+      {
+        setCurrentPlayerId(data.currentPlayerId);
+        setCurrentRound(data.currentRoundIndex);
       }
     };
 

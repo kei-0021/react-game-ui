@@ -234,8 +234,8 @@ export function initGameServer(io, options) {
             Object.keys(decks).forEach((id) => emitDeckUpdate(roomId, id));
             server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`);
             io.to(roomId).emit('game:turn', {
-                playerId: roomState.initRoomState.players[roomState.currentTurnIndex]?.id,
-                currentRound: roomState.currentRoundIndex,
+                currentPlayerId: roomState.initRoomState.players[roomState.currentTurnIndex]?.id,
+                currentRoundIndex: roomState.currentRoundIndex,
                 currentTurnIndex: roomState.currentTurnIndex,
             });
             if (gameParam.exploredCells.length > 0)
@@ -520,8 +520,8 @@ export function initGameServer(io, options) {
             const currentPlayer = initRoomState.players[roomState.currentTurnIndex];
             server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`);
             io.to(roomId).emit('game:turn', {
-                playerId: currentPlayer?.id,
-                currentRound: roomState.currentRoundIndex,
+                currentPlayerId: currentPlayer?.id,
+                currentRoundIndex: roomState.currentRoundIndex,
                 currentTurnIndex: roomState.currentTurnIndex,
             });
         });

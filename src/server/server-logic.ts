@@ -18,6 +18,8 @@ import {
   DeckDrawData,
   DeckUpdateData,
   DraggableMovedData,
+  GameNextTrunData,
+  GameTurnUpdateData,
 } from '@/types/socketData.js';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
@@ -294,10 +296,10 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`,
       );
       io.to(roomId).emit('game:turn', {
-        playerId: roomState.initRoomState.players[roomState.currentTurnIndex]?.id,
-        currentRound: roomState.currentRoundIndex,
+        currentPlayerId: roomState.initRoomState.players[roomState.currentTurnIndex]?.id,
+        currentRoundIndex: roomState.currentRoundIndex,
         currentTurnIndex: roomState.currentTurnIndex,
-      });
+      } as GameTurnUpdateData);
 
       if (gameParam.exploredCells.length > 0) socket.emit('board-update', gameParam.exploredCells);
     });
@@ -610,7 +612,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     });
 
     // 次のターン
-    socket.on('game:next-turn', ({ roomId }) => {
+    socket.on('game:next-turn', ({ roomId }: GameNextTrunData) => {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
 
@@ -634,10 +636,10 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`,
       );
       io.to(roomId).emit('game:turn', {
-        playerId: currentPlayer?.id,
-        currentRound: roomState.currentRoundIndex,
+        currentPlayerId: currentPlayer?.id,
+        currentRoundIndex: roomState.currentRoundIndex,
         currentTurnIndex: roomState.currentTurnIndex,
-      });
+      } as GameTurnUpdateData);
     });
 
     // スコア加算

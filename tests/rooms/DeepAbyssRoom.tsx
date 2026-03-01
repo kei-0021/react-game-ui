@@ -9,6 +9,7 @@ import TokenStore from '../../src/components/TokenStore';
 import { useSocket } from '../../src/hooks/useSocket';
 import type { Player } from '../../src/types/player';
 import type { PlayerWithResources } from '../../src/types/playerWithResources';
+import type { GameTurnUpdateData } from '../../src/types/socketData';
 import MyBoard from '../components/MyBoard';
 import Popup from '../components/PopUp';
 import './DeepAbyssRoom.css';
@@ -22,12 +23,6 @@ interface PopupState {
   message: string;
   color: string;
   visible: boolean;
-}
-
-interface TurnUpdatePayload {
-  playerId: string;
-  currentRound: number;
-  currentTurnIndex: number;
 }
 
 interface GameResult {
@@ -101,13 +96,9 @@ export function DeepAbyssRoom() {
       setPlayers(updatedPlayers);
     };
 
-    const handleGameTurn = (data: TurnUpdatePayload | string) => {
-      if (typeof data === 'string') {
-        setCurrentPlayerId(data);
-      } else {
-        setCurrentPlayerId(data.playerId);
-        setCurrentRound(data.currentRound + 1);
-      }
+    const handleGameTurn = (data: GameTurnUpdateData) => {
+      setCurrentPlayerId(data.currentPlayerId);
+      setCurrentRound(data.currentRoundIndex + 1);
     };
 
     const handleShowPopup = (data: { message: string; color: string }) => {

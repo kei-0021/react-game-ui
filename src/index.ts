@@ -31,3 +31,5 @@ export { type PlayerWithResources } from './types/playerWithResources.js';
 export { type PieceData } from './types/piece.js';
 /* @ts-ignore */
 export { type RoomMeta, type RoomParam, type RoomState } from './types/server.js';
+/* @ts-ignore */
+export { type GameTurnUpdateData } from './types/socketData.js';
