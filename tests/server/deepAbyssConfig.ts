@@ -1,7 +1,8 @@
 // src/server/deepAbyssConfig.ts
 
-import type { Card, RoomParam, RoomState } from 'react-game-ui';
+import type { Card, Player, RoomParam, RoomState } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
+import { CardPlayData } from '../../dist/types/socketData.js';
 
 const CELL_COUNTS = { RA: 5, RB: 10, B_NORM: 4, B_TRACK: 3, T_VOL: 7, T_CRF: 6, N_A: 12, N_B: 17 };
 
@@ -81,6 +82,11 @@ export const deepAbyssConfig: RoomConfig = {
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,
+      onCardPlay: (param: RoomParam, state: RoomState, data: CardPlayData) => {
+        state.initRoomState.players.forEach((player: Player) => {
+          player.score = player.score + 2;
+        });
+      },
       checkGameEnd: (room: RoomState) =>
         // 終了条件: 5ラウンド終了 (5ラウンド目の最後 かつ 最後のプレイヤーの手番時)
         room.currentRoundIndex >= 4 && room.currentTurnIndex == room.initRoomState.players.length - 1,

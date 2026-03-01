@@ -319,7 +319,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           roomId,
           playerId,
           newPosition,
-          preset?.cardEffects,
+          preset?.cellEffects,
           (pId, pts) => addScore(roomId, pId, pts),
           (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt),
           (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt),
@@ -484,59 +484,65 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       }
     });
 
-    socket.on(
-      'card:play',
-      ({ roomId, deckId, cardIds, playerId, playLocation = 'field', coordinate }: CardPlayData) => {
-        const roomState = activeRooms.get(roomId);
-        if (!roomState) return;
+    socket.on('card:play', (data: CardPlayData) => {
+      const { roomId, deckId, cardIds, playerId, playLocation = 'field', coordinate } = data;
 
-        const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+      const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
 
-        ids.forEach((id) => {
-          const card = roomState.decks[deckId]?.find((c) => c.id === id);
-          if (!card) return;
+      const roomParam = gamePresets[roomState.gameId];
+      const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 
-          if (playerId) {
-            const p = roomState.initRoomState.players.find((p) => p.id === playerId);
-            if (p) p.cards = p.cards.filter((c) => c.id !== id);
-          }
+      ids.forEach((id) => {
+        const card = roomState.decks[deckId]?.find((c) => c.id === id);
+        if (!card) return;
 
-          card.location = playLocation as any;
-          if (coordinate?.x != null && coordinate?.y != null) {
-            card.coordinate = coordinate;
-          }
-          card.isFaceUp = true;
+        if (playerId) {
+          const p = roomState.initRoomState.players.find((p) => p.id === playerId);
+          if (p) p.cards = p.cards.filter((c) => c.id !== id);
+        }
 
-          roomState.playFieldCards[deckId] = roomState.playFieldCards[deckId].filter((c) => c.id !== id);
-          roomState.discardPile[deckId] = roomState.discardPile[deckId].filter((c) => c.id !== id);
+        card.location = playLocation as any;
+        if (coordinate?.x != null && coordinate?.y != null) {
+          card.coordinate = coordinate;
+        }
+        card.isFaceUp = true;
 
-          if (playLocation === 'discard') {
-            roomState.discardPile[deckId].push(card);
-          } else {
-            roomState.playFieldCards[deckId].push(card);
-          }
+        roomState.playFieldCards[deckId] = roomState.playFieldCards[deckId].filter((c) => c.id !== id);
+        roomState.discardPile[deckId] = roomState.discardPile[deckId].filter((c) => c.id !== id);
 
-          server_log('card', roomState.gameId, roomId, `"${card.name}" をプレイした`);
+        if (playLocation === 'discard') {
+          roomState.discardPile[deckId].push(card);
+        } else {
+          roomState.playFieldCards[deckId].push(card);
+        }
 
-          // カード効果
-          const preset = gamePresets[roomState.gameId];
-          const effect = preset?.cardEffects?.[card.name];
-          if (effect) {
-            server_log('card', roomState.gameId, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
-            effect({
-              playerId,
-              addScore: (points: number) => addScore(roomId, playerId, points),
-              updateResource: (resourceId: string, amount: number) =>
-                updatePlayerResource(roomId, playerId, resourceId, amount),
-              updateToken: (tokenId: string, amount: number) => updatePlayerToken(roomId, playerId, tokenId, amount),
-            });
-          }
-        });
+        server_log('card', roomState.gameId, roomId, `"${card.name}" をプレイした`);
 
-        emitDeckUpdate(roomId, deckId);
-        emitPlayerUpdate(roomId);
-      },
-    );
+        // カード効果
+        const effect = roomParam?.cardEffects?.[card.name];
+        if (effect) {
+          server_log('card', roomState.gameId, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
+          effect({
+            playerId,
+            addScore: (points: number) => addScore(roomId, playerId, points),
+            updateResource: (resourceId: string, amount: number) =>
+              updatePlayerResource(roomId, playerId, resourceId, amount),
+            updateToken: (tokenId: string, amount: number) => updatePlayerToken(roomId, playerId, tokenId, amount),
+          });
+        }
+      });
+
+      // カスタムフック処理
+      const onCardPlay = roomParam?.onCardPlay;
+      if (onCardPlay) {
+        onCardPlay(roomParam, roomState, data);
+      }
+
+      // 更新通知
+      emitDeckUpdate(roomId, deckId);
+      emitPlayerUpdate(roomId);
+    });
 
     // ドラッグ中も監視
     socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {

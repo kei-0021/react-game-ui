@@ -249,7 +249,7 @@ export function initGameServer(io, options) {
                 player.position = newPosition;
                 const updated = markCellAsExplored(roomState.initRoomState, roomState.gameId, roomId, newPosition);
                 const preset = gamePresets[roomState.gameId];
-                applyCellEffect(roomState.initRoomState, roomState.gameId, roomId, playerId, newPosition, preset?.cardEffects, (pId, pts) => addScore(roomId, pId, pts), (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
+                applyCellEffect(roomState.initRoomState, roomState.gameId, roomId, playerId, newPosition, preset?.cellEffects, (pId, pts) => addScore(roomId, pId, pts), (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
                 emitPlayerUpdate(roomId);
                 if (updated)
                     io.to(roomId).emit('board-update', roomState.initRoomState.exploredCells);
@@ -388,10 +388,12 @@ export function initGameServer(io, options) {
                 emitDeckUpdate(roomId, deckId);
             }
         });
-        socket.on('card:play', ({ roomId, deckId, cardIds, playerId, playLocation = 'field', coordinate }) => {
+        socket.on('card:play', (data) => {
+            const { roomId, deckId, cardIds, playerId, playLocation = 'field', coordinate } = data;
             const roomState = activeRooms.get(roomId);
             if (!roomState)
                 return;
+            const roomParam = gamePresets[roomState.gameId];
             const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
             ids.forEach((id) => {
                 const card = roomState.decks[deckId]?.find((c) => c.id === id);
@@ -417,8 +419,7 @@ export function initGameServer(io, options) {
                 }
                 server_log('card', roomState.gameId, roomId, `"${card.name}" をプレイした`);
                 // カード効果
-                const preset = gamePresets[roomState.gameId];
-                const effect = preset?.cardEffects?.[card.name];
+                const effect = roomParam?.cardEffects?.[card.name];
                 if (effect) {
                     server_log('card', roomState.gameId, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
                     effect({
@@ -429,6 +430,12 @@ export function initGameServer(io, options) {
                     });
                 }
             });
+            // カスタムフック処理
+            const onCardPlay = roomParam?.onCardPlay;
+            if (onCardPlay) {
+                onCardPlay(roomParam, roomState, data);
+            }
+            // 更新通知
             emitDeckUpdate(roomId, deckId);
             emitPlayerUpdate(roomId);
         });

@@ -9,6 +9,7 @@ import { Deck } from './deck.js';
 import { BoardId, DeckId, GameId, RoomId, TokenId } from './definition.js';
 import { Position } from './position.js';
 import { Resource } from './resource.js';
+import { CardPlayData } from './socketData.js';
 import { TokenStoreDef } from './tokenStore.js';
 
 export type RoomMeta = {
@@ -28,9 +29,11 @@ export type RoomMeta = {
  * @param initialResources - プレイヤーの初期リソース。
  * @param initialTokenStores - 共有トークンの保管場所。
  * @param initialTokens - ボード上の初期配置トークン。
+ * @param initialBoard - ボードの初期レイアウト。
  * @param cardEffects - カードの特殊効果定義。
  * @param cellEffects - セルの特殊効果定義。
- * @param initialBoard - ボードの初期レイアウト。
+ * @param onDeckDraw - デッキからカードを引いた時のカスタムフック。
+ * @param onCardPlay - カードプレイ時のカスタムフック。
  * @param checkGameEnd - 終了判定ロジック。
  * @param onGameEnd - リザルト生成ロジック。
  */
@@ -48,9 +51,11 @@ export type RoomParam = {
     tokenId: TokenId;
     count: number;
   };
-  cardEffects?: any;
-  cellEffects?: any;
   initialBoard?: Record<BoardId, any>;
+  cardEffects?: Record<string, any>;
+  cellEffects?: any;
+  onDeckDraw?: any;
+  onCardPlay?: (param: RoomParam, state: RoomState, data: CardPlayData) => void;
   checkGameEnd?: any;
   onGameEnd?: any;
 };
