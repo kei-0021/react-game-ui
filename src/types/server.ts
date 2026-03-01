@@ -1,7 +1,4 @@
-// -----------------------------------------------------------------
-// 型定義 (TypeScript Interface)
-// -----------------------------------------------------------------
-
+// src/types/server.ts
 import { Player } from '@/index.js';
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
@@ -11,14 +8,6 @@ import { Position } from './position.js';
 import { Resource } from './resource.js';
 import { CardPlayData } from './socketData.js';
 import { TokenStoreDef } from './tokenStore.js';
-
-export type RoomMeta = {
-  id: RoomId;
-  gameId: GameId;
-  playerCount: number;
-  maxPlayers?: number;
-  createdAt: number;
-};
 
 /**
  * ゲームルーム作成時の初期設定パラメータ。

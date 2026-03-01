@@ -176,7 +176,9 @@ export function initGameServer(io, options) {
     io.on('connection', (socket) => {
         // ロビー
         socket.on('lobby:get-rooms', () => {
-            const roomList = Array.from(activeRooms.keys()).map(getRoomMeta).filter(Boolean);
+            const roomList = Array.from(activeRooms.keys())
+                .map(getRoomMeta)
+                .filter((room) => room !== null);
             socket.emit('lobby:rooms-list', roomList);
         });
         // 参加

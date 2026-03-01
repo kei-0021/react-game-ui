@@ -7,13 +7,6 @@ import { Position } from './position.js';
 import { Resource } from './resource.js';
 import { CardPlayData } from './socketData.js';
 import { TokenStoreDef } from './tokenStore.js';
-export type RoomMeta = {
-    id: RoomId;
-    gameId: GameId;
-    playerCount: number;
-    maxPlayers?: number;
-    createdAt: number;
-};
 /**
  * ゲームルーム作成時の初期設定パラメータ。
  * @param gameId - ゲームを一意に識別するID。

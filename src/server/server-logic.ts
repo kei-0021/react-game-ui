@@ -11,7 +11,7 @@ import {
 } from './server-utils.js';
 
 import { DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
-import { RoomMeta, RoomParam, RoomState } from '@/types/server.js';
+import { RoomParam, RoomState } from '@/types/server.js';
 import {
   CardMoveFromFieldData,
   CardPlayData,
@@ -21,6 +21,7 @@ import {
   GameNextTrunData,
   GameTurnUpdateData,
   RoomJoinData,
+  RoomMeta,
 } from '@/types/socketData.js';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
@@ -223,7 +224,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
   io.on('connection', (socket: Socket) => {
     // ロビー
     socket.on('lobby:get-rooms', () => {
-      const roomList = Array.from(activeRooms.keys()).map(getRoomMeta).filter(Boolean);
+      const roomList: RoomMeta[] = Array.from(activeRooms.keys())
+        .map(getRoomMeta)
+        .filter((room): room is RoomMeta => room !== null);
       socket.emit('lobby:rooms-list', roomList);
     });
 

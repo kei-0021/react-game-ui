@@ -3,6 +3,13 @@ import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
 import { CardId, DeckId, DraggableId, GameId, PlayerId, RoomId } from './definition.js';
+export type RoomMeta = {
+    id: RoomId;
+    gameId: GameId;
+    playerCount: number;
+    maxPlayers?: number;
+    createdAt: number;
+};
 export type RoomJoinData = {
     roomId: RoomId;
     gameId: GameId;
