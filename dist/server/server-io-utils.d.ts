@@ -1,3 +1,4 @@
+import { DeckId, GameId } from '@/types/definition.js';
 import { Card } from '../types/card.js';
 import { Resource } from '../types/resource.js';
 export declare const Validators: {
@@ -26,4 +27,15 @@ export declare const generateFromTemplates: <T extends {
  * 1次元配列を2次元（ボード形式）に変換する
  */
 export declare const chunkTo2D: <T>(array: T[], cols: number) => T[][];
+export type Config = {
+    gameId: GameId;
+    dataFiles: Record<string, any>;
+    setup: any;
+};
+export interface SetupTools {
+    assertCards: (cards: Card[], deckId: DeckId) => Card[];
+    createUniqueCards: (cards: Card[], numSets: number) => Card[];
+    createTokenStore: (id: string, name: string, templates: any[], count: number) => any[];
+    createBoardLayout: (baseCells: any[], cellCounts: Record<string, number>, rows: number, cols: number) => any[][];
+}
 //# sourceMappingURL=server-io-utils.d.ts.map

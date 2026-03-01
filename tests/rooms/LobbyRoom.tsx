@@ -14,9 +14,9 @@ const GAME_PRESETS = [
     buttonClass: 'primary-button',
   },
   {
-    id: 'deepsea',
+    id: 'deepabyss',
     name: '深海大冒険',
-    pathSegment: 'deepsea',
+    pathSegment: 'deepabyss',
     buttonClass: 'primary-button',
   },
 ];

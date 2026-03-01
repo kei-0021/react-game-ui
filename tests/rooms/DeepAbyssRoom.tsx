@@ -76,7 +76,7 @@ export function DeepAbyssRoom() {
     popupTimerRef.current = newTimerId;
   }, []);
 
-  const GAME_PRESET_ID = 'deepsea';
+  const GAME_PRESET_ID = 'deepabyss';
 
   const handleJoinRoom = useCallback(() => {
     if (!socket || !roomId || userName.trim() === '' || isJoining) return;
@@ -222,7 +222,7 @@ export function DeepAbyssRoom() {
             <Deck
               socket={socket}
               roomId={roomId}
-              deckId="deepSeaAction"
+              deckId="deepAbyssAction"
               title="アクションカード"
               currentPlayerId={currentPlayerId}
               myPlayerId={myPlayerId}
@@ -230,7 +230,7 @@ export function DeepAbyssRoom() {
             <Deck
               socket={socket}
               roomId={roomId}
-              deckId="deepSeaSpecies"
+              deckId="deepAbyssSpecies"
               title="深海生物カード"
               currentPlayerId={currentPlayerId}
               myPlayerId={myPlayerId}
@@ -242,7 +242,7 @@ export function DeepAbyssRoom() {
             <PlayField
               socket={socket}
               roomId={roomId}
-              deckId="deepSeaAction"
+              deckId="deepAbyssAction"
               title="アクションカード"
               myPlayerId={myPlayerId}
               players={players}
@@ -253,7 +253,7 @@ export function DeepAbyssRoom() {
             <PlayField
               socket={socket}
               roomId={roomId}
-              deckId="deepSeaSpecies"
+              deckId="deepAbyssSpecies"
               players={players}
               myPlayerId={myPlayerId}
               layoutMode="grid"

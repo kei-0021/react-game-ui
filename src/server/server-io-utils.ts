@@ -1,29 +1,50 @@
 // src/server/server-io-utils.ts
 
+import { DeckId, GameId } from '@/types/definition.js';
 import fs from 'node:fs';
 import { Card } from '../types/card.js';
 import { Resource } from '../types/resource.js';
 
 // --- 型バリデーター関数群 ---
 export const Validators = {
-  isCardArray: (data: any): data is Card[] =>
-    Array.isArray(data) &&
-    data.every((item) => {
-      // 最低限の必須項目チェック（これがないとCardとして成立しない）
-      if (!('id' in item) || !('name' in item)) return false;
+  isCardArray: (data: any): data is Card[] => {
+    if (!Array.isArray(data)) throw new Error('Data is not an array');
 
-      // 「もし存在するなら」型が一致しているか全項目チェック
-      const checks = [
-        item.deckId === undefined || typeof item.deckId === 'string',
-        item.description === undefined || typeof item.description === 'string',
-        item.location === undefined || typeof item.location === 'string',
-        item.isFaceUp === undefined || typeof item.isFaceUp === 'boolean',
-        item.backColor === undefined || typeof item.backColor === 'string',
-        item.drawCondition === undefined || (Array.isArray(item.drawCondition) && item.drawCondition.length === 2),
-      ];
+    return data.every((item, index) => {
+      const id = item?.id || `Index:${index}`;
 
-      return checks.every(Boolean);
-    }),
+      // 最低限の必須項目チェック
+      if (!('id' in item)) throw new Error(`[Card:${id}] 'id' is missing`);
+      if (!('name' in item)) throw new Error(`[Card:${id}] 'name' is missing`);
+
+      // 各項目の個別バリデーション
+      if (item.deckId !== undefined && typeof item.deckId !== 'string') {
+        throw new Error(`[Card:${id}] 'deckId' must be a string`);
+      }
+      if (item.description !== undefined && typeof item.description !== 'string') {
+        throw new Error(`[Card:${id}] 'description' must be a string`);
+      }
+      if (item.location !== undefined && typeof item.location !== 'string') {
+        throw new Error(`[Card:${id}] 'location' must be a string`);
+      }
+      if (item.isFaceUp !== undefined && typeof item.isFaceUp !== 'boolean') {
+        throw new Error(`[Card:${id}] 'isFaceUp' must be a boolean`);
+      }
+      if (item.backColor !== undefined && typeof item.backColor !== 'string') {
+        throw new Error(`[Card:${id}] 'backColor' must be a string`);
+      }
+      if (item.drawCondition !== undefined) {
+        if (!Array.isArray(item.drawCondition)) {
+          throw new Error(`[Card:${id}] 'drawCondition' must be an array`);
+        }
+        if (item.drawCondition.length !== 2) {
+          throw new Error(`[Card:${id}] 'drawCondition' must have 2 elements`);
+        }
+      }
+
+      return true;
+    });
+  },
 
   isResourceArray: (data: any): data is Resource[] =>
     Array.isArray(data) && data.every((item) => 'resourceId' in item && 'currentValue' in item),
@@ -94,3 +115,16 @@ export const chunkTo2D = <T>(array: T[], cols: number): T[][] => {
   }
   return rows;
 };
+
+export type Config = {
+  gameId: GameId;
+  dataFiles: Record<string, any>;
+  setup: any;
+};
+
+export interface SetupTools {
+  assertCards: (cards: Card[], deckId: DeckId) => Card[];
+  createUniqueCards: (cards: Card[], numSets: number) => Card[];
+  createTokenStore: (id: string, name: string, templates: any[], count: number) => any[];
+  createBoardLayout: (baseCells: any[], cellCounts: Record<string, number>, rows: number, cols: number) => any[][];
+}
