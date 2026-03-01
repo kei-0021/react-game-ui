@@ -2,26 +2,14 @@
 // 型定義 (TypeScript Interface)
 // -----------------------------------------------------------------
 
+import { Player } from '@/index.js';
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
-import { BoardId, DeckId, GameId, PlayerId, RoomId, TokenId } from './definition.js';
+import { BoardId, DeckId, GameId, RoomId, TokenId } from './definition.js';
 import { Position } from './position.js';
 import { Resource } from './resource.js';
-import { Token } from './token.js';
 import { TokenStoreDef } from './tokenStore.js';
-
-export interface ServerPlayer {
-  id: PlayerId;
-  name: string;
-  socketId: string;
-  color: string;
-  cards: Card[];
-  score: number;
-  resources: Resource[];
-  tokens: Token[];
-  position: Position;
-}
 
 export type RoomMeta = {
   id: RoomId;
@@ -68,7 +56,7 @@ export type RoomParam = {
 };
 
 export type InitialRoomState = {
-  players: ServerPlayer[];
+  players: Player[];
   initialResources: any[];
   initialTokenStores: any[];
   initialTokens: any[];

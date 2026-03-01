@@ -10,10 +10,10 @@ export type Player = {
   id: PlayerId;
   name: string;
   color: string; // HSL形式やHEX形式の文字列
-  score?: number;
-  cards?: Card[];
-  tokens?: Token[];
-  resources?: Resource[];
+  score: number;
+  cards: Card[];
+  tokens: Token[];
+  resources: Resource[];
   socketId: string;
   position: Position;
 };

@@ -7,10 +7,10 @@ export type Player = {
     id: PlayerId;
     name: string;
     color: string;
-    score?: number;
-    cards?: Card[];
-    tokens?: Token[];
-    resources?: Resource[];
+    score: number;
+    cards: Card[];
+    tokens: Token[];
+    resources: Resource[];
     socketId: string;
     position: Position;
 };

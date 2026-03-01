@@ -1,6 +1,7 @@
+import { Player } from '@/index.js';
 import { BoardId, GameId, PlayerId, RoomId } from '@/types/definition.js';
 import { Position } from '@/types/position.js';
-import { InitialRoomState, ServerPlayer } from '@/types/server.js';
+import { InitialRoomState } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import { TokenStoreDef } from '@/types/tokenStore.js';
 export type LogCategory = 'connection' | 'deck' | 'card' | 'cell' | 'game' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'room' | 'lobby' | 'disconnect' | 'warn' | 'popup' | 'custom_event';
@@ -27,7 +28,7 @@ export declare class TokenStore {
     getTokens(): Token[];
 }
 export declare class RoomManager {
-    players: ServerPlayer[];
+    players: Player[];
     initialResources: any[];
     initialTokenStores: any[];
     initialTokens: any[];

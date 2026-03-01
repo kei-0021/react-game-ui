@@ -1,6 +1,7 @@
+import { Player } from '@/index.js';
 import { BoardId, GameId, PlayerId, RoomId } from '@/types/definition.js';
 import { Position } from '@/types/position.js';
-import { InitialRoomState, ServerPlayer } from '@/types/server.js';
+import { InitialRoomState } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import { TokenStoreDef } from '@/types/tokenStore.js';
 
@@ -207,7 +208,7 @@ export class TokenStore {
 }
 
 export class RoomManager {
-  public players: ServerPlayer[];
+  public players: Player[];
   public initialResources: any[];
   public initialTokenStores: any[];
   public initialTokens: any[];
