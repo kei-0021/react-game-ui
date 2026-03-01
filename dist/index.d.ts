@@ -17,5 +17,5 @@ export * from './types/player.js';
 export { type PlayerWithResources } from './types/playerWithResources.js';
 export { type PieceData } from './types/piece.js';
 export { type RoomMeta, type RoomParam, type RoomState } from './types/server.js';
-export { type GameTurnUpdateData } from './types/socketData.js';
+export { type GameTurnUpdateData, type RoomJoinData } from './types/socketData.js';
 //# sourceMappingURL=index.d.ts.map
