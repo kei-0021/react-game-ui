@@ -26,6 +26,7 @@ type DraggableProps = {
   size?: number | { width: number; height: number };
   color?: string;
   isTransparent?: boolean;
+  zIndex?: number; // 追加：重なり順を制御する引数
   children?: ReactNode;
   style?: CSSProperties;
   onDragEnd?: (x: number, y: number) => void;
@@ -45,6 +46,7 @@ type DraggableProps = {
  * @param {number | {width: number, height: number}} [size=100] - 要素のサイズ（数値なら正方形、オブジェクトなら長方形）
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
+ * @param {number} [zIndex=90] - 重なり順。デフォルトは100
  * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
  * @param {CSSProperties} [style] - 外側から適用する追加のスタイル
  * @param {Coordinate => void} [onDragEnd] - ドラッグ終了時に確定座標を通知するハンドラ
@@ -62,6 +64,7 @@ export function Draggable({
   size = 100,
   color = 'yellow',
   isTransparent = false,
+  zIndex = 100,
   children,
   style = {},
   onDragEnd,
@@ -111,7 +114,7 @@ export function Draggable({
     const offsetY = clientY_relative - pos.y;
 
     let lastTime = 0;
-    const targetFPS = 60; // 50から60へ微調整
+    const targetFPS = 60;
     const interval = 1000 / targetFPS;
 
     const handleMouseMove = (ev: MouseEvent) => {
@@ -154,7 +157,6 @@ export function Draggable({
         socket.emit('draggable:moved', movedData);
       }
 
-      // ドラッグ終了（少し遅らせることで、最後に飛んできた自分の古い座標を捨てる）
       setTimeout(() => {
         isDraggingRef.current = false;
       }, 50);
@@ -192,19 +194,26 @@ export function Draggable({
   const height = typeof size === 'number' ? size : size.height;
 
   const dynamicStyle: CSSProperties = {
-    left: `${pos.x}px`,
-    top: `${pos.y}px`,
-    width: `${width}px`,
-    height: `${height}px`,
-    background: mask && image ? undefined : isTransparent ? 'transparent' : color,
-    transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
     position: 'absolute',
     cursor: 'grab',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    ...maskStyle,
+    transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+
+    // まず、外部から渡された汎用的な style を展開
     ...style,
+
+    // 次に、このコンポーネントの専用 Props で上書き（絶対に勝たせる）
+    left: `${pos.x}px`,
+    top: `${pos.y}px`,
+    width: `${width}px`,
+    height: `${height}px`,
+    zIndex: zIndex,
+    background: mask && image ? undefined : isTransparent ? 'transparent' : color,
+
+    // マスク関連（これも特殊な計算結果なので最後に上書き）
+    ...maskStyle,
   };
 
   return (

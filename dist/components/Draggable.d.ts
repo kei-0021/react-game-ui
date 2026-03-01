@@ -23,6 +23,7 @@ type DraggableProps = {
     };
     color?: string;
     isTransparent?: boolean;
+    zIndex?: number;
     children?: ReactNode;
     style?: CSSProperties;
     onDragEnd?: (x: number, y: number) => void;
@@ -41,6 +42,7 @@ type DraggableProps = {
  * @param {number | {width: number, height: number}} [size=100] - 要素のサイズ（数値なら正方形、オブジェクトなら長方形）
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
+ * @param {number} [zIndex=90] - 重なり順。デフォルトは100
  * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
  * @param {CSSProperties} [style] - 外側から適用する追加のスタイル
  * @param {Coordinate => void} [onDragEnd] - ドラッグ終了時に確定座標を通知するハンドラ
@@ -48,6 +50,6 @@ type DraggableProps = {
  * @param {number} [scale=1] - 親コンテナのズーム倍率（座標計算の補正に使用）
  * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
  */
-export declare function Draggable({ socket, roomId, draggableId, initialXY, image, mask, size, color, isTransparent, children, style, onDragEnd, scale, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
+export declare function Draggable({ socket, roomId, draggableId, initialXY, image, mask, size, color, isTransparent, zIndex, children, style, onDragEnd, scale, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Draggable.d.ts.map

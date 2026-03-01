@@ -9,7 +9,6 @@
   align-items: center;
   justify-content: center;
   user-select: none;
-  z-index: 90;
 }
 
 .draggable:active {
