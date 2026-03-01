@@ -31,6 +31,7 @@ type PlayFieldProps = {
   myPlayerId: PlayerId | null;
   layoutMode?: 'grid' | 'free';
   backgroundImage?: string;
+  baseZIndex?: number;
   is_logging?: boolean;
 };
 
@@ -44,6 +45,7 @@ type PlayFieldProps = {
  * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
+ * @param {string} [baseZIndex] - カードの重ね順
  * @param {boolean} [is_logging=false] - デバッグログを出力するかどうか
  */
 export function PlayField({
@@ -56,6 +58,7 @@ export function PlayField({
   layoutMode = 'free',
   is_logging = false,
   backgroundImage,
+  baseZIndex = 100,
 }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(null);
@@ -184,6 +187,8 @@ export function PlayField({
       className={`rg-playfield mode-${layoutMode}`}
       style={{
         background: backgroundImage ? `url(${backgroundImage}) center/cover no-repeat` : undefined,
+        // 親の zIndex を消すことで、中のカードが Draggable と同じ階層で比較されるようにする
+        position: 'relative',
       }}
     >
       <h3 className="rg-playfield-title">
@@ -216,6 +221,9 @@ export function PlayField({
             );
           const visualOffset = isOverlapping ? index * 12 : 0;
 
+          // カード個別の zIndex
+          const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
+
           const freeStyle: React.CSSProperties =
             layoutMode === 'free'
               ? {
@@ -223,7 +231,7 @@ export function PlayField({
                   left: `${card.coordinate?.x ?? 50}%`,
                   top: `${card.coordinate?.y ?? 50}%`,
                   transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
-                  zIndex: isDragging ? 4 : 2,
+                  zIndex: currentZIndex,
                   transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                 }
               : {};

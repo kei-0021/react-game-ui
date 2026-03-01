@@ -11,6 +11,7 @@ type PlayFieldProps = {
     myPlayerId: PlayerId | null;
     layoutMode?: 'grid' | 'free';
     backgroundImage?: string;
+    baseZIndex?: number;
     is_logging?: boolean;
 };
 /**
@@ -23,8 +24,9 @@ type PlayFieldProps = {
  * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
+ * @param {string} [baseZIndex] - カードの重ね順
  * @param {boolean} [is_logging=false] - デバッグログを出力するかどうか
  */
-export declare function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode, is_logging, backgroundImage, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
+export declare function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode, is_logging, backgroundImage, baseZIndex, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=PlayField.d.ts.map

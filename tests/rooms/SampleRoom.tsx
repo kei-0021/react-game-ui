@@ -163,7 +163,7 @@ export function SampleRoom() {
         draggableId={`piece`}
         containerRef={containerRef}
         color="red"
-        size={10}
+        size={100}
       ></Draggable>
       <RemoteCursor
         socket={socket!}

@@ -15,6 +15,9 @@ import './DeepAbyssRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
 
+const Z_INDX_DRAGGABLE = 201;
+const Z_INDX_CARD = 200;
+
 interface PopupState {
   message: string;
   color: string;
@@ -245,6 +248,7 @@ export function DeepAbyssRoom() {
               players={players}
               backgroundImage="/gameboard.png"
               is_logging={true}
+              baseZIndex={Z_INDX_CARD}
             />
             <PlayField
               socket={socket}
@@ -254,6 +258,17 @@ export function DeepAbyssRoom() {
               myPlayerId={myPlayerId}
               layoutMode="grid"
             />
+            <Draggable
+              socket={socket}
+              roomId={roomId}
+              initialXY={{ x: 1000, y: 500 }}
+              key={`piece`}
+              draggableId={`piece`}
+              size={{ width: 200, height: 100 }}
+              containerRef={containerRef}
+              zIndex={Z_INDX_DRAGGABLE}
+              isFrontOnDragging={true}
+            ></Draggable>
           </div>
         </div>
 
@@ -269,15 +284,6 @@ export function DeepAbyssRoom() {
             isDebug={true}
           />
         </div>
-        <Draggable
-          socket={socket}
-          roomId={roomId}
-          initialXY={{ x: 1000, y: 500 }}
-          key={`piece`}
-          draggableId={`piece`}
-          size={{ width: 200, height: 100 }}
-          containerRef={containerRef}
-        ></Draggable>
       </div>
     </div>
   );
