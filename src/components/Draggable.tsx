@@ -22,14 +22,13 @@ type DraggableProps = {
   image?: string;
   mask?: boolean;
   initialXY?: Coordinate;
-  /** 要素のサイズ。数値指定時は正方形、オブジェクト指定時は長方形となる */
   size?: number | { width: number; height: number };
   color?: string;
   isTransparent?: boolean;
-  zIndex?: number; // 追加：重なり順を制御する引数
+  zIndex?: number;
+  isFrontOnDragging?: boolean;
   children?: ReactNode;
   style?: CSSProperties;
-  onDragEnd?: (x: number, y: number) => void;
   gridBounds?: GridBounds;
   scale?: number;
   containerRef: React.RefObject<HTMLElement | null>;
@@ -47,6 +46,7 @@ type DraggableProps = {
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
  * @param {number} [zIndex=90] - 重なり順。デフォルトは100
+ * @param {number} [isFrontOnDragging=false] - ドラッグ中に一時的に zIndex を跳ね上げるためのフラグ
  * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
  * @param {CSSProperties} [style] - 外側から適用する追加のスタイル
  * @param {Coordinate => void} [onDragEnd] - ドラッグ終了時に確定座標を通知するハンドラ
@@ -65,14 +65,15 @@ export function Draggable({
   color = 'yellow',
   isTransparent = false,
   zIndex = 100,
+  isFrontOnDragging = false,
   children,
   style = {},
-  onDragEnd,
   scale = 1,
   containerRef,
 }: DraggableProps) {
   const [pos, setPos] = useState(initialXY);
   const [rotation, setRotation] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const posRef = useRef(pos);
   // ドラッグ中かどうかを保持するRef（再レンダリングをトリガーしないようRefで管理）
   const isDraggingRef = useRef(false);
@@ -100,6 +101,7 @@ export function Draggable({
 
     // ドラッグ開始
     isDraggingRef.current = true;
+    setIsDragging(true);
 
     const fixedContainer = containerRef?.current;
     if (!fixedContainer) {
@@ -157,11 +159,10 @@ export function Draggable({
         socket.emit('draggable:moved', movedData);
       }
 
+      setIsDragging(false);
       setTimeout(() => {
         isDraggingRef.current = false;
       }, 50);
-
-      onDragEnd?.(x, y);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -193,6 +194,9 @@ export function Draggable({
   const width = typeof size === 'number' ? size : size.width;
   const height = typeof size === 'number' ? size : size.height;
 
+  // ドラッグ中かつフラグがONなら一時的に最前面(9999)へ
+  const currentZIndex = isFrontOnDragging && isDragging ? 9999 : zIndex;
+
   const dynamicStyle: CSSProperties = {
     position: 'absolute',
     cursor: 'grab',
@@ -209,7 +213,7 @@ export function Draggable({
     top: `${pos.y}px`,
     width: `${width}px`,
     height: `${height}px`,
-    zIndex: zIndex,
+    zIndex: currentZIndex,
     background: mask && image ? undefined : isTransparent ? 'transparent' : color,
 
     // マスク関連（これも特殊な計算結果なので最後に上書き）

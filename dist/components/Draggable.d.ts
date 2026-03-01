@@ -16,7 +16,6 @@ type DraggableProps = {
     image?: string;
     mask?: boolean;
     initialXY?: Coordinate;
-    /** 要素のサイズ。数値指定時は正方形、オブジェクト指定時は長方形となる */
     size?: number | {
         width: number;
         height: number;
@@ -24,9 +23,9 @@ type DraggableProps = {
     color?: string;
     isTransparent?: boolean;
     zIndex?: number;
+    isFrontOnDragging?: boolean;
     children?: ReactNode;
     style?: CSSProperties;
-    onDragEnd?: (x: number, y: number) => void;
     gridBounds?: GridBounds;
     scale?: number;
     containerRef: React.RefObject<HTMLElement | null>;
@@ -43,6 +42,7 @@ type DraggableProps = {
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
  * @param {number} [zIndex=90] - 重なり順。デフォルトは100
+ * @param {number} [isFrontOnDragging=false] - ドラッグ中に一時的に zIndex を跳ね上げるためのフラグ
  * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
  * @param {CSSProperties} [style] - 外側から適用する追加のスタイル
  * @param {Coordinate => void} [onDragEnd] - ドラッグ終了時に確定座標を通知するハンドラ
@@ -50,6 +50,6 @@ type DraggableProps = {
  * @param {number} [scale=1] - 親コンテナのズーム倍率（座標計算の補正に使用）
  * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
  */
-export declare function Draggable({ socket, roomId, draggableId, initialXY, image, mask, size, color, isTransparent, zIndex, children, style, onDragEnd, scale, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
+export declare function Draggable({ socket, roomId, draggableId, initialXY, image, mask, size, color, isTransparent, zIndex, isFrontOnDragging, children, style, scale, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Draggable.d.ts.map
