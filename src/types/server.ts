@@ -82,8 +82,6 @@ export interface RoomState {
   playFieldCards: Record<string, Card[]>;
   discardPile: Record<string, Card[]>;
   initRoomState: RoomManager;
-  checkGameEnd: any;
-  onGameEnd: any;
 }
 
 export { GameId };

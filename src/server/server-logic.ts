@@ -114,8 +114,6 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
     playFieldCards,
     discardPile,
     initRoomState: initRoomState,
-    checkGameEnd: roomParam.checkGameEnd,
-    onGameEnd: roomParam.onGameEnd,
   };
 
   activeRooms.set(roomId, roomState);
@@ -624,11 +622,13 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
 
+      const roomParam = gamePresets[roomState.gameId];
+
       const { initRoomState } = roomState;
       if (initRoomState.players.length === 0) return;
-      if (typeof roomState.checkGameEnd === 'function' && roomState.checkGameEnd(roomState)) {
+      if (typeof roomParam.checkGameEnd === 'function' && roomParam.checkGameEnd(roomState)) {
         const results =
-          typeof roomState.onGameEnd === 'function' ? roomState.onGameEnd(roomState) : { message: 'Game Over' };
+          typeof roomParam.onGameEnd === 'function' ? roomParam.onGameEnd(roomState) : { message: 'Game Over' };
         io.to(roomId).emit('game:end', results);
         return;
       }

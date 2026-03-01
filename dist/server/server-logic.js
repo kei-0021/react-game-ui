@@ -79,8 +79,6 @@ function initializeRoom(roomId, roomParam) {
         playFieldCards,
         discardPile,
         initRoomState: initRoomState,
-        checkGameEnd: roomParam.checkGameEnd,
-        onGameEnd: roomParam.onGameEnd,
     };
     activeRooms.set(roomId, roomState);
     server_log('room', roomState.gameId, roomId, `ルーム初期化完了`);
@@ -513,11 +511,12 @@ export function initGameServer(io, options) {
             const roomState = activeRooms.get(roomId);
             if (!roomState)
                 return;
+            const roomParam = gamePresets[roomState.gameId];
             const { initRoomState } = roomState;
             if (initRoomState.players.length === 0)
                 return;
-            if (typeof roomState.checkGameEnd === 'function' && roomState.checkGameEnd(roomState)) {
-                const results = typeof roomState.onGameEnd === 'function' ? roomState.onGameEnd(roomState) : { message: 'Game Over' };
+            if (typeof roomParam.checkGameEnd === 'function' && roomParam.checkGameEnd(roomState)) {
+                const results = typeof roomParam.onGameEnd === 'function' ? roomParam.onGameEnd(roomState) : { message: 'Game Over' };
                 io.to(roomId).emit('game:end', results);
                 return;
             }
