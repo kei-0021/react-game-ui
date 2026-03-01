@@ -1,5 +1,5 @@
 import { jsx as _jsx } from "react/jsx-runtime";
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import draggableStyles from './Draggable.module.css';
 /**
  * ドラッグ移動と移動のリアルタイムな位置同期機能を提供する
@@ -24,6 +24,8 @@ import draggableStyles from './Draggable.module.css';
 export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y: 500 }, image, mask = false, size = 100, color = 'yellow', isTransparent = false, zIndex = 100, isFrontOnDragging = false, children, style = {}, scale = 1, containerRef, }) {
     const [pos, setPos] = useState(initialXY);
     const [rotation, setRotation] = useState(0);
+    // 重なり順を内部状態として管理
+    const [currentZ, setCurrentZ] = useState(zIndex);
     const [isDragging, setIsDragging] = useState(false);
     const posRef = useRef(pos);
     // ドラッグ中かどうかを保持するRef（再レンダリングをトリガーしないようRefで管理）
@@ -31,6 +33,10 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
     useEffect(() => {
         posRef.current = pos;
     }, [pos]);
+    // PropsのzIndexが変わった場合に同期
+    useEffect(() => {
+        setCurrentZ(zIndex);
+    }, [zIndex]);
     useEffect(() => {
         if (!socket || !draggableId)
             return;
@@ -46,6 +52,9 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
         };
     }, [socket, draggableId]);
     const handleMouseDown = (e) => {
+        // 右クリック時はドラッグを開始しない（メニュー用）
+        if (e.button !== 0)
+            return;
         e.preventDefault();
         // ドラッグ開始
         isDraggingRef.current = true;
@@ -77,12 +86,11 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
             setPos(newPos);
             posRef.current = newPos;
             if (socket && roomId && draggableId) {
-                const movedData = {
+                socket.emit('draggable:moved', {
                     roomId: roomId,
                     draggableId: draggableId,
                     coordinate: newPos,
-                };
-                socket.emit('draggable:moved', movedData);
+                });
             }
         };
         const handleMouseUp = () => {
@@ -90,12 +98,11 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
             document.removeEventListener('mouseup', handleMouseUp);
             const { x, y } = posRef.current;
             if (socket && roomId && draggableId) {
-                const movedData = {
+                socket.emit('draggable:moved', {
                     roomId: roomId,
                     draggableId: draggableId,
                     coordinate: { x: x, y: y },
-                };
-                socket.emit('draggable:moved', movedData);
+                });
             }
             setIsDragging(false);
             setTimeout(() => {
@@ -105,7 +112,14 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
     };
-    const handleDoubleClick = () => setRotation((prev) => prev + 90);
+    /**
+     * ダブルクリック時の処理：90度回転 ＋ 最前面へ(+100)
+     */
+    const handleDoubleClick = useCallback((e) => {
+        e.stopPropagation();
+        setRotation((prev) => prev + 90);
+        setCurrentZ((prev) => prev + 100);
+    }, []);
     const MASK_PROP = ['mask', 'Image'].join('');
     const WEBKIT_MASK_PROP = ['Webkit', 'Mask', 'Image'].join('');
     const URL_FUNC = ['u', 'r', 'l'].join('');
@@ -125,11 +139,11 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
     // sizeが数値かオブジェクトかによって幅と高さを決定
     const width = typeof size === 'number' ? size : size.width;
     const height = typeof size === 'number' ? size : size.height;
-    // ドラッグ中かつフラグがONなら一時的に最前面(9999)へ
-    const currentZIndex = isFrontOnDragging && isDragging ? 9999 : zIndex;
+    // ドラッグ中は一時的に 9999、それ以外は currentZ を使用
+    const dynamicZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
     const dynamicStyle = {
         position: 'absolute',
-        cursor: 'grab',
+        cursor: isDragging ? 'grabbing' : 'grab',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -141,12 +155,12 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
         top: `${pos.y}px`,
         width: `${width}px`,
         height: `${height}px`,
-        zIndex: currentZIndex,
+        zIndex: dynamicZIndex,
         background: mask && image ? undefined : isTransparent ? 'transparent' : color,
         // マスク関連（これも特殊な計算結果なので最後に上書き）
         ...maskStyle,
     };
-    return (_jsx("div", { onMouseDown: handleMouseDown, onDoubleClick: handleDoubleClick, className: draggableStyles.draggable, style: dynamicStyle, children: image ? (_jsx("img", { src: image, alt: "", style: {
+    return (_jsx("div", { onMouseDown: handleMouseDown, onDoubleClick: handleDoubleClick, className: draggableStyles.draggable, style: dynamicStyle, "data-draggable-id": draggableId, children: image ? (_jsx("img", { src: image, alt: "", style: {
                 width: '100%',
                 height: '100%',
                 objectFit: 'contain',
