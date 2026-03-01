@@ -120,7 +120,6 @@ export function initGameServer(io, options) {
             discardPile: roomState.discardPile[deckId],
         };
         io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, updateData);
-        emitPlayerUpdate(roomId);
     };
     const addScore = (roomId, playerId, points) => {
         const roomState = activeRooms.get(roomId);
@@ -231,6 +230,7 @@ export function initGameServer(io, options) {
             }
             socket.emit('player:assign-id', player.id);
             Object.values(gameParam.board).forEach((board) => socket.emit('game:init-board', board));
+            emitPlayerUpdate(roomId);
             Object.keys(decks).forEach((id) => emitDeckUpdate(roomId, id));
             server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`);
             io.to(roomId).emit('game:turn', {
@@ -430,6 +430,7 @@ export function initGameServer(io, options) {
                 }
             });
             emitDeckUpdate(roomId, deckId);
+            emitPlayerUpdate(roomId);
         });
         // ドラッグ中も監視
         socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {

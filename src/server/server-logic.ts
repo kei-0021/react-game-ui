@@ -161,7 +161,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     };
 
     io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, updateData);
-    emitPlayerUpdate(roomId);
   };
 
   const addScore = (roomId: RoomId, playerId: PlayerId, points: number) => {
@@ -288,6 +287,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
       socket.emit('player:assign-id', player.id);
       Object.values(gameParam.board).forEach((board) => socket.emit('game:init-board', board));
+      emitPlayerUpdate(roomId);
       Object.keys(decks).forEach((id) => emitDeckUpdate(roomId, id));
 
       server_log(
@@ -534,6 +534,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         });
 
         emitDeckUpdate(roomId, deckId);
+        emitPlayerUpdate(roomId);
       },
     );
 
