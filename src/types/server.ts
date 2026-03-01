@@ -6,6 +6,7 @@ import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
 import { BoardId, DeckId, GameId, PlayerId, RoomId, TokenId } from './definition.js';
+import { Position } from './position.js';
 import { Resource } from './resource.js';
 import { Token } from './token.js';
 import { TokenStoreDef } from './tokenStore.js';
@@ -21,8 +22,6 @@ export interface ServerPlayer {
   tokens: Token[];
   position: Position;
 }
-
-export type Position = { col: number; row: number };
 
 export type RoomMeta = {
   id: RoomId;
@@ -68,7 +67,7 @@ export type RoomParam = {
   onGameEnd?: any;
 };
 
-export type initialRoomState = {
+export type InitialRoomState = {
   players: ServerPlayer[];
   initialResources: any[];
   initialTokenStores: any[];

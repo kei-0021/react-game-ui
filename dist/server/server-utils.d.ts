@@ -1,5 +1,6 @@
 import { BoardId, GameId, PlayerId, RoomId } from '@/types/definition.js';
-import { initialRoomState as InitialRoomState, Position, ServerPlayer } from '@/types/server.js';
+import { Position } from '@/types/position.js';
+import { InitialRoomState, ServerPlayer } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import { TokenStoreDef } from '@/types/tokenStore.js';
 export type LogCategory = 'connection' | 'deck' | 'card' | 'cell' | 'game' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'room' | 'lobby' | 'disconnect' | 'warn' | 'popup' | 'custom_event';
