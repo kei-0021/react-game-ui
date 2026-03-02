@@ -1,9 +1,9 @@
 // tests/server.ts
 import path from 'path';
-import type { RoomParam } from 'react-game-ui';
-import { GameServer, type GameServerOptions } from 'react-game-ui/server';
-import { loadJsonAssert, RoomConfig } from 'react-game-ui/server-io-utils';
 import { fileURLToPath } from 'url';
+import type { RoomParam } from '../src/index.js';
+import { loadJsonAssert, RoomConfig } from '../src/server/server-io-utils.js';
+import { GameServer, type GameServerOptions } from '../src/server/server.js';
 import { customEvents } from './data/customEvents.js';
 import { deepAbyssConfig } from './server/deepAbyssConfig.js';
 import { sampleConfig } from './server/sampleConfig.js';

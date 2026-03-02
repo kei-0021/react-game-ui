@@ -29,7 +29,7 @@
     "clean": "rm -rf dist",
     "build": "npm run clean && NODE_ENV=production vite build && cp -r src/assets/. dist/assets/ && tsc --project tsconfig.json",
     "preview": "vite preview",
-    "server": "node --loader ts-node/esm tests/server.js",
+    "server": "NODE_OPTIONS='--import tsx' node tests/server.ts",
     "dev:multi": "concurrently \"npm run server\" \"vite\"",
     "test": "node --experimental-vm-modules node_modules/.bin/jest"
   },
@@ -59,6 +59,7 @@
     "terser": "^5.44.0",
     "ts-jest": "^29.4.4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.2",
     "vite": "^7.1.7"
   }

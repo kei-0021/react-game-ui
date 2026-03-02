@@ -9,7 +9,7 @@ function getRoomMeta(roomId) {
     return {
         id: roomId,
         gameId: roomState.gameId,
-        playerCount: roomState.initRoomState.players.length,
+        playerCount: roomState.players.length,
         maxPlayers: roomState.maxPlayers,
         createdAt: roomState.createdAt,
     };
@@ -37,16 +37,7 @@ function initializeRoom(roomId, roomParam) {
         Cells[boardId] = createRandomBoard(boardData);
         server_log('cell', roomParam.gameId, roomId, `ボード "${boardId}" を初期化完了`);
     });
-    const initialParam = {
-        players: [],
-        initialResources,
-        initialTokenStores,
-        initialTokens,
-        board: Cells,
-        exploredCells: [],
-        turn: 1,
-    };
-    const initRoomState = new RoomManager(initialParam, initialTokenStores);
+    const initRoomState = new RoomManager(initialTokenStores);
     const decks = {};
     const drawnCards = {};
     const playFieldCards = {};
@@ -75,11 +66,14 @@ function initializeRoom(roomId, roomParam) {
         currentTurnIndex: 0,
         currentRoundIndex: 0,
         currentPhase: roomParam.initialPhase,
+        players: [],
         decks,
         drawnCards,
         playFieldCards,
         discardPile,
-        initRoomState: initRoomState,
+        board: Cells,
+        exploredCells: [],
+        roomManager: initRoomState,
     };
     activeRooms.set(roomId, roomState);
     server_log('room', roomState.gameId, roomId, `ルーム初期化完了`);
@@ -106,7 +100,7 @@ export function initGameServer(io, options) {
     const emitPlayerUpdate = (roomId) => {
         const roomState = activeRooms.get(roomId);
         if (roomState)
-            io.to(roomId).emit('players:update', roomState.initRoomState.players);
+            io.to(roomId).emit('players:update', roomState.players);
     };
     const emitDeckUpdate = (roomId, deckId) => {
         const roomState = activeRooms.get(roomId);
@@ -120,9 +114,18 @@ export function initGameServer(io, options) {
         };
         io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, updateData);
     };
+    const emitPhaseUpdate = (roomId) => {
+        const roomState = activeRooms.get(roomId);
+        if (!roomState || !roomState.currentPhase)
+            return;
+        io.to(roomId).emit('phase:update', {
+            name: roomState.currentPhase.name,
+            phase: roomState.currentPhase,
+        });
+    };
     const addScore = (roomId, playerId, points) => {
         const roomState = activeRooms.get(roomId);
-        const player = roomState?.initRoomState.players.find((p) => p.id === playerId);
+        const player = roomState?.players.find((p) => p.id === playerId);
         if (player) {
             player.score = (player.score || 0) + points;
             server_log('addScore', roomState.gameId, roomId, `${player.name} に ${points}pt 加算`);
@@ -131,7 +134,7 @@ export function initGameServer(io, options) {
     };
     const updatePlayerResource = (roomId, playerId, resourceId, amount) => {
         const roomState = activeRooms.get(roomId);
-        const player = roomState?.initRoomState.players.find((p) => p.id === playerId);
+        const player = roomState?.players.find((p) => p.id === playerId);
         const resource = player?.resources?.find((r) => r.resourceId === resourceId);
         if (resource) {
             resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
@@ -143,7 +146,7 @@ export function initGameServer(io, options) {
     };
     const updatePlayerToken = (roomId, playerId, tokenId, amount) => {
         const roomState = activeRooms.get(roomId);
-        const player = roomState?.initRoomState.players.find((p) => p.id === playerId);
+        const player = roomState?.players.find((p) => p.id === playerId);
         const token = player?.tokens?.find((t) => t.id === tokenId);
         if (token) {
             token.count = Math.max(0, (token.count || 0) + amount);
@@ -194,13 +197,13 @@ export function initGameServer(io, options) {
                 io.emit('lobby:room-update');
             }
             await socket.join(roomId);
-            const { initRoomState: gameParam, decks } = roomState;
-            let player = gameParam.players.find((p) => p.socketId === socket.id);
+            const { decks } = roomState;
+            let player = roomState.players.find((p) => p.socketId === socket.id);
             if (!player) {
                 player = {
-                    id: `${roomId}_p${gameParam.players.length + 1}`,
-                    name: playerName?.trim() || `Player ${gameParam.players.length + 1}`,
-                    color: generateColorFromId(`${roomId}_p${gameParam.players.length + 1}`),
+                    id: `${roomId}_p${roomState.players.length + 1}`,
+                    name: playerName?.trim() || `Player ${roomState.players.length + 1}`,
+                    color: generateColorFromId(`${roomId}_p${roomState.players.length + 1}`),
                     socketId: socket.id,
                     cards: [],
                     score: 0,
@@ -208,7 +211,7 @@ export function initGameServer(io, options) {
                     tokens: JSON.parse(JSON.stringify(roomParam.initialTokens || [])),
                     position: { row: 0, col: 0 },
                 };
-                gameParam.players.push(player);
+                roomState.players.push(player);
                 server_log('game', roomParam.gameId, roomId, `${player.name} (${player.id})が参加しました`);
                 const hand = roomParam.initialHand;
                 if (hand && decks[hand.deckId]) {
@@ -230,42 +233,42 @@ export function initGameServer(io, options) {
                 player.socketId = socket.id;
             }
             socket.emit('player:assign-id', player.id);
-            Object.values(gameParam.board).forEach((board) => socket.emit('game:init-board', board));
+            Object.values(roomState.board).forEach((board) => socket.emit('game:init-board', board));
             emitPlayerUpdate(roomId);
             Object.keys(decks).forEach((id) => emitDeckUpdate(roomId, id));
-            server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`);
+            server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`);
             io.to(roomId).emit('game:turn', {
-                currentPlayerId: roomState.initRoomState.players[roomState.currentTurnIndex]?.id,
+                currentPlayerId: roomState.players[roomState.currentTurnIndex]?.id,
                 currentRoundIndex: roomState.currentRoundIndex,
                 currentTurnIndex: roomState.currentTurnIndex,
             });
-            if (gameParam.exploredCells.length > 0)
-                socket.emit('board-update', gameParam.exploredCells);
+            if (roomState.exploredCells.length > 0)
+                socket.emit('board-update', roomState.exploredCells);
         });
         // 移動・探索
         socket.on('game:move-player', ({ roomId, playerId, newPosition }) => {
             const roomState = activeRooms.get(roomId);
-            const player = roomState?.initRoomState.players.find((p) => p.id === playerId);
+            const player = roomState?.players.find((p) => p.id === playerId);
             if (player && roomState) {
                 player.position = newPosition;
-                const updated = markCellAsExplored(roomState.initRoomState, roomState.gameId, roomId, newPosition);
+                const updated = markCellAsExplored(roomState, roomState.gameId, roomId, newPosition);
                 const preset = gamePresets[roomState.gameId];
-                applyCellEffect(roomState.initRoomState, roomState.gameId, roomId, playerId, newPosition, preset?.cellEffects, (pId, pts) => addScore(roomId, pId, pts), (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
+                applyCellEffect(roomState, roomState.gameId, roomId, playerId, newPosition, preset?.cellEffects, (pId, pts) => addScore(roomId, pId, pts), (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
                 emitPlayerUpdate(roomId);
                 if (updated)
-                    io.to(roomId).emit('board-update', roomState.initRoomState.exploredCells);
+                    io.to(roomId).emit('board-update', roomState.exploredCells);
             }
         });
         socket.on('game:explore-cell', ({ roomId, targetPosition }) => {
             const roomState = activeRooms.get(roomId);
-            if (roomState && markCellAsExplored(roomState.initRoomState, roomState.gameId, roomId, targetPosition)) {
-                io.to(roomId).emit('board-update', roomState.initRoomState.exploredCells);
+            if (roomState && markCellAsExplored(roomState, roomState.gameId, roomId, targetPosition)) {
+                io.to(roomId).emit('board-update', roomState.exploredCells);
             }
         });
         socket.on('game:unexplore-cell', ({ roomId, targetPosition }) => {
             const roomState = activeRooms.get(roomId);
-            if (roomState && unmarkCellAsExplored(roomState.initRoomState, roomState.gameId, roomId, targetPosition)) {
-                io.to(roomId).emit('board-update', roomState.initRoomState.exploredCells);
+            if (roomState && unmarkCellAsExplored(roomState, roomState.gameId, roomId, targetPosition)) {
+                io.to(roomId).emit('board-update', roomState.exploredCells);
             }
         });
         // カードを引く
@@ -298,7 +301,7 @@ export function initGameServer(io, options) {
             }
             // B. プレイヤーを指定して引く場合
             else if (playerId && targetLocation === 'hand') {
-                const player = roomState.initRoomState.players.find((p) => p.id === playerId);
+                const player = roomState.players.find((p) => p.id === playerId);
                 if (player) {
                     player.cards = player.cards || [];
                     card.location = 'hand';
@@ -352,7 +355,7 @@ export function initGameServer(io, options) {
             const roomState = activeRooms.get(roomId);
             if (!roomState)
                 return;
-            const { decks, playFieldCards, initRoomState } = roomState;
+            const { decks, playFieldCards } = roomState;
             // 対象カードを特定
             const card = decks[deckId]?.find((c) => c.id === cardId);
             if (!card)
@@ -365,7 +368,7 @@ export function initGameServer(io, options) {
             // 行き先の判定と処理
             if (playerId) {
                 // --- 手札に戻す場合 ---
-                const player = initRoomState.players.find((p) => p.id === playerId);
+                const player = roomState.players.find((p) => p.id === playerId);
                 if (player) {
                     card.location = 'hand';
                     card.ownerId = playerId;
@@ -407,7 +410,7 @@ export function initGameServer(io, options) {
                 if (!card)
                     return;
                 if (playerId) {
-                    const p = roomState.initRoomState.players.find((p) => p.id === playerId);
+                    const p = roomState.players.find((p) => p.id === playerId);
                     if (p)
                         p.cards = p.cards.filter((c) => c.id !== id);
                 }
@@ -457,7 +460,7 @@ export function initGameServer(io, options) {
         });
         socket.on('card:reveal', ({ roomId, playerId, cardIds }) => {
             const roomState = activeRooms.get(roomId);
-            const p = roomState?.initRoomState.players.find((p) => p.id === playerId);
+            const p = roomState?.players.find((p) => p.id === playerId);
             if (p) {
                 const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
                 p.cards.forEach((c) => {
@@ -470,11 +473,11 @@ export function initGameServer(io, options) {
         // トークン・ダイス
         socket.on('game:acquire-token', ({ roomId, tokenStoreId, tokenId }) => {
             const roomState = activeRooms.get(roomId);
-            const player = roomState?.initRoomState.players.find((p) => p.socketId === socket.id);
+            const player = roomState?.players.find((p) => p.socketId === socket.id);
             if (roomState &&
                 player &&
-                roomState.initRoomState.acquireToken(tokenStoreId, roomState.gameId, roomId, player.id, tokenId)) {
-                const store = roomState.initRoomState.getTokenStore(tokenStoreId);
+                roomState.roomManager.acquireToken(roomState, tokenStoreId, roomState.gameId, roomId, player.id, tokenId)) {
+                const store = roomState.roomManager.getTokenStore(tokenStoreId);
                 if (store)
                     io.to(roomId).emit(`token-store:update:${roomId}:${tokenStoreId}`, store.getTokens());
                 emitPlayerUpdate(roomId);
@@ -521,8 +524,7 @@ export function initGameServer(io, options) {
             if (!roomState)
                 return;
             const roomParam = gamePresets[roomState.gameId];
-            const { initRoomState } = roomState;
-            if (initRoomState.players.length === 0)
+            if (roomState.players.length === 0)
                 return;
             if (typeof roomParam.checkGameEnd === 'function' && roomParam.checkGameEnd(roomState)) {
                 // カスタムフック処理
@@ -530,12 +532,12 @@ export function initGameServer(io, options) {
                 io.to(roomId).emit('game:end', results);
                 return;
             }
-            const nextIndex = (roomState.currentTurnIndex + 1) % initRoomState.players.length;
+            const nextIndex = (roomState.currentTurnIndex + 1) % roomState.players.length;
             if (nextIndex === 0)
                 roomState.currentRoundIndex += 1;
             roomState.currentTurnIndex = nextIndex;
-            const currentPlayer = initRoomState.players[roomState.currentTurnIndex];
-            server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.initRoomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`);
+            const currentPlayer = roomState.players[roomState.currentTurnIndex];
+            server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`);
             io.to(roomId).emit('game:turn', {
                 currentPlayerId: currentPlayer?.id,
                 currentRoundIndex: roomState.currentRoundIndex,
@@ -569,11 +571,11 @@ export function initGameServer(io, options) {
             });
         }
         socket.on('disconnect', () => {
-            for (const [id, info] of activeRooms.entries()) {
-                const idx = info.initRoomState.players.findIndex((p) => p.socketId === socket.id);
+            for (const [id, roomState] of activeRooms.entries()) {
+                const idx = roomState.players.findIndex((p) => p.socketId === socket.id);
                 if (idx !== -1) {
-                    info.initRoomState.players.splice(idx, 1);
-                    if (info.initRoomState.players.length === 0) {
+                    roomState.players.splice(idx, 1);
+                    if (roomState.players.length === 0) {
                         activeRooms.delete(id);
                         io.emit('lobby:room-update');
                     }

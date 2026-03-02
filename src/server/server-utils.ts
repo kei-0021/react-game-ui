@@ -1,7 +1,6 @@
-import { Player } from '@/index.js';
-import { BoardId, GameId, PlayerId, RoomId } from '@/types/definition.js';
+import { GameId, PlayerId, RoomId } from '@/types/definition.js';
 import { Position } from '@/types/position.js';
-import { InitialRoomState } from '@/types/server.js';
+import { RoomState } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import { TokenStoreDef } from '@/types/tokenStore.js';
 
@@ -74,18 +73,18 @@ export function server_log(
   }
 }
 
-export const isExplored = (gameParam: InitialRoomState, position: Position): boolean => {
-  return gameParam.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
+export const isExplored = (roomState: RoomState, position: Position): boolean => {
+  return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
 
 export const markCellAsExplored = (
-  gameParam: InitialRoomState,
+  roomState: RoomState,
   gameId: GameId,
   roomId: RoomId,
   position: Position,
 ): boolean => {
-  if (!isExplored(gameParam, position)) {
-    gameParam.exploredCells.push(position);
+  if (!isExplored(roomState, position)) {
+    roomState.exploredCells.push(position);
     server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
     return true;
   }
@@ -93,16 +92,16 @@ export const markCellAsExplored = (
 };
 
 export const unmarkCellAsExplored = (
-  gameParam: InitialRoomState,
+  roomState: RoomState,
   gameId: GameId,
   roomId: RoomId,
   position: Position,
 ): boolean => {
-  const initialLength = gameParam.exploredCells.length;
-  gameParam.exploredCells = gameParam.exploredCells.filter(
+  const initialLength = roomState.exploredCells.length;
+  roomState.exploredCells = roomState.exploredCells.filter(
     (loc) => !(loc.row === position.row && loc.col === position.col),
   );
-  const wasRemoved = gameParam.exploredCells.length < initialLength;
+  const wasRemoved = roomState.exploredCells.length < initialLength;
   if (wasRemoved) {
     server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
   }
@@ -149,7 +148,7 @@ export const createRandomBoard = (initialBoard: any[][]): any[][] => {
 };
 
 export const applyCellEffect = (
-  gameParam: InitialRoomState,
+  roomState: RoomState,
   gameId: GameId,
   roomId: RoomId,
   playerId: PlayerId,
@@ -163,7 +162,7 @@ export const applyCellEffect = (
   const { row, col } = position;
 
   // Record（オブジェクト）の最初の値（ボード配列）を取得
-  const targetBoard = Object.values(gameParam.board)[0];
+  const targetBoard = Object.values(roomState.board)[0];
 
   // ボードが存在しない、または座標が範囲外の場合のガード
   if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
@@ -208,23 +207,9 @@ export class TokenStore {
 }
 
 export class RoomManager {
-  public players: Player[];
-  public initialResources: any[];
-  public initialTokenStores: any[];
-  public initialTokens: any[];
-  public board: Record<BoardId, any[][]>;
-  public exploredCells: Position[];
-  public turn: number;
   public tokenStores: Map<string, TokenStore>;
 
-  constructor(initialState: InitialRoomState, initialTokenStoresDef: TokenStoreDef[]) {
-    this.players = initialState.players;
-    this.initialResources = initialState.initialResources;
-    this.initialTokenStores = initialState.initialTokenStores;
-    this.initialTokens = initialState.initialTokens;
-    this.board = initialState.board;
-    this.exploredCells = initialState.exploredCells;
-    this.turn = initialState.turn;
+  constructor(initialTokenStoresDef: TokenStoreDef[]) {
     this.tokenStores = new Map<string, TokenStore>();
     initialTokenStoresDef.forEach((storeDef) => {
       this.tokenStores.set(
@@ -238,8 +223,15 @@ export class RoomManager {
     return this.tokenStores.get(tokenStoreId);
   }
 
-  acquireToken(tokenStoreId: string, gameId: GameId, roomId: RoomId, playerId: PlayerId, tokenId: string): boolean {
-    const player = this.players.find((p) => p.id === playerId);
+  acquireToken(
+    roomState: RoomState,
+    tokenStoreId: string,
+    gameId: GameId,
+    roomId: RoomId,
+    playerId: PlayerId,
+    tokenId: string,
+  ): boolean {
+    const player = roomState.players.find((p) => p.id === playerId);
     if (!player) return false;
     if (tokenStoreId === 'scoreboard-acquisition') {
       server_log(
@@ -286,18 +278,6 @@ export class RoomManager {
       }
     }
     return false;
-  }
-
-  getFullState(): InitialRoomState {
-    return {
-      players: this.players,
-      initialResources: this.initialResources,
-      initialTokenStores: this.initialTokenStores,
-      initialTokens: this.initialTokens,
-      board: this.board,
-      exploredCells: this.exploredCells,
-      turn: this.turn,
-    };
   }
 }
 

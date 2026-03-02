@@ -49,15 +49,6 @@ export type RoomParam = {
     checkGameEnd?: (state: RoomState) => void;
     onGameEnd?: (state: RoomState) => any;
 };
-export type InitialRoomState = {
-    players: Player[];
-    initialResources: any[];
-    initialTokenStores: any[];
-    initialTokens: any[];
-    board: Record<BoardId, any[][]>;
-    exploredCells: Position[];
-    turn: number;
-};
 export interface RoomState {
     roomId: RoomId;
     gameId: GameId;
@@ -66,11 +57,14 @@ export interface RoomState {
     currentRoundIndex: number;
     currentTurnIndex: number;
     currentPhase?: Phase;
+    players: Player[];
     decks: Record<DeckId, Card[]>;
     drawnCards: Record<string, Card[]>;
     playFieldCards: Record<string, Card[]>;
     discardPile: Record<string, Card[]>;
-    initRoomState: RoomManager;
+    board: Record<BoardId, any[][]>;
+    exploredCells: Position[];
+    roomManager: RoomManager;
 }
 export { GameId };
 //# sourceMappingURL=server.d.ts.map

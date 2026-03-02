@@ -39,21 +39,21 @@ export function server_log(tag, gamePresetId, roomId, firstArg, ...args) {
         console.log(`[${tag}] [${gamePresetId} (${roomId})]`, ...fullArgs);
     }
 }
-export const isExplored = (gameParam, position) => {
-    return gameParam.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
+export const isExplored = (roomState, position) => {
+    return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
-export const markCellAsExplored = (gameParam, gameId, roomId, position) => {
-    if (!isExplored(gameParam, position)) {
-        gameParam.exploredCells.push(position);
+export const markCellAsExplored = (roomState, gameId, roomId, position) => {
+    if (!isExplored(roomState, position)) {
+        roomState.exploredCells.push(position);
         server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
         return true;
     }
     return false;
 };
-export const unmarkCellAsExplored = (gameParam, gameId, roomId, position) => {
-    const initialLength = gameParam.exploredCells.length;
-    gameParam.exploredCells = gameParam.exploredCells.filter((loc) => !(loc.row === position.row && loc.col === position.col));
-    const wasRemoved = gameParam.exploredCells.length < initialLength;
+export const unmarkCellAsExplored = (roomState, gameId, roomId, position) => {
+    const initialLength = roomState.exploredCells.length;
+    roomState.exploredCells = roomState.exploredCells.filter((loc) => !(loc.row === position.row && loc.col === position.col));
+    const wasRemoved = roomState.exploredCells.length < initialLength;
     if (wasRemoved) {
         server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
     }
@@ -97,10 +97,10 @@ export const createRandomBoard = (initialBoard) => {
     }
     return newBoard;
 };
-export const applyCellEffect = (gameParam, gameId, roomId, playerId, position, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
+export const applyCellEffect = (roomState, gameId, roomId, playerId, position, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
     const { row, col } = position;
     // Record（オブジェクト）の最初の値（ボード配列）を取得
-    const targetBoard = Object.values(gameParam.board)[0];
+    const targetBoard = Object.values(roomState.board)[0];
     // ボードが存在しない、または座標が範囲外の場合のガード
     if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
         server_log('warn', gameId, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`);
@@ -142,22 +142,8 @@ export class TokenStore {
     }
 }
 export class RoomManager {
-    players;
-    initialResources;
-    initialTokenStores;
-    initialTokens;
-    board;
-    exploredCells;
-    turn;
     tokenStores;
-    constructor(initialState, initialTokenStoresDef) {
-        this.players = initialState.players;
-        this.initialResources = initialState.initialResources;
-        this.initialTokenStores = initialState.initialTokenStores;
-        this.initialTokens = initialState.initialTokens;
-        this.board = initialState.board;
-        this.exploredCells = initialState.exploredCells;
-        this.turn = initialState.turn;
+    constructor(initialTokenStoresDef) {
         this.tokenStores = new Map();
         initialTokenStoresDef.forEach((storeDef) => {
             this.tokenStores.set(storeDef.tokenStoreId, new TokenStore(storeDef.tokenStoreId, storeDef.name, storeDef.tokens));
@@ -166,8 +152,8 @@ export class RoomManager {
     getTokenStore(tokenStoreId) {
         return this.tokenStores.get(tokenStoreId);
     }
-    acquireToken(tokenStoreId, gameId, roomId, playerId, tokenId) {
-        const player = this.players.find((p) => p.id === playerId);
+    acquireToken(roomState, tokenStoreId, gameId, roomId, playerId, tokenId) {
+        const player = roomState.players.find((p) => p.id === playerId);
         if (!player)
             return false;
         if (tokenStoreId === 'scoreboard-acquisition') {
@@ -200,17 +186,6 @@ export class RoomManager {
             }
         }
         return false;
-    }
-    getFullState() {
-        return {
-            players: this.players,
-            initialResources: this.initialResources,
-            initialTokenStores: this.initialTokenStores,
-            initialTokens: this.initialTokens,
-            board: this.board,
-            exploredCells: this.exploredCells,
-            turn: this.turn,
-        };
     }
 }
 export const generateColorFromId = (id) => {

@@ -85,15 +85,15 @@ export const deepAbyssConfig: RoomConfig = {
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,
       onCardPlay: (param: RoomParam, state: RoomState, data: CardPlayData) => {
-        state.initRoomState.players.forEach((player: Player) => {
+        state.players.forEach((player: Player) => {
           player.score = player.score + 2;
         });
       },
       checkGameEnd: (state: RoomState) =>
         // 終了条件: 5ラウンド終了 (5ラウンド目の最後 かつ 最後のプレイヤーの手番時)
-        state.currentRoundIndex >= 4 && state.currentTurnIndex == state.initRoomState.players.length - 1,
+        state.currentRoundIndex >= 4 && state.currentTurnIndex == state.roomManager.players.length - 1,
       onGameEnd: (state: RoomState) => {
-        const rankings = [...state.initRoomState.players]
+        const rankings = [...state.players]
           .sort((a, b) => b.score - a.score)
           .map((p, index) => ({ rank: index + 1, name: p.name, score: p.score }));
         return { message: '潜水任務完了', rankings, finalRound: state.currentRoundIndex };
