@@ -274,6 +274,7 @@ export function initGameServer(io, options) {
             const roomState = activeRooms.get(roomId);
             if (!roomState)
                 return;
+            const roomParam = gamePresets[roomState.gameId];
             const { decks } = roomState;
             // デッキにあるカードのみをフィルタリング
             const currentDeck = decks[deckId].filter((c) => c.location === 'deck');
@@ -313,6 +314,11 @@ export function initGameServer(io, options) {
                 destination = 'field';
             }
             server_log('deck', roomState.gameId, roomId, `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`);
+            // カスタムフック処理
+            const onDeckDraw = roomParam?.onDeckDraw;
+            if (onDeckDraw) {
+                onDeckDraw(roomParam, roomState, data);
+            }
             emitDeckUpdate(roomId, deckId);
             emitPlayerUpdate(roomId);
         });
