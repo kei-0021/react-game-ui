@@ -28,6 +28,12 @@ export * from './types/player.js';
 /* @ts-ignore */
 export { type PieceData } from './types/piece.js';
 /* @ts-ignore */
-export { type RoomMeta, type RoomParam, type RoomState } from './types/server.js';
+export { type RoomParam, type RoomState } from './types/server.js';
 /* @ts-ignore */
-export { type GameTurnUpdateData, type RoomJoinData, type RoomMeta } from './types/socketData.js';
+export {
+  type CardPlayData,
+  type DeckDrawData,
+  type GameTurnUpdateData,
+  type RoomJoinData,
+  type RoomMeta,
+} from './types/socketData.js';
