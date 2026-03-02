@@ -2,7 +2,8 @@
 
 import type { Card, Player, RoomParam, RoomState } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
-import { CardPlayData } from '../../dist/types/socketData.js';
+import { CardPlayData } from '../../src/types/socketData.js';
+import { DeepAbyssPhase } from '../types/phase.js';
 
 const CELL_COUNTS = { RA: 5, RB: 10, B_NORM: 4, B_TRACK: 3, T_VOL: 7, T_CRF: 6, N_A: 12, N_B: 17 };
 
@@ -80,6 +81,7 @@ export const deepAbyssConfig: RoomConfig = {
       ],
       initialHand: { deckId: 'deepAbyssAction', count: 6 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
+      initialPhase: DeepAbyssPhase.START,
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,
       onCardPlay: (param: RoomParam, state: RoomState, data: CardPlayData) => {

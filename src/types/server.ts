@@ -4,6 +4,7 @@ import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
 import { BoardId, DeckId, GameId, RoomId, TokenId } from './definition.js';
+import { Phase } from './phase.js';
 import { Position } from './position.js';
 import { Resource } from './resource.js';
 import { CardPlayData, DeckDrawData } from './socketData.js';
@@ -19,6 +20,7 @@ import { TokenStoreDef } from './tokenStore.js';
  * @param initialTokenStores - 共有トークンの保管場所。
  * @param initialTokens - ボード上の初期配置トークン。
  * @param initialBoard - ボードの初期レイアウト。
+ * @param initialPhase - 初期フェーズ。
  * @param cardEffects - カードの特殊効果定義。
  * @param cellEffects - セルの特殊効果定義。
  * @param onDeckDraw - デッキからカードを引いた時のカスタムフック。
@@ -41,6 +43,7 @@ export type RoomParam = {
     count: number;
   };
   initialBoard?: Record<BoardId, any>;
+  initialPhase?: Phase;
   cardEffects?: Record<string, any>;
   cellEffects?: any;
   onDeckDraw?: (param: RoomParam, state: RoomState, data: DeckDrawData) => void;
@@ -66,6 +69,7 @@ export interface RoomState {
   maxPlayers?: number;
   currentRoundIndex: number;
   currentTurnIndex: number;
+  currentPhase?: Phase;
   decks: Record<DeckId, Card[]>;
   drawnCards: Record<string, Card[]>;
   playFieldCards: Record<string, Card[]>;

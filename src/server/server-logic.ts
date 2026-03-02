@@ -110,6 +110,7 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
     maxPlayers: roomParam.maxPlayers,
     currentTurnIndex: 0,
     currentRoundIndex: 0,
+    currentPhase: roomParam.initialPhase,
     decks,
     drawnCards,
     playFieldCards,
@@ -160,6 +161,16 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     };
 
     io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, updateData);
+  };
+
+  const emitPhaseUpdate = (roomId: RoomId) => {
+    const roomState = activeRooms.get(roomId);
+    if (!roomState || !roomState.currentPhase) return;
+
+    io.to(roomId).emit('phase:update', {
+      name: roomState.currentPhase.name,
+      phase: roomState.currentPhase,
+    });
   };
 
   const addScore = (roomId: RoomId, playerId: PlayerId, points: number) => {

@@ -74,6 +74,7 @@ function initializeRoom(roomId, roomParam) {
         maxPlayers: roomParam.maxPlayers,
         currentTurnIndex: 0,
         currentRoundIndex: 0,
+        currentPhase: roomParam.initialPhase,
         decks,
         drawnCards,
         playFieldCards,
