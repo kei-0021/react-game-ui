@@ -1,8 +1,8 @@
+// src/server/server-utils.ts
 import { GameId, PlayerId, RoomId } from '@/types/definition.js';
 import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/server.js';
-import { Token } from '@/types/token.js';
-import { TokenStoreDef } from '@/types/tokenStore.js';
+import { TokenStore } from '@/types/tokenStore.js';
 
 export type LogCategory =
   | 'connection'
@@ -192,35 +192,15 @@ export const applyCellEffect = (
   }
 };
 
-export class TokenStore {
-  public id: string;
-  public name: string;
-  public tokens: Token[];
-  constructor(id: string, name: string, initialTokens: any[]) {
-    this.id = id;
-    this.name = name;
-    this.tokens = [...initialTokens];
-  }
-  getTokens(): Token[] {
-    return this.tokens;
-  }
-}
-
 export class RoomManager {
-  public tokenStores: Map<string, TokenStore>;
-
-  constructor(initialTokenStoresDef: TokenStoreDef[]) {
-    this.tokenStores = new Map<string, TokenStore>();
-    initialTokenStoresDef.forEach((storeDef) => {
-      this.tokenStores.set(
-        storeDef.tokenStoreId,
-        new TokenStore(storeDef.tokenStoreId, storeDef.name, storeDef.tokens),
-      );
-    });
-  }
+  constructor(
+    private state: RoomState,
+    private gameId: GameId,
+    private roomId: RoomId,
+  ) {}
 
   getTokenStore(tokenStoreId: string): TokenStore | undefined {
-    return this.tokenStores.get(tokenStoreId);
+    return this.state.tokenStores?.get(tokenStoreId);
   }
 
   acquireToken(
@@ -259,7 +239,7 @@ export class RoomManager {
       );
       return true;
     }
-    const store = this.tokenStores.get(tokenStoreId);
+    const store = this.getTokenStore(tokenStoreId);
     if (store) {
       const index = store.tokens.findIndex((t) => t.id === tokenId);
       if (index !== -1) {

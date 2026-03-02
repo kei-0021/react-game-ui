@@ -1,6 +1,5 @@
 // src/types/server.ts
 import { Player } from '@/index.js';
-import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
 import { BoardId, DeckId, GameId, RoomId, TokenId } from './definition.js';
@@ -8,7 +7,7 @@ import { Phase } from './phase.js';
 import { Position } from './position.js';
 import { Resource } from './resource.js';
 import { CardPlayData, DeckDrawData } from './socketData.js';
-import { TokenStoreDef } from './tokenStore.js';
+import { TokenStore } from './tokenStore.js';
 
 /**
  * ゲームルーム作成時の初期設定パラメータ。
@@ -37,7 +36,7 @@ export type RoomParam = {
     count: number;
   };
   initialResources?: Resource[];
-  initialTokenStores?: TokenStoreDef[];
+  initialTokenStores?: Map<TokenId, TokenStore>;
   initialTokens?: {
     tokenId: TokenId;
     count: number;
@@ -67,7 +66,7 @@ export interface RoomState {
   discardPile: Record<string, Card[]>;
   board: Record<BoardId, any[][]>;
   exploredCells: Position[];
-  roomManager: RoomManager;
+  tokenStores?: Map<TokenId, TokenStore>;
 }
 
 export { GameId };

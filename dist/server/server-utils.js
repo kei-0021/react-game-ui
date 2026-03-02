@@ -128,29 +128,17 @@ export const applyCellEffect = (roomState, gameId, roomId, playerId, position, c
         server_log('cell', gameId, roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
     }
 };
-export class TokenStore {
-    id;
-    name;
-    tokens;
-    constructor(id, name, initialTokens) {
-        this.id = id;
-        this.name = name;
-        this.tokens = [...initialTokens];
-    }
-    getTokens() {
-        return this.tokens;
-    }
-}
 export class RoomManager {
-    tokenStores;
-    constructor(initialTokenStoresDef) {
-        this.tokenStores = new Map();
-        initialTokenStoresDef.forEach((storeDef) => {
-            this.tokenStores.set(storeDef.tokenStoreId, new TokenStore(storeDef.tokenStoreId, storeDef.name, storeDef.tokens));
-        });
+    state;
+    gameId;
+    roomId;
+    constructor(state, gameId, roomId) {
+        this.state = state;
+        this.gameId = gameId;
+        this.roomId = roomId;
     }
     getTokenStore(tokenStoreId) {
-        return this.tokenStores.get(tokenStoreId);
+        return this.state.tokenStores?.get(tokenStoreId);
     }
     acquireToken(roomState, tokenStoreId, gameId, roomId, playerId, tokenId) {
         const player = roomState.players.find((p) => p.id === playerId);
@@ -172,7 +160,7 @@ export class RoomManager {
             server_log('token', gameId, roomId, `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`);
             return true;
         }
-        const store = this.tokenStores.get(tokenStoreId);
+        const store = this.getTokenStore(tokenStoreId);
         if (store) {
             const index = store.tokens.findIndex((t) => t.id === tokenId);
             if (index !== -1) {

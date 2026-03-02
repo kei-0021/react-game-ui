@@ -23,6 +23,7 @@ import {
   RoomJoinData,
   RoomMeta,
 } from '@/types/socketData.js';
+import { TokenStore } from '@/types/tokenStore.js';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
 import type { GameServerOptions } from './server.js';
@@ -47,18 +48,15 @@ function getRoomMeta(roomId: RoomId): RoomMeta | null {
  * 新しいゲームルームの状態を初期化し、実行中のルーム管理（activeRooms）に追加する。
  *
  * 1. 設定（settings）に基づいたボードのランダム生成
- * 2. RoomManager インスタンスの生成
- * 3. 各デッキ内のカードに対して固有の `instanceId` を付与し、初期位置を設定
- * 4. 最終的な `RoomState` オブジェクトの構築とメモリへの保存
+ * 2. 各デッキ内のカードに対して固有の `instanceId` を付与し、初期位置を設定
+ * 3. 最終的な `RoomState` オブジェクトの構築とメモリへの保存
  * @param roomId - ルームID
  * @param roomParam - ゲーム開始時に必要な初期パラメータ
  * @returns 初期化が完了した {@link RoomState} オブジェクト
  */
 function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
   const initialDecks = roomParam.initialDecks || [];
-  const initialResources = roomParam.initialResources || [];
-  const initialTokenStores = Array.isArray(roomParam.initialTokenStores) ? roomParam.initialTokenStores : [];
-  const initialTokens = roomParam.initialTokens || [];
+  const initialTokenStores = roomParam.initialTokenStores || new Map<string, TokenStore>();
   const initialBoard = roomParam.initialBoard || {};
 
   let Cells: Record<string, any> = {};
@@ -68,8 +66,6 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
     Cells[boardId] = createRandomBoard(boardData as any[][]);
     server_log('cell', roomParam.gameId, roomId, `ボード "${boardId}" を初期化完了`);
   });
-
-  const initRoomState: RoomManager = new RoomManager(initialTokenStores);
 
   const decks: Record<string, Card[]> = {};
   const drawnCards: Record<string, Card[]> = {};
@@ -108,7 +104,7 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
     discardPile,
     board: Cells,
     exploredCells: [],
-    roomManager: initRoomState,
+    tokenStores: initialTokenStores,
   };
 
   activeRooms.set(roomId, roomState);
@@ -581,14 +577,19 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     // トークン・ダイス
     socket.on('game:acquire-token', ({ roomId, tokenStoreId, tokenId }) => {
       const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
+
       const player = roomState?.players.find((p) => p.socketId === socket.id);
+      const roomManager = new RoomManager(roomState, roomState.gameId, roomId);
+
       if (
         roomState &&
         player &&
-        roomState.roomManager.acquireToken(roomState, tokenStoreId, roomState.gameId, roomId, player.id, tokenId)
+        roomManager.acquireToken(roomState, tokenStoreId, roomState.gameId, roomId, player.id, tokenId)
       ) {
-        const store = roomState.roomManager.getTokenStore(tokenStoreId);
-        if (store) io.to(roomId).emit(`token-store:update:${roomId}:${tokenStoreId}`, store.getTokens());
+        const store = roomManager.getTokenStore(tokenStoreId);
+        if (!store) return;
+        if (store) io.to(roomId).emit(`token-store:update:${roomId}:${tokenStoreId}`, store.tokens);
         emitPlayerUpdate(roomId);
       }
     });
