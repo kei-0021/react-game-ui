@@ -1,19 +1,6 @@
 import { createRandomBoard, generateColorFromId, LOG_CATEGORIES, markCellAsExplored, RoomManager, server_log, unmarkCellAsExplored, } from './server-utils.js';
 const activeRooms = new Map();
 const roomTimers = new Map();
-// --- ルームメタ情報取得 ---
-function getRoomMeta(roomId) {
-    const roomState = activeRooms.get(roomId);
-    if (!roomState)
-        return null;
-    return {
-        id: roomId,
-        gameId: roomState.gameId,
-        playerCount: roomState.players.length,
-        maxPlayers: roomState.maxPlayers,
-        createdAt: roomState.createdAt,
-    };
-}
 /**
  * 新しいゲームルームの状態を初期化し、実行中のルーム管理（activeRooms）に追加する。
  *
@@ -114,15 +101,6 @@ export function initGameServer(io, options) {
         };
         io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, updateData);
     };
-    const emitPhaseUpdate = (roomId) => {
-        const roomState = activeRooms.get(roomId);
-        if (!roomState || !roomState.currentPhase)
-            return;
-        io.to(roomId).emit('phase:update', {
-            name: roomState.currentPhase.name,
-            phase: roomState.currentPhase,
-        });
-    };
     const addScore = (roomId, playerId, points) => {
         const roomState = activeRooms.get(roomId);
         const player = roomState?.players.find((p) => p.id === playerId);
@@ -180,12 +158,19 @@ export function initGameServer(io, options) {
     io.on('connection', (socket) => {
         // ロビー
         socket.on('lobby:get-rooms', () => {
-            const roomList = Array.from(activeRooms.keys())
-                .map(getRoomMeta)
-                .filter((room) => room !== null);
+            const roomList = [];
+            for (const [id, state] of activeRooms) {
+                roomList.push({
+                    id,
+                    gameId: state.gameId,
+                    playerCount: state.players.length,
+                    maxPlayers: state.maxPlayers,
+                    createdAt: state.createdAt,
+                });
+            }
             socket.emit('lobby:rooms-list', roomList);
         });
-        // 参加
+        // ルーム参加
         socket.on('room:join', async ({ roomId, playerName, gameId }) => {
             if (!roomId)
                 return;
@@ -327,6 +312,11 @@ export function initGameServer(io, options) {
             if (onDeckDraw) {
                 onDeckDraw(roomState, roomManager, data);
             }
+            if (roomManager.hasPhaseChanged) {
+                io.to(roomId).emit('game:phase:update', {
+                    newPhase: roomState.currentPhase,
+                });
+            }
             emitDeckUpdate(roomId, deckId);
             emitPlayerUpdate(roomId);
         });
@@ -449,6 +439,11 @@ export function initGameServer(io, options) {
             const onCardPlay = roomParam?.onCardPlay;
             if (onCardPlay) {
                 onCardPlay(roomState, roomManager, data);
+            }
+            if (roomManager.hasPhaseChanged) {
+                io.to(roomId).emit('game:phase:update', {
+                    newPhase: roomState.currentPhase,
+                });
             }
             // 更新通知
             emitDeckUpdate(roomId, deckId);

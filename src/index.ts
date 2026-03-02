@@ -37,6 +37,7 @@ export { Phase } from './types/phase.js';
 export {
   type CardPlayData,
   type DeckDrawData,
+  type GamePhaseUpdateData,
   type GameTurnUpdateData,
   type RoomJoinData,
   type RoomMeta,

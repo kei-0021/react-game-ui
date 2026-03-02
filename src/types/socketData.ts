@@ -5,6 +5,7 @@ import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
 import { CardId, DeckId, DraggableId, GameId, PlayerId, RoomId } from './definition.js';
+import { Phase } from './phase.js';
 
 export type RoomMeta = {
   id: RoomId;
@@ -63,6 +64,10 @@ export type DraggableUpdateData = {
   coordinate: Coordinate;
   rotation: number;
   zIndex: number;
+};
+
+export type GamePhaseUpdateData = {
+  newPhase: Phase;
 };
 
 export type GameNextTrunData = {

@@ -19,6 +19,7 @@ import {
   DeckUpdateData,
   DraggableMovedData,
   GameNextTrunData,
+  GamePhaseUpdateData,
   GameTurnUpdateData,
   RoomJoinData,
   RoomMeta,
@@ -30,19 +31,6 @@ import type { GameServerOptions } from './server.js';
 
 const activeRooms = new Map<string, RoomState>();
 const roomTimers = new Map<string, NodeJS.Timeout>();
-
-// --- ルームメタ情報取得 ---
-function getRoomMeta(roomId: RoomId): RoomMeta | null {
-  const roomState = activeRooms.get(roomId);
-  if (!roomState) return null;
-  return {
-    id: roomId,
-    gameId: roomState.gameId,
-    playerCount: roomState.players.length,
-    maxPlayers: roomState.maxPlayers,
-    createdAt: roomState.createdAt,
-  };
-}
 
 /**
  * 新しいゲームルームの状態を初期化し、実行中のルーム管理（activeRooms）に追加する。
@@ -158,16 +146,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, updateData);
   };
 
-  const emitPhaseUpdate = (roomId: RoomId) => {
-    const roomState = activeRooms.get(roomId);
-    if (!roomState || !roomState.currentPhase) return;
-
-    io.to(roomId).emit('phase:update', {
-      name: roomState.currentPhase.name,
-      phase: roomState.currentPhase,
-    });
-  };
-
   const addScore = (roomId: RoomId, playerId: PlayerId, points: number) => {
     const roomState = activeRooms.get(roomId);
     const player = roomState?.players.find((p) => p.id === playerId);
@@ -230,13 +208,22 @@ export function initGameServer(io: Server, options: GameServerOptions) {
   io.on('connection', (socket: Socket) => {
     // ロビー
     socket.on('lobby:get-rooms', () => {
-      const roomList: RoomMeta[] = Array.from(activeRooms.keys())
-        .map(getRoomMeta)
-        .filter((room): room is RoomMeta => room !== null);
+      const roomList: RoomMeta[] = [];
+
+      for (const [id, state] of activeRooms) {
+        roomList.push({
+          id,
+          gameId: state.gameId,
+          playerCount: state.players.length,
+          maxPlayers: state.maxPlayers,
+          createdAt: state.createdAt,
+        });
+      }
+
       socket.emit('lobby:rooms-list', roomList);
     });
 
-    // 参加
+    // ルーム参加
     socket.on('room:join', async ({ roomId, playerName, gameId }: RoomJoinData) => {
       if (!roomId) return;
       let roomState = activeRooms.get(roomId);
@@ -418,6 +405,12 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         onDeckDraw(roomState, roomManager, data);
       }
 
+      if (roomManager.hasPhaseChanged) {
+        io.to(roomId).emit('game:phase:update', {
+          newPhase: roomState.currentPhase,
+        } as GamePhaseUpdateData);
+      }
+
       emitDeckUpdate(roomId, deckId);
       emitPlayerUpdate(roomId);
     });
@@ -553,6 +546,12 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const onCardPlay = roomParam?.onCardPlay;
       if (onCardPlay) {
         onCardPlay(roomState, roomManager, data);
+      }
+
+      if (roomManager.hasPhaseChanged) {
+        io.to(roomId).emit('game:phase:update', {
+          newPhase: roomState.currentPhase,
+        } as GamePhaseUpdateData);
       }
 
       // 更新通知
