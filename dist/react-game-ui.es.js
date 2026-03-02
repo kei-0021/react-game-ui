@@ -2501,12 +2501,18 @@ class RoomManager {
     }
   }
 }
+class Phase {
+  toString() {
+    return this.name;
+  }
+}
 export {
   Cell,
   Deck,
   Dice,
   Draggable,
   GridBoard,
+  Phase,
   PlayField,
   RemoteCursor,
   RoomManager,

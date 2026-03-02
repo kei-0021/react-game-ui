@@ -32,6 +32,8 @@ export { RoomManager } from './server/server-utils.js';
 /* @ts-ignore */
 export { type RoomParam, type RoomState } from './types/server.js';
 /* @ts-ignore */
+export { Phase } from './types/phase.js';
+/* @ts-ignore */
 export {
   type CardPlayData,
   type DeckDrawData,

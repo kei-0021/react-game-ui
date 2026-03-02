@@ -21,3 +21,5 @@ export * from './types/definition.js';
 export * from './types/player.js';
 /* @ts-ignore */
 export { RoomManager } from './server/server-utils.js';
+/* @ts-ignore */
+export { Phase } from './types/phase.js';
