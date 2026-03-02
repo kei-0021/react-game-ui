@@ -1,6 +1,6 @@
+// src/server/server.ts
 import { Server, Socket } from 'socket.io';
 import {
-  applyCellEffect,
   createRandomBoard,
   generateColorFromId,
   LOG_CATEGORIES,
@@ -56,7 +56,7 @@ function getRoomMeta(roomId: RoomId): RoomMeta | null {
  */
 function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
   const initialDecks = roomParam.initialDecks || [];
-  const initialTokenStores = roomParam.initialTokenStores || new Map<string, TokenStore>();
+  const initialTokenStores = roomParam.initialTokenStores || [];
   const initialBoard = roomParam.initialBoard || {};
 
   let Cells: Record<string, any> = {};
@@ -71,6 +71,8 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
   const drawnCards: Record<string, Card[]> = {};
   const playFieldCards: Record<string, Card[]> = {};
   const discardPile: Record<string, Card[]> = {};
+
+  const tokenStores: Record<string, TokenStore> = {};
 
   initialDecks.forEach((deck: Deck) => {
     const cards: Card[] = (deck.cards || []).map((c, index) => ({
@@ -89,6 +91,10 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
     server_log('deck', roomParam.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
   });
 
+  initialTokenStores.forEach((store: TokenStore) => {
+    tokenStores[store.tokenStoreId] = store;
+  });
+
   const roomState: RoomState = {
     roomId,
     gameId: roomParam.gameId || '不明なゲーム',
@@ -104,7 +110,7 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
     discardPile,
     board: Cells,
     exploredCells: [],
-    tokenStores: initialTokenStores,
+    tokenStores: tokenStores,
   };
 
   activeRooms.set(roomId, roomState);
@@ -309,15 +315,15 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     // 移動・探索
     socket.on('game:move-player', ({ roomId, playerId, newPosition }) => {
       const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
+
+      const roomManager = new RoomManager(roomState);
       const player = roomState?.players.find((p) => p.id === playerId);
       if (player && roomState) {
         player.position = newPosition;
         const updated = markCellAsExplored(roomState, roomState.gameId, roomId, newPosition);
         const preset = gamePresets[roomState.gameId];
-        applyCellEffect(
-          roomState,
-          roomState.gameId,
-          roomId,
+        roomManager.applyCellEffect(
           playerId,
           newPosition,
           preset?.cellEffects,
@@ -354,6 +360,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (!roomState) return;
 
       const roomParam = gamePresets[roomState.gameId];
+      const roomManager = new RoomManager(roomState);
       const { decks } = roomState;
       // デッキにあるカードのみをフィルタリング
       const currentDeck = decks[deckId].filter((c) => c.location === 'deck');
@@ -408,7 +415,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       // カスタムフック処理
       const onDeckDraw = roomParam?.onDeckDraw;
       if (onDeckDraw) {
-        onDeckDraw(roomParam, roomState, data);
+        onDeckDraw(roomState, roomManager, data);
       }
 
       emitDeckUpdate(roomId, deckId);
@@ -499,6 +506,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (!roomState) return;
 
       const roomParam = gamePresets[roomState.gameId];
+      const roomManager = new RoomManager(roomState);
       const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 
       ids.forEach((id) => {
@@ -544,7 +552,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       // カスタムフック処理
       const onCardPlay = roomParam?.onCardPlay;
       if (onCardPlay) {
-        onCardPlay(roomParam, roomState, data);
+        onCardPlay(roomState, roomManager, data);
       }
 
       // 更新通知
@@ -580,13 +588,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (!roomState) return;
 
       const player = roomState?.players.find((p) => p.socketId === socket.id);
-      const roomManager = new RoomManager(roomState, roomState.gameId, roomId);
+      const roomManager = new RoomManager(roomState);
 
-      if (
-        roomState &&
-        player &&
-        roomManager.acquireToken(roomState, tokenStoreId, roomState.gameId, roomId, player.id, tokenId)
-      ) {
+      if (roomState && player && roomManager.acquireToken(tokenStoreId, tokenId, player.id)) {
         const store = roomManager.getTokenStore(tokenStoreId);
         if (!store) return;
         if (store) io.to(roomId).emit(`token-store:update:${roomId}:${tokenStoreId}`, store.tokens);

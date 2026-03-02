@@ -1,5 +1,6 @@
 // src/server/server-utils.ts
-import { GameId, PlayerId, RoomId } from '@/types/definition.js';
+import { GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/server.js';
 import { TokenStore } from '@/types/tokenStore.js';
@@ -147,77 +148,119 @@ export const createRandomBoard = (initialBoard: any[][]): any[][] => {
   return newBoard;
 };
 
-export const applyCellEffect = (
-  roomState: RoomState,
-  gameId: GameId,
-  roomId: RoomId,
-  playerId: PlayerId,
-  position: Position,
-  cellEffects: Record<string, (params: any) => void>,
-  addScore: (playerId: PlayerId, points: number) => void,
-  updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void,
-  updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void,
-  requirePopup: (params: any) => void,
-): void => {
-  const { row, col } = position;
-
-  // Record（オブジェクト）の最初の値（ボード配列）を取得
-  const targetBoard = Object.values(roomState.board)[0];
-
-  // ボードが存在しない、または座標が範囲外の場合のガード
-  if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
-    server_log('warn', gameId, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`);
-    return;
+export const generateColorFromId = (id: string): string => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash << 5) - hash + id.charCodeAt(i);
+    hash |= 0;
   }
-
-  // 特定したボードからセルを取得
-  const cell = targetBoard[row][col];
-  const effect = cellEffects[cell.name];
-
-  if (effect) {
-    server_log('cell', gameId, roomId, `マス効果発動: ${cell.name} by ${playerId}`);
-    try {
-      effect({
-        playerId,
-        addScore,
-        updateResource: updatePlayerResource,
-        updateToken: updatePlayerToken,
-        requirePopup: requirePopup,
-      });
-    } catch (e) {
-      server_log('warn', gameId, roomId, `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
-    }
-  } else {
-    server_log('cell', gameId, roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
-  }
+  const goldenRatioConjugate = 0.618033988749895;
+  let hue = (Math.abs(hash) * goldenRatioConjugate) % 1;
+  const finalHue = Math.floor(hue * 360);
+  return `hsl(${finalHue}, 70%, 50%)`;
 };
 
+/**
+ * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
+ * Socket.io に直接依存せず、データの書き換えと記録に特化。
+ */
 export class RoomManager {
-  constructor(
-    private state: RoomState,
-    private gameId: GameId,
-    private roomId: RoomId,
-  ) {}
+  private _phaseChanged = false;
 
-  getTokenStore(tokenStoreId: string): TokenStore | undefined {
-    return this.state.tokenStores?.get(tokenStoreId);
+  constructor(private state: RoomState) {}
+
+  /**
+   * フェーズが変更されたかどうかを取得する
+   */
+  public get hasPhaseChanged(): boolean {
+    return this._phaseChanged;
   }
 
-  acquireToken(
-    roomState: RoomState,
-    tokenStoreId: string,
-    gameId: GameId,
-    roomId: RoomId,
+  /**
+   * セル効果を発動する
+   * @param playerId - 効果を発動させたプレイヤーのID
+   * @param position - 発動対象となるマスの座標
+   * @param cellEffects - 各セル名に対応する効果処理の定義集
+   * @param addScore - スコアを加算するためのコールバック関数
+   * @param updatePlayerResource - プレイヤーのリソース（資源）を更新するためのコールバック関数
+   * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
+   * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
+   */
+  applyCellEffect = (
     playerId: PlayerId,
-    tokenId: string,
-  ): boolean {
-    const player = roomState.players.find((p) => p.id === playerId);
+    position: Position,
+    cellEffects: Record<string, (params: any) => void>,
+    addScore: (playerId: PlayerId, points: number) => void,
+    updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void,
+    updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void,
+    requirePopup: (params: any) => void,
+  ): void => {
+    const { row, col } = position;
+
+    // Record（オブジェクト）の最初の値（ボード配列）を取得
+    const targetBoard = Object.values(this.state.board)[0];
+
+    // ボードが存在しない、または座標が範囲外の場合のガード
+    if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
+      server_log(
+        'warn',
+        this.state.gameId,
+        this.state.roomId,
+        `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`,
+      );
+      return;
+    }
+
+    // 特定したボードからセルを取得
+    const cell = targetBoard[row][col];
+    const effect = cellEffects[cell.name];
+
+    if (effect) {
+      server_log('cell', this.state.gameId, this.state.roomId, `マス効果発動: ${cell.name} by ${playerId}`);
+      try {
+        effect({
+          playerId,
+          addScore,
+          updateResource: updatePlayerResource,
+          updateToken: updatePlayerToken,
+          requirePopup: requirePopup,
+        });
+      } catch (e) {
+        server_log(
+          'warn',
+          this.state.gameId,
+          this.state.roomId,
+          `マス効果の実行中にエラーが発生しました: ${cell.name}`,
+          e,
+        );
+      }
+    } else {
+      server_log('cell', this.state.gameId, this.state.roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
+    }
+  };
+
+  /**
+   * トークン置き場を取得する
+   * @param tokenStoreId - トークン置き場ID
+   */
+  getTokenStore(tokenStoreId: TokenStoreId): TokenStore | undefined {
+    return this.state.tokenStores ? this.state.tokenStores[tokenStoreId] : undefined;
+  }
+
+  /**
+   * トークンを取得する
+   * @param tokenStoreId - トークン置き場ID
+   * @param tokenId - トークンID
+   * @param playerId - プレイヤーID
+   */
+  acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): boolean {
+    const player = this.state.players.find((p) => p.id === playerId);
     if (!player) return false;
     if (tokenStoreId === 'scoreboard-acquisition') {
       server_log(
         'token',
-        gameId,
-        roomId,
+        this.state.gameId,
+        this.state.roomId,
         `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`,
       );
       if (!Array.isArray(player.tokens)) {
@@ -233,8 +276,8 @@ export class RoomManager {
       player.tokens.push(token);
       server_log(
         'token',
-        gameId,
-        roomId,
+        this.state.gameId,
+        this.state.roomId,
         `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`,
       );
       return true;
@@ -250,8 +293,8 @@ export class RoomManager {
         player.tokens.push(acquiredToken);
         server_log(
           'token',
-          gameId,
-          roomId,
+          this.state.gameId,
+          this.state.roomId,
           `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
         );
         return true;
@@ -259,16 +302,16 @@ export class RoomManager {
     }
     return false;
   }
-}
 
-export const generateColorFromId = (id: string): string => {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash << 5) - hash + id.charCodeAt(i);
-    hash |= 0;
+  /**
+   * フェーズを更新し、変更フラグを立てる
+   * @param newPhase - 新しいフェーズ
+   */
+  updatePhase(newPhase: Phase): void {
+    if (this.state.currentPhase !== newPhase) {
+      this.state.currentPhase = newPhase;
+      this._phaseChanged = true;
+      server_log('game', this.state.gameId, this.state.roomId, `フェーズを更新しました: ${newPhase}`);
+    }
   }
-  const goldenRatioConjugate = 0.618033988749895;
-  let hue = (Math.abs(hash) * goldenRatioConjugate) % 1;
-  const finalHue = Math.floor(hue * 360);
-  return `hsl(${finalHue}, 70%, 50%)`;
-};
+}

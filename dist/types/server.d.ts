@@ -1,4 +1,5 @@
 import { Player } from '@/index.js';
+import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
 import { BoardId, DeckId, GameId, RoomId, TokenId } from './definition.js';
@@ -34,7 +35,7 @@ export type RoomParam = {
         count: number;
     };
     initialResources?: Resource[];
-    initialTokenStores?: Map<TokenId, TokenStore>;
+    initialTokenStores?: TokenStore[];
     initialTokens?: {
         tokenId: TokenId;
         count: number;
@@ -43,8 +44,8 @@ export type RoomParam = {
     initialPhase?: Phase;
     cardEffects?: Record<string, any>;
     cellEffects?: any;
-    onDeckDraw?: (param: RoomParam, state: RoomState, data: DeckDrawData) => void;
-    onCardPlay?: (param: RoomParam, state: RoomState, data: CardPlayData) => void;
+    onDeckDraw?: (state: RoomState, manager: RoomManager, data: DeckDrawData) => void;
+    onCardPlay?: (state: RoomState, manager: RoomManager, data: CardPlayData) => void;
     checkGameEnd?: (state: RoomState) => void;
     onGameEnd?: (state: RoomState) => any;
 };
@@ -63,7 +64,7 @@ export interface RoomState {
     discardPile: Record<string, Card[]>;
     board: Record<BoardId, any[][]>;
     exploredCells: Position[];
-    tokenStores?: Map<TokenId, TokenStore>;
+    tokenStores?: Record<TokenId, TokenStore>;
 }
 export { GameId };
 //# sourceMappingURL=server.d.ts.map

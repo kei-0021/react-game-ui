@@ -2,6 +2,7 @@
 
 import type { Card, Player, RoomParam, RoomState } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
+import { RoomManager } from 'react-game-ui/server-utils';
 import { CardPlayData } from '../../src/types/socketData.js';
 import { DeepAbyssPhase } from '../types/phase.js';
 
@@ -84,14 +85,15 @@ export const deepAbyssConfig: RoomConfig = {
       initialPhase: DeepAbyssPhase.START,
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,
-      onCardPlay: (param: RoomParam, state: RoomState, data: CardPlayData) => {
+      onCardPlay: (state: RoomState, manager: RoomManager, data: CardPlayData) => {
         state.players.forEach((player: Player) => {
           player.score = player.score + 2;
         });
+        manager.updatePhase(DeepAbyssPhase.NEXT);
       },
       checkGameEnd: (state: RoomState) =>
         // 終了条件: 5ラウンド終了 (5ラウンド目の最後 かつ 最後のプレイヤーの手番時)
-        state.currentRoundIndex >= 4 && state.currentTurnIndex == state.roomManager.players.length - 1,
+        state.currentRoundIndex >= 4 && state.currentTurnIndex == state.players.length - 1,
       onGameEnd: (state: RoomState) => {
         const rankings = [...state.players]
           .sort((a, b) => b.score - a.score)

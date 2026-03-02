@@ -2337,6 +2337,170 @@ function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }) {
     }
   );
 }
+let LOG_CATEGORIES = {
+  connection: true,
+  deck: false,
+  card: true,
+  cell: true,
+  game: true,
+  dice: true,
+  timer: false,
+  addScore: true,
+  resource: true,
+  token: true,
+  room: true,
+  lobby: true,
+  disconnect: true,
+  warn: true,
+  popup: true,
+  custom_event: true
+};
+const ANSI_RED = "\x1B[31m";
+const ANSI_RESET = "\x1B[0m";
+function server_log(tag, gamePresetId, roomId, firstArg, ...args) {
+  if (!LOG_CATEGORIES[tag]) {
+    throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
+  }
+  const fullArgs = [firstArg, ...args];
+  if (tag === "warn") {
+    const header = `[${tag}] [${gamePresetId} (${roomId})]`;
+    console.warn(ANSI_RED + header + ANSI_RESET, ...fullArgs.map((arg) => ANSI_RED + String(arg) + ANSI_RESET));
+  } else {
+    console.log(`[${tag}] [${gamePresetId} (${roomId})]`, ...fullArgs);
+  }
+}
+class RoomManager {
+  constructor(state) {
+    this.state = state;
+  }
+  _phaseChanged = false;
+  /**
+   * フェーズが変更されたかどうかを取得する
+   */
+  get hasPhaseChanged() {
+    return this._phaseChanged;
+  }
+  /**
+   * セル効果を発動する
+   * @param playerId - 効果を発動させたプレイヤーのID
+   * @param position - 発動対象となるマスの座標
+   * @param cellEffects - 各セル名に対応する効果処理の定義集
+   * @param addScore - スコアを加算するためのコールバック関数
+   * @param updatePlayerResource - プレイヤーのリソース（資源）を更新するためのコールバック関数
+   * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
+   * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
+   */
+  applyCellEffect = (playerId, position, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
+    const { row, col } = position;
+    const targetBoard = Object.values(this.state.board)[0];
+    if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
+      server_log(
+        "warn",
+        this.state.gameId,
+        this.state.roomId,
+        `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`
+      );
+      return;
+    }
+    const cell2 = targetBoard[row][col];
+    const effect = cellEffects[cell2.name];
+    if (effect) {
+      server_log("cell", this.state.gameId, this.state.roomId, `マス効果発動: ${cell2.name} by ${playerId}`);
+      try {
+        effect({
+          playerId,
+          addScore,
+          updateResource: updatePlayerResource,
+          updateToken: updatePlayerToken,
+          requirePopup
+        });
+      } catch (e) {
+        server_log(
+          "warn",
+          this.state.gameId,
+          this.state.roomId,
+          `マス効果の実行中にエラーが発生しました: ${cell2.name}`,
+          e
+        );
+      }
+    } else {
+      server_log("cell", this.state.gameId, this.state.roomId, `マス効果なし: (${row}, ${col}) ${cell2.name}`);
+    }
+  };
+  /**
+   * トークン置き場を取得する
+   * @param tokenStoreId - トークン置き場ID
+   */
+  getTokenStore(tokenStoreId) {
+    return this.state.tokenStores ? this.state.tokenStores[tokenStoreId] : void 0;
+  }
+  /**
+   * トークンを取得する
+   * @param tokenStoreId - トークン置き場ID
+   * @param tokenId - トークンID
+   * @param playerId - プレイヤーID
+   */
+  acquireToken(tokenStoreId, tokenId, playerId) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return false;
+    if (tokenStoreId === "scoreboard-acquisition") {
+      server_log(
+        "token",
+        this.state.gameId,
+        this.state.roomId,
+        `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`
+      );
+      if (!Array.isArray(player.tokens)) {
+        player.tokens = [];
+      }
+      const token = {
+        id: tokenId,
+        name: `Token ${tokenId.slice(0, 4)}`,
+        backColor: "#333",
+        count: 1,
+        imageSrc: ""
+      };
+      player.tokens.push(token);
+      server_log(
+        "token",
+        this.state.gameId,
+        this.state.roomId,
+        `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`
+      );
+      return true;
+    }
+    const store = this.getTokenStore(tokenStoreId);
+    if (store) {
+      const index = store.tokens.findIndex((t) => t.id === tokenId);
+      if (index !== -1) {
+        const acquiredToken = store.tokens.splice(index, 1)[0];
+        if (!Array.isArray(player.tokens)) {
+          player.tokens = [];
+        }
+        player.tokens.push(acquiredToken);
+        server_log(
+          "token",
+          this.state.gameId,
+          this.state.roomId,
+          `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`
+        );
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
+   * フェーズを更新し、変更フラグを立てる
+   * @param newPhase - 新しいフェーズ
+   */
+  updatePhase(newPhase) {
+    if (this.state.currentPhase !== newPhase) {
+      this.state.currentPhase = newPhase;
+      this._phaseChanged = true;
+      server_log("game", this.state.gameId, this.state.roomId, `フェーズを更新しました: ${newPhase}`);
+    }
+  }
+}
 export {
   Cell,
   Deck,
@@ -2345,6 +2509,7 @@ export {
   GridBoard,
   PlayField,
   RemoteCursor,
+  RoomManager,
   ScoreBoard,
   Timer,
   TokenStore

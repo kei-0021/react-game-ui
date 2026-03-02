@@ -28,6 +28,8 @@ export * from './types/player.js';
 /* @ts-ignore */
 export { type PieceData } from './types/piece.js';
 /* @ts-ignore */
+export { RoomManager } from './server/server-utils.js';
+/* @ts-ignore */
 export { type RoomParam, type RoomState } from './types/server.js';
 /* @ts-ignore */
 export {

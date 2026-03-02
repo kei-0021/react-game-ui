@@ -19,3 +19,5 @@ export * from './types/cardLocation.js';
 export * from './types/definition.js';
 /* @ts-ignore */
 export * from './types/player.js';
+/* @ts-ignore */
+export { RoomManager } from './server/server-utils.js';

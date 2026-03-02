@@ -15,6 +15,7 @@ export { type CellEffectParams } from './types/cellEffectParams.js';
 export * from './types/definition.js';
 export * from './types/player.js';
 export { type PieceData } from './types/piece.js';
+export { RoomManager } from './server/server-utils.js';
 export { type RoomParam, type RoomState } from './types/server.js';
 export { type CardPlayData, type DeckDrawData, type GameTurnUpdateData, type RoomJoinData, type RoomMeta, } from './types/socketData.js';
 //# sourceMappingURL=index.d.ts.map

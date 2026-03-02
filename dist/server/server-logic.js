@@ -1,4 +1,4 @@
-import { applyCellEffect, createRandomBoard, generateColorFromId, LOG_CATEGORIES, markCellAsExplored, RoomManager, server_log, unmarkCellAsExplored, } from './server-utils.js';
+import { createRandomBoard, generateColorFromId, LOG_CATEGORIES, markCellAsExplored, RoomManager, server_log, unmarkCellAsExplored, } from './server-utils.js';
 const activeRooms = new Map();
 const roomTimers = new Map();
 // --- ルームメタ情報取得 ---
@@ -26,7 +26,7 @@ function getRoomMeta(roomId) {
  */
 function initializeRoom(roomId, roomParam) {
     const initialDecks = roomParam.initialDecks || [];
-    const initialTokenStores = roomParam.initialTokenStores || new Map();
+    const initialTokenStores = roomParam.initialTokenStores || [];
     const initialBoard = roomParam.initialBoard || {};
     let Cells = {};
     const boardEntries = Object.entries(initialBoard);
@@ -38,6 +38,7 @@ function initializeRoom(roomId, roomParam) {
     const drawnCards = {};
     const playFieldCards = {};
     const discardPile = {};
+    const tokenStores = {};
     initialDecks.forEach((deck) => {
         const cards = (deck.cards || []).map((c, index) => ({
             ...c,
@@ -54,6 +55,9 @@ function initializeRoom(roomId, roomParam) {
         discardPile[deck.deckId] = [];
         server_log('deck', roomParam.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
     });
+    initialTokenStores.forEach((store) => {
+        tokenStores[store.tokenStoreId] = store;
+    });
     const roomState = {
         roomId,
         gameId: roomParam.gameId || '不明なゲーム',
@@ -69,7 +73,7 @@ function initializeRoom(roomId, roomParam) {
         discardPile,
         board: Cells,
         exploredCells: [],
-        tokenStores: initialTokenStores,
+        tokenStores: tokenStores,
     };
     activeRooms.set(roomId, roomState);
     server_log('room', roomState.gameId, roomId, `ルーム初期化完了`);
@@ -244,12 +248,15 @@ export function initGameServer(io, options) {
         // 移動・探索
         socket.on('game:move-player', ({ roomId, playerId, newPosition }) => {
             const roomState = activeRooms.get(roomId);
+            if (!roomState)
+                return;
+            const roomManager = new RoomManager(roomState);
             const player = roomState?.players.find((p) => p.id === playerId);
             if (player && roomState) {
                 player.position = newPosition;
                 const updated = markCellAsExplored(roomState, roomState.gameId, roomId, newPosition);
                 const preset = gamePresets[roomState.gameId];
-                applyCellEffect(roomState, roomState.gameId, roomId, playerId, newPosition, preset?.cellEffects, (pId, pts) => addScore(roomId, pId, pts), (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
+                roomManager.applyCellEffect(playerId, newPosition, preset?.cellEffects, (pId, pts) => addScore(roomId, pId, pts), (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
                 emitPlayerUpdate(roomId);
                 if (updated)
                     io.to(roomId).emit('board-update', roomState.exploredCells);
@@ -275,6 +282,7 @@ export function initGameServer(io, options) {
             if (!roomState)
                 return;
             const roomParam = gamePresets[roomState.gameId];
+            const roomManager = new RoomManager(roomState);
             const { decks } = roomState;
             // デッキにあるカードのみをフィルタリング
             const currentDeck = decks[deckId].filter((c) => c.location === 'deck');
@@ -317,7 +325,7 @@ export function initGameServer(io, options) {
             // カスタムフック処理
             const onDeckDraw = roomParam?.onDeckDraw;
             if (onDeckDraw) {
-                onDeckDraw(roomParam, roomState, data);
+                onDeckDraw(roomState, roomManager, data);
             }
             emitDeckUpdate(roomId, deckId);
             emitPlayerUpdate(roomId);
@@ -400,6 +408,7 @@ export function initGameServer(io, options) {
             if (!roomState)
                 return;
             const roomParam = gamePresets[roomState.gameId];
+            const roomManager = new RoomManager(roomState);
             const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
             ids.forEach((id) => {
                 const card = roomState.decks[deckId]?.find((c) => c.id === id);
@@ -439,7 +448,7 @@ export function initGameServer(io, options) {
             // カスタムフック処理
             const onCardPlay = roomParam?.onCardPlay;
             if (onCardPlay) {
-                onCardPlay(roomParam, roomState, data);
+                onCardPlay(roomState, roomManager, data);
             }
             // 更新通知
             emitDeckUpdate(roomId, deckId);
@@ -472,10 +481,8 @@ export function initGameServer(io, options) {
             if (!roomState)
                 return;
             const player = roomState?.players.find((p) => p.socketId === socket.id);
-            const roomManager = new RoomManager(roomState, roomState.gameId, roomId);
-            if (roomState &&
-                player &&
-                roomManager.acquireToken(roomState, tokenStoreId, roomState.gameId, roomId, player.id, tokenId)) {
+            const roomManager = new RoomManager(roomState);
+            if (roomState && player && roomManager.acquireToken(tokenStoreId, tokenId, player.id)) {
                 const store = roomManager.getTokenStore(tokenStoreId);
                 if (!store)
                     return;
