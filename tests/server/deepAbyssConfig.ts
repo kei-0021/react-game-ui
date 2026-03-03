@@ -85,11 +85,18 @@ export const deepAbyssConfig: RoomConfig = {
       initialPhase: DeepAbyssPhase.START,
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,
-      onCardPlay: (state: RoomState, manager: RoomManager, _data: CardPlayData) => {
+      onCardPlay: (state: RoomState, manager: RoomManager, data: CardPlayData) => {
         // 全員に+2点する
         state.players.forEach((player: Player) => {
           manager.addScore(player.id, 2);
         });
+        // 場のカードから名前を抽出して「、」で繋げる
+        const cardNames = data.cardIds
+          .map((id) => state.playFieldCards['deepAbyssAction'].find((c) => c.id === id)?.name)
+          .filter(Boolean) // 名前が見つからない場合を除外
+          .join('、');
+
+        manager.emitSystemMessage(`${cardNames} を出した！`);
         manager.updatePhase(DeepAbyssPhase.NEXT);
       },
       onNextRound: (_state: RoomState, manager: RoomManager) => {

@@ -37,6 +37,7 @@ export declare class RoomManager {
      * デッキ更新を通知する
      */
     emitDeckUpdate: (deckId: DeckId) => void;
+    emitSystemMessage: (message: string) => void;
     /**
      * カードをデッキから引く（移動ロジックの外注先）
      */

@@ -69,14 +69,14 @@ export function PlayField({
     socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
       const newCards = data.playFieldCards || [];
       if (is_logging) {
-        console.table(
-          newCards.map((c: Card) => ({
-            id: c.id,
-            name: c.name,
-            faceUp: c.isFaceUp,
-            owner: c.ownerId,
-          })),
-        );
+        // console.table(
+        //   newCards.map((c: Card) => ({
+        //     id: c.id,
+        //     name: c.name,
+        //     faceUp: c.isFaceUp,
+        //     owner: c.ownerId,
+        //   })),
+        // );
       }
       setPlayedCards(newCards);
     });

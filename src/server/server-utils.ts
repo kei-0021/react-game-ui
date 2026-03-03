@@ -5,7 +5,7 @@ import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from 
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/server.js';
-import { DeckUpdateData, GamePhaseUpdateData } from '@/types/socketData.js';
+import { DeckUpdateData, GamePhaseUpdateData, SystemMessageData } from '@/types/socketData.js';
 import { TokenStore } from '@/types/tokenStore.js';
 import { Server } from 'socket.io';
 
@@ -185,6 +185,10 @@ export class RoomManager {
       discardPile: this.state.discardPile[deckId],
     };
     this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
+  };
+
+  emitSystemMessage = (message: string) => {
+    this.io.to(this.state.roomId).emit('system:message', { message } as SystemMessageData);
   };
 
   /**

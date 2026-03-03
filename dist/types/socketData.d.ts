@@ -55,6 +55,9 @@ export type DraggableUpdateData = {
     rotation: number;
     zIndex: number;
 };
+export type SystemMessageData = {
+    message: string;
+};
 export type GamePhaseUpdateData = {
     newPhase: Phase;
 };

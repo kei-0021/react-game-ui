@@ -136,6 +136,9 @@ export class RoomManager {
         };
         this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
     };
+    emitSystemMessage = (message) => {
+        this.io.to(this.state.roomId).emit('system:message', { message });
+    };
     /**
      * カードをデッキから引く（移動ロジックの外注先）
      */

@@ -930,7 +930,7 @@ function requireJsxRuntime() {
 var jsxRuntimeExports = requireJsxRuntime();
 const boardContainer = "_boardContainer_1laip_8";
 const cell = "_cell_1laip_28";
-const styles$3 = {
+const styles$4 = {
   boardContainer,
   cell
 };
@@ -958,7 +958,7 @@ const Cell = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
-      className: styles$3.cell,
+      className: styles$4.cell,
       onClick: handleClick,
       onDoubleClick: handleDoubleClick,
       onDrop,
@@ -1123,7 +1123,7 @@ const diceNotRolling = "_diceNotRolling_1yy8i_74";
 const faceImage = "_faceImage_1yy8i_78";
 const faceContainer = "_faceContainer_1yy8i_85";
 const defaultText = "_defaultText_1yy8i_93";
-const styles$2 = {
+const styles$3 = {
   diceWrapper,
   diceTitle,
   dice,
@@ -1195,18 +1195,18 @@ function Dice({
   };
   const renderDiceFace = () => {
     if (customFaces && customFaces[value - 1]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.faceContainer, children: customFaces[value - 1] });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.faceContainer, children: customFaces[value - 1] });
     }
     if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$2.faceImage });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$3.faceImage });
     }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$2.defaultText, children: value });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$3.defaultText, children: value });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.diceWrapper, children: [
-    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.diceTitle, children: title2 }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$2.dice} ${rolling ? styles$2.diceRolling : styles$2.diceNotRolling}`, onClick: roll, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$3.diceWrapper, children: [
+    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.diceTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$3.dice} ${rolling ? styles$3.diceRolling : styles$3.diceNotRolling}`, onClick: roll, children: [
       renderDiceFace(),
-      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.tooltip, children: tooltipText })
+      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.tooltip, children: tooltipText })
     ] })
   ] });
 }
@@ -1443,7 +1443,7 @@ function Draggable({
   ] });
 }
 const piece = "_piece_wi08l_3";
-const styles$1 = {
+const styles$2 = {
   piece
 };
 function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
@@ -1460,8 +1460,8 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
     }
   };
   const pieceClasses = [
-    styles$1.piece,
-    isDraggable ? styles$1.draggable : styles$1.clickable
+    styles$2.piece,
+    isDraggable ? styles$2.draggable : styles$2.clickable
   ].join(" ");
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
@@ -1515,7 +1515,7 @@ function GridBoard({
     height: "600px",
     position: "relative"
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$3.boardContainer, style: boardStyle, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.boardContainer, style: boardStyle, children: [
     boardData.map((rowArr, row) => rowArr.map((originalCellData, col) => {
       const isChanged = changedCells.some(
         (loc2) => loc2.row === row && loc2.col === col
@@ -1616,16 +1616,6 @@ function PlayField({
   React.useEffect(() => {
     socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
       const newCards = data.playFieldCards || [];
-      if (is_logging) {
-        console.table(
-          newCards.map((c) => ({
-            id: c.id,
-            name: c.name,
-            faceUp: c.isFaceUp,
-            owner: c.ownerId
-          }))
-        );
-      }
       setPlayedCards(newCards);
     });
     return () => {
@@ -1790,7 +1780,7 @@ const container$1 = "_container_17uio_2";
 const cursorWrapper = "_cursorWrapper_17uio_13";
 const icon = "_icon_17uio_21";
 const label = "_label_17uio_29";
-const styles = {
+const styles$1 = {
   container: container$1,
   cursorWrapper,
   icon,
@@ -1845,7 +1835,7 @@ const RemoteCursor = React__default.memo(
       return () => window.removeEventListener("mousemove", handleMove);
     }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
     if (!visible) return null;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
       const player = players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
       const name = player ? player.name : "接続中...";
       const color = player?.color || "#000000";
@@ -1854,11 +1844,11 @@ const RemoteCursor = React__default.memo(
       return /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {
-          className: styles.cursorWrapper,
+          className: styles$1.cursorWrapper,
           style: { left, top },
           children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.icon, style: { color }, children: "👆" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { backgroundColor: color }, children: name })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.icon, style: { color }, children: "👆" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.label, style: { backgroundColor: color }, children: name })
           ]
         },
         id
@@ -2143,6 +2133,49 @@ function ScoreBoard({
     ] })
   ] });
 }
+const messageContainer = "_messageContainer_1akhg_3";
+const messageList = "_messageList_1akhg_29";
+const messageItemActive = "_messageItemActive_1akhg_38";
+const styles = {
+  messageContainer,
+  messageList,
+  messageItemActive
+};
+const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
+  const [displayMessage, setDisplayMessage] = useState("");
+  const [queue, setQueue] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [msgKey, setMsgKey] = useState(0);
+  useEffect(() => {
+    if (!socket) return;
+    const onMessage = (data) => {
+      setQueue((prev) => [...prev, data.message]);
+    };
+    socket.on("system:message", onMessage);
+    return () => {
+      socket.off("system:message", onMessage);
+    };
+  }, [socket]);
+  useEffect(() => {
+    if (isProcessing || queue.length === 0) return;
+    const nextMsg = queue[0];
+    const remaining = queue.slice(1);
+    setQueue(remaining);
+    setDisplayMessage(nextMsg);
+    setMsgKey((prev) => prev + 1);
+    setIsProcessing(true);
+  }, [queue, isProcessing]);
+  useEffect(() => {
+    if (!isProcessing) return;
+    const timer = setTimeout(() => {
+      console.log("hello");
+      setDisplayMessage("");
+      setIsProcessing(false);
+    }, displayDuration);
+    return () => clearTimeout(timer);
+  }, [isProcessing, displayDuration]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.messageItemActive, children: displayMessage }, msgKey) }) });
+};
 function Timer({ socket = null, initialDuration, onFinish, roomId }) {
   const [timeLeft, setTimeLeft] = useState(initialDuration);
   useEffect(() => {
@@ -2400,6 +2433,9 @@ class RoomManager {
     };
     this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
   };
+  emitSystemMessage = (message) => {
+    this.io.to(this.state.roomId).emit("system:message", { message });
+  };
   /**
    * カードをデッキから引く（移動ロジックの外注先）
    */
@@ -2617,6 +2653,7 @@ export {
   RemoteCursor,
   RoomManager,
   ScoreBoard,
+  SystemMessageWindow,
   Timer,
   TokenStore
 };

@@ -66,6 +66,10 @@ export type DraggableUpdateData = {
   zIndex: number;
 };
 
+export type SystemMessageData = {
+  message: string;
+};
+
 export type GamePhaseUpdateData = {
   newPhase: Phase;
 };

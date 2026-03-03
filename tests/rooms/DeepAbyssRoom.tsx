@@ -5,6 +5,7 @@ import { Deck } from '../../src/components/Deck';
 import { Draggable } from '../../src/components/Draggable';
 import { PlayField } from '../../src/components/PlayField';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
+import { SystemMessageWindow } from '../../src/components/systemMessageWindow';
 import TokenStore from '../../src/components/TokenStore';
 import { useSocket } from '../../src/hooks/useSocket';
 import type { Player } from '../../src/types/player';
@@ -202,6 +203,7 @@ export function DeepAbyssRoom() {
       <div className="board-wrapper">
         <MyBoard socket={socket} roomId={roomId} myPlayerId={myPlayerId} />
       </div>
+      <SystemMessageWindow socket={socket} roomId={roomId} />
       <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" name="遺物" />
 
       <div className="game-main-layout">
