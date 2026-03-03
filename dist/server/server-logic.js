@@ -263,8 +263,6 @@ export function initGameServer(io, options) {
                 return;
             // カスタムフック
             param?.onDeckDraw?.(roomState, roomManager, data);
-            roomManager.emitDeckUpdate(deckId);
-            roomManager.emitPlayerUpdate();
         });
         // デッキシャッフル
         socket.on('deck:shuffle', ({ roomId, deckId }) => {

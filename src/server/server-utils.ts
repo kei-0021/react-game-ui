@@ -234,6 +234,8 @@ export class RoomManager {
       destination = 'field';
     }
 
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
     return true;
   }
 

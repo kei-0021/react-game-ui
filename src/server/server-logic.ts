@@ -341,9 +341,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
       // カスタムフック
       param?.onDeckDraw?.(roomState, roomManager, data);
-
-      roomManager.emitDeckUpdate(deckId);
-      roomManager.emitPlayerUpdate();
     });
 
     // デッキシャッフル

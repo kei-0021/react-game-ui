@@ -2435,6 +2435,8 @@ class RoomManager {
       this.state.playFieldCards[deckId].push(card2);
       destination = "field";
     }
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
     return true;
   }
   /**

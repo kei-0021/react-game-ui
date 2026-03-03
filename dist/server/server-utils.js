@@ -173,6 +173,8 @@ export class RoomManager {
             this.state.playFieldCards[deckId].push(card);
             destination = 'field';
         }
+        this.emitDeckUpdate(deckId);
+        this.emitPlayerUpdate();
         return true;
     }
     /**
