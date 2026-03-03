@@ -1579,6 +1579,14 @@ function GridBoard({
     })
   ] });
 }
+const rgPlayFieldContainer = "_rgPlayFieldContainer_d0bw8_14";
+const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_d0bw8_22";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_d0bw8_31";
+const playFieldStyles = {
+  rgPlayFieldContainer,
+  rgPlayFieldCardWrapper,
+  rgPlayFieldOwnerBadge
+};
 function throttle(func, limit) {
   let inThrottle;
   return function(...args) {
@@ -1706,12 +1714,12 @@ function PlayField({
         position: "relative"
       },
       children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "rg-playfield-title", children: title2 !== void 0 && title2 !== null ? title2 : `プレイフィールド (deckId=${deckId})` }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title2 !== void 0 && title2 !== null ? title2 : `プレイフィールド (deckId=${deckId})` }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "div",
           {
             ref: containerRef,
-            className: "rg-playfield-container",
+            className: playFieldStyles.rgPlayFieldContainer,
             onPointerMove: handlePointerMove,
             onDrop: handleDrop,
             onDragOver: handleDragOver,
@@ -1746,7 +1754,7 @@ function PlayField({
                   onPointerDown: (e) => handlePointerDown(e, card2),
                   onPointerUp: handlePointerUp,
                   onPointerCancel: handlePointerUp,
-                  className: `${isActuallyFreeShape ? "" : cardStyles.card} rg-playfield-card-wrapper`,
+                  className: `${isActuallyFreeShape ? "" : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`,
                   style: {
                     "--owner-color": owner?.color || "#aaaaaa",
                     ...freeStyle,
@@ -1765,7 +1773,7 @@ function PlayField({
                   onDoubleClick: () => handleCardBack(card2),
                   children: [
                     /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
-                    card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-playfield-owner-badge", title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
+                    card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
                     card2.description && !isDragging && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description })
                   ]
                 },

@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
-import './PlayField.css';
+import playFieldStyles from './PlayField.module.css';
 // 通信量制限用の throttle
 function throttle(func, limit) {
     let inThrottle;
@@ -132,7 +132,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
             background: backgroundImage ? `url(${backgroundImage}) center/cover no-repeat` : undefined,
             // 親の zIndex を消すことで、中のカードが Draggable と同じ階層で比較されるようにする
             position: 'relative',
-        }, children: [_jsx("h3", { className: "rg-playfield-title", children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsx("div", { ref: containerRef, className: "rg-playfield-container", onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
+        }, children: [_jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsx("div", { ref: containerRef, className: playFieldStyles.rgPlayFieldContainer, onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
                     position: 'relative',
                     minHeight: '600px',
                     touchAction: 'none',
@@ -158,7 +158,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                             transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                         }
                         : {};
-                    return (_jsxs("div", { draggable: false, onDragStart: (e) => e.preventDefault(), onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, onPointerCancel: handlePointerUp, className: `${isActuallyFreeShape ? '' : cardStyles.card} rg-playfield-card-wrapper`, style: {
+                    return (_jsxs("div", { draggable: false, onDragStart: (e) => e.preventDefault(), onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, onPointerCancel: handlePointerUp, className: `${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`, style: {
                             '--owner-color': owner?.color || '#aaaaaa',
                             ...freeStyle,
                             touchAction: 'none',
@@ -174,6 +174,6 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                     padding: 0,
                                 }
                                 : {}),
-                        }, onDoubleClick: () => handleCardBack(card), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.ownerId && (_jsx("div", { className: "rg-playfield-owner-badge", title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && _jsx("span", { className: cardStyles.tooltip, children: card.description })] }, card.id));
+                        }, onDoubleClick: () => handleCardBack(card), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && _jsx("span", { className: cardStyles.tooltip, children: card.description })] }, card.id));
                 }) })] }));
 }

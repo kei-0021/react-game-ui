@@ -1,4 +1,4 @@
-/* src/components/PlayField.css */
+/* src/components/PlayField.module.css */
 
 .rg-playfield {
   background: #0a192f;
@@ -7,29 +7,19 @@
   padding: 12px;
 }
 
-.rg-playfield-title {
+.rgPlayFieldTitle {
   margin-bottom: 8px;
 }
 
-.rg-playfield-subtitle {
-  margin-left: 10px;
-  font-weight: normal;
-  font-size: 0.9em;
-  color: #666;
-}
-
-.rg-playfield-container {
+.rgPlayFieldContainer {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 8px; /* 横も縦も一律 8px に固定 */
+  align-content: flex-start; /* 2行目以降を上に詰め寄せる */
   min-height: 120px;
 }
 
-.rg-playfield-empty {
-  opacity: 0.6;
-}
-
-.rg-playfield-card-wrapper {
+.rgPlayFieldCardWrapper {
   cursor: pointer;
   position: relative;
   display: flex;
@@ -38,7 +28,7 @@
   user-select: none;
 }
 
-.rg-playfield-owner-badge {
+.rgPlayFieldOwnerBadge {
   position: absolute;
   top: -5px;
   right: -5px;

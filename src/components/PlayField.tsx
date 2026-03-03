@@ -8,7 +8,7 @@ import type { Card } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
-import './PlayField.css';
+import playFieldStyles from './PlayField.module.css';
 
 // 通信量制限用の throttle
 function throttle<T extends (...args: any[]) => any>(func: T, limit: number) {
@@ -191,12 +191,12 @@ export function PlayField({
         position: 'relative',
       }}
     >
-      <h3 className="rg-playfield-title">
+      <h3 className={playFieldStyles.rgPlayfieldTitle}>
         {title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})`}
       </h3>
       <div
         ref={containerRef}
-        className="rg-playfield-container"
+        className={playFieldStyles.rgPlayFieldContainer}
         onPointerMove={handlePointerMove}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -244,7 +244,7 @@ export function PlayField({
               onPointerDown={(e) => handlePointerDown(e, card)}
               onPointerUp={handlePointerUp}
               onPointerCancel={handlePointerUp}
-              className={`${isActuallyFreeShape ? '' : cardStyles.card} rg-playfield-card-wrapper`}
+              className={`${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`}
               style={
                 {
                   '--owner-color': owner?.color || '#aaaaaa',
@@ -269,7 +269,7 @@ export function PlayField({
               <CardDisplayContent card={card} canSeeFront={true} />
 
               {card.ownerId && (
-                <div className="rg-playfield-owner-badge" title={`所有者: ${owner?.name || '不明'}`}>
+                <div className={playFieldStyles.rgPlayFieldOwnerBadge} title={`所有者: ${owner?.name || '不明'}`}>
                   {owner?.name?.[0] || '?'}
                 </div>
               )}

@@ -1,7 +1,6 @@
 import { Player } from '@/types/player.js';
 import { Socket } from 'socket.io-client';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
-import './PlayField.css';
 type PlayFieldProps = {
     socket: Socket;
     roomId: RoomId;
