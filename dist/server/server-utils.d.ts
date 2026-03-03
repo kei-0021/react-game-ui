@@ -32,16 +32,22 @@ export declare class RoomManager {
      */
     get hasPhaseChanged(): boolean;
     /**
+     * スコアを加算する
+     * @param playerId - 対象のプレイヤーのID
+     * @param points - 加算するスコア
+     * @returns 加算に成功した場合は true、プレイヤーが見つからない場合は false
+     */
+    addScore(playerId: PlayerId, points: number): boolean;
+    /**
      * セル効果を発動する
      * @param playerId - 効果を発動させたプレイヤーのID
      * @param position - 発動対象となるマスの座標
      * @param cellEffects - 各セル名に対応する効果処理の定義集
-     * @param addScore - スコアを加算するためのコールバック関数
      * @param updatePlayerResource - プレイヤーのリソース（資源）を更新するためのコールバック関数
      * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
      * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
      */
-    applyCellEffect: (playerId: PlayerId, position: Position, cellEffects: Record<string, (params: any) => void>, addScore: (playerId: PlayerId, points: number) => void, updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
+    applyCellEffect: (playerId: PlayerId, position: Position, cellEffects: Record<string, (params: any) => void>, updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
     /**
      * トークン置き場を取得する
      * @param tokenStoreId - トークン置き場ID

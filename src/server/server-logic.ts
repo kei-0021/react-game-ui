@@ -146,16 +146,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, updateData);
   };
 
-  const addScore = (roomId: RoomId, playerId: PlayerId, points: number) => {
-    const roomState = activeRooms.get(roomId);
-    const player = roomState?.players.find((p) => p.id === playerId);
-    if (player) {
-      player.score = (player.score || 0) + points;
-      server_log('addScore', roomState!.gameId, roomId, `${player.name} に ${points}pt 加算`);
-      emitPlayerUpdate(roomId);
-    }
-  };
-
   const updatePlayerResource = (roomId: RoomId, playerId: PlayerId, resourceId: ResourceId, amount: number) => {
     const roomState = activeRooms.get(roomId);
     const player = roomState?.players.find((p) => p.id === playerId);
@@ -314,7 +304,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           playerId,
           newPosition,
           preset?.cellEffects,
-          (pId, pts) => addScore(roomId, pId, pts),
           (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt),
           (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt),
           ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }),
@@ -534,7 +523,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           server_log('card', roomState.gameId, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
           effect({
             playerId,
-            addScore: (points: number) => addScore(roomId, playerId, points),
             updateResource: (resourceId: string, amount: number) =>
               updatePlayerResource(roomId, playerId, resourceId, amount),
             updateToken: (tokenId: string, amount: number) => updatePlayerToken(roomId, playerId, tokenId, amount),
@@ -684,7 +672,11 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
 
-      addScore(roomId, targetPlayerId, points);
+      const roomManager = new RoomManager(roomState);
+      const success = roomManager.addScore(targetPlayerId, points);
+      if (success) {
+        emitPlayerUpdate(roomId);
+      }
     });
 
     // リソース加算

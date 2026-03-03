@@ -101,15 +101,6 @@ export function initGameServer(io, options) {
         };
         io.to(roomId).emit(`deck:update:${roomId}:${deckId}`, updateData);
     };
-    const addScore = (roomId, playerId, points) => {
-        const roomState = activeRooms.get(roomId);
-        const player = roomState?.players.find((p) => p.id === playerId);
-        if (player) {
-            player.score = (player.score || 0) + points;
-            server_log('addScore', roomState.gameId, roomId, `${player.name} に ${points}pt 加算`);
-            emitPlayerUpdate(roomId);
-        }
-    };
     const updatePlayerResource = (roomId, playerId, resourceId, amount) => {
         const roomState = activeRooms.get(roomId);
         const player = roomState?.players.find((p) => p.id === playerId);
@@ -241,7 +232,7 @@ export function initGameServer(io, options) {
                 player.position = newPosition;
                 const updated = markCellAsExplored(roomState, roomState.gameId, roomId, newPosition);
                 const preset = gameParams[roomState.gameId];
-                roomManager.applyCellEffect(playerId, newPosition, preset?.cellEffects, (pId, pts) => addScore(roomId, pId, pts), (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
+                roomManager.applyCellEffect(playerId, newPosition, preset?.cellEffects, (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
                 emitPlayerUpdate(roomId);
                 if (updated)
                     io.to(roomId).emit('board-update', roomState.exploredCells);
@@ -429,7 +420,6 @@ export function initGameServer(io, options) {
                     server_log('card', roomState.gameId, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
                     effect({
                         playerId,
-                        addScore: (points) => addScore(roomId, playerId, points),
                         updateResource: (resourceId, amount) => updatePlayerResource(roomId, playerId, resourceId, amount),
                         updateToken: (tokenId, amount) => updatePlayerToken(roomId, playerId, tokenId, amount),
                     });
@@ -560,7 +550,11 @@ export function initGameServer(io, options) {
             const roomState = activeRooms.get(roomId);
             if (!roomState)
                 return;
-            addScore(roomId, targetPlayerId, points);
+            const roomManager = new RoomManager(roomState);
+            const success = roomManager.addScore(targetPlayerId, points);
+            if (success) {
+                emitPlayerUpdate(roomId);
+            }
         });
         // リソース加算
         socket.on('room:player:update-resource', ({ roomId, playerId, resourceId, amount }) => {

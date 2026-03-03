@@ -125,16 +125,29 @@ export class RoomManager {
         return this._phaseChanged;
     }
     /**
+     * スコアを加算する
+     * @param playerId - 対象のプレイヤーのID
+     * @param points - 加算するスコア
+     * @returns 加算に成功した場合は true、プレイヤーが見つからない場合は false
+     */
+    addScore(playerId, points) {
+        const player = this.state.players.find((p) => p.id === playerId);
+        if (!player)
+            return false;
+        player.score = (player.score || 0) + points;
+        server_log('addScore', this.state.gameId, this.state.roomId, `${player.name} に ${points}pt 加算`);
+        return true;
+    }
+    /**
      * セル効果を発動する
      * @param playerId - 効果を発動させたプレイヤーのID
      * @param position - 発動対象となるマスの座標
      * @param cellEffects - 各セル名に対応する効果処理の定義集
-     * @param addScore - スコアを加算するためのコールバック関数
      * @param updatePlayerResource - プレイヤーのリソース（資源）を更新するためのコールバック関数
      * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
      * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
      */
-    applyCellEffect = (playerId, position, cellEffects, addScore, updatePlayerResource, updatePlayerToken, requirePopup) => {
+    applyCellEffect = (playerId, position, cellEffects, updatePlayerResource, updatePlayerToken, requirePopup) => {
         const { row, col } = position;
         // Record（オブジェクト）の最初の値（ボード配列）を取得
         const targetBoard = Object.values(this.state.board)[0];
@@ -151,7 +164,6 @@ export class RoomManager {
             try {
                 effect({
                     playerId,
-                    addScore,
                     updateResource: updatePlayerResource,
                     updateToken: updatePlayerToken,
                     requirePopup: requirePopup,
