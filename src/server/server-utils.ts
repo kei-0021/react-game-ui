@@ -1,7 +1,7 @@
 // src/server/server-utils.ts
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
-import { DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/server.js';
@@ -232,6 +232,50 @@ export class RoomManager {
       card.ownerId = null;
       this.state.playFieldCards[deckId].push(card);
       destination = 'field';
+    }
+
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+    return true;
+  }
+
+  /**
+   * フィールドからカードを回収（手札に戻す or 捨て札へ）
+   */
+  moveFromField(deckId: DeckId, cardId: CardId, playerId: PlayerId | null): boolean {
+    const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
+
+    // 1. フィールドから対象カードを探して抜き取る
+    const fieldList = playFieldCards[deckId] || [];
+    const cardIndex = fieldList.findIndex((c) => c.id === cardId);
+    if (cardIndex === -1) return false;
+
+    const [card] = fieldList.splice(cardIndex, 1);
+
+    // 2. 表裏の状態を反映（fieldBackConditionの設定に従う）
+    // 以前のロジックを継承：設定が 'face' なら表、それ以外なら裏
+    card.isFaceUp = card.fieldBackCondition?.[1] === 'face';
+
+    // 3. 行き先の判定
+    if (playerId) {
+      // --- 手札に戻す場合 ---
+      const player = players.find((p) => p.id === playerId);
+      if (!player) return false;
+
+      card.location = 'hand';
+      card.ownerId = playerId;
+      player.cards = player.cards || [];
+      player.cards.push(card);
+
+      server_log('card', gameId, roomId, `Return: ${card.name} -> Player:${playerId}`);
+    } else {
+      // --- 捨て札に送る場合 ---
+      card.location = 'discard';
+      card.ownerId = null;
+      discardPile[deckId] = discardPile[deckId] || [];
+      discardPile[deckId].push(card);
+
+      server_log('card', gameId, roomId, `Discard: ${card.name} -> discard`);
     }
 
     this.emitDeckUpdate(deckId);

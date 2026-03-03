@@ -2440,6 +2440,35 @@ class RoomManager {
     return true;
   }
   /**
+   * フィールドからカードを回収（手札に戻す or 捨て札へ）
+   */
+  moveFromField(deckId, cardId, playerId) {
+    const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
+    const fieldList = playFieldCards[deckId] || [];
+    const cardIndex = fieldList.findIndex((c) => c.id === cardId);
+    if (cardIndex === -1) return false;
+    const [card2] = fieldList.splice(cardIndex, 1);
+    card2.isFaceUp = card2.fieldBackCondition?.[1] === "face";
+    if (playerId) {
+      const player = players.find((p) => p.id === playerId);
+      if (!player) return false;
+      card2.location = "hand";
+      card2.ownerId = playerId;
+      player.cards = player.cards || [];
+      player.cards.push(card2);
+      server_log("card", gameId, roomId, `Return: ${card2.name} -> Player:${playerId}`);
+    } else {
+      card2.location = "discard";
+      card2.ownerId = null;
+      discardPile[deckId] = discardPile[deckId] || [];
+      discardPile[deckId].push(card2);
+      server_log("card", gameId, roomId, `Discard: ${card2.name} -> discard`);
+    }
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+    return true;
+  }
+  /**
    * スコアを加算する
    * @param playerId - 対象のプレイヤーのID
    * @param points - 加算するスコア

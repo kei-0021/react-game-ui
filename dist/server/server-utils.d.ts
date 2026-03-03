@@ -1,6 +1,6 @@
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
-import { DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/server.js';
@@ -41,6 +41,10 @@ export declare class RoomManager {
      * カードをデッキから引く（移動ロジックの外注先）
      */
     drawCard(deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): boolean;
+    /**
+     * フィールドからカードを回収（手札に戻す or 捨て札へ）
+     */
+    moveFromField(deckId: DeckId, cardId: CardId, playerId: PlayerId | null): boolean;
     /**
      * スコアを加算する
      * @param playerId - 対象のプレイヤーのID
