@@ -44,7 +44,7 @@ export declare class RoomManager {
     /**
      * フィールドからカードを回収（手札に戻す or 捨て札へ）
      */
-    moveFromField(deckId: DeckId, cardId: CardId, playerId: PlayerId | null): boolean;
+    moveFromField(deckId: DeckId, cardId: CardId, playerId?: PlayerId | null): boolean;
     /**
      * スコアを加算する
      * @param playerId - 対象のプレイヤーのID

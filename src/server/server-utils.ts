@@ -242,7 +242,7 @@ export class RoomManager {
   /**
    * フィールドからカードを回収（手札に戻す or 捨て札へ）
    */
-  moveFromField(deckId: DeckId, cardId: CardId, playerId: PlayerId | null): boolean {
+  moveFromField(deckId: DeckId, cardId: CardId, playerId?: PlayerId | null): boolean {
     const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
 
     // 1. フィールドから対象カードを探して抜き取る
