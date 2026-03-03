@@ -68,6 +68,7 @@ export type DraggableUpdateData = {
 
 export type SystemMessageData = {
   message: string;
+  isPersistent?: boolean;
 };
 
 export type GamePhaseUpdateData = {

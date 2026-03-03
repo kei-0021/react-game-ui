@@ -187,8 +187,8 @@ export class RoomManager {
     this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
   };
 
-  emitSystemMessage = (message: string) => {
-    this.io.to(this.state.roomId).emit('system:message', { message } as SystemMessageData);
+  emitSystemMessage = (message: string, isPersistent: boolean = false) => {
+    this.io.to(this.state.roomId).emit('system:message', { message, isPersistent } as SystemMessageData);
   };
 
   /**

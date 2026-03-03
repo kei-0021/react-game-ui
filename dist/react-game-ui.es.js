@@ -2143,13 +2143,14 @@ const styles = {
 };
 const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
   const [displayMessage, setDisplayMessage] = useState("");
+  const [currentData, setCurrentData] = useState(null);
   const [queue, setQueue] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [msgKey, setMsgKey] = useState(0);
   useEffect(() => {
     if (!socket) return;
     const onMessage = (data) => {
-      setQueue((prev) => [...prev, data.message]);
+      setQueue((prev) => [...prev, data]);
     };
     socket.on("system:message", onMessage);
     return () => {
@@ -2157,23 +2158,30 @@ const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
     };
   }, [socket]);
   useEffect(() => {
-    if (isProcessing || queue.length === 0) return;
-    const nextMsg = queue[0];
+    if (queue.length === 0) return;
+    if (isProcessing) {
+      setIsProcessing(false);
+      return;
+    }
+    const nextData = queue[0];
     const remaining = queue.slice(1);
     setQueue(remaining);
-    setDisplayMessage(nextMsg);
+    setCurrentData(nextData);
+    setDisplayMessage(nextData.message);
     setMsgKey((prev) => prev + 1);
     setIsProcessing(true);
   }, [queue, isProcessing]);
   useEffect(() => {
-    if (!isProcessing) return;
+    if (!isProcessing || !currentData || currentData.isPersistent) return;
     const timer = setTimeout(() => {
-      console.log("hello");
       setDisplayMessage("");
       setIsProcessing(false);
+      setCurrentData(null);
     }, displayDuration);
-    return () => clearTimeout(timer);
-  }, [isProcessing, displayDuration]);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isProcessing, currentData, displayDuration]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.messageItemActive, children: displayMessage }, msgKey) }) });
 };
 function Timer({ socket = null, initialDuration, onFinish, roomId }) {
@@ -2433,8 +2441,8 @@ class RoomManager {
     };
     this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
   };
-  emitSystemMessage = (message) => {
-    this.io.to(this.state.roomId).emit("system:message", { message });
+  emitSystemMessage = (message, isPersistent = false) => {
+    this.io.to(this.state.roomId).emit("system:message", { message, isPersistent });
   };
   /**
    * カードをデッキから引く（移動ロジックの外注先）

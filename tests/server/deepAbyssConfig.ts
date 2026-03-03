@@ -96,7 +96,7 @@ export const deepAbyssConfig: RoomConfig = {
           .filter(Boolean) // 名前が見つからない場合を除外
           .join('、');
 
-        manager.emitSystemMessage(`${cardNames} を出した！`);
+        manager.emitSystemMessage(`${cardNames} を出した！`, true);
         manager.updatePhase(DeepAbyssPhase.NEXT);
       },
       onNextRound: (_state: RoomState, manager: RoomManager) => {
