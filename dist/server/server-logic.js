@@ -529,15 +529,23 @@ export function initGameServer(io, options) {
             const roomParam = gamePresets[roomState.gameId];
             if (roomState.players.length === 0)
                 return;
+            // カスタムフック処理
             if (typeof roomParam.checkGameEnd === 'function' && roomParam.checkGameEnd(roomState)) {
-                // カスタムフック処理
                 const results = typeof roomParam.onGameEnd === 'function' ? roomParam.onGameEnd(roomState) : { message: 'Game Over' };
                 io.to(roomId).emit('game:end', results);
                 return;
             }
+            // ターンが一周した場合は次のラウンドへ移行する
             const nextIndex = (roomState.currentTurnIndex + 1) % roomState.players.length;
-            if (nextIndex === 0)
+            if (nextIndex === 0) {
                 roomState.currentRoundIndex += 1;
+                // カスタムフック処理
+                const onNextRound = roomParam?.onNextRound;
+                if (onNextRound) {
+                    const roomManager = new RoomManager(roomState);
+                    onNextRound(roomState, roomManager);
+                }
+            }
             roomState.currentTurnIndex = nextIndex;
             const currentPlayer = roomState.players[roomState.currentTurnIndex];
             server_log('game', roomState.gameId, roomId, `ターン更新 (Player: ${roomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`);

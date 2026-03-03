@@ -25,6 +25,7 @@ import { TokenStore } from './tokenStore.js';
  * @param cellEffects - セルの特殊効果定義。
  * @param onDeckDraw - デッキからカードを引いた時のカスタムフック。
  * @param onCardPlay - カードプレイ時のカスタムフック。
+ * @param onNextRound - 次のラウンドへ進んだ時のカスタムフック。
  * @param checkGameEnd - 終了判定ロジック。
  * @param onGameEnd - リザルト生成ロジック。
  */
@@ -48,6 +49,7 @@ export type RoomParam = {
   cellEffects?: any;
   onDeckDraw?: (state: RoomState, manager: RoomManager, data: DeckDrawData) => void;
   onCardPlay?: (state: RoomState, manager: RoomManager, data: CardPlayData) => void;
+  onNextRound?: (state: RoomState, manager: RoomManager) => void;
   checkGameEnd?: (state: RoomState) => void;
   onGameEnd?: (state: RoomState) => any;
 };
