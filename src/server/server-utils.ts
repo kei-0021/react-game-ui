@@ -4,6 +4,7 @@ import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/server.js';
 import { TokenStore } from '@/types/tokenStore.js';
+import { Server } from 'socket.io';
 
 export type LogCategory =
   | 'connection'
@@ -156,12 +157,21 @@ export const generateColorFromId = (id: string): string => {
 
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
- * Socket.io に直接依存せず、データの書き換えと記録に特化。
  */
 export class RoomManager {
   private _phaseChanged = false;
 
-  constructor(private state: RoomState) {}
+  constructor(
+    private io: Server,
+    private state: RoomState,
+  ) {}
+
+  /**
+   * プレイヤー状態を更新する
+   */
+  emitPlayerUpdate = () => {
+    this.io.to(this.state.roomId).emit('players:update', this.state.players);
+  };
 
   /**
    * フェーズが変更されたかどうかを取得する
@@ -174,16 +184,15 @@ export class RoomManager {
    * スコアを加算する
    * @param playerId - 対象のプレイヤーのID
    * @param points - 加算するスコア
-   * @returns 加算に成功した場合は true、プレイヤーが見つからない場合は false
    */
-  addScore(playerId: PlayerId, points: number): boolean {
+  addScore(playerId: PlayerId, points: number) {
     const player = this.state.players.find((p) => p.id === playerId);
-    if (!player) return false;
+    if (!player) return;
 
     player.score = (player.score || 0) + points;
 
     server_log('addScore', this.state.gameId, this.state.roomId, `${player.name} に ${points}pt 加算`);
-    return true;
+    this.emitPlayerUpdate();
   }
 
   /**

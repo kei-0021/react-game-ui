@@ -3,6 +3,7 @@ import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/server.js';
 import { TokenStore } from '@/types/tokenStore.js';
+import { Server } from 'socket.io';
 export type LogCategory = 'connection' | 'deck' | 'card' | 'cell' | 'game' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'room' | 'lobby' | 'disconnect' | 'warn' | 'popup' | 'custom_event';
 export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
 /**
@@ -21,12 +22,16 @@ export declare const createRandomBoard: (initialBoard: any[][]) => any[][];
 export declare const generateColorFromId: (id: string) => string;
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
- * Socket.io に直接依存せず、データの書き換えと記録に特化。
  */
 export declare class RoomManager {
+    private io;
     private state;
     private _phaseChanged;
-    constructor(state: RoomState);
+    constructor(io: Server, state: RoomState);
+    /**
+     * プレイヤー状態を更新する
+     */
+    emitPlayerUpdate: () => void;
     /**
      * フェーズが変更されたかどうかを取得する
      */
@@ -35,9 +40,8 @@ export declare class RoomManager {
      * スコアを加算する
      * @param playerId - 対象のプレイヤーのID
      * @param points - 加算するスコア
-     * @returns 加算に成功した場合は true、プレイヤーが見つからない場合は false
      */
-    addScore(playerId: PlayerId, points: number): boolean;
+    addScore(playerId: PlayerId, points: number): void;
     /**
      * セル効果を発動する
      * @param playerId - 効果を発動させたプレイヤーのID

@@ -85,9 +85,10 @@ export const deepAbyssConfig: RoomConfig = {
       initialPhase: DeepAbyssPhase.START,
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,
-      onCardPlay: (state: RoomState, manager: RoomManager, data: CardPlayData) => {
+      onCardPlay: (state: RoomState, manager: RoomManager, _data: CardPlayData) => {
+        // 全員に+2点する
         state.players.forEach((player: Player) => {
-          player.score = player.score + 2;
+          manager.addScore(player.id, 2);
         });
         manager.updatePhase(DeepAbyssPhase.NEXT);
       },

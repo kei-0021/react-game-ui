@@ -294,7 +294,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
 
-      const roomManager = new RoomManager(roomState);
+      const roomManager = new RoomManager(io, roomState);
       const player = roomState?.players.find((p) => p.id === playerId);
       if (player && roomState) {
         player.position = newPosition;
@@ -336,7 +336,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (!roomState) return;
 
       const param = gameParams[roomState.gameId];
-      const roomManager = new RoomManager(roomState);
+      const roomManager = new RoomManager(io, roomState);
       const { decks } = roomState;
       // デッキにあるカードのみをフィルタリング
       const currentDeck = decks[deckId].filter((c) => c.location === 'deck');
@@ -488,7 +488,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (!roomState) return;
 
       const param = gameParams[roomState.gameId];
-      const roomManager = new RoomManager(roomState);
+      const roomManager = new RoomManager(io, roomState);
       const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 
       ids.forEach((id) => {
@@ -575,7 +575,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (!roomState) return;
 
       const player = roomState?.players.find((p) => p.socketId === socket.id);
-      const roomManager = new RoomManager(roomState);
+      const roomManager = new RoomManager(io, roomState);
 
       if (roomState && player && roomManager.acquireToken(tokenStoreId, tokenId, player.id)) {
         const store = roomManager.getTokenStore(tokenStoreId);
@@ -646,7 +646,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         // カスタムフック処理
         const onNextRound = param?.onNextRound;
         if (onNextRound) {
-          const roomManager = new RoomManager(roomState);
+          const roomManager = new RoomManager(io, roomState);
           onNextRound(roomState, roomManager);
         }
       }
@@ -672,11 +672,8 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
 
-      const roomManager = new RoomManager(roomState);
-      const success = roomManager.addScore(targetPlayerId, points);
-      if (success) {
-        emitPlayerUpdate(roomId);
-      }
+      const roomManager = new RoomManager(io, roomState);
+      roomManager.addScore(targetPlayerId, points);
     });
 
     // リソース加算

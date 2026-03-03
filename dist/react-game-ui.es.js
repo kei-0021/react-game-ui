@@ -2378,10 +2378,17 @@ function server_log(tag, gameId, roomId, firstArg, ...args) {
   }
 }
 class RoomManager {
-  constructor(state) {
+  constructor(io, state) {
+    this.io = io;
     this.state = state;
   }
   _phaseChanged = false;
+  /**
+   * プレイヤー状態を更新する
+   */
+  emitPlayerUpdate = () => {
+    this.io.to(this.state.roomId).emit("players:update", this.state.players);
+  };
   /**
    * フェーズが変更されたかどうかを取得する
    */
@@ -2392,14 +2399,13 @@ class RoomManager {
    * スコアを加算する
    * @param playerId - 対象のプレイヤーのID
    * @param points - 加算するスコア
-   * @returns 加算に成功した場合は true、プレイヤーが見つからない場合は false
    */
   addScore(playerId, points) {
     const player = this.state.players.find((p) => p.id === playerId);
-    if (!player) return false;
+    if (!player) return;
     player.score = (player.score || 0) + points;
     server_log("addScore", this.state.gameId, this.state.roomId, `${player.name} に ${points}pt 加算`);
-    return true;
+    this.emitPlayerUpdate();
   }
   /**
    * セル効果を発動する
