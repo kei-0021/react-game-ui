@@ -253,63 +253,18 @@ export function initGameServer(io, options) {
         // カードを引く
         socket.on('deck:draw', (data) => {
             const { roomId, deckId, playerId, drawCondition } = data;
-            const [targetLocation, targetState] = drawCondition;
             const roomState = activeRooms.get(roomId);
-            if (!roomState)
+            if (!roomState || playerId === null)
                 return;
-            const param = gameParams[roomState.gameId];
             const roomManager = new RoomManager(io, roomState);
-            const { decks } = roomState;
-            // デッキにあるカードのみをフィルタリング
-            const currentDeck = decks[deckId].filter((c) => c.location === 'deck');
-            if (!currentDeck.length) {
-                server_log('warn', roomState.gameId, roomId, `デッキ ${deckId} は空です。`);
+            const param = gameParams[roomState.gameId];
+            const success = roomManager.drawCard(deckId, drawCondition, playerId);
+            if (!success)
                 return;
-            }
-            // 先頭のカードを取得
-            const card = currentDeck[0];
-            let destination = '';
-            // 状態（表裏）を反映
-            card.isFaceUp = targetState === 'face';
-            // --- 移動ロジック開始 ---
-            // A. 引いた瞬間に捨て札にする場合
-            if (targetLocation === 'discard') {
-                card.location = 'discard';
-                card.ownerId = null;
-                roomState.discardPile[deckId].push(card);
-                destination = 'discard';
-            }
-            // B. プレイヤーを指定して引く場合
-            else if (playerId && targetLocation === 'hand') {
-                const player = roomState.players.find((p) => p.id === playerId);
-                if (player) {
-                    player.cards = player.cards || [];
-                    card.location = 'hand';
-                    card.ownerId = playerId;
-                    player.cards.push(card);
-                    destination = playerId;
-                }
-            }
-            // C. 場に出す場合
-            else {
-                card.ownerId = null;
-                card.location = 'field';
-                roomState.playFieldCards[deckId].push(card);
-                destination = 'field';
-            }
-            server_log('deck', roomState.gameId, roomId, `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`);
-            // カスタムフック処理
-            const onDeckDraw = param?.onDeckDraw;
-            if (onDeckDraw) {
-                onDeckDraw(roomState, roomManager, data);
-            }
-            if (roomManager.hasPhaseChanged) {
-                io.to(roomId).emit('game:phase:update', {
-                    newPhase: roomState.currentPhase,
-                });
-            }
-            emitDeckUpdate(roomId, deckId);
-            emitPlayerUpdate(roomId);
+            // カスタムフック
+            param?.onDeckDraw?.(roomState, roomManager, data);
+            roomManager.emitDeckUpdate(deckId);
+            roomManager.emitPlayerUpdate();
         });
         // デッキシャッフル
         socket.on('deck:shuffle', ({ roomId, deckId }) => {
@@ -429,11 +384,6 @@ export function initGameServer(io, options) {
             const onCardPlay = param?.onCardPlay;
             if (onCardPlay) {
                 onCardPlay(roomState, roomManager, data);
-            }
-            if (roomManager.hasPhaseChanged) {
-                io.to(roomId).emit('game:phase:update', {
-                    newPhase: roomState.currentPhase,
-                });
             }
             // 更新通知
             emitDeckUpdate(roomId, deckId);

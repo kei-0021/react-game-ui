@@ -1,4 +1,4 @@
-import { GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/server.js';
@@ -26,16 +26,19 @@ export declare const generateColorFromId: (id: string) => string;
 export declare class RoomManager {
     private io;
     private state;
-    private _phaseChanged;
     constructor(io: Server, state: RoomState);
     /**
-     * プレイヤー状態を更新する
+     * プレイヤー更新を更新する
      */
     emitPlayerUpdate: () => void;
     /**
-     * フェーズが変更されたかどうかを取得する
+     * デッキ更新を通知する
      */
-    get hasPhaseChanged(): boolean;
+    emitDeckUpdate: (deckId: DeckId) => void;
+    /**
+     * カードをデッキから引く（移動ロジックの外注先）
+     */
+    drawCard(deckId: DeckId, condition: [string, string], playerId?: PlayerId): boolean;
     /**
      * スコアを加算する
      * @param playerId - 対象のプレイヤーのID
@@ -65,7 +68,7 @@ export declare class RoomManager {
      */
     acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): boolean;
     /**
-     * フェーズを更新し、変更フラグを立てる
+     * フェーズを更新する
      * @param newPhase - 新しいフェーズ
      */
     updatePhase(newPhase: Phase): void;

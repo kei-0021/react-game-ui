@@ -114,22 +114,66 @@ export const generateColorFromId = (id) => {
 export class RoomManager {
     io;
     state;
-    _phaseChanged = false;
     constructor(io, state) {
         this.io = io;
         this.state = state;
     }
     /**
-     * プレイヤー状態を更新する
+     * プレイヤー更新を更新する
      */
     emitPlayerUpdate = () => {
         this.io.to(this.state.roomId).emit('players:update', this.state.players);
     };
     /**
-     * フェーズが変更されたかどうかを取得する
+     * デッキ更新を通知する
      */
-    get hasPhaseChanged() {
-        return this._phaseChanged;
+    emitDeckUpdate = (deckId) => {
+        const updateData = {
+            currentDeck: this.state.decks[deckId].filter((c) => c.location === 'deck'),
+            drawnCards: this.state.drawnCards[deckId],
+            playFieldCards: this.state.playFieldCards[deckId],
+            discardPile: this.state.discardPile[deckId],
+        };
+        this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
+    };
+    /**
+     * カードをデッキから引く（移動ロジックの外注先）
+     */
+    drawCard(deckId, condition, playerId) {
+        const [targetLocation, targetState] = condition;
+        // デッキから「deck」ロケーションにあるカードを抽出
+        const currentDeck = this.state.decks[deckId].filter((c) => c.location === 'deck');
+        if (!currentDeck.length)
+            return false;
+        const card = currentDeck[0];
+        card.isFaceUp = targetState === 'face';
+        let destination = '';
+        server_log('deck', this.state.gameId, this.state.roomId, `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`);
+        // A. 捨て札へ
+        if (targetLocation === 'discard') {
+            card.location = 'discard';
+            card.ownerId = null;
+            this.state.discardPile[deckId].push(card);
+            destination = 'discard';
+        }
+        // B. プレイヤーの手札へ
+        else if (playerId && targetLocation === 'hand') {
+            const player = this.state.players.find((p) => p.id === playerId);
+            if (player) {
+                card.location = 'hand';
+                card.ownerId = playerId;
+                player.cards.push(card);
+                destination = playerId;
+            }
+        }
+        // C. プレイフィールドへ
+        else {
+            card.location = 'field';
+            card.ownerId = null;
+            this.state.playFieldCards[deckId].push(card);
+            destination = 'field';
+        }
+        return true;
     }
     /**
      * スコアを加算する
@@ -232,14 +276,16 @@ export class RoomManager {
         return false;
     }
     /**
-     * フェーズを更新し、変更フラグを立てる
+     * フェーズを更新する
      * @param newPhase - 新しいフェーズ
      */
     updatePhase(newPhase) {
         if (this.state.currentPhase !== newPhase) {
             this.state.currentPhase = newPhase;
-            this._phaseChanged = true;
             server_log('game', this.state.gameId, this.state.roomId, `フェーズを更新しました: ${newPhase}`);
+            this.io.to(this.state.roomId).emit('game:phase:update', {
+                newPhase: this.state.currentPhase,
+            });
         }
     }
 }
