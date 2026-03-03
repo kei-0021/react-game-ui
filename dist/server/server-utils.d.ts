@@ -8,12 +8,12 @@ export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
 /**
  * サーバーの実行ログを出力する
  * @param tag - ログのカテゴリ
- * @param gamePresetId - 対象のゲームプリセットID
+ * @param gameId - 対象のゲームプリセットID
  * @param roomId - 対象のルームID
  * @param firstArg - ログのメイン内容（1つ以上の引数が必須）
  * @param args - 追加のログ情報
  */
-export declare function server_log(tag: LogCategory, gamePresetId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void;
+export declare function server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void;
 export declare const isExplored: (roomState: RoomState, position: Position) => boolean;
 export declare const markCellAsExplored: (roomState: RoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
 export declare const unmarkCellAsExplored: (roomState: RoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;

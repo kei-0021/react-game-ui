@@ -11,7 +11,7 @@ import {
 } from './server-utils.js';
 
 import { DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
-import { RoomParam, RoomState } from '@/types/server.js';
+import { GameParam, RoomState } from '@/types/server.js';
 import {
   CardMoveFromFieldData,
   CardPlayData,
@@ -39,20 +39,20 @@ const roomTimers = new Map<string, NodeJS.Timeout>();
  * 2. 各デッキ内のカードに対して固有の `instanceId` を付与し、初期位置を設定
  * 3. 最終的な `RoomState` オブジェクトの構築とメモリへの保存
  * @param roomId - ルームID
- * @param roomParam - ゲーム開始時に必要な初期パラメータ
+ * @param param - ゲーム開始時に必要な初期パラメータ
  * @returns 初期化が完了した {@link RoomState} オブジェクト
  */
-function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
-  const initialDecks = roomParam.initialDecks || [];
-  const initialTokenStores = roomParam.initialTokenStores || [];
-  const initialBoard = roomParam.initialBoard || {};
+function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
+  const initialDecks = param.initialDecks || [];
+  const initialTokenStores = param.initialTokenStores || [];
+  const initialBoard = param.initialBoard || {};
 
   let Cells: Record<string, any> = {};
   const boardEntries = Object.entries(initialBoard);
 
   boardEntries.forEach(([boardId, boardData]) => {
     Cells[boardId] = createRandomBoard(boardData as any[][]);
-    server_log('cell', roomParam.gameId, roomId, `ボード "${boardId}" を初期化完了`);
+    server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
   });
 
   const decks: Record<string, Card[]> = {};
@@ -76,7 +76,7 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
     drawnCards[deck.deckId] = [];
     playFieldCards[deck.deckId] = [];
     discardPile[deck.deckId] = [];
-    server_log('deck', roomParam.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
+    server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
   });
 
   initialTokenStores.forEach((store: TokenStore) => {
@@ -85,12 +85,12 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
 
   const roomState: RoomState = {
     roomId,
-    gameId: roomParam.gameId || '不明なゲーム',
+    gameId: param.gameId || '不明なゲーム',
     createdAt: Date.now(),
-    maxPlayers: roomParam.maxPlayers,
+    maxPlayers: param.maxPlayers,
     currentTurnIndex: 0,
     currentRoundIndex: 0,
-    currentPhase: roomParam.initialPhase,
+    currentPhase: param.initialPhase,
     players: [],
     decks,
     drawnCards,
@@ -107,7 +107,7 @@ function initializeRoom(roomId: RoomId, roomParam: RoomParam): RoomState {
 }
 
 export function initGameServer(io: Server, options: GameServerOptions) {
-  const gamePresets = options.gamePresets || {};
+  const gameParams = options.gameParams || {};
 
   if (options.initialLogCategories) {
     Object.assign(LOG_CATEGORIES, options.initialLogCategories);
@@ -115,7 +115,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
   }
 
   // --- プリセットごとの中身をスキャンしてログに出す ---
-  Object.entries(gamePresets).forEach(([gameId, preset]) => {
+  Object.entries(gameParams).forEach(([gameId, preset]) => {
     if (preset.cardEffects) {
       const keys = Object.keys(preset.cardEffects);
       console.log(`[log][${gameId}] cardEffects (${keys.length}件): [ ${keys.join(', ')} ]`);
@@ -227,10 +227,10 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     socket.on('room:join', async ({ roomId, playerName, gameId }: RoomJoinData) => {
       if (!roomId) return;
       let roomState = activeRooms.get(roomId);
-      const roomParam = gamePresets[gameId] || options;
+      const param = gameParams[gameId] || options;
 
       if (!roomState) {
-        roomState = initializeRoom(roomId, { ...roomParam, gameId: gameId });
+        roomState = initializeRoom(roomId, { ...param, gameId: gameId });
         Object.keys(roomState.decks).forEach((id) => shuffleDeck(roomId, id));
         io.emit('lobby:room-update');
       }
@@ -247,14 +247,14 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           socketId: socket.id,
           cards: [],
           score: 0,
-          resources: JSON.parse(JSON.stringify(roomParam.initialResources || [])),
-          tokens: JSON.parse(JSON.stringify(roomParam.initialTokens || [])),
+          resources: JSON.parse(JSON.stringify(param.initialResources || [])),
+          tokens: JSON.parse(JSON.stringify(param.initialTokens || [])),
           position: { row: 0, col: 0 },
         };
         roomState.players.push(player);
-        server_log('game', roomParam.gameId, roomId, `${player.name} (${player.id})が参加しました`);
+        server_log('game', param.gameId, roomId, `${player.name} (${player.id})が参加しました`);
 
-        const hand = roomParam.initialHand;
+        const hand = param.initialHand;
         if (hand && decks[hand.deckId]) {
           const target = decks[hand.deckId];
           for (let i = 0; i < hand.count; i++) {
@@ -270,7 +270,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           }
           server_log(
             'deck',
-            roomParam.gameId,
+            param.gameId,
             roomId,
             `デッキ "${hand.deckId}" から初期手札 ${hand.count}枚 を配布しました`,
           );
@@ -309,7 +309,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (player && roomState) {
         player.position = newPosition;
         const updated = markCellAsExplored(roomState, roomState.gameId, roomId, newPosition);
-        const preset = gamePresets[roomState.gameId];
+        const preset = gameParams[roomState.gameId];
         roomManager.applyCellEffect(
           playerId,
           newPosition,
@@ -346,7 +346,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
 
-      const roomParam = gamePresets[roomState.gameId];
+      const param = gameParams[roomState.gameId];
       const roomManager = new RoomManager(roomState);
       const { decks } = roomState;
       // デッキにあるカードのみをフィルタリング
@@ -400,7 +400,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       );
 
       // カスタムフック処理
-      const onDeckDraw = roomParam?.onDeckDraw;
+      const onDeckDraw = param?.onDeckDraw;
       if (onDeckDraw) {
         onDeckDraw(roomState, roomManager, data);
       }
@@ -498,7 +498,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
 
-      const roomParam = gamePresets[roomState.gameId];
+      const param = gameParams[roomState.gameId];
       const roomManager = new RoomManager(roomState);
       const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 
@@ -529,7 +529,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         server_log('card', roomState.gameId, roomId, `"${card.name}" をプレイした`);
 
         // カード効果
-        const effect = roomParam?.cardEffects?.[card.name];
+        const effect = param?.cardEffects?.[card.name];
         if (effect) {
           server_log('card', roomState.gameId, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
           effect({
@@ -543,7 +543,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       });
 
       // カスタムフック処理
-      const onCardPlay = roomParam?.onCardPlay;
+      const onCardPlay = param?.onCardPlay;
       if (onCardPlay) {
         onCardPlay(roomState, roomManager, data);
       }
@@ -640,14 +640,13 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
 
-      const roomParam = gamePresets[roomState.gameId];
+      const param = gameParams[roomState.gameId];
 
       if (roomState.players.length === 0) return;
 
       // カスタムフック処理
-      if (typeof roomParam.checkGameEnd === 'function' && roomParam.checkGameEnd(roomState)) {
-        const results =
-          typeof roomParam.onGameEnd === 'function' ? roomParam.onGameEnd(roomState) : { message: 'Game Over' };
+      if (typeof param.checkGameEnd === 'function' && param.checkGameEnd(roomState)) {
+        const results = typeof param.onGameEnd === 'function' ? param.onGameEnd(roomState) : { message: 'Game Over' };
         io.to(roomId).emit('game:end', results);
         return;
       }
@@ -657,7 +656,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (nextIndex === 0) {
         roomState.currentRoundIndex += 1;
         // カスタムフック処理
-        const onNextRound = roomParam?.onNextRound;
+        const onNextRound = param?.onNextRound;
         if (onNextRound) {
           const roomManager = new RoomManager(roomState);
           onNextRound(roomState, roomManager);

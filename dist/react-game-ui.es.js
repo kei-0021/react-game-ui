@@ -2365,16 +2365,16 @@ let LOG_CATEGORIES = {
 };
 const ANSI_RED = "\x1B[31m";
 const ANSI_RESET = "\x1B[0m";
-function server_log(tag, gamePresetId, roomId, firstArg, ...args) {
+function server_log(tag, gameId, roomId, firstArg, ...args) {
   if (!LOG_CATEGORIES[tag]) {
     throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
   }
   const fullArgs = [firstArg, ...args];
   if (tag === "warn") {
-    const header = `[${tag}] [${gamePresetId} (${roomId})]`;
+    const header = `[${tag}] [${gameId} (${roomId})]`;
     console.warn(ANSI_RED + header + ANSI_RESET, ...fullArgs.map((arg) => ANSI_RED + String(arg) + ANSI_RESET));
   } else {
-    console.log(`[${tag}] [${gamePresetId} (${roomId})]`, ...fullArgs);
+    console.log(`[${tag}] [${gameId} (${roomId})]`, ...fullArgs);
   }
 }
 class RoomManager {

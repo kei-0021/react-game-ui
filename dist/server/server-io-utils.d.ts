@@ -1,5 +1,5 @@
 import { GameId } from '@/types/definition.js';
-import { RoomParam } from '@/types/server.js';
+import { GameParam } from '@/types/server.js';
 import { Card } from '../types/card.js';
 import { Resource } from '../types/resource.js';
 export declare const Validators: {
@@ -14,7 +14,7 @@ export declare function loadJsonAssert<T>(relativePath: string, validator: (data
 export type RoomConfig = {
     gameId: GameId;
     dataFiles: Record<string, any>;
-    setup: (loadedData: Record<string, any>) => Promise<RoomParam>;
+    setup: (loadedData: Record<string, any>) => Promise<GameParam>;
 };
 /**
  * プリセット準備の関数群

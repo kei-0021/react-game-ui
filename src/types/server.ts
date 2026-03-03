@@ -29,7 +29,7 @@ import { TokenStore } from './tokenStore.js';
  * @param checkGameEnd - 終了判定ロジック。
  * @param onGameEnd - リザルト生成ロジック。
  */
-export type RoomParam = {
+export type GameParam = {
   gameId: GameId;
   maxPlayers?: number;
   initialDecks: Deck[];
@@ -55,8 +55,8 @@ export type RoomParam = {
 };
 
 export interface RoomState {
-  roomId: RoomId;
   gameId: GameId;
+  roomId: RoomId;
   createdAt: number;
   maxPlayers?: number;
   currentRoundIndex: number;

@@ -13,7 +13,7 @@ export class GameServer {
     clientDistPath;
     corsOrigins;
     onServerStart;
-    gamePresets;
+    gameParams;
     customEvents;
     initialLogCategories;
     app;
@@ -26,7 +26,7 @@ export class GameServer {
         this.corsOrigins = options.corsOrigins || ['http://localhost:5173'];
         this.onServerStart = options.onServerStart;
         // プリセット情報を保持（必須項目として代入）
-        this.gamePresets = options.gamePresets;
+        this.gameParams = options.gameParams;
         // サーバー全体のデフォルト設定
         this.customEvents = options.customEvents || {};
         this.initialLogCategories = options.initialLogCategories || null;
@@ -73,7 +73,7 @@ export class GameServer {
     initSocketLogic() {
         try {
             initGameServer(this.io, {
-                gamePresets: this.gamePresets,
+                gameParams: this.gameParams,
                 customEvents: this.customEvents,
                 initialLogCategories: this.initialLogCategories,
             });

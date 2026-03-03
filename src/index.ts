@@ -30,7 +30,7 @@ export { type PieceData } from './types/piece.js';
 /* @ts-ignore */
 export { RoomManager } from './server/server-utils.js';
 /* @ts-ignore */
-export { type RoomParam, type RoomState } from './types/server.js';
+export { type GameParam, type RoomState } from './types/server.js';
 /* @ts-ignore */
 export { Phase } from './types/phase.js';
 /* @ts-ignore */

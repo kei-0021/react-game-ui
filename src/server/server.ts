@@ -1,5 +1,5 @@
 // src/server.ts
-import { RoomParam } from '@/types/server.js';
+import { GameParam } from '@/types/server.js';
 import express from 'express';
 import fs from 'fs';
 import { createServer, Server as HttpServer } from 'http';
@@ -21,7 +21,7 @@ export type GameServerOptions = {
   clientDistPath?: string;
   corsOrigins?: string[];
   onServerStart?: (url: string) => void;
-  gamePresets: Record<string, RoomParam>;
+  gameParams: Record<string, GameParam>;
   customEvents?: any;
   initialLogCategories?: Partial<Record<LogCategory, boolean>> | null;
 };
@@ -33,7 +33,7 @@ export class GameServer {
   private corsOrigins: string[];
   private onServerStart?: (url: string) => void;
 
-  private gamePresets: Record<string, RoomParam>;
+  private gameParams: Record<string, GameParam>;
   private customEvents: any;
   private initialLogCategories: Partial<Record<LogCategory, boolean>> | null;
 
@@ -49,7 +49,7 @@ export class GameServer {
     this.onServerStart = options.onServerStart;
 
     // プリセット情報を保持（必須項目として代入）
-    this.gamePresets = options.gamePresets;
+    this.gameParams = options.gameParams;
 
     // サーバー全体のデフォルト設定
     this.customEvents = options.customEvents || {};
@@ -100,7 +100,7 @@ export class GameServer {
   private initSocketLogic(): void {
     try {
       initGameServer(this.io, {
-        gamePresets: this.gamePresets,
+        gameParams: this.gameParams,
         customEvents: this.customEvents,
         initialLogCategories: this.initialLogCategories,
       });

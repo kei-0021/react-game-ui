@@ -1,4 +1,4 @@
-import { RoomParam } from '@/types/server.js';
+import { GameParam } from '@/types/server.js';
 import express from 'express';
 import { Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
@@ -12,7 +12,7 @@ export type GameServerOptions = {
     clientDistPath?: string;
     corsOrigins?: string[];
     onServerStart?: (url: string) => void;
-    gamePresets: Record<string, RoomParam>;
+    gameParams: Record<string, GameParam>;
     customEvents?: any;
     initialLogCategories?: Partial<Record<LogCategory, boolean>> | null;
 };
@@ -22,7 +22,7 @@ export declare class GameServer {
     private clientDistPath;
     private corsOrigins;
     private onServerStart?;
-    private gamePresets;
+    private gameParams;
     private customEvents;
     private initialLogCategories;
     app: express.Application;

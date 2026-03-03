@@ -1,6 +1,6 @@
 // src/server/deepAbyssConfig.ts
 
-import type { Card, Player, RoomParam, RoomState } from 'react-game-ui';
+import type { Card, GameParam, Player, RoomState } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
 import { RoomManager } from 'react-game-ui/server-utils';
 import { CardPlayData } from '../../src/types/socketData.js';
@@ -15,7 +15,7 @@ export const deepAbyssConfig: RoomConfig = {
     deepAbyssActionCards: './data/deepSeaActionCards.json',
     deepAbyssCells: './data/deepSeaCells.json',
   },
-  setup: async (loadedData: Record<string, any>): Promise<RoomParam> => {
+  setup: async (loadedData: Record<string, any>): Promise<GameParam> => {
     const helper = new SetupHelper();
 
     const defaults: Partial<Card> = {

@@ -1,7 +1,7 @@
 // src/server/server-io-utils.ts
 
 import { GameId } from '@/types/definition.js';
-import { RoomParam } from '@/types/server.js';
+import { GameParam } from '@/types/server.js';
 import fs from 'node:fs';
 import { Card } from '../types/card.js';
 import { Resource } from '../types/resource.js';
@@ -120,7 +120,7 @@ const chunkTo2D = <T>(array: T[], cols: number): T[][] => {
 export type RoomConfig = {
   gameId: GameId;
   dataFiles: Record<string, any>;
-  setup: (loadedData: Record<string, any>) => Promise<RoomParam>;
+  setup: (loadedData: Record<string, any>) => Promise<GameParam>;
 };
 
 /**

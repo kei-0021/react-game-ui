@@ -21,22 +21,22 @@ const ANSI_RESET = '\x1b[0m';
 /**
  * サーバーの実行ログを出力する
  * @param tag - ログのカテゴリ
- * @param gamePresetId - 対象のゲームプリセットID
+ * @param gameId - 対象のゲームプリセットID
  * @param roomId - 対象のルームID
  * @param firstArg - ログのメイン内容（1つ以上の引数が必須）
  * @param args - 追加のログ情報
  */
-export function server_log(tag, gamePresetId, roomId, firstArg, ...args) {
+export function server_log(tag, gameId, roomId, firstArg, ...args) {
     if (!LOG_CATEGORIES[tag]) {
         throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
     }
     const fullArgs = [firstArg, ...args];
     if (tag === 'warn') {
-        const header = `[${tag}] [${gamePresetId} (${roomId})]`;
+        const header = `[${tag}] [${gameId} (${roomId})]`;
         console.warn(ANSI_RED + header + ANSI_RESET, ...fullArgs.map((arg) => ANSI_RED + String(arg) + ANSI_RESET));
     }
     else {
-        console.log(`[${tag}] [${gamePresetId} (${roomId})]`, ...fullArgs);
+        console.log(`[${tag}] [${gameId} (${roomId})]`, ...fullArgs);
     }
 }
 export const isExplored = (roomState, position) => {
