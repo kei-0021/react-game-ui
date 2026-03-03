@@ -1,4 +1,6 @@
 // src/server/server-utils.ts
+import { CardLocation } from '@/types/cardLocation.js';
+import { CardState } from '@/types/cardState.js';
 import { DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
@@ -188,7 +190,7 @@ export class RoomManager {
   /**
    * カードをデッキから引く（移動ロジックの外注先）
    */
-  drawCard(deckId: DeckId, condition: [string, string], playerId?: PlayerId): boolean {
+  drawCard(deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): boolean {
     const [targetLocation, targetState] = condition;
 
     // デッキから「deck」ロケーションにあるカードを抽出
