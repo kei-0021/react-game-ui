@@ -54,6 +54,24 @@ export type GameParam = {
   onGameEnd?: (state: RoomState) => any;
 };
 
+/**
+ * 実行中のゲームルームの動的な状態を管理する。
+ * @param gameId - 適用されているゲーム設定の識別ID。
+ * @param roomId - ルームを一意に識別するID。
+ * @param createdAt - ルームが作成されたタイムスタンプ。
+ * @param maxPlayers - このルームの最大参加人数。
+ * @param currentRoundIndex - 現在のラウンド数（0開始）。
+ * @param currentTurnIndex - 現在のターン数（0開始）。
+ * @param currentPhase - 現在の進行フェーズ。
+ * @param players - 参加しているプレイヤーのリスト。
+ * @param decks - 各デッキIDごとの残りカードリスト。
+ * @param drawnCards - プレイヤーが保持・引いたカード（キーは通常プレイヤーID）。
+ * @param playFieldCards - プレイフィールド上のカード（キーは "firework" 等の場所名）。
+ * @param discardPile - 捨て札置き場のカードリスト。
+ * @param board - ボード上の2次元グリッドデータ。
+ * @param exploredCells - すでに探索・公開されたセルの座標リスト。
+ * @param tokenStores - 共有トークンの現在のストック状況。
+ */
 export interface RoomState {
   gameId: GameId;
   roomId: RoomId;
