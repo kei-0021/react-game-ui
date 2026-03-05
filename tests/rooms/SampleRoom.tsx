@@ -49,6 +49,11 @@ export function SampleRoom() {
   useEffect(() => {
     if (!socket || !roomId) return;
 
+    // 同期ハンドシェイクのトリガー
+    const onReadyToSync = () => {
+      socket.emit('room:ready', roomId);
+    };
+
     const handleAssignId = (id: string) => {
       setMyPlayerId(id);
       setHasJoined(true);
@@ -66,11 +71,13 @@ export function SampleRoom() {
       }
     };
 
+    socket.on('client:ready-to-sync', onReadyToSync);
     socket.on('player:assign-id', handleAssignId);
     socket.on('players:update', handlePlayersUpdate);
     socket.on('game:turn', handleGameTurn);
 
     return () => {
+      socket.off('client:ready-to-sync', onReadyToSync);
       socket.off('player:assign-id', handleAssignId);
       socket.off('players:update', handlePlayersUpdate);
       socket.off('game:turn', handleGameTurn);

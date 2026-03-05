@@ -165,9 +165,7 @@ export function initGameServer(io, options) {
                 Object.keys(state.decks).forEach((id) => shuffleDeck(roomId, id));
                 io.emit('lobby:room-update');
             }
-            const roomManager = new RoomManager(io, param, state);
             await socket.join(roomId);
-            const { decks } = state;
             let player = state.players.find((p) => p.socketId === socket.id);
             // プレイヤークラスの初期化
             if (!player) {
@@ -184,9 +182,10 @@ export function initGameServer(io, options) {
                 };
                 state.players.push(player);
                 server_log('game', param.gameId, roomId, `${player.name} (${player.id})が参加しました`);
+                // 初期手札配布処理
                 const hand = param.initialHand;
-                if (hand && decks[hand.deckId]) {
-                    const target = decks[hand.deckId];
+                if (hand && state.decks[hand.deckId]) {
+                    const target = state.decks[hand.deckId];
                     for (let i = 0; i < hand.count; i++) {
                         const idx = target.findIndex((c) => c.location === 'deck');
                         if (idx === -1)
@@ -197,18 +196,6 @@ export function initGameServer(io, options) {
                         card.isFaceUp = card.drawCondition[1] === 'face' ? true : false;
                         player.cards.push(card);
                     }
-                    server_log('deck', param.gameId, roomId, `デッキ "${hand.deckId}" から初期手札 ${hand.count}枚 を配布しました`);
-                }
-                // 過去のシステムメッセージ履歴を送信
-                // 待機用関数を定義せず、Promiseを直接使用してループさせる
-                let retries = 50;
-                while (!state.systemMessageHistory.at(-1) && retries > 0) {
-                    await new Promise((resolve) => setTimeout(resolve, 100));
-                    retries--;
-                }
-                const lastMessage = state.systemMessageHistory.at(-1);
-                if (lastMessage) {
-                    roomManager.emitSystemMessage(lastMessage, true);
                 }
             }
             else {
@@ -216,9 +203,23 @@ export function initGameServer(io, options) {
             }
             // 各種コンポーネントの準備
             socket.emit('player:assign-id', player.id);
+            // ここで準備完了を促す
+            socket.emit('client:ready-to-sync', player.id);
+        });
+        // 準備完了を受けた同期処理
+        socket.on('room:ready', (roomId) => {
+            const state = activeRooms.get(roomId);
+            if (!state)
+                return;
+            const param = gameParams[state.gameId];
+            const roomManager = new RoomManager(io, param, state);
+            // 全ての初期同期をここで実行
+            const lastMessage = state.systemMessageHistory.at(-1);
+            if (lastMessage)
+                roomManager.emitSystemMessage(lastMessage, true);
             Object.values(state.board).forEach((board) => socket.emit('game:init-board', board));
             roomManager.emitPlayerUpdate();
-            Object.keys(decks).forEach((id) => roomManager.emitDeckUpdate(id));
+            Object.keys(state.decks).forEach((id) => roomManager.emitDeckUpdate(id));
             if (state.exploredCells.length > 0)
                 socket.emit('board-update', state.exploredCells);
             // 初回の一人のみターンを更新する
