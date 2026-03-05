@@ -265,7 +265,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     });
 
     // 準備完了を受けた同期処理
-    socket.on('room:ready', (roomId) => {
+    socket.on('client:ready', (roomId) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];

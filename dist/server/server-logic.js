@@ -207,7 +207,7 @@ export function initGameServer(io, options) {
             socket.emit('client:ready-to-sync', player.id);
         });
         // 準備完了を受けた同期処理
-        socket.on('room:ready', (roomId) => {
+        socket.on('client:ready', (roomId) => {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;
