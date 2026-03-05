@@ -2037,13 +2037,15 @@ const PlayerListItem = React.memo(
 );
 function ScoreBoard({
   socket,
+  roomId,
   players,
   currentPlayerId,
   myPlayerId,
-  roomId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
-  roundSkip = false,
+  revealButton = false,
+  turnSkipButton = false,
+  roundSkipbutton = false,
   isDebug = false
 }) {
   const displayedPlayers = React.useMemo(() => {
@@ -2129,9 +2131,9 @@ function ScoreBoard({
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: playSelectedCards, disabled: isActionDisabled, children: "選択カードを出す" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, disabled: isActionDisabled, children: "選択カードを公開する" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" }),
-        roundSkip && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextRound, children: "ラウンドをスキップ" })
+        revealButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, disabled: isActionDisabled, children: "選択カードを公開する" }),
+        turnSkipButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" }),
+        roundSkipbutton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextRound, children: "ラウンドをスキップ" })
       ] })
     ] })
   ] });

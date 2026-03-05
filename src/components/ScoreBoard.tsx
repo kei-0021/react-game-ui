@@ -173,34 +173,40 @@ const PlayerListItem = React.memo(
  * スコアボードコンポーネント
  * プレイヤーの一覧、現在のターン、各プレイヤーのスコアやトークン数を表示する
  * @param {Socket} socket - Socket.ioのインスタンス
+ * @param {string} roomId - 現在のルームID
  * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
  * @param {string | null} currentPlayerId - 現在の手番のプレイヤーID
  * @param {string | null} myPlayerId - ローカルプレイヤーのID
- * @param {string} roomId - 現在のルームID
  * @param {number} playCardLimit - 1ターンにプレイ可能なカードの上限枚数
  * @param {boolean} autoNextTurnOnCardPlay=false - カードプレイ時に自動でターンを終了するかどうか
- * @param {boolean} roundSkip=false - ラウンドスキップボタンの表示・非表示
+ * @param {boolean} revealButton=false - カード公開ボタンの表示・非表示
+ * @param {boolean} turnSkipButton=false - ターンスキップボタンの表示・非表示
+ * @param {boolean} roundSkipButton=false - ラウンドスキップボタンの表示・非表示
  * @param {booleam} isDebug=false - スコアを手動で増減できるようにするかどうか (デバッグ用)
  */
 export function ScoreBoard({
   socket,
+  roomId,
   players,
   currentPlayerId,
   myPlayerId,
-  roomId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
-  roundSkip = false,
+  revealButton = false,
+  turnSkipButton = false,
+  roundSkipbutton = false,
   isDebug = false,
 }: {
   socket: Socket;
+  roomId: RoomId;
   players: Player[];
   currentPlayerId?: PlayerId | null;
   myPlayerId: PlayerId | null;
-  roomId: RoomId;
   playCardLimit?: number;
   autoNextTurnOnCardPlay?: boolean;
-  roundSkip?: boolean;
+  revealButton?: boolean;
+  turnSkipButton?: boolean;
+  roundSkipbutton?: boolean;
   isDebug?: boolean;
 }) {
   const displayedPlayers: Player[] = React.useMemo(() => {
@@ -306,11 +312,13 @@ export function ScoreBoard({
           <button onClick={playSelectedCards} disabled={isActionDisabled}>
             選択カードを出す
           </button>
-          <button onClick={revealSelectedCards} disabled={isActionDisabled}>
-            選択カードを公開する
-          </button>
-          <button onClick={nextTurn}>ターンをスキップ</button>
-          {roundSkip && <button onClick={nextRound}>ラウンドをスキップ</button>}
+          {revealButton && (
+            <button onClick={revealSelectedCards} disabled={isActionDisabled}>
+              選択カードを公開する
+            </button>
+          )}
+          {turnSkipButton && <button onClick={nextTurn}>ターンをスキップ</button>}
+          {roundSkipbutton && <button onClick={nextRound}>ラウンドをスキップ</button>}
         </div>
       </div>
     </div>

@@ -274,6 +274,8 @@ export function DeepAbyssRoom() {
             myPlayerId={myPlayerId}
             playCardLimit={2}
             isDebug={true}
+            revealButton={true}
+            turnSkipButton={true}
           />
         </div>
       </div>

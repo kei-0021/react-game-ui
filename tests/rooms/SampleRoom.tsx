@@ -110,6 +110,7 @@ export function SampleRoom() {
         players={players}
         currentPlayerId={currentPlayerId}
         myPlayerId={myPlayerId}
+        turnSkipButton={true}
       />
 
       <div style={{ display: 'flex', gap: '16px' }}>
