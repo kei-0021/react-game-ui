@@ -77,9 +77,12 @@ export declare class RoomManager {
     acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): boolean;
     /**
      * ターンを更新する
-     * @param newPhase - 新しいフェーズ
      */
     updateTurn(): void;
+    /**
+     * ラウンドを更新する
+     */
+    updateRound(): void;
     /**
      * フェーズを更新する
      * @param newPhase - 新しいフェーズ
