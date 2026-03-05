@@ -1,7 +1,7 @@
 // src/components/ScoreBoard.tsx
 import { CardLocation } from '@/types/cardLocation.js';
 import { Player } from '@/types/player.js';
-import { CardPlayData, GameNextTrunData } from '@/types/socketData.js';
+import { CardPlayData, GameNextRoundData, GameNextTrunData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import { Card } from '../types/card.js';
@@ -179,6 +179,7 @@ const PlayerListItem = React.memo(
  * @param {string} roomId - 現在のルームID
  * @param {number} playCardLimit - 1ターンにプレイ可能なカードの上限枚数
  * @param {boolean} autoNextTurnOnCardPlay=false - カードプレイ時に自動でターンを終了するかどうか
+ * @param {boolean} roundSkip=false - ラウンドスキップボタンの表示・非表示
  * @param {booleam} isDebug=false - スコアを手動で増減できるようにするかどうか (デバッグ用)
  */
 export function ScoreBoard({
@@ -189,6 +190,7 @@ export function ScoreBoard({
   roomId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
+  roundSkip = false,
   isDebug = false,
 }: {
   socket: Socket;
@@ -198,6 +200,7 @@ export function ScoreBoard({
   roomId: RoomId;
   playCardLimit?: number;
   autoNextTurnOnCardPlay?: boolean;
+  roundSkip?: boolean;
   isDebug?: boolean;
 }) {
   const displayedPlayers: Player[] = React.useMemo(() => {
@@ -270,6 +273,7 @@ export function ScoreBoard({
   }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
 
   const nextTurn = () => socket.emit('game:next-turn', { roomId } as GameNextTrunData);
+  const nextRound = () => socket.emit('game:next-round', { roomId } as GameNextRoundData);
 
   const isOverLimit = playCardLimit !== undefined && selectedCards.length > playCardLimit;
   const isActionDisabled = selectedCards.length === 0 || isOverLimit;
@@ -306,6 +310,7 @@ export function ScoreBoard({
             選択カードを公開する
           </button>
           <button onClick={nextTurn}>ターンをスキップ</button>
+          {roundSkip && <button onClick={nextRound}>ラウンドをスキップ</button>}
         </div>
       </div>
     </div>

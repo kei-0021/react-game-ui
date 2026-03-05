@@ -2043,6 +2043,7 @@ function ScoreBoard({
   roomId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
+  roundSkip = false,
   isDebug = false
 }) {
   const displayedPlayers = React.useMemo(() => {
@@ -2101,6 +2102,7 @@ function ScoreBoard({
     setSelectedCards([]);
   }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
   const nextTurn = () => socket.emit("game:next-turn", { roomId });
+  const nextRound = () => socket.emit("game:next-round", { roomId });
   const isOverLimit = playCardLimit !== void 0 && selectedCards.length > playCardLimit;
   const isActionDisabled = selectedCards.length === 0 || isOverLimit;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.container, children: [
@@ -2128,7 +2130,8 @@ function ScoreBoard({
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: playSelectedCards, disabled: isActionDisabled, children: "選択カードを出す" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, disabled: isActionDisabled, children: "選択カードを公開する" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" }),
+        roundSkip && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextRound, children: "ラウンドをスキップ" })
       ] })
     ] })
   ] });
@@ -2684,12 +2687,13 @@ class RoomManager {
       onNextRound(this.state, this);
     }
     this.state.currentTurnIndex = nextIndex;
+    this.state.currentRoundIndex += 1;
     const currentPlayer = this.state.players[this.state.currentTurnIndex];
     server_log(
       "game",
       this.state.gameId,
       this.state.roomId,
-      `ターン更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`
+      `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`
     );
     this.io.to(this.state.roomId).emit("game:turn", {
       currentPlayerId: currentPlayer?.id,

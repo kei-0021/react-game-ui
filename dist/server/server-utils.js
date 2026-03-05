@@ -375,8 +375,9 @@ export class RoomManager {
             onNextRound(this.state, this);
         }
         this.state.currentTurnIndex = nextIndex;
+        this.state.currentRoundIndex += 1;
         const currentPlayer = this.state.players[this.state.currentTurnIndex];
-        server_log('game', this.state.gameId, this.state.roomId, `ターン更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`);
+        server_log('game', this.state.gameId, this.state.roomId, `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`);
         this.io.to(this.state.roomId).emit('game:turn', {
             currentPlayerId: currentPlayer?.id,
             currentRoundIndex: this.state.currentRoundIndex,

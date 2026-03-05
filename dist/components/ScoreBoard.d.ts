@@ -11,9 +11,10 @@ import { PlayerId, RoomId } from '../types/definition.js';
  * @param {string} roomId - 現在のルームID
  * @param {number} playCardLimit - 1ターンにプレイ可能なカードの上限枚数
  * @param {boolean} autoNextTurnOnCardPlay=false - カードプレイ時に自動でターンを終了するかどうか
+ * @param {boolean} roundSkip=false - ラウンドスキップボタンの表示・非表示
  * @param {booleam} isDebug=false - スコアを手動で増減できるようにするかどうか (デバッグ用)
  */
-export declare function ScoreBoard({ socket, players, currentPlayerId, myPlayerId, roomId, playCardLimit, autoNextTurnOnCardPlay, isDebug, }: {
+export declare function ScoreBoard({ socket, players, currentPlayerId, myPlayerId, roomId, playCardLimit, autoNextTurnOnCardPlay, roundSkip, isDebug, }: {
     socket: Socket;
     players: Player[];
     currentPlayerId?: PlayerId | null;
@@ -21,6 +22,7 @@ export declare function ScoreBoard({ socket, players, currentPlayerId, myPlayerI
     roomId: RoomId;
     playCardLimit?: number;
     autoNextTurnOnCardPlay?: boolean;
+    roundSkip?: boolean;
     isDebug?: boolean;
 }): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=ScoreBoard.d.ts.map
