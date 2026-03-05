@@ -68,6 +68,7 @@ export type GameParam = {
  * @param board - ボード上の2次元グリッドデータ。
  * @param exploredCells - すでに探索・公開されたセルの座標リスト。
  * @param tokenStores - 共有トークンの現在のストック状況。
+ * @param systemMessageHistory - 過去のシステムメッセージの履歴。
  */
 export interface RoomState {
     gameId: GameId;
@@ -85,6 +86,7 @@ export interface RoomState {
     board: Record<BoardId, any[][]>;
     exploredCells: Position[];
     tokenStores?: Record<TokenId, TokenStore>;
+    systemMessageHistory: string[];
 }
 export { GameId };
 //# sourceMappingURL=server.d.ts.map

@@ -99,12 +99,13 @@ export const deepAbyssConfig: RoomConfig = {
         manager.emitSystemMessage(`${cardNames} を出した！`, true);
         manager.updatePhase(DeepAbyssPhase.NEXT);
       },
-      onNextRound: (_state: RoomState, manager: RoomManager) => {
+      onNextRound: (state: RoomState, manager: RoomManager) => {
         manager.updatePhase(DeepAbyssPhase.NEXT);
+        manager.emitSystemMessage(`第 ${state.currentRoundIndex + 1} ラウンド開始！`, true);
       },
       checkGameEnd: (state: RoomState) =>
         // 終了条件: 5ラウンド終了 (5ラウンド目の最後 かつ 最後のプレイヤーの手番時)
-        state.currentRoundIndex >= 4 && state.currentTurnIndex == state.players.length - 1,
+        state.currentRoundIndex >= 4 && state.currentTurnIndex % state.players.length == state.players.length - 1,
       onGameEnd: (state: RoomState) => {
         const rankings = [...state.players]
           .sort((a, b) => b.score - a.score)

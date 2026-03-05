@@ -139,6 +139,11 @@ export class RoomManager {
         this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
     };
     emitSystemMessage = (message, isPersistent = false) => {
+        // 重複チェック: 履歴内に同じメッセージが存在すれば追加しない
+        if (!this.state.systemMessageHistory.includes(message)) {
+            // 最新10件に制限しつつ追加
+            this.state.systemMessageHistory = [...this.state.systemMessageHistory.slice(-9), message];
+        }
         this.io.to(this.state.roomId).emit('system:message', { message, isPersistent });
     };
     /**
@@ -335,17 +340,18 @@ export class RoomManager {
             return;
         }
         // ターンが一周した場合は次のラウンドへ移行する
-        const nextIndex = (this.state.currentTurnIndex + 1) % this.state.players.length;
-        if (nextIndex === 0) {
+        const nextIndex = this.state.currentTurnIndex + 1;
+        const isRoundEnd = nextIndex % this.state.players.length === 0;
+        // 初回（0ターン目）のラウンド移行を防ぎつつ、一周した時だけラウンドを進める
+        if (nextIndex > 0 && isRoundEnd) {
             this.state.currentRoundIndex += 1;
-            // カスタムフック処理
             const onNextRound = this.param?.onNextRound;
             if (onNextRound) {
                 onNextRound(this.state, this);
             }
         }
         this.state.currentTurnIndex = nextIndex;
-        const currentPlayer = this.state.players[this.state.currentTurnIndex];
+        const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
         server_log('game', this.state.gameId, this.state.roomId, `ターン更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`);
         this.io.to(this.state.roomId).emit('game:turn', {
             currentPlayerId: currentPlayer?.id,
@@ -368,15 +374,13 @@ export class RoomManager {
             return;
         }
         // 次のラウンドへ移行する
+        this.state.currentRoundIndex += 1;
+        const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
         // カスタムフック処理
-        const nextIndex = 0;
         const onNextRound = this.param?.onNextRound;
         if (onNextRound) {
             onNextRound(this.state, this);
         }
-        this.state.currentTurnIndex = nextIndex;
-        this.state.currentRoundIndex += 1;
-        const currentPlayer = this.state.players[this.state.currentTurnIndex];
         server_log('game', this.state.gameId, this.state.roomId, `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`);
         this.io.to(this.state.roomId).emit('game:turn', {
             currentPlayerId: currentPlayer?.id,

@@ -2448,6 +2448,9 @@ class RoomManager {
     this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
   };
   emitSystemMessage = (message, isPersistent = false) => {
+    if (!this.state.systemMessageHistory.includes(message)) {
+      this.state.systemMessageHistory = [...this.state.systemMessageHistory.slice(-9), message];
+    }
     this.io.to(this.state.roomId).emit("system:message", { message, isPersistent });
   };
   /**
@@ -2649,8 +2652,9 @@ class RoomManager {
       this.io.to(this.state.roomId).emit("game:end", results);
       return;
     }
-    const nextIndex = (this.state.currentTurnIndex + 1) % this.state.players.length;
-    if (nextIndex === 0) {
+    const nextIndex = this.state.currentTurnIndex + 1;
+    const isRoundEnd = nextIndex % this.state.players.length === 0;
+    if (nextIndex > 0 && isRoundEnd) {
       this.state.currentRoundIndex += 1;
       const onNextRound = this.param?.onNextRound;
       if (onNextRound) {
@@ -2658,7 +2662,7 @@ class RoomManager {
       }
     }
     this.state.currentTurnIndex = nextIndex;
-    const currentPlayer = this.state.players[this.state.currentTurnIndex];
+    const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
     server_log(
       "game",
       this.state.gameId,
@@ -2683,14 +2687,12 @@ class RoomManager {
       this.io.to(this.state.roomId).emit("game:end", results);
       return;
     }
-    const nextIndex = 0;
+    this.state.currentRoundIndex += 1;
+    const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
     const onNextRound = this.param?.onNextRound;
     if (onNextRound) {
       onNextRound(this.state, this);
     }
-    this.state.currentTurnIndex = nextIndex;
-    this.state.currentRoundIndex += 1;
-    const currentPlayer = this.state.players[this.state.currentTurnIndex];
     server_log(
       "game",
       this.state.gameId,
