@@ -18,6 +18,7 @@ import {
   DeckDrawData,
   DeckUpdateData,
   DraggableMovedData,
+  GameNextRoundData,
   GameNextTrunData,
   GameTurnUpdateData,
   RoomJoinData,
@@ -292,17 +293,18 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     socket.on('game:move-player', ({ roomId, playerId, newPosition }) => {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
+      const param = gameParams[roomState.gameId];
 
-      const roomManager = new RoomManager(io, roomState);
+      const roomManager = new RoomManager(io, param, roomState);
       const player = roomState?.players.find((p) => p.id === playerId);
       if (player && roomState) {
         player.position = newPosition;
         const updated = markCellAsExplored(roomState, roomState.gameId, roomId, newPosition);
-        const preset = gameParams[roomState.gameId];
+
         roomManager.applyCellEffect(
           playerId,
           newPosition,
-          preset?.cellEffects,
+          param?.cellEffects,
           (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt),
           (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt),
           ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }),
@@ -332,9 +334,8 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const roomState = activeRooms.get(roomId);
 
       if (!roomState || playerId === null) return;
-
-      const roomManager = new RoomManager(io, roomState);
       const param = gameParams[roomState.gameId];
+      const roomManager = new RoomManager(io, param, roomState);
 
       const success = roomManager.drawCard(deckId, drawCondition, playerId);
       if (!success) return;
@@ -373,8 +374,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const { roomId, deckId, cardId, playerId } = data;
       const roomState = activeRooms.get(roomId);
       if (!roomState || !playerId) return;
+      const param = gameParams[roomState.gameId];
 
-      const roomManager = new RoomManager(io, roomState);
+      const roomManager = new RoomManager(io, param, roomState);
 
       const success = roomManager.moveFromField(deckId, cardId, playerId);
       if (!success) return;
@@ -397,7 +399,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (!roomState) return;
 
       const param = gameParams[roomState.gameId];
-      const roomManager = new RoomManager(io, roomState);
+      const roomManager = new RoomManager(io, param, roomState);
       const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 
       ids.forEach((id) => {
@@ -476,10 +478,10 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     socket.on('game:acquire-token', ({ roomId, tokenStoreId, tokenId }) => {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
+      const param = gameParams[roomState.gameId];
 
+      const roomManager = new RoomManager(io, param, roomState);
       const player = roomState?.players.find((p) => p.socketId === socket.id);
-      const roomManager = new RoomManager(io, roomState);
-
       if (roomState && player && roomManager.acquireToken(tokenStoreId, tokenId, player.id)) {
         const store = roomManager.getTokenStore(tokenStoreId);
         if (!store) return;
@@ -530,52 +532,26 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     socket.on('game:next-turn', ({ roomId }: GameNextTrunData) => {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
-
       const param = gameParams[roomState.gameId];
+      const roomManager = new RoomManager(io, param, roomState);
+      roomManager.updateTurn();
+    });
 
-      if (roomState.players.length === 0) return;
-
-      // カスタムフック処理
-      if (typeof param.checkGameEnd === 'function' && param.checkGameEnd(roomState)) {
-        const results = typeof param.onGameEnd === 'function' ? param.onGameEnd(roomState) : { message: 'Game Over' };
-        io.to(roomId).emit('game:end', results);
-        return;
-      }
-
-      // ターンが一周した場合は次のラウンドへ移行する
-      const nextIndex = (roomState.currentTurnIndex + 1) % roomState.players.length;
-      if (nextIndex === 0) {
-        roomState.currentRoundIndex += 1;
-        // カスタムフック処理
-        const onNextRound = param?.onNextRound;
-        if (onNextRound) {
-          const roomManager = new RoomManager(io, roomState);
-          onNextRound(roomState, roomManager);
-        }
-      }
-
-      roomState.currentTurnIndex = nextIndex;
-      const currentPlayer = roomState.players[roomState.currentTurnIndex];
-
-      server_log(
-        'game',
-        roomState.gameId,
-        roomId,
-        `ターン更新 (Player: ${roomState.players[roomState.currentTurnIndex]?.name}, RoundIndex: ${roomState.currentRoundIndex})`,
-      );
-      io.to(roomId).emit('game:turn', {
-        currentPlayerId: currentPlayer?.id,
-        currentRoundIndex: roomState.currentRoundIndex,
-        currentTurnIndex: roomState.currentTurnIndex,
-      } as GameTurnUpdateData);
+    // 次のラウンド
+    socket.on('game:next-round', ({ roomId }: GameNextRoundData) => {
+      const roomState = activeRooms.get(roomId);
+      if (!roomState) return;
+      const param = gameParams[roomState.gameId];
+      const roomManager = new RoomManager(io, param, roomState);
+      roomManager.updateRound();
     });
 
     // スコア加算
     socket.on('room:player:add-score', ({ roomId, targetPlayerId, points }) => {
       const roomState = activeRooms.get(roomId);
       if (!roomState) return;
-
-      const roomManager = new RoomManager(io, roomState);
+      const param = gameParams[roomState.gameId];
+      const roomManager = new RoomManager(io, param, roomState);
       roomManager.addScore(targetPlayerId, points);
     });
 

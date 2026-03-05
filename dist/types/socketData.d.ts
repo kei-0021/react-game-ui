@@ -65,6 +65,9 @@ export type GamePhaseUpdateData = {
 export type GameNextTrunData = {
     roomId: RoomId;
 };
+export type GameNextRoundData = {
+    roomId: RoomId;
+};
 export type GameTurnUpdateData = {
     currentPlayerId: PlayerId;
     currentRoundIndex: number;

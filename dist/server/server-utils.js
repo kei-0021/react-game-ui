@@ -113,9 +113,11 @@ export const generateColorFromId = (id) => {
  */
 export class RoomManager {
     io;
+    param;
     state;
-    constructor(io, state) {
+    constructor(io, param, state) {
         this.io = io;
+        this.param = param;
         this.state = state;
     }
     /**
@@ -317,6 +319,40 @@ export class RoomManager {
             }
         }
         return false;
+    }
+    /**
+     * ターンを更新する
+     * @param newPhase - 新しいフェーズ
+     */
+    updateTurn() {
+        if (this.state.players.length === 0)
+            return;
+        // カスタムフック処理
+        const checkGameEnd = this.param?.checkGameEnd;
+        const onGameEnd = this.param?.onGameEnd;
+        if (checkGameEnd && checkGameEnd(this.state) && onGameEnd) {
+            const results = onGameEnd(this.state);
+            this.io.to(this.state.roomId).emit('game:end', results);
+            return;
+        }
+        // ターンが一周した場合は次のラウンドへ移行する
+        const nextIndex = (this.state.currentTurnIndex + 1) % this.state.players.length;
+        if (nextIndex === 0) {
+            this.state.currentRoundIndex += 1;
+            // カスタムフック処理
+            const onNextRound = this.param?.onNextRound;
+            if (onNextRound) {
+                onNextRound(this.state, this);
+            }
+        }
+        this.state.currentTurnIndex = nextIndex;
+        const currentPlayer = this.state.players[this.state.currentTurnIndex];
+        server_log('game', this.state.gameId, this.state.roomId, `ターン更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`);
+        this.io.to(this.state.roomId).emit('game:turn', {
+            currentPlayerId: currentPlayer?.id,
+            currentRoundIndex: this.state.currentRoundIndex,
+            currentTurnIndex: this.state.currentTurnIndex,
+        });
     }
     /**
      * フェーズを更新する

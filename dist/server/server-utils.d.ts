@@ -3,7 +3,7 @@ import { CardState } from '@/types/cardState.js';
 import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
-import { RoomState } from '@/types/server.js';
+import { GameParam, RoomState } from '@/types/server.js';
 import { TokenStore } from '@/types/tokenStore.js';
 import { Server } from 'socket.io';
 export type LogCategory = 'connection' | 'deck' | 'card' | 'cell' | 'game' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'room' | 'lobby' | 'disconnect' | 'warn' | 'popup' | 'custom_event';
@@ -27,8 +27,9 @@ export declare const generateColorFromId: (id: string) => string;
  */
 export declare class RoomManager {
     private io;
+    private param;
     private state;
-    constructor(io: Server, state: RoomState);
+    constructor(io: Server, param: GameParam, state: RoomState);
     /**
      * プレイヤー更新を更新する
      */
@@ -74,6 +75,11 @@ export declare class RoomManager {
      * @param playerId - プレイヤーID
      */
     acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): boolean;
+    /**
+     * ターンを更新する
+     * @param newPhase - 新しいフェーズ
+     */
+    updateTurn(): void;
     /**
      * フェーズを更新する
      * @param newPhase - 新しいフェーズ

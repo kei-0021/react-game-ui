@@ -4,8 +4,8 @@ import { CardState } from '@/types/cardState.js';
 import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
-import { RoomState } from '@/types/server.js';
-import { DeckUpdateData, GamePhaseUpdateData, SystemMessageData } from '@/types/socketData.js';
+import { GameParam, RoomState } from '@/types/server.js';
+import { DeckUpdateData, GamePhaseUpdateData, GameTurnUpdateData, SystemMessageData } from '@/types/socketData.js';
 import { TokenStore } from '@/types/tokenStore.js';
 import { Server } from 'socket.io';
 
@@ -164,6 +164,7 @@ export const generateColorFromId = (id: string): string => {
 export class RoomManager {
   constructor(
     private io: Server,
+    private param: GameParam,
     private state: RoomState,
   ) {}
 
@@ -424,6 +425,89 @@ export class RoomManager {
       }
     }
     return false;
+  }
+
+  /**
+   * ターンを更新する
+   */
+  updateTurn(): void {
+    if (this.state.players.length === 0) return;
+
+    // カスタムフック処理
+    const checkGameEnd = this.param?.checkGameEnd;
+    const onGameEnd = this.param?.onGameEnd;
+    if (checkGameEnd && checkGameEnd(this.state) && onGameEnd) {
+      const results = onGameEnd(this.state);
+      this.io.to(this.state.roomId).emit('game:end', results);
+      return;
+    }
+
+    // ターンが一周した場合は次のラウンドへ移行する
+    const nextIndex = (this.state.currentTurnIndex + 1) % this.state.players.length;
+    if (nextIndex === 0) {
+      this.state.currentRoundIndex += 1;
+      // カスタムフック処理
+      const onNextRound = this.param?.onNextRound;
+      if (onNextRound) {
+        onNextRound(this.state, this);
+      }
+    }
+
+    this.state.currentTurnIndex = nextIndex;
+    const currentPlayer = this.state.players[this.state.currentTurnIndex];
+
+    server_log(
+      'game',
+      this.state.gameId,
+      this.state.roomId,
+      `ターン更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`,
+    );
+
+    this.io.to(this.state.roomId).emit('game:turn', {
+      currentPlayerId: currentPlayer?.id,
+      currentRoundIndex: this.state.currentRoundIndex,
+      currentTurnIndex: this.state.currentTurnIndex,
+    } as GameTurnUpdateData);
+  }
+
+  /**
+   * ラウンドを更新する
+   */
+  updateRound(): void {
+    if (this.state.players.length === 0) return;
+
+    // カスタムフック処理
+    const checkGameEnd = this.param?.checkGameEnd;
+    const onGameEnd = this.param?.onGameEnd;
+    if (checkGameEnd && checkGameEnd(this.state) && onGameEnd) {
+      const results = onGameEnd(this.state);
+      this.io.to(this.state.roomId).emit('game:end', results);
+      return;
+    }
+
+    // 次のラウンドへ移行する
+    // カスタムフック処理
+    const nextIndex = 0;
+    const onNextRound = this.param?.onNextRound;
+    if (onNextRound) {
+      onNextRound(this.state, this);
+    }
+
+    this.state.currentTurnIndex = nextIndex;
+    const currentPlayer = this.state.players[this.state.currentTurnIndex];
+
+    server_log(
+      'game',
+      this.state.gameId,
+      this.state.roomId,
+      `ターン更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`,
+    );
+
+    this.io.to(this.state.roomId).emit('game:turn', {
+      currentPlayerId: currentPlayer?.id,
+      currentRoundIndex: this.state.currentRoundIndex,
+      currentTurnIndex: this.state.currentTurnIndex,
+    } as GameTurnUpdateData);
   }
 
   /**
