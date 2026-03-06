@@ -7,6 +7,7 @@ import { Phase } from './phase.js';
 import { Position } from './position.js';
 import { Resource } from './resource.js';
 import { CardPlayData, DeckDrawData } from './socketData.js';
+import { Token } from './token.js';
 import { TokenStore } from './tokenStore.js';
 /**
  * ゲームルーム作成時の初期設定パラメータ。
@@ -85,7 +86,7 @@ export interface RoomState {
     discardPile: Record<string, Card[]>;
     board: Record<BoardId, any[][]>;
     exploredCells: Position[];
-    tokenStores: Record<TokenId, TokenStore>;
+    tokenStores: Record<TokenId, Token[]>;
     systemMessageHistory: string[];
 }
 export { GameId };

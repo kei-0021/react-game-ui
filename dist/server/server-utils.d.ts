@@ -4,7 +4,6 @@ import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from 
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
-import { TokenStore } from '@/types/tokenStore.js';
 import { Server } from 'socket.io';
 export type LogCategory = 'connection' | 'deck' | 'card' | 'cell' | 'game' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'room' | 'lobby' | 'disconnect' | 'warn' | 'popup' | 'custom_event';
 export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
@@ -31,13 +30,17 @@ export declare class RoomManager {
     private state;
     constructor(io: Server, param: GameParam, state: RoomState);
     /**
-     * プレイヤー更新を更新する
+     * プレイヤー更新を通知する
      */
     emitPlayerUpdate: () => void;
     /**
      * デッキ更新を通知する
      */
     emitDeckUpdate: (deckId: DeckId) => void;
+    /**
+     * トークン置き場更新を通知する
+     */
+    emitTokenStoreUpdate: (tokenStoreId: TokenStoreId) => void;
     emitSystemMessage: (message: string, isPersistent?: boolean) => void;
     /**
      * カードをデッキから引く（移動ロジックの外注先）
@@ -64,17 +67,12 @@ export declare class RoomManager {
      */
     applyCellEffect: (playerId: PlayerId, position: Position, cellEffects: Record<string, (params: any) => void>, updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
     /**
-     * トークン置き場を取得する
-     * @param tokenStoreId - トークン置き場ID
-     */
-    getTokenStore(tokenStoreId: TokenStoreId): TokenStore | undefined;
-    /**
      * トークンを取得する
      * @param tokenStoreId - トークン置き場ID
      * @param tokenId - トークンID
      * @param playerId - プレイヤーID
      */
-    acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): boolean;
+    acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): false | undefined;
     /**
      * ターンを更新する
      */

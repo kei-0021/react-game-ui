@@ -1,13 +1,21 @@
 // src/types/token.ts
 
-import { TokenId } from "./definition.js";
+import { TokenId } from './definition.js';
 
-// トークンの基本データ構造
+/**
+ * トークンのデータ構造
+ * @property {TokenId} id - 一意な識別子
+ * @property {string} name - トークン名
+ * @property {string} [imageSrc] - トークンの画像URL（省略時は名前を表示）
+ * @property {string} [description] - トークンの説明文
+ * @property {number} count - 現在の保持数
+ * @property {string} [color] - UI表示用のカラーコード
+ */
 export type Token = {
   id: TokenId;
   name: string;
-  imageSrc: string; // トークン画像へのパス（例: '/assets/gold.png'）
+  imageSrc?: string;
   description?: string;
   count: number;
-  color?: string; // 背景色やボーダー色
+  color?: string;
 };

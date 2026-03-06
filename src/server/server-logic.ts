@@ -23,8 +23,8 @@ import {
   RoomJoinData,
   RoomMeta,
   TokenAcquireData,
-  TokenStoreUpdateData,
 } from '@/types/socketData.js';
+import { Token } from '@/types/token.js';
 import { TokenStore } from '@/types/tokenStore.js';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
@@ -61,7 +61,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   const playFieldCards: Record<DeckId, Card[]> = {};
   const discardPile: Record<DeckId, Card[]> = {};
 
-  const tokenStores: Record<string, TokenStore> = {};
+  const tokenStores: Record<string, Token[]> = {};
 
   initialDecks.forEach((deck: Deck) => {
     const cards: Card[] = (deck.cards || []).map((c, index) => ({
@@ -81,12 +81,16 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   });
 
   initialTokenStores.forEach((store: TokenStore) => {
-    tokenStores[store.tokenStoreId] = store;
+    const tokens: Token[] = (store.tokens || []).map((t, index) => ({
+      ...t,
+      tokenStoreId: store.tokenStoreId,
+    }));
+    tokenStores[store.tokenStoreId] = tokens;
     server_log('token', param.gameId, roomId, `トークン "${store}" を初期化完了`);
   });
 
   const state: RoomState = {
-    roomId,
+    roomId: roomId,
     gameId: param.gameId || '不明なゲーム',
     createdAt: Date.now(),
     maxPlayers: param.maxPlayers,
@@ -94,10 +98,10 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     currentRoundIndex: -1,
     currentPhase: param.initialPhase,
     players: [],
-    decks,
-    drawnCards,
-    playFieldCards,
-    discardPile,
+    decks: decks,
+    drawnCards: drawnCards,
+    playFieldCards: playFieldCards,
+    discardPile: discardPile,
     board: Cells,
     exploredCells: [],
     tokenStores: tokenStores,
@@ -278,11 +282,10 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const lastMessage = state.systemMessageHistory.at(-1);
       if (lastMessage) roomManager.emitSystemMessage(lastMessage, true);
 
+      // プレイヤー, デッキ, トークン置き場, ボード の初期状態を配信
       roomManager.emitPlayerUpdate();
       Object.keys(state.decks).forEach((id) => roomManager.emitDeckUpdate(id));
-      Object.values(state.tokenStores).forEach((tokenStore) =>
-        io.to(roomId).emit(`token-store:update`, { tokenStore: tokenStore.tokens } as TokenStoreUpdateData),
-      );
+      Object.keys(state.tokenStores).forEach((id) => roomManager.emitTokenStoreUpdate(id));
       if (state.exploredCells.length > 0) socket.emit('board-update', state.exploredCells);
       Object.values(state.board).forEach((board) => socket.emit('game:init-board', board));
 
@@ -505,12 +508,11 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
-
       const roomManager = new RoomManager(io, param, state);
+
       const player = state?.players.find((p) => p.socketId === socket.id);
-      if (state && player && roomManager.acquireToken(tokenStoreId, tokenId, player.id)) {
-        const store = roomManager.getTokenStore(tokenStoreId);
-        if (store) io.to(roomId).emit(`token-store:update`, { tokenStore: store.tokens } as TokenStoreUpdateData);
+      if (state && player) {
+        roomManager.acquireToken(tokenStoreId, tokenId, player.id);
         roomManager.emitPlayerUpdate();
       }
     });

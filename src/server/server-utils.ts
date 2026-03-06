@@ -5,8 +5,13 @@ import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from 
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
-import { DeckUpdateData, GamePhaseUpdateData, GameTurnUpdateData, SystemMessageData } from '@/types/socketData.js';
-import { TokenStore } from '@/types/tokenStore.js';
+import {
+  DeckUpdateData,
+  GamePhaseUpdateData,
+  GameTurnUpdateData,
+  SystemMessageData,
+  TokenStoreUpdateData,
+} from '@/types/socketData.js';
 import { Server } from 'socket.io';
 
 export type LogCategory =
@@ -169,7 +174,7 @@ export class RoomManager {
   ) {}
 
   /**
-   * プレイヤー更新を更新する
+   * プレイヤー更新を通知する
    */
   emitPlayerUpdate = () => {
     this.io.to(this.state.roomId).emit('players:update', this.state.players);
@@ -186,6 +191,14 @@ export class RoomManager {
       discardPile: this.state.discardPile[deckId],
     };
     this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
+  };
+
+  /**
+   * トークン置き場更新を通知する
+   */
+  emitTokenStoreUpdate = (tokenStoreId: TokenStoreId) => {
+    const updateData: TokenStoreUpdateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
+    this.io.to(this.state.roomId).emit(`token-store:update`, updateData);
   };
 
   emitSystemMessage = (message: string, isPersistent: boolean = false) => {
@@ -369,67 +382,31 @@ export class RoomManager {
   };
 
   /**
-   * トークン置き場を取得する
-   * @param tokenStoreId - トークン置き場ID
-   */
-  getTokenStore(tokenStoreId: TokenStoreId): TokenStore | undefined {
-    return this.state.tokenStores ? this.state.tokenStores[tokenStoreId] : undefined;
-  }
-
-  /**
    * トークンを取得する
    * @param tokenStoreId - トークン置き場ID
    * @param tokenId - トークンID
    * @param playerId - プレイヤーID
    */
-  acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): boolean {
+  acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId) {
     const player = this.state.players.find((p) => p.id === playerId);
     if (!player) return false;
-    if (tokenStoreId === 'scoreboard-acquisition') {
-      server_log(
-        'token',
-        this.state.gameId,
-        this.state.roomId,
-        `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`,
-      );
+    const tokens = this.state.tokenStores[tokenStoreId];
+
+    const index = tokens.findIndex((t) => t.id === tokenId);
+    if (index !== -1) {
+      const acquiredToken = tokens.splice(index, 1)[0];
       if (!Array.isArray(player.tokens)) {
         player.tokens = [];
       }
-      const token = {
-        id: tokenId,
-        name: `Token ${tokenId.slice(0, 4)}`,
-        backColor: '#333',
-        count: 1,
-        imageSrc: '',
-      };
-      player.tokens.push(token);
+      player.tokens.push(acquiredToken);
       server_log(
         'token',
         this.state.gameId,
         this.state.roomId,
-        `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`,
+        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
       );
-      return true;
+      this.emitTokenStoreUpdate(tokenStoreId);
     }
-    const store = this.getTokenStore(tokenStoreId);
-    if (store) {
-      const index = store.tokens.findIndex((t) => t.id === tokenId);
-      if (index !== -1) {
-        const acquiredToken = store.tokens.splice(index, 1)[0];
-        if (!Array.isArray(player.tokens)) {
-          player.tokens = [];
-        }
-        player.tokens.push(acquiredToken);
-        server_log(
-          'token',
-          this.state.gameId,
-          this.state.roomId,
-          `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
-        );
-        return true;
-      }
-    }
-    return false;
   }
 
   /**

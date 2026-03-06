@@ -43,11 +43,15 @@ function initializeRoom(roomId, param) {
         server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
     });
     initialTokenStores.forEach((store) => {
-        tokenStores[store.tokenStoreId] = store;
+        const tokens = (store.tokens || []).map((t, index) => ({
+            ...t,
+            tokenStoreId: store.tokenStoreId,
+        }));
+        tokenStores[store.tokenStoreId] = tokens;
         server_log('token', param.gameId, roomId, `トークン "${store}" を初期化完了`);
     });
     const state = {
-        roomId,
+        roomId: roomId,
         gameId: param.gameId || '不明なゲーム',
         createdAt: Date.now(),
         maxPlayers: param.maxPlayers,
@@ -55,10 +59,10 @@ function initializeRoom(roomId, param) {
         currentRoundIndex: -1,
         currentPhase: param.initialPhase,
         players: [],
-        decks,
-        drawnCards,
-        playFieldCards,
-        discardPile,
+        decks: decks,
+        drawnCards: drawnCards,
+        playFieldCards: playFieldCards,
+        discardPile: discardPile,
         board: Cells,
         exploredCells: [],
         tokenStores: tokenStores,
@@ -218,9 +222,10 @@ export function initGameServer(io, options) {
             const lastMessage = state.systemMessageHistory.at(-1);
             if (lastMessage)
                 roomManager.emitSystemMessage(lastMessage, true);
+            // プレイヤー, デッキ, トークン置き場, ボード の初期状態を配信
             roomManager.emitPlayerUpdate();
             Object.keys(state.decks).forEach((id) => roomManager.emitDeckUpdate(id));
-            Object.values(state.tokenStores).forEach((tokenStore) => io.to(roomId).emit(`token-store:update`, { tokenStore: tokenStore.tokens }));
+            Object.keys(state.tokenStores).forEach((id) => roomManager.emitTokenStoreUpdate(id));
             if (state.exploredCells.length > 0)
                 socket.emit('board-update', state.exploredCells);
             Object.values(state.board).forEach((board) => socket.emit('game:init-board', board));
@@ -420,10 +425,8 @@ export function initGameServer(io, options) {
             const param = gameParams[state.gameId];
             const roomManager = new RoomManager(io, param, state);
             const player = state?.players.find((p) => p.socketId === socket.id);
-            if (state && player && roomManager.acquireToken(tokenStoreId, tokenId, player.id)) {
-                const store = roomManager.getTokenStore(tokenStoreId);
-                if (store)
-                    io.to(roomId).emit(`token-store:update`, { tokenStore: store.tokens });
+            if (state && player) {
+                roomManager.acquireToken(tokenStoreId, tokenId, player.id);
                 roomManager.emitPlayerUpdate();
             }
         });
