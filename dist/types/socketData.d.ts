@@ -2,8 +2,9 @@ import { Card } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
-import { CardId, DeckId, DraggableId, GameId, PlayerId, RoomId } from './definition.js';
+import { CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
 import { Phase } from './phase.js';
+import { Token } from './token.js';
 export type RoomMeta = {
     id: RoomId;
     gameId: GameId;
@@ -41,6 +42,14 @@ export type CardMoveFromFieldData = {
     deckId: DeckId;
     cardId: string;
     playerId?: PlayerId | null;
+};
+export type TokenAcquireData = {
+    roomId: RoomId;
+    tokenStoreId: TokenStoreId;
+    tokenId: TokenId;
+};
+export type TokenStoreUpdateData = {
+    tokenStore: Token[];
 };
 export type DraggableMovedData = {
     roomId: RoomId;

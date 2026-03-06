@@ -6,7 +6,7 @@ import { Draggable } from '../../src/components/Draggable';
 import { PlayField } from '../../src/components/PlayField';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
 import { SystemMessageWindow } from '../../src/components/systemMessageWindow';
-import TokenStore from '../../src/components/TokenStore';
+import { TokenStore } from '../../src/components/TokenStore';
 import { useSocket } from '../../src/hooks/useSocket';
 import type { Player } from '../../src/types/player';
 import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';

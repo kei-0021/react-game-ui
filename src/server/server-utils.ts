@@ -424,7 +424,7 @@ export class RoomManager {
           'token',
           this.state.gameId,
           this.state.roomId,
-          `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
+          `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
         );
         return true;
       }

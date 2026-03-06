@@ -2278,40 +2278,42 @@ const TokenContent = React__default.memo(({ token }) => {
       }
     );
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    height: "100%",
-    width: "100%",
-    padding: "5px"
-  }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" }, children: token.name }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        width: "100%",
+        padding: "5px"
+      },
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" }, children: token.name })
+    }
+  );
 });
 function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }) {
   const [tokens, setTokens] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
-  const handleInitTokens = useCallback((initialTokens) => {
-    console.log(`TokenStore (${tokenStoreId}): 初期情報を受信しました。`, initialTokens);
-    setTokens(initialTokens && initialTokens.length > 0 ? initialTokens : []);
-  }, [tokenStoreId]);
-  const handleUpdateTokens = useCallback((updatedTokens) => {
-    console.log(`TokenStore (${tokenStoreId}): 更新情報を受信しました。`, updatedTokens);
-    setTokens(updatedTokens || []);
-  }, [tokenStoreId]);
+  const handleInitTokens = useCallback(
+    (initialTokens) => {
+      console.log(`TokenStore (${tokenStoreId}): 初期情報を受信しました。`, initialTokens);
+      setTokens(initialTokens && initialTokens.length > 0 ? initialTokens : []);
+    },
+    [tokenStoreId]
+  );
+  const handleUpdateTokens = useCallback(
+    (data) => {
+      setTokens(data.tokenStore || []);
+    },
+    [tokenStoreId]
+  );
   useEffect(() => {
-    if (!socket) {
-      console.warn("TokenStore: Socket connection is not available. UI remains empty.");
-      return;
-    }
-    const INIT_EVENT = `token-store:init:${roomId}:${tokenStoreId}`;
-    const UPDATE_EVENT = `token-store:update:${roomId}:${tokenStoreId}`;
-    socket.on(INIT_EVENT, handleInitTokens);
-    socket.on(UPDATE_EVENT, handleUpdateTokens);
-    console.log(`TokenStore (${tokenStoreId}): リスナーを登録しました。`);
+    if (!socket) return;
+    socket.on(`token-store:update`, handleUpdateTokens);
     return () => {
-      socket.off(INIT_EVENT, handleInitTokens);
-      socket.off(UPDATE_EVENT, handleUpdateTokens);
-      console.log(`TokenStore (${tokenStoreId}): リスナーを解除しました。`);
+      socket.off(`token-store:update`, handleUpdateTokens);
     };
   }, [socket, roomId, tokenStoreId, handleInitTokens, handleUpdateTokens]);
   const getTokenById = useMemo(
@@ -2327,15 +2329,12 @@ function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }) {
   const handleDoubleClick = (id) => {
     const token = getTokenById(id);
     if (!token) return;
-    const payload = {
+    const data = {
       roomId,
-      // ⭐ 追加
       tokenStoreId,
-      tokenId: id,
-      tokenName: token.name
+      tokenId: id
     };
-    console.log(`[TokenStore] ダブルクリック: トークン獲得イベント 'game:acquire-token' を送信`, payload);
-    socket.emit("game:acquire-token", payload);
+    socket.emit("token:aquire", data);
     setSelectedId(null);
   };
   const TOKEN_SIZE = "40px";
@@ -2633,7 +2632,7 @@ class RoomManager {
           "token",
           this.state.gameId,
           this.state.roomId,
-          `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`
+          `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`
         );
         return true;
       }

@@ -8,7 +8,7 @@ export { RemoteCursor } from './components/RemoteCursor.js';
 export { ScoreBoard } from './components/ScoreBoard.js';
 export { SystemMessageWindow } from './components/systemMessageWindow.js';
 export { default as Timer } from './components/Timer.js';
-export { default as TokenStore } from './components/TokenStore.js';
+export { TokenStore } from './components/TokenStore.js';
 export * from './types/card.js';
 export { type CardEffectParams } from './types/cardEffectParams.js';
 export * from './types/cardLocation.js';

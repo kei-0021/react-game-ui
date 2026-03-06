@@ -22,6 +22,8 @@ import {
   GameTurnUpdateData,
   RoomJoinData,
   RoomMeta,
+  TokenAcquireData,
+  TokenStoreUpdateData,
 } from '@/types/socketData.js';
 import { TokenStore } from '@/types/tokenStore.js';
 import type { Card } from '../types/card.js';
@@ -54,10 +56,10 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
   });
 
-  const decks: Record<string, Card[]> = {};
-  const drawnCards: Record<string, Card[]> = {};
-  const playFieldCards: Record<string, Card[]> = {};
-  const discardPile: Record<string, Card[]> = {};
+  const decks: Record<DeckId, Card[]> = {};
+  const drawnCards: Record<DeckId, Card[]> = {};
+  const playFieldCards: Record<DeckId, Card[]> = {};
+  const discardPile: Record<DeckId, Card[]> = {};
 
   const tokenStores: Record<string, TokenStore> = {};
 
@@ -80,6 +82,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
 
   initialTokenStores.forEach((store: TokenStore) => {
     tokenStores[store.tokenStoreId] = store;
+    server_log('token', param.gameId, roomId, `トークン "${store}" を初期化完了`);
   });
 
   const state: RoomState = {
@@ -275,10 +278,13 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const lastMessage = state.systemMessageHistory.at(-1);
       if (lastMessage) roomManager.emitSystemMessage(lastMessage, true);
 
-      Object.values(state.board).forEach((board) => socket.emit('game:init-board', board));
       roomManager.emitPlayerUpdate();
       Object.keys(state.decks).forEach((id) => roomManager.emitDeckUpdate(id));
+      Object.values(state.tokenStores).forEach((tokenStore) =>
+        io.to(roomId).emit(`token-store:update`, { tokenStore: tokenStore.tokens } as TokenStoreUpdateData),
+      );
       if (state.exploredCells.length > 0) socket.emit('board-update', state.exploredCells);
+      Object.values(state.board).forEach((board) => socket.emit('game:init-board', board));
 
       // 初回の一人のみターンを更新する
       if (state.players.length == 1) {
@@ -494,8 +500,8 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       }
     });
 
-    // トークン・ダイス
-    socket.on('game:acquire-token', ({ roomId, tokenStoreId, tokenId }) => {
+    // トークン
+    socket.on('token:aquire', ({ roomId, tokenStoreId, tokenId }: TokenAcquireData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
@@ -504,12 +510,12 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const player = state?.players.find((p) => p.socketId === socket.id);
       if (state && player && roomManager.acquireToken(tokenStoreId, tokenId, player.id)) {
         const store = roomManager.getTokenStore(tokenStoreId);
-        if (!store) return;
-        if (store) io.to(roomId).emit(`token-store:update:${roomId}:${tokenStoreId}`, store.tokens);
+        if (store) io.to(roomId).emit(`token-store:update`, { tokenStore: store.tokens } as TokenStoreUpdateData);
         roomManager.emitPlayerUpdate();
       }
     });
 
+    // ダイス
     socket.on('dice:roll', ({ roomId, diceId, sides }) => {
       const state = activeRooms.get(roomId);
       if (!state) return;

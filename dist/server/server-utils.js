@@ -319,7 +319,7 @@ export class RoomManager {
                     player.tokens = [];
                 }
                 player.tokens.push(acquiredToken);
-                server_log('token', this.state.gameId, this.state.roomId, `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`);
+                server_log('token', this.state.gameId, this.state.roomId, `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`);
                 return true;
             }
         }

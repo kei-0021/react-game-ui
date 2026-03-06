@@ -85,7 +85,7 @@ export interface RoomState {
     discardPile: Record<string, Card[]>;
     board: Record<BoardId, any[][]>;
     exploredCells: Position[];
-    tokenStores?: Record<TokenId, TokenStore>;
+    tokenStores: Record<TokenId, TokenStore>;
     systemMessageHistory: string[];
 }
 export { GameId };

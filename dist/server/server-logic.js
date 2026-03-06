@@ -44,6 +44,7 @@ function initializeRoom(roomId, param) {
     });
     initialTokenStores.forEach((store) => {
         tokenStores[store.tokenStoreId] = store;
+        server_log('token', param.gameId, roomId, `トークン "${store}" を初期化完了`);
     });
     const state = {
         roomId,
@@ -217,11 +218,12 @@ export function initGameServer(io, options) {
             const lastMessage = state.systemMessageHistory.at(-1);
             if (lastMessage)
                 roomManager.emitSystemMessage(lastMessage, true);
-            Object.values(state.board).forEach((board) => socket.emit('game:init-board', board));
             roomManager.emitPlayerUpdate();
             Object.keys(state.decks).forEach((id) => roomManager.emitDeckUpdate(id));
+            Object.values(state.tokenStores).forEach((tokenStore) => io.to(roomId).emit(`token-store:update`, { tokenStore: tokenStore.tokens }));
             if (state.exploredCells.length > 0)
                 socket.emit('board-update', state.exploredCells);
+            Object.values(state.board).forEach((board) => socket.emit('game:init-board', board));
             // 初回の一人のみターンを更新する
             if (state.players.length == 1) {
                 roomManager.updateRound();
@@ -410,8 +412,8 @@ export function initGameServer(io, options) {
                 roomManager.emitPlayerUpdate();
             }
         });
-        // トークン・ダイス
-        socket.on('game:acquire-token', ({ roomId, tokenStoreId, tokenId }) => {
+        // トークン
+        socket.on('token:aquire', ({ roomId, tokenStoreId, tokenId }) => {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;
@@ -420,13 +422,12 @@ export function initGameServer(io, options) {
             const player = state?.players.find((p) => p.socketId === socket.id);
             if (state && player && roomManager.acquireToken(tokenStoreId, tokenId, player.id)) {
                 const store = roomManager.getTokenStore(tokenStoreId);
-                if (!store)
-                    return;
                 if (store)
-                    io.to(roomId).emit(`token-store:update:${roomId}:${tokenStoreId}`, store.tokens);
+                    io.to(roomId).emit(`token-store:update`, { tokenStore: store.tokens });
                 roomManager.emitPlayerUpdate();
             }
         });
+        // ダイス
         socket.on('dice:roll', ({ roomId, diceId, sides }) => {
             const state = activeRooms.get(roomId);
             if (!state)
