@@ -1,21 +1,8 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
 import * as React from 'react';
 import { CardDisplayContent } from './Card.js';
 import scoreBoardStyles from './ScoreBoard.module.css';
-const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
-    const isMyToken = myPlayerId === playerIdBeingDisplayed;
-    if (!tokens || tokens.length === 0)
-        return null;
-    return (_jsx("div", { className: scoreBoardStyles.tokenList, children: tokens.map((token) => (_jsx("div", { className: `${scoreBoardStyles.tokenBadge} ${isMyToken ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`, onClick: () => {
-                if (!isMyToken)
-                    return;
-                socket.emit('token:reclaim', {
-                    roomId,
-                    playerId: myPlayerId,
-                    tokenId: token.id,
-                });
-            }, children: token.name }, token.id))) }));
-});
+import { TokenDisplayContent } from './Token.js';
 const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, selectedCards, toggleCardSelection, socket, roomId, isDebug, }) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = player.color || '#aaaaaa';
@@ -32,7 +19,13 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, select
         '--player-color-bg': playerColor.replace('hsl', 'hsla').replace(')', ', 0.3)'),
         '--player-color-glow': playerColor.replace('hsl', 'hsla').replace(')', ', 0.5)'),
     };
-    return (_jsxs("li", { className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ''}`, style: customStyles, children: [_jsxs("div", { className: scoreBoardStyles.playerHeader, children: [_jsxs("span", { className: scoreBoardStyles.playerName, children: [isActive && 'ᐅ ', isOwner && '★ ME ', player.name] }), _jsxs("div", { className: scoreBoardStyles.scoreArea, children: [_jsxs("span", { className: scoreBoardStyles.playerScore, children: ["\u30B9\u30B3\u30A2: ", player.score] }), isDebug && (_jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), className: scoreBoardStyles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), className: scoreBoardStyles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: scoreBoardStyles.resourceSection, children: _jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx(TokenDisplayContent, { tokens: player.tokens, socket: socket, roomId: roomId, myPlayerId: myPlayerId, playerIdBeingDisplayed: player.id }), _jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card) => {
+    return (_jsxs("li", { className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ''}`, style: customStyles, children: [_jsxs("div", { className: scoreBoardStyles.playerHeader, children: [_jsxs("span", { className: scoreBoardStyles.playerName, children: [isActive && 'ᐅ ', isOwner && '★ ME ', player.name] }), _jsxs("div", { className: scoreBoardStyles.scoreArea, children: [_jsxs("span", { className: scoreBoardStyles.playerScore, children: ["\u30B9\u30B3\u30A2: ", player.score] }), isDebug && (_jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), className: scoreBoardStyles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), className: scoreBoardStyles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: scoreBoardStyles.resourceSection, children: _jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx("div", { className: scoreBoardStyles.tokenList, children: player.tokens.map((token) => (_jsx("div", { className: `${scoreBoardStyles.tokenBadge} ${myPlayerId === player.id ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`, onClick: () => {
+                        socket.emit('token:reclaim', {
+                            roomId,
+                            playerId: myPlayerId,
+                            tokenId: token.id,
+                        });
+                    }, children: _jsx(TokenDisplayContent, { token: token }) }, token.id))) }), _jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card) => {
                     const isSelected = selectedCards.includes(card.id);
                     const canSeeFront = !!card.isFaceUp || isOwner;
                     return (_jsxs("div", { draggable: isOwner, onDragStart: (e) => {

@@ -1856,31 +1856,31 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const container = "_container_11zqk_1";
-const title$1 = "_title_11zqk_13";
-const playerList = "_playerList_11zqk_22";
-const playerItem = "_playerItem_11zqk_27";
-const activePlayer = "_activePlayer_11zqk_40";
-const playerHeader = "_playerHeader_11zqk_48";
-const playerName = "_playerName_11zqk_54";
-const playerScore = "_playerScore_11zqk_62";
-const resourceSection = "_resourceSection_11zqk_71";
-const resourceList = "_resourceList_11zqk_76";
-const resourceBadge = "_resourceBadge_11zqk_82";
-const tokenList = "_tokenList_11zqk_90";
-const tokenBadge = "_tokenBadge_11zqk_99";
-const tokenBadgeOwner = "_tokenBadgeOwner_11zqk_114";
-const tokenBadgeGuest = "_tokenBadgeGuest_11zqk_119";
-const cardList = "_cardList_11zqk_125";
-const cardBase = "_cardBase_11zqk_133";
-const cardSelected = "_cardSelected_11zqk_165";
-const tooltip = "_tooltip_11zqk_171";
-const buttonArea = "_buttonArea_11zqk_192";
-const limitMessage = "_limitMessage_11zqk_198";
-const buttonGroup = "_buttonGroup_11zqk_212";
-const scoreArea = "_scoreArea_11zqk_217";
-const debugScoreButtons = "_debugScoreButtons_11zqk_223";
-const debugBtn = "_debugBtn_11zqk_228";
+const container = "_container_1wfh4_1";
+const title$1 = "_title_1wfh4_13";
+const playerList = "_playerList_1wfh4_22";
+const playerItem = "_playerItem_1wfh4_27";
+const activePlayer = "_activePlayer_1wfh4_40";
+const playerHeader = "_playerHeader_1wfh4_48";
+const playerName = "_playerName_1wfh4_54";
+const playerScore = "_playerScore_1wfh4_62";
+const resourceSection = "_resourceSection_1wfh4_71";
+const resourceList = "_resourceList_1wfh4_76";
+const resourceBadge = "_resourceBadge_1wfh4_82";
+const tokenList = "_tokenList_1wfh4_90";
+const tokenBadge = "_tokenBadge_1wfh4_99";
+const tokenBadgeOwner = "_tokenBadgeOwner_1wfh4_114";
+const tokenBadgeGuest = "_tokenBadgeGuest_1wfh4_119";
+const cardList = "_cardList_1wfh4_125";
+const cardBase = "_cardBase_1wfh4_133";
+const cardSelected = "_cardSelected_1wfh4_165";
+const tooltip = "_tooltip_1wfh4_171";
+const buttonArea = "_buttonArea_1wfh4_192";
+const limitMessage = "_limitMessage_1wfh4_198";
+const buttonGroup = "_buttonGroup_1wfh4_212";
+const scoreArea = "_scoreArea_1wfh4_217";
+const debugScoreButtons = "_debugScoreButtons_1wfh4_223";
+const debugBtn = "_debugBtn_1wfh4_228";
 const scoreBoardStyles = {
   container,
   title: title$1,
@@ -1908,25 +1908,24 @@ const scoreBoardStyles = {
   debugScoreButtons,
   debugBtn
 };
-const TokenDisplayContent$1 = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
-  const isMyToken = myPlayerId === playerIdBeingDisplayed;
-  if (!tokens || tokens.length === 0) return null;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: tokens.map((token2) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      className: `${scoreBoardStyles.tokenBadge} ${isMyToken ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`,
-      onClick: () => {
-        if (!isMyToken) return;
-        socket.emit("token:reclaim", {
-          roomId,
-          playerId: myPlayerId,
-          tokenId: token2.id
-        });
-      },
-      children: token2.name
-    },
-    token2.id
-  )) });
+const image = "_image_th9op_2";
+const textWrapper = "_textWrapper_th9op_10";
+const text = "_text_th9op_10";
+const contentWrapper = "_contentWrapper_th9op_26";
+const styles$2 = {
+  image,
+  textWrapper,
+  text,
+  contentWrapper
+};
+const TokenDisplayContent = React__default.memo(({ token }) => {
+  if (token.imageSrc) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.contentWrapper, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$2.image }),
+      ";"
+    ] });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$2.text, children: token.name }) }) });
 });
 const PlayerListItem = React.memo(
   ({
@@ -1986,16 +1985,21 @@ const PlayerListItem = React.memo(
             " / ",
             resource.maxValue
           ] }, resource.resourceId)) }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            TokenDisplayContent$1,
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: player.tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
             {
-              tokens: player.tokens,
-              socket,
-              roomId,
-              myPlayerId,
-              playerIdBeingDisplayed: player.id
-            }
-          ),
+              className: `${scoreBoardStyles.tokenBadge} ${myPlayerId === player.id ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`,
+              onClick: () => {
+                socket.emit("token:reclaim", {
+                  roomId,
+                  playerId: myPlayerId,
+                  tokenId: token.id
+                });
+              },
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token })
+            },
+            token.id
+          )) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card2) => {
             const isSelected = selectedCards.includes(card2.id);
             const canSeeFront = !!card2.isFaceUp || isOwner;
@@ -2141,7 +2145,7 @@ function ScoreBoard({
 const messageContainer = "_messageContainer_1akhg_3";
 const messageList = "_messageList_1akhg_29";
 const messageItemActive = "_messageItemActive_1akhg_38";
-const styles$2 = {
+const styles$1 = {
   messageContainer,
   messageList,
   messageItemActive
@@ -2187,7 +2191,7 @@ const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
       clearTimeout(timer);
     };
   }, [isProcessing, currentData, displayDuration]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$2.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageItemActive, children: displayMessage }, msgKey) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$1.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageItemActive, children: displayMessage }, msgKey) }) });
 };
 function Timer({ socket = null, initialDuration, onFinish, roomId }) {
   const [timeLeft, setTimeLeft] = useState(initialDuration);
@@ -2263,37 +2267,16 @@ function Timer({ socket = null, initialDuration, onFinish, roomId }) {
     }
   );
 }
-const image = "_image_jhx0e_2";
-const textWrapper = "_textWrapper_jhx0e_10";
-const text = "_text_jhx0e_10";
-const styles$1 = {
-  image,
-  textWrapper,
-  text
-};
-const TokenDisplayContent = React__default.memo(({ token: token2 }) => {
-  if (token2.imageSrc) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token2.imageSrc, alt: token2.name, className: styles$1.image });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$1.text, children: token2.name }) });
-});
-const section = "_section_1p3sr_2";
-const title = "_title_1p3sr_10";
-const list = "_list_1p3sr_15";
-const token = "_token_1p3sr_21";
-const selected = "_selected_1p3sr_38";
-const contentWrapper = "_contentWrapper_1p3sr_46";
+const section = "_section_svsi4_2";
+const title = "_title_svsi4_10";
+const list = "_list_svsi4_15";
 const styles = {
   section,
   title,
-  list,
-  token,
-  selected,
-  contentWrapper
+  list
 };
-function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }) {
+function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
   const [tokens, setTokens] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
   const handleUpdateTokens = useCallback((data) => {
     setTokens(data.tokenStore || []);
   }, []);
@@ -2306,30 +2289,19 @@ function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }) {
   }, [socket, handleUpdateTokens]);
   const getTokenById = useMemo(() => (id) => tokens.find((t) => t.id === id), [tokens]);
   const handleClick = (id) => {
-    const token2 = getTokenById(id);
-    if (!token2) return;
-    setSelectedId(id);
-    onSelect?.(token2);
+    const token = getTokenById(id);
+    if (!token) return;
+    onSelect?.(token);
   };
   const handleDoubleClick = (id) => {
-    const token2 = getTokenById(id);
-    if (!token2) return;
+    const token = getTokenById(id);
+    if (!token) return;
     const data = { roomId, tokenStoreId, tokenId: id };
     socket.emit("token:aquire", data);
-    setSelectedId(null);
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles.section, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.list, children: tokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        onClick: () => handleClick(t.id),
-        onDoubleClick: () => handleDoubleClick(t.id),
-        className: `${styles.token} ${selectedId === t.id ? styles.selected : ""}`,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.contentWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t }) })
-      },
-      t.id
-    )) })
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.list, children: tokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t }) }, t.id)) })
   ] });
 }
 let LOG_CATEGORIES = {

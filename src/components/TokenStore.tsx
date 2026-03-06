@@ -11,13 +11,22 @@ type TokenStoreProps = {
   socket: Socket;
   roomId: RoomId;
   tokenStoreId: TokenStoreId;
-  name: string;
+  title: string;
   onSelect?: (token: Token) => void;
 };
 
-export function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }: TokenStoreProps) {
+/**
+ * トークンストアを表示および管理するコンポーネント。
+ * ソケット通信を介してトークンの状態を同期し、UI上で選択および取得の操作を提供します。
+ *
+ * @param {Socket} socket - 通信に使用するSocket.ioインスタンス
+ * @param {RoomId} roomId - 現在参加しているルームの識別子
+ * @param {TokenStoreId} tokenStoreId - このトークンストア固有の識別子
+ * @param {string} title - UIに表示するストアのタイトル
+ * @param {(token: Token) => void} [onSelect] - トークンが選択された際に呼び出されるオプションのコールバック関数
+ */
+export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }: TokenStoreProps) {
   const [tokens, setTokens] = useState<Token[]>([]);
-  const [selectedId, setSelectedId] = useState<TokenId | null>(null);
 
   const handleUpdateTokens = useCallback((data: TokenStoreUpdateData) => {
     setTokens(data.tokenStore || []);
@@ -36,7 +45,6 @@ export function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }: Tok
   const handleClick = (id: TokenId) => {
     const token = getTokenById(id);
     if (!token) return;
-    setSelectedId(id);
     onSelect?.(token);
   };
 
@@ -45,7 +53,6 @@ export function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }: Tok
     if (!token) return;
     const data: TokenAcquireData = { roomId, tokenStoreId, tokenId: id };
     socket.emit('token:aquire', data);
-    setSelectedId(null);
   };
 
   return (
@@ -53,15 +60,8 @@ export function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }: Tok
       <h3 className={styles.title}>{name}</h3>
       <div className={styles.list}>
         {tokens.map((t) => (
-          <div
-            key={t.id}
-            onClick={() => handleClick(t.id)}
-            onDoubleClick={() => handleDoubleClick(t.id)}
-            className={`${styles.token} ${selectedId === t.id ? styles.selected : ''}`}
-          >
-            <div className={styles.contentWrapper}>
-              <TokenDisplayContent token={t} />
-            </div>
+          <div key={t.id} onClick={() => handleClick(t.id)} onDoubleClick={() => handleDoubleClick(t.id)}>
+            <TokenDisplayContent token={t} />
           </div>
         ))}
       </div>

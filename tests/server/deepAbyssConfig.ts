@@ -65,7 +65,7 @@ export const deepAbyssConfig: RoomConfig = {
             'ARTIFACT',
             '💰',
             [{ id: 'ARTIFACT', name: '💰', color: '#D4AF37', imageSrc: '', count: 1 }],
-            10,
+            20,
           ),
         },
       ],

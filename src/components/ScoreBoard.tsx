@@ -10,6 +10,7 @@ import type { Resource } from '../types/resource.js';
 import { Token } from '../types/token.js';
 import { CardDisplayContent } from './Card.js';
 import scoreBoardStyles from './ScoreBoard.module.css';
+import { TokenDisplayContent } from './Token.js';
 
 type PlayerListItemProps = {
   player: Player;
@@ -21,32 +22,6 @@ type PlayerListItemProps = {
   roomId: RoomId;
   isDebug?: boolean;
 };
-
-const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }: any) => {
-  const isMyToken = myPlayerId === playerIdBeingDisplayed;
-  if (!tokens || tokens.length === 0) return null;
-
-  return (
-    <div className={scoreBoardStyles.tokenList}>
-      {tokens.map((token: Token) => (
-        <div
-          key={token.id}
-          className={`${scoreBoardStyles.tokenBadge} ${isMyToken ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`}
-          onClick={() => {
-            if (!isMyToken) return;
-            socket.emit('token:reclaim', {
-              roomId,
-              playerId: myPlayerId,
-              tokenId: token.id,
-            });
-          }}
-        >
-          {token.name}
-        </div>
-      ))}
-    </div>
-  );
-});
 
 const PlayerListItem = React.memo(
   ({
@@ -115,13 +90,23 @@ const PlayerListItem = React.memo(
           </div>
         )}
 
-        <TokenDisplayContent
-          tokens={player.tokens}
-          socket={socket}
-          roomId={roomId}
-          myPlayerId={myPlayerId}
-          playerIdBeingDisplayed={player.id}
-        />
+        <div className={scoreBoardStyles.tokenList}>
+          {player.tokens.map((token: Token) => (
+            <div
+              key={token.id}
+              className={`${scoreBoardStyles.tokenBadge} ${myPlayerId === player.id ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`}
+              onClick={() => {
+                socket.emit('token:reclaim', {
+                  roomId,
+                  playerId: myPlayerId,
+                  tokenId: token.id,
+                });
+              }}
+            >
+              <TokenDisplayContent token={token} />
+            </div>
+          ))}
+        </div>
 
         <div className={scoreBoardStyles.cardList}>
           {player.cards.map((card: Card) => {
