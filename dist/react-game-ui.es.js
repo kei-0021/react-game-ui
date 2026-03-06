@@ -930,7 +930,7 @@ function requireJsxRuntime() {
 var jsxRuntimeExports = requireJsxRuntime();
 const boardContainer = "_boardContainer_1laip_8";
 const cell = "_cell_1laip_28";
-const styles$4 = {
+const styles$6 = {
   boardContainer,
   cell
 };
@@ -958,7 +958,7 @@ const Cell = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
-      className: styles$4.cell,
+      className: styles$6.cell,
       onClick: handleClick,
       onDoubleClick: handleDoubleClick,
       onDrop,
@@ -1123,7 +1123,7 @@ const diceNotRolling = "_diceNotRolling_1yy8i_74";
 const faceImage = "_faceImage_1yy8i_78";
 const faceContainer = "_faceContainer_1yy8i_85";
 const defaultText = "_defaultText_1yy8i_93";
-const styles$3 = {
+const styles$5 = {
   diceWrapper,
   diceTitle,
   dice,
@@ -1195,18 +1195,18 @@ function Dice({
   };
   const renderDiceFace = () => {
     if (customFaces && customFaces[value - 1]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.faceContainer, children: customFaces[value - 1] });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.faceContainer, children: customFaces[value - 1] });
     }
     if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$3.faceImage });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$5.faceImage });
     }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$3.defaultText, children: value });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$5.defaultText, children: value });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$3.diceWrapper, children: [
-    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.diceTitle, children: title2 }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$3.dice} ${rolling ? styles$3.diceRolling : styles$3.diceNotRolling}`, onClick: roll, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.diceWrapper, children: [
+    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.diceTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$5.dice} ${rolling ? styles$5.diceRolling : styles$5.diceNotRolling}`, onClick: roll, children: [
       renderDiceFace(),
-      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.tooltip, children: tooltipText })
+      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.tooltip, children: tooltipText })
     ] })
   ] });
 }
@@ -1219,7 +1219,7 @@ function Draggable({
   roomId,
   draggableId,
   initialXY = { x: 500, y: 500 },
-  image,
+  image: image2,
   mask = false,
   size = 100,
   color = "yellow",
@@ -1341,9 +1341,9 @@ function Draggable({
   const MASK_PROP = ["mask", "Image"].join("");
   const WEBKIT_MASK_PROP = ["Webkit", "Mask", "Image"].join("");
   const URL_FUNC = ["u", "r", "l"].join("");
-  const maskStyle = mask && image ? {
-    [WEBKIT_MASK_PROP]: `${URL_FUNC}("${image}")`,
-    [MASK_PROP]: `${URL_FUNC}("${image}")`,
+  const maskStyle = mask && image2 ? {
+    [WEBKIT_MASK_PROP]: `${URL_FUNC}("${image2}")`,
+    [MASK_PROP]: `${URL_FUNC}("${image2}")`,
     WebkitMaskSize: "contain",
     maskSize: "contain",
     WebkitMaskRepeat: "no-repeat",
@@ -1370,7 +1370,7 @@ function Draggable({
     width: `${width}px`,
     height: `${height}px`,
     zIndex: dynamicZIndex,
-    background: mask && image ? void 0 : isTransparent ? "transparent" : color,
+    background: mask && image2 ? void 0 : isTransparent ? "transparent" : color,
     // マスク関連（これも特殊な計算結果なので最後に上書き）
     ...maskStyle
   };
@@ -1383,10 +1383,10 @@ function Draggable({
         className: draggableStyles.draggable,
         style: dynamicStyle,
         "data-draggable-id": draggableId,
-        children: image ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+        children: image2 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
           "img",
           {
-            src: image,
+            src: image2,
             alt: "",
             style: {
               width: "100%",
@@ -1443,7 +1443,7 @@ function Draggable({
   ] });
 }
 const piece = "_piece_wi08l_3";
-const styles$2 = {
+const styles$4 = {
   piece
 };
 function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
@@ -1460,8 +1460,8 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
     }
   };
   const pieceClasses = [
-    styles$2.piece,
-    isDraggable ? styles$2.draggable : styles$2.clickable
+    styles$4.piece,
+    isDraggable ? styles$4.draggable : styles$4.clickable
   ].join(" ");
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
@@ -1515,7 +1515,7 @@ function GridBoard({
     height: "600px",
     position: "relative"
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.boardContainer, style: boardStyle, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [
     boardData.map((rowArr, row) => rowArr.map((originalCellData, col) => {
       const isChanged = changedCells.some(
         (loc2) => loc2.row === row && loc2.col === col
@@ -1780,7 +1780,7 @@ const container$1 = "_container_17uio_2";
 const cursorWrapper = "_cursorWrapper_17uio_13";
 const icon = "_icon_17uio_21";
 const label = "_label_17uio_29";
-const styles$1 = {
+const styles$3 = {
   container: container$1,
   cursorWrapper,
   icon,
@@ -1835,7 +1835,7 @@ const RemoteCursor = React__default.memo(
       return () => window.removeEventListener("mousemove", handleMove);
     }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
     if (!visible) return null;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
       const player = players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
       const name = player ? player.name : "接続中...";
       const color = player?.color || "#000000";
@@ -1844,11 +1844,11 @@ const RemoteCursor = React__default.memo(
       return /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {
-          className: styles$1.cursorWrapper,
+          className: styles$3.cursorWrapper,
           style: { left, top },
           children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.icon, style: { color }, children: "👆" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.label, style: { backgroundColor: color }, children: name })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.icon, style: { color }, children: "👆" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.label, style: { backgroundColor: color }, children: name })
           ]
         },
         id
@@ -1857,7 +1857,7 @@ const RemoteCursor = React__default.memo(
   }
 );
 const container = "_container_11zqk_1";
-const title = "_title_11zqk_13";
+const title$1 = "_title_11zqk_13";
 const playerList = "_playerList_11zqk_22";
 const playerItem = "_playerItem_11zqk_27";
 const activePlayer = "_activePlayer_11zqk_40";
@@ -1883,7 +1883,7 @@ const debugScoreButtons = "_debugScoreButtons_11zqk_223";
 const debugBtn = "_debugBtn_11zqk_228";
 const scoreBoardStyles = {
   container,
-  title,
+  title: title$1,
   playerList,
   playerItem,
   activePlayer,
@@ -1908,10 +1908,10 @@ const scoreBoardStyles = {
   debugScoreButtons,
   debugBtn
 };
-const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
+const TokenDisplayContent$1 = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
   const isMyToken = myPlayerId === playerIdBeingDisplayed;
   if (!tokens || tokens.length === 0) return null;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: tokens.map((token2) => /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
       className: `${scoreBoardStyles.tokenBadge} ${isMyToken ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`,
@@ -1920,12 +1920,12 @@ const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, pl
         socket.emit("token:reclaim", {
           roomId,
           playerId: myPlayerId,
-          tokenId: token.id
+          tokenId: token2.id
         });
       },
-      children: token.name
+      children: token2.name
     },
-    token.id
+    token2.id
   )) });
 });
 const PlayerListItem = React.memo(
@@ -1987,7 +1987,7 @@ const PlayerListItem = React.memo(
             resource.maxValue
           ] }, resource.resourceId)) }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
-            TokenDisplayContent,
+            TokenDisplayContent$1,
             {
               tokens: player.tokens,
               socket,
@@ -2141,7 +2141,7 @@ function ScoreBoard({
 const messageContainer = "_messageContainer_1akhg_3";
 const messageList = "_messageList_1akhg_29";
 const messageItemActive = "_messageItemActive_1akhg_38";
-const styles = {
+const styles$2 = {
   messageContainer,
   messageList,
   messageItemActive
@@ -2187,7 +2187,7 @@ const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
       clearTimeout(timer);
     };
   }, [isProcessing, currentData, displayDuration]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.messageItemActive, children: displayMessage }, msgKey) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$2.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageItemActive, children: displayMessage }, msgKey) }) });
 };
 function Timer({ socket = null, initialDuration, onFinish, roomId }) {
   const [timeLeft, setTimeLeft] = useState(initialDuration);
@@ -2263,132 +2263,74 @@ function Timer({ socket = null, initialDuration, onFinish, roomId }) {
     }
   );
 }
-const TokenContent = React__default.memo(({ token }) => {
-  if (token.imageSrc) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "img",
-      {
-        src: token.imageSrc,
-        alt: token.name,
-        style: {
-          width: "100%",
-          height: "100%",
-          objectFit: "contain"
-        }
-      }
-    );
+const image = "_image_jhx0e_2";
+const textWrapper = "_textWrapper_jhx0e_10";
+const text = "_text_jhx0e_10";
+const styles$1 = {
+  image,
+  textWrapper,
+  text
+};
+const TokenDisplayContent = React__default.memo(({ token: token2 }) => {
+  if (token2.imageSrc) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token2.imageSrc, alt: token2.name, className: styles$1.image });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      style: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100%",
-        width: "100%",
-        padding: "5px"
-      },
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" }, children: token.name })
-    }
-  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$1.text, children: token2.name }) });
 });
+const section = "_section_1p3sr_2";
+const title = "_title_1p3sr_10";
+const list = "_list_1p3sr_15";
+const token = "_token_1p3sr_21";
+const selected = "_selected_1p3sr_38";
+const contentWrapper = "_contentWrapper_1p3sr_46";
+const styles = {
+  section,
+  title,
+  list,
+  token,
+  selected,
+  contentWrapper
+};
 function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }) {
   const [tokens, setTokens] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
-  const handleInitTokens = useCallback(
-    (initialTokens) => {
-      console.log(`TokenStore (${tokenStoreId}): 初期情報を受信しました。`, initialTokens);
-      setTokens(initialTokens && initialTokens.length > 0 ? initialTokens : []);
-    },
-    [tokenStoreId]
-  );
-  const handleUpdateTokens = useCallback(
-    (data) => {
-      setTokens(data.tokenStore || []);
-    },
-    [tokenStoreId]
-  );
+  const handleUpdateTokens = useCallback((data) => {
+    setTokens(data.tokenStore || []);
+  }, []);
   useEffect(() => {
     if (!socket) return;
     socket.on(`token-store:update`, handleUpdateTokens);
     return () => {
       socket.off(`token-store:update`, handleUpdateTokens);
     };
-  }, [socket, roomId, tokenStoreId, handleInitTokens, handleUpdateTokens]);
-  const getTokenById = useMemo(
-    () => (id) => tokens.find((t) => t.id === id),
-    [tokens]
-  );
+  }, [socket, handleUpdateTokens]);
+  const getTokenById = useMemo(() => (id) => tokens.find((t) => t.id === id), [tokens]);
   const handleClick = (id) => {
-    const token = getTokenById(id);
-    if (!token) return;
+    const token2 = getTokenById(id);
+    if (!token2) return;
     setSelectedId(id);
-    onSelect?.(token);
+    onSelect?.(token2);
   };
   const handleDoubleClick = (id) => {
-    const token = getTokenById(id);
-    if (!token) return;
-    const data = {
-      roomId,
-      tokenStoreId,
-      tokenId: id
-    };
+    const token2 = getTokenById(id);
+    if (!token2) return;
+    const data = { roomId, tokenStoreId, tokenId: id };
     socket.emit("token:aquire", data);
     setSelectedId(null);
   };
-  const TOKEN_SIZE = "40px";
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "section",
-    {
-      style: {
-        backgroundColor: "#dededeff",
-        padding: "10px",
-        margin: "15px",
-        borderRadius: "10px",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles.section, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.list, children: tokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        onClick: () => handleClick(t.id),
+        onDoubleClick: () => handleDoubleClick(t.id),
+        className: `${styles.token} ${selectedId === t.id ? styles.selected : ""}`,
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.contentWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t }) })
       },
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "10px", color: "#333" }, children: name }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", gap: "12px", flexWrap: "wrap" }, children: tokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "div",
-          {
-            onClick: () => handleClick(t.id),
-            onDoubleClick: () => handleDoubleClick(t.id),
-            style: {
-              padding: "8px",
-              width: TOKEN_SIZE,
-              height: TOKEN_SIZE,
-              borderRadius: "50%",
-              border: selectedId === t.id ? "2px solid #f6fbd1ff" : "2px solid #ccc",
-              backgroundColor: "#4f4848ff",
-              cursor: "pointer",
-              textAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-around",
-              alignItems: "center",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.2)"
-            },
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "div",
-              {
-                style: {
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                },
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenContent, { token: t })
-              }
-            )
-          },
-          t.id
-        )) })
-      ]
-    }
-  );
+      t.id
+    )) })
+  ] });
 }
 let LOG_CATEGORIES = {
   connection: true,
@@ -2603,14 +2545,14 @@ class RoomManager {
       if (!Array.isArray(player.tokens)) {
         player.tokens = [];
       }
-      const token = {
+      const token2 = {
         id: tokenId,
         name: `Token ${tokenId.slice(0, 4)}`,
         backColor: "#333",
         count: 1,
         imageSrc: ""
       };
-      player.tokens.push(token);
+      player.tokens.push(token2);
       server_log(
         "token",
         this.state.gameId,

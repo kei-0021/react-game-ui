@@ -1,46 +1,12 @@
 // src/components/TokenStore.tsx
 import { TokenAcquireData, TokenStoreUpdateData } from '@/types/socketData.js';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import { RoomId, TokenId, TokenStoreId } from '../types/definition.js';
 import { Token } from '../types/token.js';
+import { TokenDisplayContent } from './Token.js';
+import styles from './TokenStore.module.css';
 
-// =========================================================================
-// ヘルパーコンポーネント: トークン表面の内容をレンダリング (React.memoでラップ)
-// =========================================================================
-const TokenContent = React.memo(({ token }: { token: Token }) => {
-  if (token.imageSrc) {
-    return (
-      <img
-        src={token.imageSrc}
-        alt={token.name}
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'contain',
-        }}
-      />
-    );
-  }
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        width: '100%',
-        padding: '5px',
-      }}
-    >
-      <strong style={{ fontSize: '1em', wordBreak: 'break-all', textAlign: 'center' }}>{token.name}</strong>
-    </div>
-  );
-});
-
-// =========================================================================
-// TokenStore コンポーネント本体
-// =========================================================================
 type TokenStoreProps = {
   socket: Socket;
   roomId: RoomId;
@@ -53,40 +19,19 @@ export function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }: Tok
   const [tokens, setTokens] = useState<Token[]>([]);
   const [selectedId, setSelectedId] = useState<TokenId | null>(null);
 
-  // --- イベントハンドラ ---
+  const handleUpdateTokens = useCallback((data: TokenStoreUpdateData) => {
+    setTokens(data.tokenStore || []);
+  }, []);
 
-  const handleInitTokens = useCallback(
-    (initialTokens: Token[]) => {
-      console.log(`TokenStore (${tokenStoreId}): 初期情報を受信しました。`, initialTokens);
-      setTokens(initialTokens && initialTokens.length > 0 ? initialTokens : []);
-    },
-    [tokenStoreId],
-  );
-
-  const handleUpdateTokens = useCallback(
-    (data: TokenStoreUpdateData) => {
-      setTokens(data.tokenStore || []);
-    },
-    [tokenStoreId],
-  );
-
-  // --- useEffect: イベントリスナーの登録と解除 ---
   useEffect(() => {
     if (!socket) return;
-
     socket.on(`token-store:update`, handleUpdateTokens);
-
     return () => {
       socket.off(`token-store:update`, handleUpdateTokens);
     };
-  }, [socket, roomId, tokenStoreId, handleInitTokens, handleUpdateTokens]);
+  }, [socket, handleUpdateTokens]);
 
-  const getTokenById = useMemo(
-    () =>
-      (id: TokenId): Token | undefined =>
-        tokens.find((t) => t.id === id),
-    [tokens],
-  );
+  const getTokenById = useMemo(() => (id: TokenId) => tokens.find((t) => t.id === id), [tokens]);
 
   const handleClick = (id: TokenId) => {
     const token = getTokenById(id);
@@ -98,63 +43,24 @@ export function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }: Tok
   const handleDoubleClick = (id: TokenId) => {
     const token = getTokenById(id);
     if (!token) return;
-
-    const data: TokenAcquireData = {
-      roomId,
-      tokenStoreId,
-      tokenId: id,
-    };
-
+    const data: TokenAcquireData = { roomId, tokenStoreId, tokenId: id };
     socket.emit('token:aquire', data);
     setSelectedId(null);
   };
 
-  const TOKEN_SIZE = '40px';
-
   return (
-    <section
-      style={{
-        backgroundColor: '#dededeff',
-        padding: '10px',
-        margin: '15px',
-        borderRadius: '10px',
-        boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-      }}
-    >
-      <h3 style={{ marginBottom: '10px', color: '#333' }}>{name}</h3>
-
-      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+    <section className={styles.section}>
+      <h3 className={styles.title}>{name}</h3>
+      <div className={styles.list}>
         {tokens.map((t) => (
           <div
             key={t.id}
             onClick={() => handleClick(t.id)}
             onDoubleClick={() => handleDoubleClick(t.id)}
-            style={{
-              padding: '8px',
-              width: TOKEN_SIZE,
-              height: TOKEN_SIZE,
-              borderRadius: '50%',
-              border: selectedId === t.id ? '2px solid #f6fbd1ff' : '2px solid #ccc',
-              backgroundColor: '#4f4848ff',
-              cursor: 'pointer',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-            }}
+            className={`${styles.token} ${selectedId === t.id ? styles.selected : ''}`}
           >
-            <div
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <TokenContent token={t} />
+            <div className={styles.contentWrapper}>
+              <TokenDisplayContent token={t} />
             </div>
           </div>
         ))}
