@@ -5,7 +5,7 @@
 
 .deckWrapperFlex {
   display: flex;
-  gap: 0px;
+  gap: 60px;
 }
 
 .tooltipBase {

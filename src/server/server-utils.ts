@@ -186,7 +186,6 @@ export class RoomManager {
   emitDeckUpdate = (deckId: DeckId) => {
     const updateData: DeckUpdateData = {
       currentDeck: this.state.decks[deckId].filter((c) => c.location === 'deck'),
-      drawnCards: this.state.drawnCards[deckId],
       playFieldCards: this.state.playFieldCards[deckId],
       discardPile: this.state.discardPile[deckId],
     };

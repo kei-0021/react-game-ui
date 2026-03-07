@@ -63,7 +63,6 @@ export type GameParam = {
  * @param currentPhase - 現在の進行フェーズ。
  * @param players - 参加しているプレイヤーのリスト。
  * @param decks - 各デッキIDごとの残りカードリスト。
- * @param drawnCards - プレイヤーが保持・引いたカード（キーは通常プレイヤーID）。
  * @param playFieldCards - プレイフィールド上のカード（キーは "firework" 等の場所名）。
  * @param discardPile - 捨て札置き場のカードリスト。
  * @param board - ボード上の2次元グリッドデータ。
@@ -81,7 +80,6 @@ export interface RoomState {
     currentPhase?: Phase;
     players: Player[];
     decks: Record<DeckId, Card[]>;
-    drawnCards: Record<string, Card[]>;
     playFieldCards: Record<string, Card[]>;
     discardPile: Record<string, Card[]>;
     board: Record<BoardId, any[][]>;

@@ -15,13 +15,11 @@ import deckStyles from './Deck.module.css';
  */
 export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerId, alwaysDraw = false }) {
     const [deckCards, setDeckCards] = React.useState([]);
-    const [drawnCards, setDrawnCards] = React.useState([]);
     const [discardPile, setDiscardPile] = React.useState([]);
     const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
     React.useEffect(() => {
         socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
             setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
-            setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
             setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
         });
         return () => {
@@ -58,10 +56,7 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
                                 zIndex: deckCards.length - i,
                                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
                                 backgroundColor: c.backColor,
-                            } }, c.id))) }), _jsx("div", { className: cardStyles.deckContainer, children: drawnCards.map((c, i) => (_jsx("div", { className: cardStyles.deckCardFront, style: {
-                                zIndex: i + 1,
-                                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                            }, children: _jsx(CardDisplayContent, { card: c, canSeeFront: true }) }, c.id))) }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => (_jsxs("div", { className: cardStyles.deckCardFront, style: {
+                            } }, c.id))) }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => (_jsxs("div", { className: cardStyles.deckCardFront, style: {
                                 zIndex: i + 1,
                                 transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
                                 pointerEvents: i === discardPile.length - 1 ? 'auto' : 'none',

@@ -57,7 +57,6 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   });
 
   const decks: Record<DeckId, Card[]> = {};
-  const drawnCards: Record<DeckId, Card[]> = {};
   const playFieldCards: Record<DeckId, Card[]> = {};
   const discardPile: Record<DeckId, Card[]> = {};
 
@@ -74,7 +73,6 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
       coordinate: { x: 50, y: 50 },
     }));
     decks[deck.deckId] = cards;
-    drawnCards[deck.deckId] = [];
     playFieldCards[deck.deckId] = [];
     discardPile[deck.deckId] = [];
     server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
@@ -99,7 +97,6 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     currentPhase: param.initialPhase,
     players: [],
     decks: decks,
-    drawnCards: drawnCards,
     playFieldCards: playFieldCards,
     discardPile: discardPile,
     board: Cells,

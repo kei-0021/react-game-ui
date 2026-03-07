@@ -31,7 +31,6 @@ export type DeckDrawData = {
 
 export type DeckUpdateData = {
   currentDeck: Card[];
-  drawnCards: Card[];
   playFieldCards: Card[];
   discardPile: Card[];
 };

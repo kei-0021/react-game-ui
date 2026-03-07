@@ -30,14 +30,12 @@ type DeckProps = {
  */
 export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerId, alwaysDraw = false }: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
-  const [drawnCards, setDrawnCards] = React.useState<Card[]>([]);
   const [discardPile, setDiscardPile] = React.useState<Card[]>([]);
   const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
 
   React.useEffect(() => {
     socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
-      setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
       setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
     });
 
@@ -98,22 +96,6 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
                 backgroundColor: c.backColor,
               }}
             />
-          ))}
-        </div>
-
-        {/* ドロー済み */}
-        <div className={cardStyles.deckContainer}>
-          {drawnCards.map((c, i) => (
-            <div
-              key={c.id}
-              className={cardStyles.deckCardFront}
-              style={{
-                zIndex: i + 1,
-                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-              }}
-            >
-              <CardDisplayContent card={c} canSeeFront={true} />
-            </div>
           ))}
         </div>
 

@@ -1007,9 +1007,9 @@ const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) =>
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, style: {}, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
 });
-const deckTitle = "_deckTitle_1nys7_1";
-const deckWrapperFlex = "_deckWrapperFlex_1nys7_6";
-const tooltipBase = "_tooltipBase_1nys7_11";
+const deckTitle = "_deckTitle_14nud_1";
+const deckWrapperFlex = "_deckWrapperFlex_14nud_6";
+const tooltipBase = "_tooltipBase_14nud_11";
 const deckStyles = {
   deckTitle,
   deckWrapperFlex,
@@ -1017,13 +1017,11 @@ const deckStyles = {
 };
 function Deck({ socket, roomId, deckId, title: title2, currentPlayerId, myPlayerId, alwaysDraw = false }) {
   const [deckCards, setDeckCards] = React.useState([]);
-  const [drawnCards, setDrawnCards] = React.useState([]);
   const [discardPile, setDiscardPile] = React.useState([]);
   const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
   React.useEffect(() => {
     socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
-      setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
       setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
     });
     return () => {
@@ -1068,18 +1066,6 @@ function Deck({ socket, roomId, deckId, title: title2, currentPlayerId, myPlayer
             transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
             backgroundColor: c.backColor
           }
-        },
-        c.id
-      )) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          className: cardStyles.deckCardFront,
-          style: {
-            zIndex: i + 1,
-            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
-          },
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true })
         },
         c.id
       )) }),
@@ -2354,7 +2340,6 @@ class RoomManager {
   emitDeckUpdate = (deckId) => {
     const updateData = {
       currentDeck: this.state.decks[deckId].filter((c) => c.location === "deck"),
-      drawnCards: this.state.drawnCards[deckId],
       playFieldCards: this.state.playFieldCards[deckId],
       discardPile: this.state.discardPile[deckId]
     };
