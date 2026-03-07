@@ -43,9 +43,13 @@ export declare class RoomManager {
     emitTokenStoreUpdate: (tokenStoreId: TokenStoreId) => void;
     emitSystemMessage: (message: string, isPersistent?: boolean) => void;
     /**
-     * カードをデッキから引く（移動ロジックの外注先）
+     * カードをデッキから引く
      */
     drawCard(deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): boolean;
+    /**
+     * ホールド状態を解消し、カードを出す
+     */
+    unholdCards(): void;
     /**
      * フィールドからカードを回収（手札に戻す or 捨て札へ）
      */

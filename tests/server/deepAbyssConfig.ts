@@ -102,6 +102,7 @@ export const deepAbyssConfig: RoomConfig = {
       onNextRound: (state: RoomState, manager: RoomManager) => {
         manager.updatePhase(DeepAbyssPhase.NEXT);
         manager.emitSystemMessage(`第 ${state.currentRoundIndex + 1} ラウンド開始！`, true);
+        manager.unholdCards();
       },
       checkGameEnd: (state: RoomState) =>
         // 終了条件: 5ラウンド終了 (5ラウンド目の最後 かつ 最後のプレイヤーの手番時)

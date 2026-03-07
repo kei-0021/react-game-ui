@@ -2369,7 +2369,7 @@ class RoomManager {
     this.io.to(this.state.roomId).emit("system:message", { message, isPersistent });
   };
   /**
-   * カードをデッキから引く（移動ロジックの外注先）
+   * カードをデッキから引く
    */
   drawCard(deckId, condition, playerId) {
     const [targetLocation, targetState] = condition;
@@ -2406,6 +2406,16 @@ class RoomManager {
     this.emitDeckUpdate(deckId);
     this.emitPlayerUpdate();
     return true;
+  }
+  /**
+   * ホールド状態を解消し、カードを出す
+   */
+  unholdCards() {
+    this.state.players.forEach((p) => {
+      p.isHolding = false;
+      delete this.state.holdCards[p.id];
+    });
+    this.emitPlayerUpdate();
   }
   /**
    * フィールドからカードを回収（手札に戻す or 捨て札へ）

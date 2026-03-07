@@ -210,7 +210,7 @@ export class RoomManager {
   };
 
   /**
-   * カードをデッキから引く（移動ロジックの外注先）
+   * カードをデッキから引く
    */
   drawCard(deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): boolean {
     const [targetLocation, targetState] = condition;
@@ -259,6 +259,18 @@ export class RoomManager {
     this.emitDeckUpdate(deckId);
     this.emitPlayerUpdate();
     return true;
+  }
+
+  /**
+   * ホールド状態を解除し、カードを出す
+   */
+  unholdCards(): void {
+    this.state.players.forEach((p) => {
+      p.isHolding = false;
+      delete this.state.holdCards[p.id];
+    });
+    server_log('card', this.state.gameId, this.state.roomId, `プレイヤー全員のホールド状態を解除しました`);
+    this.emitPlayerUpdate();
   }
 
   /**
