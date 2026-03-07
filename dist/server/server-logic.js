@@ -24,6 +24,7 @@ function initializeRoom(roomId, param) {
     const decks = {};
     const playFieldCards = {};
     const discardPile = {};
+    const holdCards = {};
     const tokenStores = {};
     initialDecks.forEach((deck) => {
         const cards = (deck.cards || []).map((c, index) => ({
@@ -60,6 +61,7 @@ function initializeRoom(roomId, param) {
         decks: decks,
         playFieldCards: playFieldCards,
         discardPile: discardPile,
+        holdCards: holdCards,
         board: Cells,
         exploredCells: [],
         tokenStores: tokenStores,

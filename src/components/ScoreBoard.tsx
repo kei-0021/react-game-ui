@@ -164,6 +164,7 @@ const PlayerListItem = React.memo(
  * @param {string | null} myPlayerId - ローカルプレイヤーのID
  * @param {number} playCardLimit - 1ターンにプレイ可能なカードの上限枚数
  * @param {boolean} autoNextTurnOnCardPlay=false - カードプレイ時に自動でターンを終了するかどうか
+ * @param {boolean} holdButton=false - カードを一定期間ホールドしつつプレイするボタンの表示・非表示
  * @param {boolean} revealButton=false - カード公開ボタンの表示・非表示
  * @param {boolean} turnSkipButton=false - ターンスキップボタンの表示・非表示
  * @param {boolean} roundSkipButton=false - ラウンドスキップボタンの表示・非表示
@@ -177,6 +178,7 @@ export function ScoreBoard({
   myPlayerId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
+  holdButton = false,
   revealButton = false,
   turnSkipButton = false,
   roundSkipbutton = false,
@@ -189,6 +191,7 @@ export function ScoreBoard({
   myPlayerId: PlayerId | null;
   playCardLimit?: number;
   autoNextTurnOnCardPlay?: boolean;
+  holdButton?: boolean;
   revealButton?: boolean;
   turnSkipButton?: boolean;
   roundSkipbutton?: boolean;
@@ -297,11 +300,12 @@ export function ScoreBoard({
           <button onClick={playSelectedCards} disabled={isActionDisabled}>
             選択カードを出す
           </button>
-          {revealButton && (
-            <button onClick={revealSelectedCards} disabled={isActionDisabled}>
-              選択カードを公開する
+          {holdButton && (
+            <button onClick={playSelectedCards} disabled={isActionDisabled}>
+              カードをホールドする
             </button>
           )}
+          {revealButton && <button onClick={revealSelectedCards}>選択カードを公開する</button>}
           {turnSkipButton && <button onClick={nextTurn}>ターンをスキップ</button>}
           {roundSkipbutton && <button onClick={nextRound}>ラウンドをスキップ</button>}
         </div>

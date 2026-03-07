@@ -2033,6 +2033,7 @@ function ScoreBoard({
   myPlayerId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
+  holdButton = false,
   revealButton = false,
   turnSkipButton = false,
   roundSkipbutton = false,
@@ -2121,7 +2122,8 @@ function ScoreBoard({
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: playSelectedCards, disabled: isActionDisabled, children: "選択カードを出す" }),
-        revealButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, disabled: isActionDisabled, children: "選択カードを公開する" }),
+        holdButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: playSelectedCards, disabled: isActionDisabled, children: "カードをホールドする" }),
+        revealButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, children: "選択カードを公開する" }),
         turnSkipButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" }),
         roundSkipbutton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextRound, children: "ラウンドをスキップ" })
       ] })

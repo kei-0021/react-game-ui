@@ -59,6 +59,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   const decks: Record<DeckId, Card[]> = {};
   const playFieldCards: Record<DeckId, Card[]> = {};
   const discardPile: Record<DeckId, Card[]> = {};
+  const holdCards: Record<PlayerId, Card[]> = {};
 
   const tokenStores: Record<string, Token[]> = {};
 
@@ -99,6 +100,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     decks: decks,
     playFieldCards: playFieldCards,
     discardPile: discardPile,
+    holdCards: holdCards,
     board: Cells,
     exploredCells: [],
     tokenStores: tokenStores,

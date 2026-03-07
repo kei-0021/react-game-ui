@@ -210,7 +210,7 @@ export function DeepAbyssRoom() {
         <MyBoard socket={socket} roomId={roomId} myPlayerId={myPlayerId} />
       </div>
       <SystemMessageWindow socket={socket} roomId={roomId} />
-      <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" name="遺物" />
+      <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" title="遺物" />
 
       <div className="game-main-layout">
         {/* 左側グループ：デッキ列とフィールド列を横に並べる塊 */}
@@ -280,6 +280,7 @@ export function DeepAbyssRoom() {
             myPlayerId={myPlayerId}
             playCardLimit={2}
             isDebug={true}
+            holdButton={true}
             revealButton={true}
             turnSkipButton={true}
           />
