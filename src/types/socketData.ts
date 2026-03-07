@@ -44,6 +44,12 @@ export type CardPlayData = {
   coordinate: Coordinate;
 };
 
+export type CardHoldData = {
+  roomId: RoomId;
+  playerId: PlayerId;
+  cardIds: CardId[];
+};
+
 export type CardMoveFromFieldData = {
   roomId: RoomId;
   deckId: DeckId;

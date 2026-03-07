@@ -2,7 +2,7 @@ import { Player } from '@/index.js';
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
-import { BoardId, DeckId, GameId, PlayerId, RoomId, TokenId } from './definition.js';
+import { BoardId, CardId, DeckId, GameId, PlayerId, RoomId, TokenId } from './definition.js';
 import { Phase } from './phase.js';
 import { Position } from './position.js';
 import { Resource } from './resource.js';
@@ -82,7 +82,7 @@ export interface RoomState {
     decks: Record<DeckId, Card[]>;
     playFieldCards: Record<DeckId, Card[]>;
     discardPile: Record<DeckId, Card[]>;
-    holdCards: Record<PlayerId, Card[]>;
+    holdCards: Record<PlayerId, CardId[]>;
     board: Record<BoardId, any[][]>;
     exploredCells: Position[];
     tokenStores: Record<TokenId, Token[]>;

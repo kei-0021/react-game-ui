@@ -10,9 +10,10 @@ import {
   unmarkCellAsExplored,
 } from './server-utils.js';
 
-import { DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
+import { CardId, DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
+  CardHoldData,
   CardMoveFromFieldData,
   CardPlayData,
   DeckDrawData,
@@ -59,7 +60,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   const decks: Record<DeckId, Card[]> = {};
   const playFieldCards: Record<DeckId, Card[]> = {};
   const discardPile: Record<DeckId, Card[]> = {};
-  const holdCards: Record<PlayerId, Card[]> = {};
+  const holdCards: Record<PlayerId, CardId[]> = {};
 
   const tokenStores: Record<string, Token[]> = {};
 
@@ -236,6 +237,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           color: generateColorFromId(`${roomId}_p${state.players.length + 1}`),
           socketId: socket.id,
           cards: [],
+          isHolding: false,
           score: 0,
           resources: JSON.parse(JSON.stringify(param.initialResources || [])),
           tokens: JSON.parse(JSON.stringify(param.initialTokens || [])),
@@ -348,6 +350,16 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const param = gameParams[state.gameId];
       const roomManager = new RoomManager(io, param, state);
 
+      if (playerId && state.holdCards[playerId]) {
+        server_log(
+          'card',
+          state.gameId,
+          state.roomId,
+          `${playerId} はカードをホールドしているので、カードを引くことができません`,
+        );
+        return;
+      }
+
       const success = roomManager.drawCard(deckId, drawCondition, playerId);
       if (!success) return;
 
@@ -385,33 +397,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       roomManager.emitDeckUpdate(deckId);
     });
 
-    // フィールドから「手札」または「捨て札」へ移動
-    socket.on('card:move-from-field', (data: CardMoveFromFieldData) => {
-      const { roomId, deckId, cardId, playerId } = data;
-      const state = activeRooms.get(roomId);
-      if (!state || !playerId) return;
-      const param = gameParams[state.gameId];
-
-      const roomManager = new RoomManager(io, param, state);
-
-      const success = roomManager.moveFromField(deckId, cardId, playerId);
-      if (!success) return;
-    });
-
-    // カード位置同期
-    socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-
-      const card = state?.decks[deckId]?.find((c) => c.id === cardId);
-      if (card) {
-        card.coordinate = coordinate;
-        roomManager.emitDeckUpdate(deckId);
-      }
-    });
-
+    // カードプレイ
     socket.on('card:play', (data: CardPlayData) => {
       const { roomId, deckId, cardIds, playerId, playLocation = 'field', coordinate } = data;
 
@@ -421,6 +407,16 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const param = gameParams[state.gameId];
       const roomManager = new RoomManager(io, param, state);
       const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+
+      if (state.holdCards[playerId]) {
+        server_log(
+          'card',
+          state.gameId,
+          state.roomId,
+          `${playerId} はカードをホールドしているので、カードをプレイできません`,
+        );
+        return;
+      }
 
       ids.forEach((id) => {
         const card = state.decks[deckId]?.find((c) => c.id === id);
@@ -472,20 +468,24 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       roomManager.emitPlayerUpdate();
     });
 
-    // ドラッグ中も監視
-    socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {
+    // カードホールド
+    socket.on('card:hold', ({ roomId, playerId, cardIds }: CardHoldData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
       const roomManager = new RoomManager(io, param, state);
 
-      const card = state?.decks[deckId]?.find((c) => c.id === cardId);
-      if (card && coordinate) {
-        card.coordinate = coordinate;
-        roomManager.emitDeckUpdate(deckId);
+      const p = state?.players.find((p) => p.id === playerId);
+      if (p) {
+        const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+        state.holdCards[p.id] = ids;
+        p.isHolding = true;
       }
+      server_log('card', state.gameId, state.roomId, `${playerId} がカード [${cardIds}] をホールドしました`);
+      roomManager.emitPlayerUpdate();
     });
 
+    // カード公開
     socket.on('card:reveal', ({ roomId, playerId, cardIds }) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
@@ -500,6 +500,43 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         });
         roomManager.emitPlayerUpdate();
       }
+    });
+
+    // カード位置同期
+    socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {
+      const state = activeRooms.get(roomId);
+      if (!state) return;
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
+
+      const card = state?.decks[deckId]?.find((c) => c.id === cardId);
+      if (card) {
+        card.coordinate = coordinate;
+        roomManager.emitDeckUpdate(deckId);
+      }
+    });
+
+    // フィールドから「手札」または「捨て札」へ移動
+    socket.on('card:move-from-field', (data: CardMoveFromFieldData) => {
+      const { roomId, deckId, cardId, playerId } = data;
+      const state = activeRooms.get(roomId);
+      if (!state || !playerId) return;
+      const param = gameParams[state.gameId];
+
+      const roomManager = new RoomManager(io, param, state);
+
+      if (state.holdCards[playerId]) {
+        server_log(
+          'card',
+          state.gameId,
+          state.roomId,
+          `${playerId} はカードをホールドしているので、カードを移動できません`,
+        );
+        return;
+      }
+
+      const success = roomManager.moveFromField(deckId, cardId, playerId);
+      if (!success) return;
     });
 
     // トークン

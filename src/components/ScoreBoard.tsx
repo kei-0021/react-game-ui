@@ -1,11 +1,11 @@
 // src/components/ScoreBoard.tsx
 import { CardLocation } from '@/types/cardLocation.js';
 import { Player } from '@/types/player.js';
-import { CardPlayData, GameNextRoundData, GameNextTrunData } from '@/types/socketData.js';
+import { CardHoldData, CardPlayData, GameNextRoundData, GameNextTrunData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import { Card } from '../types/card.js';
-import { PlayerId, RoomId } from '../types/definition.js';
+import { CardId, PlayerId, RoomId } from '../types/definition.js';
 import type { Resource } from '../types/resource.js';
 import { Token } from '../types/token.js';
 import { CardDisplayContent } from './Card.js';
@@ -108,6 +108,7 @@ const PlayerListItem = React.memo(
           ))}
         </div>
 
+        <div>{player.isHolding && 'カードをホールドしています'}</div>
         <div className={scoreBoardStyles.cardList}>
           {player.cards.map((card: Card) => {
             const isSelected = selectedCards.includes(card.id);
@@ -207,12 +208,58 @@ export function ScoreBoard({
     }));
   }, [players]);
 
-  const [selectedCards, setSelectedCards] = React.useState<string[]>([]);
+  const [selectedCards, setSelectedCards] = React.useState<CardId[]>([]);
 
-  const toggleCardSelection = React.useCallback((cardId: string, isOwner: boolean) => {
+  const toggleCardSelection = React.useCallback((cardId: CardId, isOwner: boolean) => {
     if (!isOwner) return;
     setSelectedCards((prev) => (prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]));
   }, []);
+
+  const playSelectedCards = React.useCallback(
+    ({ isHold = false } = {}) => {
+      if (selectedCards.length === 0 || !myPlayerId) return;
+      if (playCardLimit !== undefined && selectedCards.length > playCardLimit) return;
+
+      const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
+      if (!myPlayer) return;
+
+      const cardsByDeck: Record<string, string[]> = {};
+      let targetPlayLocation: CardLocation | undefined;
+
+      if (isHold == true) {
+        socket.emit('card:hold', { roomId: roomId, playerId: myPlayerId, cardIds: selectedCards } as CardHoldData);
+        return;
+      }
+
+      selectedCards.forEach((cardId) => {
+        const card = myPlayer.cards.find((c) => c.id === cardId);
+        if (!card) return;
+        if (!targetPlayLocation) targetPlayLocation = card.playLocation as CardLocation;
+        if (!cardsByDeck[card.deckId]) cardsByDeck[card.deckId] = [];
+        cardsByDeck[card.deckId].push(card.id);
+      });
+
+      if (!targetPlayLocation) return;
+      const finalLocation: CardLocation = targetPlayLocation;
+
+      Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
+        const playData: CardPlayData = {
+          roomId,
+          deckId,
+          cardIds,
+          playerId: myPlayerId,
+          playLocation: finalLocation,
+          coordinate: { x: 50, y: 50 },
+        };
+
+        socket.emit('card:play', playData);
+      });
+
+      if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId } as GameNextTrunData);
+      setSelectedCards([]);
+    },
+    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay],
+  );
 
   const revealSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
@@ -227,44 +274,6 @@ export function ScoreBoard({
     if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId } as GameNextTrunData);
     setSelectedCards([]);
   }, [selectedCards, myPlayerId, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
-
-  const playSelectedCards = React.useCallback(() => {
-    if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== undefined && selectedCards.length > playCardLimit) return;
-
-    const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
-    if (!myPlayer) return;
-
-    const cardsByDeck: Record<string, string[]> = {};
-    let targetPlayLocation: CardLocation | undefined;
-
-    selectedCards.forEach((cardId) => {
-      const card = myPlayer.cards.find((c) => c.id === cardId);
-      if (!card) return;
-      if (!targetPlayLocation) targetPlayLocation = card.playLocation as CardLocation;
-      if (!cardsByDeck[card.deckId]) cardsByDeck[card.deckId] = [];
-      cardsByDeck[card.deckId].push(card.id);
-    });
-
-    if (!targetPlayLocation) return;
-    const finalLocation: CardLocation = targetPlayLocation;
-
-    Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
-      const playData: CardPlayData = {
-        roomId,
-        deckId,
-        cardIds,
-        playerId: myPlayerId,
-        playLocation: finalLocation,
-        coordinate: { x: 50, y: 50 },
-      };
-
-      socket.emit('card:play', playData);
-    });
-
-    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId } as GameNextTrunData);
-    setSelectedCards([]);
-  }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
 
   const nextTurn = () => socket.emit('game:next-turn', { roomId } as GameNextTrunData);
   const nextRound = () => socket.emit('game:next-round', { roomId } as GameNextRoundData);
@@ -297,12 +306,12 @@ export function ScoreBoard({
         )}
 
         <div className={scoreBoardStyles.buttonGroup}>
-          <button onClick={playSelectedCards} disabled={isActionDisabled}>
+          <button onClick={() => playSelectedCards()} disabled={isActionDisabled}>
             選択カードを出す
           </button>
           {holdButton && (
-            <button onClick={playSelectedCards} disabled={isActionDisabled}>
-              カードをホールドする
+            <button onClick={() => playSelectedCards({ isHold: true })} disabled={isActionDisabled}>
+              選択カードをホールドする
             </button>
           )}
           {revealButton && <button onClick={revealSelectedCards}>選択カードを公開する</button>}

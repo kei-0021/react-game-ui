@@ -1986,6 +1986,7 @@ const PlayerListItem = React.memo(
             },
             token.id
           )) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: player.isHolding && "カードをホールドしています" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card2) => {
             const isSelected = selectedCards.includes(card2.id);
             const canSeeFront = !!card2.isFaceUp || isOwner;
@@ -2053,6 +2054,43 @@ function ScoreBoard({
     if (!isOwner) return;
     setSelectedCards((prev) => prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]);
   }, []);
+  const playSelectedCards = React.useCallback(
+    ({ isHold = false } = {}) => {
+      if (selectedCards.length === 0 || !myPlayerId) return;
+      if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) return;
+      const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
+      if (!myPlayer) return;
+      const cardsByDeck = {};
+      let targetPlayLocation;
+      if (isHold == true) {
+        socket.emit("card:hold", { roomId, playerId: myPlayerId, cardIds: selectedCards });
+        return;
+      }
+      selectedCards.forEach((cardId) => {
+        const card2 = myPlayer.cards.find((c) => c.id === cardId);
+        if (!card2) return;
+        if (!targetPlayLocation) targetPlayLocation = card2.playLocation;
+        if (!cardsByDeck[card2.deckId]) cardsByDeck[card2.deckId] = [];
+        cardsByDeck[card2.deckId].push(card2.id);
+      });
+      if (!targetPlayLocation) return;
+      const finalLocation = targetPlayLocation;
+      Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
+        const playData = {
+          roomId,
+          deckId,
+          cardIds,
+          playerId: myPlayerId,
+          playLocation: finalLocation,
+          coordinate: { x: 50, y: 50 }
+        };
+        socket.emit("card:play", playData);
+      });
+      if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
+      setSelectedCards([]);
+    },
+    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]
+  );
   const revealSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
     if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) return;
@@ -2064,36 +2102,6 @@ function ScoreBoard({
     if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
     setSelectedCards([]);
   }, [selectedCards, myPlayerId, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
-  const playSelectedCards = React.useCallback(() => {
-    if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) return;
-    const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
-    if (!myPlayer) return;
-    const cardsByDeck = {};
-    let targetPlayLocation;
-    selectedCards.forEach((cardId) => {
-      const card2 = myPlayer.cards.find((c) => c.id === cardId);
-      if (!card2) return;
-      if (!targetPlayLocation) targetPlayLocation = card2.playLocation;
-      if (!cardsByDeck[card2.deckId]) cardsByDeck[card2.deckId] = [];
-      cardsByDeck[card2.deckId].push(card2.id);
-    });
-    if (!targetPlayLocation) return;
-    const finalLocation = targetPlayLocation;
-    Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
-      const playData = {
-        roomId,
-        deckId,
-        cardIds,
-        playerId: myPlayerId,
-        playLocation: finalLocation,
-        coordinate: { x: 50, y: 50 }
-      };
-      socket.emit("card:play", playData);
-    });
-    if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
-    setSelectedCards([]);
-  }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
   const nextTurn = () => socket.emit("game:next-turn", { roomId });
   const nextRound = () => socket.emit("game:next-round", { roomId });
   const isOverLimit = playCardLimit !== void 0 && selectedCards.length > playCardLimit;
@@ -2121,8 +2129,8 @@ function ScoreBoard({
         " 枚までです"
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: playSelectedCards, disabled: isActionDisabled, children: "選択カードを出す" }),
-        holdButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: playSelectedCards, disabled: isActionDisabled, children: "カードをホールドする" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled, children: "選択カードを出す" }),
+        holdButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isActionDisabled, children: "選択カードをホールドする" }),
         revealButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, children: "選択カードを公開する" }),
         turnSkipButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" }),
         roundSkipbutton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextRound, children: "ラウンドをスキップ" })
