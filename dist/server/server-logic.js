@@ -89,38 +89,6 @@ export function initGameServer(io, options) {
         }
     });
     // --- ヘルパー関数 ---
-    const updatePlayerResource = (roomId, playerId, resourceId, amount) => {
-        const state = activeRooms.get(roomId);
-        if (!state)
-            return;
-        const player = state?.players.find((p) => p.id === playerId);
-        const resource = player?.resources?.find((r) => r.resourceId === resourceId);
-        const param = gameParams[state.gameId];
-        const roomManager = new RoomManager(io, param, state);
-        if (resource) {
-            resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
-            server_log('resource', state.gameId, roomId, `${player.name}: ${resource.name} 更新`);
-            roomManager.emitPlayerUpdate();
-            return true;
-        }
-        return false;
-    };
-    const updatePlayerToken = (roomId, playerId, tokenId, amount) => {
-        const state = activeRooms.get(roomId);
-        if (!state)
-            return;
-        const player = state?.players.find((p) => p.id === playerId);
-        const token = player?.tokens?.find((t) => t.id === tokenId);
-        const param = gameParams[state.gameId];
-        const roomManager = new RoomManager(io, param, state);
-        if (token) {
-            token.count = Math.max(0, (token.count || 0) + amount);
-            server_log('token', state.gameId, roomId, `${player.name}: ${tokenId} 更新`);
-            roomManager.emitPlayerUpdate();
-            return true;
-        }
-        return false;
-    };
     const stopTimer = (roomId, gameId) => {
         const timer = roomTimers.get(roomId);
         if (timer) {
@@ -252,7 +220,7 @@ export function initGameServer(io, options) {
             if (player && state) {
                 player.position = newPosition;
                 const updated = markCellAsExplored(state, state.gameId, roomId, newPosition);
-                roomManager.applyCellEffect(playerId, newPosition, param?.cellEffects, (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt), (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
+                roomManager.applyCellEffect(playerId, newPosition, param?.cellEffects, (pId, rId, amt) => roomManager.acquireResource(pId, rId, amt), (pId, tId) => roomManager.acquireToken(roomId, pId, tId), ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }));
                 roomManager.emitPlayerUpdate();
                 if (updated)
                     io.to(roomId).emit('board-update', state.exploredCells);
@@ -339,9 +307,7 @@ export function initGameServer(io, options) {
                         p.cards = p.cards.filter((c) => c.id !== id);
                 }
                 card.location = playLocation;
-                if (coordinate?.x != null && coordinate?.y != null) {
-                    card.coordinate = coordinate;
-                }
+                card.coordinate = coordinate;
                 card.isFaceUp = true;
                 state.playFieldCards[deckId] = state.playFieldCards[deckId].filter((c) => c.id !== id);
                 state.discardPile[deckId] = state.discardPile[deckId].filter((c) => c.id !== id);
@@ -358,8 +324,8 @@ export function initGameServer(io, options) {
                     server_log('card', state.gameId, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
                     effect({
                         playerId,
-                        updateResource: (resourceId, amount) => updatePlayerResource(roomId, playerId, resourceId, amount),
-                        updateToken: (tokenId, amount) => updatePlayerToken(roomId, playerId, tokenId, amount),
+                        updateResource: (resourceId, amount) => roomManager.acquireResource(playerId, resourceId, amount),
+                        updateToken: (tokenId) => roomManager.acquireToken(roomId, playerId, tokenId),
                     });
                 }
             });
@@ -515,7 +481,9 @@ export function initGameServer(io, options) {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;
-            updatePlayerResource(roomId, playerId, resourceId, amount);
+            const param = gameParams[state.gameId];
+            const roomManager = new RoomManager(io, param, state);
+            roomManager.acquireResource(playerId, resourceId, amount);
         });
         // --- カスタムイベント ---
         const customEvents = options.customEvents ? options.customEvents() : {};

@@ -1,11 +1,12 @@
 // src/server/server-utils.ts
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
-import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { CardId, DeckId, GameId, PlayerId, ResourceId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
+  CardPlayData,
   DeckUpdateData,
   GamePhaseUpdateData,
   GameTurnUpdateData,
@@ -261,6 +262,68 @@ export class RoomManager {
     return true;
   }
 
+  // カードプレイ
+  playCard(data: CardPlayData): void {
+    const { deckId, cardIds, playerId, playLocation = 'field', coordinate } = data;
+    const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+
+    if (this.state.holdCards[playerId]) {
+      server_log(
+        'card',
+        this.state.gameId,
+        this.state.roomId,
+        `${playerId} はカードをホールドしているので、カードをプレイできません`,
+      );
+      return;
+    }
+
+    ids.forEach((id) => {
+      const card = this.state.decks[deckId]?.find((c) => c.id === id);
+      if (!card) return;
+
+      if (playerId) {
+        const p = this.state.players.find((p) => p.id === playerId);
+        if (p) p.cards = p.cards.filter((c) => c.id !== id);
+      }
+
+      card.location = playLocation;
+      card.coordinate = coordinate;
+      card.isFaceUp = true;
+
+      this.state.playFieldCards[deckId] = this.state.playFieldCards[deckId].filter((c) => c.id !== id);
+      this.state.discardPile[deckId] = this.state.discardPile[deckId].filter((c) => c.id !== id);
+
+      if (playLocation === 'discard') {
+        this.state.discardPile[deckId].push(card);
+      } else {
+        this.state.playFieldCards[deckId].push(card);
+      }
+
+      server_log('card', this.state.gameId, this.state.roomId, `"${card.name}" をプレイした`);
+
+      // カード効果
+      const effect = this.param.cardEffects?.[card.name];
+      if (effect) {
+        server_log('card', this.state.gameId, this.state.roomId, `カード効果発揮: ${card.name} by ${playerId}`);
+        effect({
+          playerId,
+          updateResource: (resourceId: string, amount: number) => this.acquireResource(playerId, resourceId, amount),
+          updateToken: (tokenId: string) => this.acquireToken(this.state.roomId, playerId, tokenId),
+        });
+      }
+    });
+
+    // カスタムフック処理
+    const onCardPlay = this.param.onCardPlay;
+    if (onCardPlay) {
+      onCardPlay(this.state, this, data);
+    }
+
+    // 更新通知
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+  }
+
   /**
    * ホールド状態を解除し、カードを出す
    */
@@ -333,6 +396,51 @@ export class RoomManager {
   }
 
   /**
+   * リソースを取得する
+   * @param playerId - 対象のプレイヤーのID
+   * @param resourceId - 対象のリソースID
+   * @param amount - 加算する個数
+   */
+  acquireResource = (playerId: PlayerId, resourceId: ResourceId, amount: number) => {
+    const player = this.state.players.find((p) => p.id === playerId);
+    const resource = player?.resources?.find((r) => r.resourceId === resourceId);
+
+    if (resource) {
+      resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
+      server_log('resource', this.state.gameId, this.state.roomId, `${player!.name}: ${resource.name} 更新`);
+      this.emitPlayerUpdate();
+    }
+  };
+
+  /**
+   * トークンを取得する
+   * @param tokenStoreId - トークン置き場ID
+   * @param tokenId - トークンID
+   * @param playerId - プレイヤーID
+   */
+  acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return;
+    const tokens = this.state.tokenStores[tokenStoreId];
+
+    const index = tokens.findIndex((t) => t.id === tokenId);
+    if (index !== -1) {
+      const acquiredToken = tokens.splice(index, 1)[0];
+      if (!Array.isArray(player.tokens)) {
+        player.tokens = [];
+      }
+      player.tokens.push(acquiredToken);
+      server_log(
+        'token',
+        this.state.gameId,
+        this.state.roomId,
+        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
+      );
+      this.emitTokenStoreUpdate(tokenStoreId);
+    }
+  }
+
+  /**
    * セル効果を発動する
    * @param playerId - 効果を発動させたプレイヤーのID
    * @param position - 発動対象となるマスの座標
@@ -391,34 +499,6 @@ export class RoomManager {
       server_log('cell', this.state.gameId, this.state.roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
     }
   };
-
-  /**
-   * トークンを取得する
-   * @param tokenStoreId - トークン置き場ID
-   * @param tokenId - トークンID
-   * @param playerId - プレイヤーID
-   */
-  acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId) {
-    const player = this.state.players.find((p) => p.id === playerId);
-    if (!player) return false;
-    const tokens = this.state.tokenStores[tokenStoreId];
-
-    const index = tokens.findIndex((t) => t.id === tokenId);
-    if (index !== -1) {
-      const acquiredToken = tokens.splice(index, 1)[0];
-      if (!Array.isArray(player.tokens)) {
-        player.tokens = [];
-      }
-      player.tokens.push(acquiredToken);
-      server_log(
-        'token',
-        this.state.gameId,
-        this.state.roomId,
-        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
-      );
-      this.emitTokenStoreUpdate(tokenStoreId);
-    }
-  }
 
   /**
    * ターンを更新する

@@ -1,9 +1,10 @@
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
-import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { CardId, DeckId, GameId, PlayerId, ResourceId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
+import { CardPlayData } from '@/types/socketData.js';
 import { Server } from 'socket.io';
 export type LogCategory = 'connection' | 'deck' | 'card' | 'cell' | 'game' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'room' | 'lobby' | 'disconnect' | 'warn' | 'popup' | 'custom_event';
 export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
@@ -46,8 +47,9 @@ export declare class RoomManager {
      * カードをデッキから引く
      */
     drawCard(deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): boolean;
+    playCard(data: CardPlayData): void;
     /**
-     * ホールド状態を解消し、カードを出す
+     * ホールド状態を解除し、カードを出す
      */
     unholdCards(): void;
     /**
@@ -61,6 +63,20 @@ export declare class RoomManager {
      */
     addScore(playerId: PlayerId, points: number): void;
     /**
+     * リソースを取得する
+     * @param playerId - 対象のプレイヤーのID
+     * @param resourceId - 対象のリソースID
+     * @param amount - 加算する個数
+     */
+    acquireResource: (playerId: PlayerId, resourceId: ResourceId, amount: number) => void;
+    /**
+     * トークンを取得する
+     * @param tokenStoreId - トークン置き場ID
+     * @param tokenId - トークンID
+     * @param playerId - プレイヤーID
+     */
+    acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): void;
+    /**
      * セル効果を発動する
      * @param playerId - 効果を発動させたプレイヤーのID
      * @param position - 発動対象となるマスの座標
@@ -70,13 +86,6 @@ export declare class RoomManager {
      * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
      */
     applyCellEffect: (playerId: PlayerId, position: Position, cellEffects: Record<string, (params: any) => void>, updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
-    /**
-     * トークンを取得する
-     * @param tokenStoreId - トークン置き場ID
-     * @param tokenId - トークンID
-     * @param playerId - プレイヤーID
-     */
-    acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): false | undefined;
     /**
      * ターンを更新する
      */

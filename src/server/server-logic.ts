@@ -10,7 +10,7 @@ import {
   unmarkCellAsExplored,
 } from './server-utils.js';
 
-import { CardId, DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
+import { CardId, DeckId, PlayerId, RoomId } from '@/types/definition.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
   CardHoldData,
@@ -134,44 +134,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
   });
 
   // --- ヘルパー関数 ---
-  const updatePlayerResource = (roomId: RoomId, playerId: PlayerId, resourceId: ResourceId, amount: number) => {
-    const state = activeRooms.get(roomId);
-    if (!state) return;
-
-    const player = state?.players.find((p) => p.id === playerId);
-    const resource = player?.resources?.find((r) => r.resourceId === resourceId);
-
-    const param = gameParams[state.gameId];
-    const roomManager = new RoomManager(io, param, state);
-
-    if (resource) {
-      resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
-      server_log('resource', state!.gameId, roomId, `${player!.name}: ${resource.name} 更新`);
-      roomManager.emitPlayerUpdate();
-      return true;
-    }
-    return false;
-  };
-
-  const updatePlayerToken = (roomId: RoomId, playerId: PlayerId, tokenId: TokenId, amount: number) => {
-    const state = activeRooms.get(roomId);
-    if (!state) return;
-
-    const player = state?.players.find((p) => p.id === playerId);
-    const token = player?.tokens?.find((t) => t.id === tokenId);
-
-    const param = gameParams[state.gameId];
-    const roomManager = new RoomManager(io, param, state);
-
-    if (token) {
-      token.count = Math.max(0, (token.count || 0) + amount);
-      server_log('token', state!.gameId, roomId, `${player!.name}: ${tokenId} 更新`);
-      roomManager.emitPlayerUpdate();
-      return true;
-    }
-    return false;
-  };
-
   const stopTimer = (roomId: RoomId, gameId: string) => {
     const timer = roomTimers.get(roomId);
     if (timer) {
@@ -318,8 +280,8 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           playerId,
           newPosition,
           param?.cellEffects,
-          (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt),
-          (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt),
+          (pId, rId, amt) => roomManager.acquireResource(pId, rId, amt),
+          (pId, tId) => roomManager.acquireToken(roomId, pId, tId),
           ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }),
         );
         roomManager.emitPlayerUpdate();
@@ -427,10 +389,8 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           if (p) p.cards = p.cards.filter((c) => c.id !== id);
         }
 
-        card.location = playLocation as any;
-        if (coordinate?.x != null && coordinate?.y != null) {
-          card.coordinate = coordinate;
-        }
+        card.location = playLocation;
+        card.coordinate = coordinate;
         card.isFaceUp = true;
 
         state.playFieldCards[deckId] = state.playFieldCards[deckId].filter((c) => c.id !== id);
@@ -451,8 +411,8 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           effect({
             playerId,
             updateResource: (resourceId: string, amount: number) =>
-              updatePlayerResource(roomId, playerId, resourceId, amount),
-            updateToken: (tokenId: string, amount: number) => updatePlayerToken(roomId, playerId, tokenId, amount),
+              roomManager.acquireResource(playerId, resourceId, amount),
+            updateToken: (tokenId: string) => roomManager.acquireToken(roomId, playerId, tokenId),
           });
         }
       });
@@ -623,8 +583,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     socket.on('room:player:update-resource', ({ roomId, playerId, resourceId, amount }) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
-
-      updatePlayerResource(roomId, playerId, resourceId, amount);
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
+      roomManager.acquireResource(playerId, resourceId, amount);
     });
 
     // --- カスタムイベント ---
