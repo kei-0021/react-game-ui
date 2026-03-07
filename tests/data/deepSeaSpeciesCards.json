@@ -4,9 +4,6 @@
     "name": "オニアンコウ",
     "threatLevel": 1,
     "description": "潜水艦のライトに驚き、データを残さずに逃げた。\n脅威レベル: 1 (酸素 -1)",
-    "location": "deck",
-    "drawLocation": "field",
-    "playLocation": "discard",
     "frontImage": "/species_1.png"
   },
   {
@@ -14,9 +11,6 @@
     "name": "オニアンコウ",
     "threatLevel": 1,
     "description": "潜水艦のライトに驚き、データを残さずに逃げた。\n脅威レベル: 1 (酸素 -1)",
-    "location": "deck",
-    "drawLocation": "field",
-    "playLocation": "discard",
     "frontImage": "/species_1.png"
   },
   {
@@ -24,9 +18,6 @@
     "name": "キバモロコ",
     "threatLevel": 2,
     "description": "鋭い牙で潜水艦をかすめる！\n脅威レベル: 2 (エネルギー -2 & データ +1)",
-    "location": "deck",
-    "drawLocation": "field",
-    "playLocation": "discard",
     "frontImage": "/species_2.png"
   },
   {
@@ -34,9 +25,6 @@
     "name": "キバモロコ",
     "threatLevel": 2,
     "description": "鋭い牙で潜水艦をかすめる！\n脅威レベル: 2 (エネルギー -2 & データ +1)",
-    "location": "deck",
-    "drawLocation": "field",
-    "playLocation": "discard",
     "frontImage": "/species_2.png"
   },
   {
@@ -44,9 +32,6 @@
     "name": "ニュウドウカジカ",
     "threatLevel": 3,
     "description": "巨大な質量が潜水艦に衝突。主要システムにダメージ。\n脅威レベル: 3 (酸素 -2 & データ -1)",
-    "location": "deck",
-    "drawLocation": "field",
-    "playLocation": "discard",
     "frontImage": "/species_3.png"
   },
   {
@@ -54,9 +39,6 @@
     "name": "ニュウドウカジカ",
     "threatLevel": 3,
     "description": "巨大な質量が潜水艦に衝突。主要システムにダメージ。\n脅威レベル: 3 (酸素 -2 & データ -1)",
-    "location": "deck",
-    "drawLocation": "field",
-    "playLocation": "discard",
     "frontImage": "/species_3.png"
   }
 ]

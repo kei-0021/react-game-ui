@@ -1,7 +1,18 @@
-import { GameId, PlayerId, RoomId } from '@/types/definition.js';
-import { initialRoomState as IInitialRoomState, Position, ServerPlayer } from '@/types/server.js';
-import { Token } from '@/types/token.js';
-import { TokenStoreDef } from '@/types/tokenStore.js';
+// src/server/server-utils.ts
+import { CardLocation } from '@/types/cardLocation.js';
+import { CardState } from '@/types/cardState.js';
+import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { Phase } from '@/types/phase.js';
+import { Position } from '@/types/position.js';
+import { GameParam, RoomState } from '@/types/server.js';
+import {
+  DeckUpdateData,
+  GamePhaseUpdateData,
+  GameTurnUpdateData,
+  SystemMessageData,
+  TokenStoreUpdateData,
+} from '@/types/socketData.js';
+import { Server } from 'socket.io';
 
 export type LogCategory =
   | 'connection'
@@ -43,27 +54,41 @@ export let LOG_CATEGORIES: Record<LogCategory, boolean> = {
 const ANSI_RED = '\x1b[31m';
 const ANSI_RESET = '\x1b[0m';
 
-export function server_log(tag: LogCategory, gamePresetId: GameId, roomId: RoomId, ...args: any[]): void {
-  if (!LOG_CATEGORIES[tag]) return;
+/**
+ * サーバーの実行ログを出力する
+ * @param tag - ログのカテゴリ
+ * @param gameId - 対象のゲームプリセットID
+ * @param roomId - 対象のルームID
+ * @param firstArg - ログのメイン内容（1つ以上の引数が必須）
+ * @param args - 追加のログ情報
+ */
+export function server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void {
+  if (!LOG_CATEGORIES[tag]) {
+    throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
+  }
+
+  const fullArgs = [firstArg, ...args];
+
   if (tag === 'warn') {
-    console.warn(ANSI_RED + `[${tag}]` + ANSI_RESET, ...args.map((arg) => ANSI_RED + String(arg) + ANSI_RESET));
+    const header = `[${tag}] [${gameId} (${roomId})]`;
+    console.warn(ANSI_RED + header + ANSI_RESET, ...fullArgs.map((arg) => ANSI_RED + String(arg) + ANSI_RESET));
   } else {
-    console.log(`[${tag}] [${gamePresetId} (${roomId})]`, ...args);
+    console.log(`[${tag}] [${gameId} (${roomId})]`, ...fullArgs);
   }
 }
 
-export const isExplored = (gameParam: IInitialRoomState, position: Position): boolean => {
-  return gameParam.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
+export const isExplored = (roomState: RoomState, position: Position): boolean => {
+  return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
 
 export const markCellAsExplored = (
-  gameParam: IInitialRoomState,
+  roomState: RoomState,
   gameId: GameId,
   roomId: RoomId,
   position: Position,
 ): boolean => {
-  if (!isExplored(gameParam, position)) {
-    gameParam.exploredCells.push(position);
+  if (!isExplored(roomState, position)) {
+    roomState.exploredCells.push(position);
     server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
     return true;
   }
@@ -71,16 +96,16 @@ export const markCellAsExplored = (
 };
 
 export const unmarkCellAsExplored = (
-  gameParam: IInitialRoomState,
+  roomState: RoomState,
   gameId: GameId,
   roomId: RoomId,
   position: Position,
 ): boolean => {
-  const initialLength = gameParam.exploredCells.length;
-  gameParam.exploredCells = gameParam.exploredCells.filter(
+  const initialLength = roomState.exploredCells.length;
+  roomState.exploredCells = roomState.exploredCells.filter(
     (loc) => !(loc.row === position.row && loc.col === position.col),
   );
-  const wasRemoved = gameParam.exploredCells.length < initialLength;
+  const wasRemoved = roomState.exploredCells.length < initialLength;
   if (wasRemoved) {
     server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
   }
@@ -97,7 +122,6 @@ const shuffleArray = <T>(array: T[]): T[] => {
 
 export const createRandomBoard = (initialBoard: any[][]): any[][] => {
   if (!initialBoard || initialBoard.length === 0 || initialBoard[0].length === 0) {
-    server_log('warn', 'SYSTEM', 'N/A', 'createRandomBoard: initialBoardが空です。');
     return [];
   }
   const rows = initialBoard.length;
@@ -127,151 +151,6 @@ export const createRandomBoard = (initialBoard: any[][]): any[][] => {
   return newBoard;
 };
 
-export const applyCellEffect = (
-  gameParam: IInitialRoomState,
-  gameId: GameId,
-  roomId: RoomId,
-  playerId: PlayerId,
-  position: Position,
-  cellEffects: Record<string, (params: any) => void>,
-  addScore: (playerId: PlayerId, points: number) => void,
-  updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void,
-  updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void,
-  requirePopup: (params: any) => void,
-): void => {
-  const { row, col } = position;
-  if (row < 0 || row >= gameParam.board.length || col < 0 || col >= gameParam.board[row].length) {
-    server_log('warn', gameId, roomId, `applyCellEffect: 不正な座標 (${row}, ${col}) が指定されました。`);
-    return;
-  }
-  const cell = gameParam.board[row][col];
-  const effect = cellEffects[cell.name];
-  if (effect) {
-    server_log('cell', gameId, roomId, `マス効果発動: ${cell.name} by ${playerId}`);
-    try {
-      effect({
-        playerId,
-        addScore,
-        updateResource: updatePlayerResource,
-        updateToken: updatePlayerToken,
-        requirePopup: requirePopup,
-      });
-    } catch (e) {
-      server_log('warn', gameId, roomId, `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);
-    }
-  } else {
-    server_log('cell', gameId, roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
-  }
-};
-
-export class TokenStore {
-  public id: string;
-  public name: string;
-  public tokens: Token[];
-  constructor(id: string, name: string, initialTokens: any[]) {
-    this.id = id;
-    this.name = name;
-    this.tokens = [...initialTokens];
-  }
-  getTokens(): Token[] {
-    return this.tokens;
-  }
-}
-
-export class RoomManager {
-  public players: ServerPlayer[];
-  public initialResources: any[];
-  public initialTokenStores: any[];
-  public initialTokens: any[];
-  public board: any[][];
-  public exploredCells: Position[];
-  public turn: number;
-  public tokenStores: Map<string, TokenStore>;
-
-  constructor(initialState: IInitialRoomState, initialTokenStoresDef: TokenStoreDef[]) {
-    this.players = initialState.players;
-    this.initialResources = initialState.initialResources;
-    this.initialTokenStores = initialState.initialTokenStores;
-    this.initialTokens = initialState.initialTokens;
-    this.board = initialState.board;
-    this.exploredCells = initialState.exploredCells;
-    this.turn = initialState.turn;
-    this.tokenStores = new Map<string, TokenStore>();
-    initialTokenStoresDef.forEach((storeDef) => {
-      this.tokenStores.set(
-        storeDef.tokenStoreId,
-        new TokenStore(storeDef.tokenStoreId, storeDef.name, storeDef.tokens),
-      );
-    });
-  }
-
-  getTokenStore(tokenStoreId: string): TokenStore | undefined {
-    return this.tokenStores.get(tokenStoreId);
-  }
-
-  acquireToken(tokenStoreId: string, gameId: GameId, roomId: RoomId, playerId: PlayerId, tokenId: string): boolean {
-    const player = this.players.find((p) => p.id === playerId);
-    if (!player) return false;
-    if (tokenStoreId === 'scoreboard-acquisition') {
-      server_log(
-        'token',
-        gameId,
-        roomId,
-        `ユーザー ${playerId} が ScoreBoard 上でトークン ${tokenId} を操作しました。`,
-      );
-      if (!Array.isArray(player.tokens)) {
-        player.tokens = [];
-      }
-      const token = {
-        id: tokenId,
-        name: `Token ${tokenId.slice(0, 4)}`,
-        backColor: '#333',
-        count: 1,
-        imageSrc: '',
-      };
-      player.tokens.push(token);
-      server_log(
-        'token',
-        gameId,
-        roomId,
-        `トークン ${tokenId} をプレイヤー ${playerId} のインベントリに再追加しました。`,
-      );
-      return true;
-    }
-    const store = this.tokenStores.get(tokenStoreId);
-    if (store) {
-      const index = store.tokens.findIndex((t) => t.id === tokenId);
-      if (index !== -1) {
-        const acquiredToken = store.tokens.splice(index, 1)[0];
-        if (!Array.isArray(player.tokens)) {
-          player.tokens = [];
-        }
-        player.tokens.push(acquiredToken);
-        server_log(
-          'token',
-          gameId,
-          roomId,
-          `ユーザー ${playerId} がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
-        );
-        return true;
-      }
-    }
-    return false;
-  }
-
-  getFullState(): IInitialRoomState {
-    return {
-      players: this.players,
-      initialResources: this.initialResources,
-      initialTokenStores: this.initialTokenStores,
-      initialTokens: this.initialTokens,
-      board: this.board,
-      exploredCells: this.exploredCells,
-      turn: this.turn,
-    };
-  }
-}
-
 export const generateColorFromId = (id: string): string => {
   let hash = 0;
   for (let i = 0; i < id.length; i++) {
@@ -283,3 +162,360 @@ export const generateColorFromId = (id: string): string => {
   const finalHue = Math.floor(hue * 360);
   return `hsl(${finalHue}, 70%, 50%)`;
 };
+
+/**
+ * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
+ */
+export class RoomManager {
+  constructor(
+    private io: Server,
+    private param: GameParam,
+    private state: RoomState,
+  ) {}
+
+  /**
+   * プレイヤー更新を通知する
+   */
+  emitPlayerUpdate = () => {
+    this.io.to(this.state.roomId).emit('players:update', this.state.players);
+  };
+
+  /**
+   * デッキ更新を通知する
+   */
+  emitDeckUpdate = (deckId: DeckId) => {
+    const updateData: DeckUpdateData = {
+      currentDeck: this.state.decks[deckId].filter((c) => c.location === 'deck'),
+      playFieldCards: this.state.playFieldCards[deckId],
+      discardPile: this.state.discardPile[deckId],
+    };
+    this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
+  };
+
+  /**
+   * トークン置き場更新を通知する
+   */
+  emitTokenStoreUpdate = (tokenStoreId: TokenStoreId) => {
+    const updateData: TokenStoreUpdateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
+    this.io.to(this.state.roomId).emit(`token-store:update`, updateData);
+  };
+
+  emitSystemMessage = (message: string, isPersistent: boolean = false) => {
+    // 重複チェック: 履歴内に同じメッセージが存在すれば追加しない
+    if (!this.state.systemMessageHistory.includes(message)) {
+      // 最新10件に制限しつつ追加
+      this.state.systemMessageHistory = [...this.state.systemMessageHistory.slice(-9), message];
+    }
+    this.io.to(this.state.roomId).emit('system:message', { message, isPersistent } as SystemMessageData);
+  };
+
+  /**
+   * カードをデッキから引く
+   */
+  drawCard(deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): boolean {
+    const [targetLocation, targetState] = condition;
+
+    // デッキから「deck」ロケーションにあるカードを抽出
+    const currentDeck = this.state.decks[deckId].filter((c) => c.location === 'deck');
+    if (!currentDeck.length) return false;
+
+    const card = currentDeck[0];
+    card.isFaceUp = targetState === 'face';
+
+    let destination = '';
+
+    server_log(
+      'deck',
+      this.state.gameId,
+      this.state.roomId,
+      `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`,
+    );
+
+    // A. 捨て札へ
+    if (targetLocation === 'discard') {
+      card.location = 'discard';
+      card.ownerId = null;
+      this.state.discardPile[deckId].push(card);
+      destination = 'discard';
+    }
+    // B. プレイヤーの手札へ
+    else if (playerId && targetLocation === 'hand') {
+      const player = this.state.players.find((p) => p.id === playerId);
+      if (player) {
+        card.location = 'hand';
+        card.ownerId = playerId;
+        player.cards.push(card);
+        destination = playerId;
+      }
+    }
+    // C. プレイフィールドへ
+    else {
+      card.location = 'field';
+      card.ownerId = null;
+      this.state.playFieldCards[deckId].push(card);
+      destination = 'field';
+    }
+
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+    return true;
+  }
+
+  /**
+   * ホールド状態を解除し、カードを出す
+   */
+  unholdCards(): void {
+    this.state.players.forEach((p) => {
+      p.isHolding = false;
+      delete this.state.holdCards[p.id];
+    });
+    server_log('card', this.state.gameId, this.state.roomId, `プレイヤー全員のホールド状態を解除しました`);
+    this.emitPlayerUpdate();
+  }
+
+  /**
+   * フィールドからカードを回収（手札に戻す or 捨て札へ）
+   */
+  moveFromField(deckId: DeckId, cardId: CardId, playerId?: PlayerId | null): boolean {
+    const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
+
+    // 1. フィールドから対象カードを探して抜き取る
+    const fieldList = playFieldCards[deckId] || [];
+    const cardIndex = fieldList.findIndex((c) => c.id === cardId);
+    if (cardIndex === -1) return false;
+
+    const [card] = fieldList.splice(cardIndex, 1);
+
+    // 2. 表裏の状態を反映（fieldBackConditionの設定に従う）
+    // 以前のロジックを継承：設定が 'face' なら表、それ以外なら裏
+    card.isFaceUp = card.fieldBackCondition?.[1] === 'face';
+
+    // 3. 行き先の判定
+    if (playerId) {
+      // --- 手札に戻す場合 ---
+      const player = players.find((p) => p.id === playerId);
+      if (!player) return false;
+
+      card.location = 'hand';
+      card.ownerId = playerId;
+      player.cards = player.cards || [];
+      player.cards.push(card);
+
+      server_log('card', gameId, roomId, `Return: ${card.name} -> Player:${playerId}`);
+    } else {
+      // --- 捨て札に送る場合 ---
+      card.location = 'discard';
+      card.ownerId = null;
+      discardPile[deckId] = discardPile[deckId] || [];
+      discardPile[deckId].push(card);
+
+      server_log('card', gameId, roomId, `Discard: ${card.name} -> discard`);
+    }
+
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+    return true;
+  }
+
+  /**
+   * スコアを加算する
+   * @param playerId - 対象のプレイヤーのID
+   * @param points - 加算するスコア
+   */
+  addScore(playerId: PlayerId, points: number) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return;
+
+    player.score = (player.score || 0) + points;
+
+    server_log('addScore', this.state.gameId, this.state.roomId, `${player.name} に ${points}pt 加算`);
+    this.emitPlayerUpdate();
+  }
+
+  /**
+   * セル効果を発動する
+   * @param playerId - 効果を発動させたプレイヤーのID
+   * @param position - 発動対象となるマスの座標
+   * @param cellEffects - 各セル名に対応する効果処理の定義集
+   * @param updatePlayerResource - プレイヤーのリソース（資源）を更新するためのコールバック関数
+   * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
+   * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
+   */
+  applyCellEffect = (
+    playerId: PlayerId,
+    position: Position,
+    cellEffects: Record<string, (params: any) => void>,
+    updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void,
+    updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void,
+    requirePopup: (params: any) => void,
+  ): void => {
+    const { row, col } = position;
+
+    // Record（オブジェクト）の最初の値（ボード配列）を取得
+    const targetBoard = Object.values(this.state.board)[0];
+
+    // ボードが存在しない、または座標が範囲外の場合のガード
+    if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
+      server_log(
+        'warn',
+        this.state.gameId,
+        this.state.roomId,
+        `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`,
+      );
+      return;
+    }
+
+    // 特定したボードからセルを取得
+    const cell = targetBoard[row][col];
+    const effect = cellEffects[cell.name];
+
+    if (effect) {
+      server_log('cell', this.state.gameId, this.state.roomId, `マス効果発動: ${cell.name} by ${playerId}`);
+      try {
+        effect({
+          playerId,
+          updateResource: updatePlayerResource,
+          updateToken: updatePlayerToken,
+          requirePopup: requirePopup,
+        });
+      } catch (e) {
+        server_log(
+          'warn',
+          this.state.gameId,
+          this.state.roomId,
+          `マス効果の実行中にエラーが発生しました: ${cell.name}`,
+          e,
+        );
+      }
+    } else {
+      server_log('cell', this.state.gameId, this.state.roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
+    }
+  };
+
+  /**
+   * トークンを取得する
+   * @param tokenStoreId - トークン置き場ID
+   * @param tokenId - トークンID
+   * @param playerId - プレイヤーID
+   */
+  acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return false;
+    const tokens = this.state.tokenStores[tokenStoreId];
+
+    const index = tokens.findIndex((t) => t.id === tokenId);
+    if (index !== -1) {
+      const acquiredToken = tokens.splice(index, 1)[0];
+      if (!Array.isArray(player.tokens)) {
+        player.tokens = [];
+      }
+      player.tokens.push(acquiredToken);
+      server_log(
+        'token',
+        this.state.gameId,
+        this.state.roomId,
+        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
+      );
+      this.emitTokenStoreUpdate(tokenStoreId);
+    }
+  }
+
+  /**
+   * ターンを更新する
+   */
+  updateTurn(): void {
+    if (this.state.players.length === 0) return;
+
+    // カスタムフック処理
+    const checkGameEnd = this.param?.checkGameEnd;
+    const onGameEnd = this.param?.onGameEnd;
+    if (checkGameEnd && checkGameEnd(this.state) && onGameEnd) {
+      const results = onGameEnd(this.state);
+      this.io.to(this.state.roomId).emit('game:end', results);
+      return;
+    }
+
+    // ターンが一周した場合は次のラウンドへ移行する
+    const nextIndex = this.state.currentTurnIndex + 1;
+    const isRoundEnd = nextIndex % this.state.players.length === 0;
+
+    // 初回（0ターン目）のラウンド移行を防ぎつつ、一周した時だけラウンドを進める
+    if (nextIndex > 0 && isRoundEnd) {
+      this.state.currentRoundIndex += 1;
+
+      const onNextRound = this.param?.onNextRound;
+      if (onNextRound) {
+        onNextRound(this.state, this);
+      }
+    }
+
+    this.state.currentTurnIndex = nextIndex;
+    const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
+
+    server_log(
+      'game',
+      this.state.gameId,
+      this.state.roomId,
+      `ターン更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`,
+    );
+
+    this.io.to(this.state.roomId).emit('game:turn', {
+      currentPlayerId: currentPlayer?.id,
+      currentRoundIndex: this.state.currentRoundIndex,
+      currentTurnIndex: this.state.currentTurnIndex,
+    } as GameTurnUpdateData);
+  }
+
+  /**
+   * ラウンドを更新する
+   */
+  updateRound(): void {
+    if (this.state.players.length === 0) return;
+
+    // カスタムフック処理
+    const checkGameEnd = this.param?.checkGameEnd;
+    const onGameEnd = this.param?.onGameEnd;
+    if (checkGameEnd && checkGameEnd(this.state) && onGameEnd) {
+      const results = onGameEnd(this.state);
+      this.io.to(this.state.roomId).emit('game:end', results);
+      return;
+    }
+
+    // 次のラウンドへ移行する
+    this.state.currentRoundIndex += 1;
+    const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
+
+    // カスタムフック処理
+    const onNextRound = this.param?.onNextRound;
+    if (onNextRound) {
+      onNextRound(this.state, this);
+    }
+
+    server_log(
+      'game',
+      this.state.gameId,
+      this.state.roomId,
+      `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`,
+    );
+
+    this.io.to(this.state.roomId).emit('game:turn', {
+      currentPlayerId: currentPlayer?.id,
+      currentRoundIndex: this.state.currentRoundIndex,
+      currentTurnIndex: this.state.currentTurnIndex,
+    } as GameTurnUpdateData);
+  }
+
+  /**
+   * フェーズを更新する
+   * @param newPhase - 新しいフェーズ
+   */
+  updatePhase(newPhase: Phase): void {
+    if (this.state.currentPhase !== newPhase) {
+      this.state.currentPhase = newPhase;
+      server_log('game', this.state.gameId, this.state.roomId, `フェーズを更新しました: ${newPhase}`);
+      this.io.to(this.state.roomId).emit('game:phase:update', {
+        newPhase: this.state.currentPhase,
+      } as GamePhaseUpdateData);
+    }
+  }
+}

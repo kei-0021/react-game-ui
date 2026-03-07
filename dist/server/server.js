@@ -13,40 +13,22 @@ export class GameServer {
     clientDistPath;
     corsOrigins;
     onServerStart;
-    gamePresets;
-    checkGameEnd;
-    onGameEnd;
-    initialDecks;
-    cardEffects;
-    initialTokenStores;
-    initialHand;
-    initialTokens;
-    initialResources;
-    initialBoard;
-    cellEffects; // any[] から修正
-    customEvents; // any[] から修正
+    gameParams;
+    customEvents;
     initialLogCategories;
     app;
     httpServer;
     io;
-    constructor(options = {}) {
+    constructor(options) {
         this.port = Number(process.env.PORT) || options.port || 3000;
         this.libDistPath = options.libDistPath || path.resolve(__dirname, '../../dist');
         this.clientDistPath = options.clientDistPath || path.resolve(__dirname, '../tests');
         this.corsOrigins = options.corsOrigins || ['http://localhost:5173'];
         this.onServerStart = options.onServerStart;
-        this.gamePresets = options.gamePresets || {};
-        this.checkGameEnd = options.checkGameEnd || null;
-        this.onGameEnd = options.onGameEnd || null;
-        this.initialDecks = options.initialDecks || [];
-        this.cardEffects = options.cardEffects || {};
-        this.initialTokenStores = options.initialTokenStores || {};
-        this.initialHand = options.initialHand || {};
-        this.initialTokens = options.initialTokens || {};
-        this.initialResources = options.initialResources || [];
-        this.initialBoard = options.initialBoard || [];
-        this.cellEffects = options.cellEffects || {}; // [] から {} に修正
-        this.customEvents = options.customEvents || {}; // [] から {} に修正
+        // プリセット情報を保持（必須項目として代入）
+        this.gameParams = options.gameParams;
+        // サーバー全体のデフォルト設定
+        this.customEvents = options.customEvents || {};
         this.initialLogCategories = options.initialLogCategories || null;
         this.app = express();
         this.httpServer = createServer(this.app);
@@ -84,20 +66,14 @@ export class GameServer {
             });
         }
     }
+    /**
+     * ゲームロジックの初期化
+     * 各プリセット情報をそのまま渡すことで、ルームごとに独立した効果を適用可能にする
+     */
     initSocketLogic() {
         try {
             initGameServer(this.io, {
-                gamePresets: this.gamePresets,
-                checkGameEnd: this.checkGameEnd,
-                onGameEnd: this.onGameEnd,
-                initialDecks: this.initialDecks,
-                cardEffects: this.cardEffects,
-                initialResources: this.initialResources,
-                initialHand: this.initialHand,
-                initialTokenStores: this.initialTokenStores,
-                initialTokens: this.initialTokens,
-                initialBoard: this.initialBoard,
-                cellEffects: this.cellEffects,
+                gameParams: this.gameParams,
                 customEvents: this.customEvents,
                 initialLogCategories: this.initialLogCategories,
             });

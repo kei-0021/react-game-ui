@@ -1,0 +1,19 @@
+/* src/components/TokenStore.tsx */
+.section {
+  background-color: #dededeff;
+  padding: 10px;
+  margin: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.list {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}

@@ -22,7 +22,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 100;
+  z-index: 1000;
   background-color: rgba(10, 25, 47, 0.95);
   border-bottom: 1px solid rgba(139, 233, 253, 0.2);
   padding: 10px 0;
@@ -80,7 +80,6 @@
    2. ライブラリ(rg-)要素の上書き
    ========================================== */
 .rg-playfield {
-  background: #0a192f !important;
   border: 2px solid #8be9fd !important;
   width: 100% !important;
   max-width: 800px !important;
@@ -89,11 +88,6 @@
 
 .rg-playfield-title {
   color: #8be9fd;
-}
-.rg-card-name-label {
-  font-size: 1rem !important;
-  line-height: 1.2;
-  font-weight: 900;
 }
 
 /* ==========================================

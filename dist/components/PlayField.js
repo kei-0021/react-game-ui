@@ -1,9 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-// src/components/PlayField.tsx
 import * as React from 'react';
-import { client_log } from '../utils/client-log.js';
-import styles from './Card.module.css';
-import './PlayField.css';
+import { CardDisplayContent } from './Card.js';
+import cardStyles from './Card.module.css';
+import playFieldStyles from './PlayField.module.css';
 // 通信量制限用の throttle
 function throttle(func, limit) {
     let inThrottle;
@@ -15,31 +14,41 @@ function throttle(func, limit) {
         }
     };
 }
-const CardDisplayContent = ({ card, isFaceUp }) => {
-    if (!isFaceUp) {
-        return null;
-    }
-    if (card.frontImage) {
-        return _jsx("img", { src: card.frontImage, alt: card.name, className: "rg-card-image" });
-    }
-    return (_jsx("div", { className: "rg-card-text-content", children: _jsx("strong", { className: "rg-card-name-label", children: card.name }) }));
-};
-export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', is_logging = false, }) {
+/**
+ * カードを自由配置（Free Mode）またはグリッド配置し、移動やドロップ操作を管理する
+ * @param {Socket} socket - Socket.ioのインスタンス
+ * @param {RoomId} roomId - 現在のルームID
+ * @param {DeckId} deckId - このフィールドが紐付いているデッキのID
+ * @param {string} [title] - フィールドの表示タイトル
+ * @param {Player[]} players - ルームに参加しているプレイヤー情報（オーナー表示用）
+ * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
+ * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
+ * @param {string} [backgroundImage] - フィールドの背景画像URL
+ * @param {string} [baseZIndex] - カードの重ね順
+ * @param {boolean} [is_logging=false] - デバッグログを出力するかどうか
+ */
+export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', is_logging = false, backgroundImage, baseZIndex = 100, }) {
     const [playedCards, setPlayedCards] = React.useState([]);
     const [activeDraggingId, setActiveDraggingId] = React.useState(null);
     const containerRef = React.useRef(null);
     const draggingIdRef = React.useRef(null);
     React.useEffect(() => {
-        const handleUpdate = (data) => {
+        socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
             const newCards = data.playFieldCards || [];
             if (is_logging) {
-                client_log('playField', `[${deckId}] 場の更新: ${newCards.length}枚`);
+                // console.table(
+                //   newCards.map((c: Card) => ({
+                //     id: c.id,
+                //     name: c.name,
+                //     faceUp: c.isFaceUp,
+                //     owner: c.ownerId,
+                //   })),
+                // );
             }
             setPlayedCards(newCards);
-        };
-        socket.on(`deck:update:${roomId}:${deckId}`, handleUpdate);
+        });
         return () => {
-            socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
+            socket.off(`deck:update:${roomId}:${deckId}`);
         };
     }, [socket, roomId, deckId, is_logging]);
     // リアルタイム送信ロジック（境界制限付き）
@@ -93,66 +102,80 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         let y = ((e.clientY - rect.top) / rect.height) * 100;
         x = Math.max(0, Math.min(100, x));
         y = Math.max(0, Math.min(100, y));
-        // サーバーへ「この場所にプレイする」と送信
-        socket.emit('card:play', {
+        const playData = {
             roomId,
             deckId: droppedDeckId,
             cardIds: [droppedCardId],
             playerId: myPlayerId,
-            // サーバー側の strict な if 文に合わせて "field" 固定で送る
             playLocation: 'field',
-            coordinate: { x, y }, // 座標を渡す
-        });
-        if (is_logging) {
-            client_log('playField', `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`);
-        }
+            coordinate: { x, y },
+        };
+        socket.emit('card:play', playData);
     };
     const handleDragOver = (e) => {
-        // ドロップを有効にするために必須
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
     };
     const handleCardBack = (card) => {
-        const backTo = card.fieldBackLocation || 'discard';
+        if (!myPlayerId)
+            return;
+        const backTo = card.fieldBackCondition[0] || 'discard';
         const requestData = {
             roomId,
             deckId: card.deckId || deckId,
             cardId: card.id,
         };
         if (backTo === 'hand') {
-            if (!card.ownerId)
-                return;
-            requestData.targetPlayerId = card.ownerId;
+            requestData.playerId = myPlayerId;
         }
         socket.emit('card:move-from-field', requestData);
     };
-    return (_jsxs("section", { className: `rg-playfield mode-${layoutMode}`, children: [_jsx("h3", { className: "rg-playfield-title", children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), ' ', _jsx("div", { ref: containerRef, className: "rg-playfield-container", onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
-                    position: layoutMode === 'free' ? 'relative' : undefined,
+    return (_jsxs("section", { className: `rg-playfield mode-${layoutMode}`, style: {
+            background: backgroundImage ? `url(${backgroundImage}) center/cover no-repeat` : undefined,
+            // 親の zIndex を消すことで、中のカードが Draggable と同じ階層で比較されるようにする
+            position: 'relative',
+        }, children: [_jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsx("div", { ref: containerRef, className: playFieldStyles.rgPlayFieldContainer, onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
+                    position: 'relative',
                     minHeight: '600px',
                     touchAction: 'none',
-                    overflow: 'hidden', // 枠外はみ出し防止
+                    overflow: 'visible',
                 }, children: playedCards.map((card, index) => {
                     const owner = players.find((p) => p.id === card.ownerId);
                     const isDragging = activeDraggingId === card.id;
+                    const isActuallyFreeShape = !!(card.freeShape && card.frontImage);
                     const isOverlapping = playedCards
                         .slice(0, index)
                         .some((other) => Math.abs((other.coordinate?.x ?? 50) - (card.coordinate?.x ?? 50)) < 1 &&
                         Math.abs((other.coordinate?.y ?? 50) - (card.coordinate?.y ?? 50)) < 1);
                     const visualOffset = isOverlapping ? index * 12 : 0;
+                    // カード個別の zIndex
+                    const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
                     const freeStyle = layoutMode === 'free'
                         ? {
                             position: 'absolute',
                             left: `${card.coordinate?.x ?? 50}%`,
                             top: `${card.coordinate?.y ?? 50}%`,
                             transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
-                            zIndex: isDragging ? 9999 : Math.floor((card.coordinate?.y ?? 0) * 100) + index,
+                            zIndex: currentZIndex,
+                            transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                         }
                         : {};
-                    return (_jsxs("div", { onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, className: `${styles.card} rg-playfield-card-wrapper`, style: {
+                    return (_jsxs("div", { draggable: false, onDragStart: (e) => e.preventDefault(), onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, onPointerCancel: handlePointerUp, className: `${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`, style: {
                             '--owner-color': owner?.color || '#aaaaaa',
                             ...freeStyle,
                             touchAction: 'none',
                             cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
-                        }, onDoubleClick: () => handleCardBack(card), children: [_jsx(CardDisplayContent, { card: card, isFaceUp: true }), card.ownerId && (_jsx("div", { className: "rg-playfield-owner-badge", title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && _jsx("span", { className: styles.tooltip, children: card.description })] }, card.id));
+                            width: '80px',
+                            height: '112px',
+                            // freeShape 時の設定
+                            ...(isActuallyFreeShape
+                                ? {
+                                    background: 'transparent',
+                                    border: 'none',
+                                    boxShadow: isDragging ? '0 0 15px var(--owner-color)' : 'none',
+                                    padding: 0,
+                                }
+                                : {}),
+                        }, onDoubleClick: () => handleCardBack(card), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && _jsx("span", { className: cardStyles.tooltip, children: card.description })] }, card.id));
                 }) })] }));
 }

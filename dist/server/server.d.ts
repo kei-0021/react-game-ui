@@ -1,55 +1,39 @@
-import { RoomParam } from '@/types/server.js';
-import { Token } from '@/types/token.js';
+import { GameParam } from '@/types/server.js';
 import express from 'express';
 import { Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import { LogCategory } from './server-utils.js';
 /**
  * サーバー設定の型定義
  */
-export interface GameServerOptions {
+export type GameServerOptions = {
     port?: number;
     libDistPath?: string;
     clientDistPath?: string;
     corsOrigins?: string[];
-    gamePresets?: Record<string, RoomParam>;
-    checkGameEnd?: ((gameState: any) => boolean) | null;
-    onGameEnd?: ((results: any) => void) | null;
-    initialDecks?: any[];
-    cardEffects?: Record<string, any>;
-    initialTokenStores?: Record<string, any>;
-    initialHand?: Record<string, any>;
-    initialTokens?: Record<string, Token[]>;
-    initialResources?: any[];
-    initialBoard?: any[][];
-    cellEffects?: Record<string, any>;
-    customEvents?: any;
-    initialLogCategories?: Record<string, boolean> | null;
     onServerStart?: (url: string) => void;
-}
+    gameParams: Record<string, GameParam>;
+    customEvents?: any;
+    initialLogCategories?: Partial<Record<LogCategory, boolean>> | null;
+};
 export declare class GameServer {
     private port;
     private libDistPath;
     private clientDistPath;
     private corsOrigins;
     private onServerStart?;
-    private gamePresets;
-    private checkGameEnd;
-    private onGameEnd;
-    private initialDecks;
-    private cardEffects;
-    private initialTokenStores;
-    private initialHand;
-    private initialTokens;
-    private initialResources;
-    private initialBoard;
-    private cellEffects;
+    private gameParams;
     private customEvents;
     private initialLogCategories;
     app: express.Application;
     httpServer: HttpServer;
     io: SocketIOServer;
-    constructor(options?: GameServerOptions);
+    constructor(options: GameServerOptions);
     private setupStaticRoutes;
+    /**
+     * ゲームロジックの初期化
+     * 各プリセット情報をそのまま渡すことで、ルームごとに独立した効果を適用可能にする
+     */
     private initSocketLogic;
     start(): void;
 }

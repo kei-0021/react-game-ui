@@ -1,35 +1,94 @@
-import { GameId, PlayerId, RoomId } from '@/types/definition.js';
-import { initialRoomState as IInitialRoomState, Position, ServerPlayer } from '@/types/server.js';
-import { Token } from '@/types/token.js';
-import { TokenStoreDef } from '@/types/tokenStore.js';
+import { CardLocation } from '@/types/cardLocation.js';
+import { CardState } from '@/types/cardState.js';
+import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { Phase } from '@/types/phase.js';
+import { Position } from '@/types/position.js';
+import { GameParam, RoomState } from '@/types/server.js';
+import { Server } from 'socket.io';
 export type LogCategory = 'connection' | 'deck' | 'card' | 'cell' | 'game' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'room' | 'lobby' | 'disconnect' | 'warn' | 'popup' | 'custom_event';
 export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
-export declare function server_log(tag: LogCategory, gamePresetId: GameId, roomId: RoomId, ...args: any[]): void;
-export declare const isExplored: (gameParam: IInitialRoomState, position: Position) => boolean;
-export declare const markCellAsExplored: (gameParam: IInitialRoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
-export declare const unmarkCellAsExplored: (gameParam: IInitialRoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
+/**
+ * サーバーの実行ログを出力する
+ * @param tag - ログのカテゴリ
+ * @param gameId - 対象のゲームプリセットID
+ * @param roomId - 対象のルームID
+ * @param firstArg - ログのメイン内容（1つ以上の引数が必須）
+ * @param args - 追加のログ情報
+ */
+export declare function server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void;
+export declare const isExplored: (roomState: RoomState, position: Position) => boolean;
+export declare const markCellAsExplored: (roomState: RoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
+export declare const unmarkCellAsExplored: (roomState: RoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
 export declare const createRandomBoard: (initialBoard: any[][]) => any[][];
-export declare const applyCellEffect: (gameParam: IInitialRoomState, gameId: GameId, roomId: RoomId, playerId: PlayerId, position: Position, cellEffects: Record<string, (params: any) => void>, addScore: (playerId: PlayerId, points: number) => void, updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
-export declare class TokenStore {
-    id: string;
-    name: string;
-    tokens: Token[];
-    constructor(id: string, name: string, initialTokens: any[]);
-    getTokens(): Token[];
-}
-export declare class RoomManager {
-    players: ServerPlayer[];
-    initialResources: any[];
-    initialTokenStores: any[];
-    initialTokens: any[];
-    board: any[][];
-    exploredCells: Position[];
-    turn: number;
-    tokenStores: Map<string, TokenStore>;
-    constructor(initialState: IInitialRoomState, initialTokenStoresDef: TokenStoreDef[]);
-    getTokenStore(tokenStoreId: string): TokenStore | undefined;
-    acquireToken(tokenStoreId: string, gameId: GameId, roomId: RoomId, playerId: PlayerId, tokenId: string): boolean;
-    getFullState(): IInitialRoomState;
-}
 export declare const generateColorFromId: (id: string) => string;
+/**
+ * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
+ */
+export declare class RoomManager {
+    private io;
+    private param;
+    private state;
+    constructor(io: Server, param: GameParam, state: RoomState);
+    /**
+     * プレイヤー更新を通知する
+     */
+    emitPlayerUpdate: () => void;
+    /**
+     * デッキ更新を通知する
+     */
+    emitDeckUpdate: (deckId: DeckId) => void;
+    /**
+     * トークン置き場更新を通知する
+     */
+    emitTokenStoreUpdate: (tokenStoreId: TokenStoreId) => void;
+    emitSystemMessage: (message: string, isPersistent?: boolean) => void;
+    /**
+     * カードをデッキから引く
+     */
+    drawCard(deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): boolean;
+    /**
+     * ホールド状態を解消し、カードを出す
+     */
+    unholdCards(): void;
+    /**
+     * フィールドからカードを回収（手札に戻す or 捨て札へ）
+     */
+    moveFromField(deckId: DeckId, cardId: CardId, playerId?: PlayerId | null): boolean;
+    /**
+     * スコアを加算する
+     * @param playerId - 対象のプレイヤーのID
+     * @param points - 加算するスコア
+     */
+    addScore(playerId: PlayerId, points: number): void;
+    /**
+     * セル効果を発動する
+     * @param playerId - 効果を発動させたプレイヤーのID
+     * @param position - 発動対象となるマスの座標
+     * @param cellEffects - 各セル名に対応する効果処理の定義集
+     * @param updatePlayerResource - プレイヤーのリソース（資源）を更新するためのコールバック関数
+     * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
+     * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
+     */
+    applyCellEffect: (playerId: PlayerId, position: Position, cellEffects: Record<string, (params: any) => void>, updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
+    /**
+     * トークンを取得する
+     * @param tokenStoreId - トークン置き場ID
+     * @param tokenId - トークンID
+     * @param playerId - プレイヤーID
+     */
+    acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): false | undefined;
+    /**
+     * ターンを更新する
+     */
+    updateTurn(): void;
+    /**
+     * ラウンドを更新する
+     */
+    updateRound(): void;
+    /**
+     * フェーズを更新する
+     * @param newPhase - 新しいフェーズ
+     */
+    updatePhase(newPhase: Phase): void;
+}
 //# sourceMappingURL=server-utils.d.ts.map

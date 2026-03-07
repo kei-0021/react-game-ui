@@ -1,154 +1,39 @@
-import * as fs from 'fs/promises';
+// tests/server.ts
 import path from 'path';
-import { GameServer, type GameServerOptions } from 'react-game-ui/server';
 import { fileURLToPath } from 'url';
-
-// データファイルのインポート（TS化されている想定、または @ts-ignore で対応）
-// @ts-ignore
-import { cardEffects } from './data/cardEffects.js';
-// @ts-ignore
-import { cellEffects } from './data/cellEffects.js';
-// @ts-ignore
-import { GameId, RoomState } from '../src/types/server.js';
+import type { GameParam } from '../src/index.js';
+import { loadJsonAssert, RoomConfig } from '../src/server/server-io-utils.js';
+import { GameServer, type GameServerOptions } from '../src/server/server.js';
 import { customEvents } from './data/customEvents.js';
+import { deepAbyssConfig } from './server/deepAbyssConfig.js';
+import { sampleConfig } from './server/sampleConfig.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/**
- * 外部JSONファイルを非同期で読み込み、パースするヘルパー関数
- */
-async function loadJson<T>(relativePath: string): Promise<T> {
-  const jsonPath = path.join(__dirname, relativePath);
-  try {
-    const data = await fs.readFile(jsonPath, 'utf-8');
-    return JSON.parse(data) as T;
-  } catch (error) {
-    console.error(`Error loading JSON file: ${relativePath}`, error);
-    throw new Error(`Failed to load critical data from ${relativePath}`);
-  }
-}
-
-// --- メインサーバー起動ロジック ---
 async function startServer() {
-  // 複数のJSONファイルを並行してロード
-  const [numberCardsJson, deepSeaActionCardsBaseJson, deepSeaCellsBaseJson, deepSeaSpeciesDeckJson] = await Promise.all(
-    [
-      loadJson<any[]>('./data/numberCards.json'),
-      loadJson<any[]>('./data/deepSeaActionCards.json'),
-      loadJson<any[]>('./data/deepSeaCells.json'),
-      loadJson<any[]>('./data/deepSeaSpeciesCards.json'),
-    ],
-  );
+  const gameParams: Record<string, GameParam> = {};
+  const configs: RoomConfig[] = [sampleConfig, deepAbyssConfig];
 
-  // --- カード・セルの生成用ヘルパー ---
-  const CELL_COUNTS = {
-    RA: 5,
-    RB: 10,
-    B_NORM: 4,
-    B_TRACK: 3,
-    T_VOL: 7,
-    T_CRF: 6,
-    N_A: 12,
-    N_B: 17,
-  };
-  const ROWS = 8;
-  const COLS = 8;
+  // プリセットを生成
+  for (const config of configs) {
+    const loadedData: Record<string, any> = {};
 
-  const createUniqueCards = (cards: any[], numSets: number) => {
-    const allCards: any[] = [];
-    for (let i = 1; i <= numSets; i++) {
-      cards.forEach((card) => allCards.push({ ...card, id: `${card.id}-set${i}` }));
+    for (const [key, relPath] of Object.entries(config.dataFiles)) {
+      const finalPath = path.resolve(__dirname, relPath as string);
+      loadedData[key] = await loadJsonAssert(finalPath, (data): data is any => true);
     }
-    return allCards;
-  };
 
-  const createBoardCells = (baseCells: any[], counts: Record<string, number>) => {
-    const templateMap = baseCells.reduce(
-      (map, t) => {
-        map[t.templateId] = t;
-        return map;
-      },
-      {} as Record<string, any>,
-    );
+    gameParams[config.gameId] = await config.setup(loadedData);
+  }
 
-    const finalCells: any[] = [];
-    for (const templateId in counts) {
-      const template = templateMap[templateId];
-      if (!template) continue;
-      for (let i = 1; i <= counts[templateId]; i++) {
-        finalCells.push({ ...template, id: `${templateId}-${i}` });
-      }
-    }
-    return finalCells;
-  };
-
-  // 深海アドベンチャー用のデータ準備
-  const deepSeaActionCardsTwoSets = createUniqueCards(deepSeaActionCardsBaseJson, 2);
-  const completeDeepSeaCells2D = (() => {
-    const cells1D = createBoardCells(deepSeaCellsBaseJson, CELL_COUNTS);
-    const cells2D: any[][] = [];
-    for (let r = 0; r < ROWS; r++) {
-      cells2D.push(cells1D.slice(r * COLS, (r + 1) * COLS));
-    }
-    return cells2D;
-  })();
-
-  const DEEP_SEA_RESOURCES = [
-    { id: 'OXYGEN', name: '酸素', icon: '🫧', currentValue: 50, maxValue: 50, type: 'CONSUMABLE' },
-    { id: 'BATTERY', name: 'バッテリー', icon: '🔋', currentValue: 6, maxValue: 6, type: 'CONSUMABLE' },
-  ];
-
-  const DEEP_SEA_TOKENS_ARTIFACT = [{ id: 'ARTIFACT', name: '💰', color: '#D4AF37' }];
-
-  const createUniqueTokens = (templates: any[], count: number) =>
-    templates.flatMap((t) =>
-      Array.from({ length: count }, (_, i) => ({
-        ...t,
-        id: `${t.id}-${i + 1}`,
-        templateId: t.id,
-      })),
-    );
-
-  // --- プリセット定義 ---
-  const GAME_PRESETS_COLLECTION: Record<GameId, any> = {
-    sample: {
-      initialDecks: [{ deckId: 'numberDeck', name: '数字カード', cards: numberCardsJson, backColor: '#000000ff' }],
-      initialBoard: [[{ id: 'start', type: 'START', position: { row: 0, col: 0 }, effect: 'start' }]],
-      maxPlayers: 1,
-    },
-    deepsea: {
-      initialDecks: [
-        { deckId: 'deepSeaSpecies', name: '深海生物カード', cards: deepSeaSpeciesDeckJson, backColor: '#0d3c99ff' },
-        { deckId: 'deepSeaAction', name: 'アクションカード', cards: deepSeaActionCardsTwoSets, backColor: '#0d8999ff' },
-      ],
-      cardEffects,
-      initialResources: DEEP_SEA_RESOURCES,
-      initialTokenStores: [
-        { tokenStoreId: 'ARTIFACT', name: '遺物', tokens: createUniqueTokens(DEEP_SEA_TOKENS_ARTIFACT, 10) },
-      ],
-      initialHand: { deckId: 'deepSeaAction', count: 6 },
-      initialBoard: completeDeepSeaCells2D,
-      cellEffects,
-      checkGameEnd: (room: RoomState) =>
-        // 終了条件: 5ラウンド終了 (5ラウンド目の最後 かつ 最後のプレイヤーの手番時)
-        room.currentRoundIndex >= 4 && room.currentTurnIndex == room.initRoomState.players.length - 1,
-      onGameEnd: (room: RoomState) => {
-        const rankings = [...room.initRoomState.players]
-          .sort((a, b) => b.score - a.score)
-          .map((p, index) => ({ rank: index + 1, name: p.name, score: p.score }));
-        return { message: '潜水任務完了', rankings, finalRound: room.currentRoundIndex };
-      },
-    },
-  };
-
-  // --- GameServer インスタンス作成 ---
+  // サーバーオプションの設定
   const options: GameServerOptions = {
     port: 4000,
     clientDistPath: path.resolve(__dirname, '..', 'dist'),
     libDistPath: path.resolve('../dist'),
     corsOrigins: ['http://localhost:5173', 'http://localhost:4000'],
-    gamePresets: GAME_PRESETS_COLLECTION,
+    gameParams: gameParams,
     customEvents,
     initialLogCategories: {
       connection: true,

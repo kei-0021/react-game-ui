@@ -1,12 +1,12 @@
-import { jsx as _jsx } from "react/jsx-runtime";
-import { useEffect, useMemo, useRef, useState } from "react";
-import styles from "./Dice.module.css";
-import dice1Image from "../assets/dice-1.png";
-import dice2Image from "../assets/dice-2.png";
-import dice3Image from "../assets/dice-3.png";
-import dice4Image from "../assets/dice-4.png";
-import dice5Image from "../assets/dice-5.png";
-import dice6Image from "../assets/dice-6.png";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import styles from './Dice.module.css';
+import dice1Image from '../assets/dice-1.png';
+import dice2Image from '../assets/dice-2.png';
+import dice3Image from '../assets/dice-3.png';
+import dice4Image from '../assets/dice-4.png';
+import dice5Image from '../assets/dice-5.png';
+import dice6Image from '../assets/dice-6.png';
 const defaultDiceImages = {
     1: dice1Image,
     2: dice2Image,
@@ -15,7 +15,7 @@ const defaultDiceImages = {
     5: dice5Image,
     6: dice6Image,
 };
-export default function Dice({ sides = 6, socket = null, diceId, roomId, onRoll, customFaces, }) {
+export default function Dice({ sides = 6, socket = null, diceId, roomId, title, onRoll, customFaces, tooltipText, }) {
     const [value, setValue] = useState(1);
     const [rolling, setRolling] = useState(false);
     const animRef = useRef(null);
@@ -52,16 +52,16 @@ export default function Dice({ sides = 6, socket = null, diceId, roomId, onRoll,
     const roll = () => {
         if (!socket || rolling)
             return;
-        socket.emit("dice:roll", { roomId, diceId, sides });
+        socket.emit('dice:roll', { roomId, diceId, sides });
     };
     const renderDiceFace = () => {
         if (customFaces && customFaces[value - 1]) {
-            return (_jsx("div", { className: styles.faceContainer, children: customFaces[value - 1] }));
+            return _jsx("div", { className: styles.faceContainer, children: customFaces[value - 1] });
         }
         if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
-            return (_jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles.faceImage }));
+            return _jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles.faceImage });
         }
         return _jsx("span", { className: styles.defaultText, children: value });
     };
-    return (_jsx("div", { className: `${styles.dice} ${rolling ? styles.diceRolling : styles.diceNotRolling}`, onClick: roll, children: renderDiceFace() }));
+    return (_jsxs("div", { className: styles.diceWrapper, children: [title && _jsx("div", { className: styles.diceTitle, children: title }), _jsxs("div", { className: `${styles.dice} ${rolling ? styles.diceRolling : styles.diceNotRolling}`, onClick: roll, children: [renderDiceFace(), tooltipText && _jsx("div", { className: styles.tooltip, children: tooltipText })] })] }));
 }

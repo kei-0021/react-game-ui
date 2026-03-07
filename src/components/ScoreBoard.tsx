@@ -1,63 +1,27 @@
+// src/components/ScoreBoard.tsx
+import { CardLocation } from '@/types/cardLocation.js';
+import { Player } from '@/types/player.js';
+import { CardHoldData, CardPlayData, GameNextRoundData, GameNextTrunData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import { Card } from '../types/card.js';
-import { PlayerId, RoomId } from '../types/definition.js';
-import { PlayerWithResources } from '../types/playerWithResources.js';
+import { CardId, PlayerId, RoomId } from '../types/definition.js';
 import type { Resource } from '../types/resource.js';
 import { Token } from '../types/token.js';
-import styles from './ScoreBoard.module.css';
-
-type DisplayedPlayer = PlayerWithResources & {
-  score: number;
-  cards: Card[];
-  resources: Resource[];
-  tokens: Token[];
-};
+import { CardDisplayContent } from './Card.js';
+import scoreBoardStyles from './ScoreBoard.module.css';
+import { TokenDisplayContent } from './Token.js';
 
 type PlayerListItemProps = {
-  player: DisplayedPlayer;
+  player: Player;
   currentPlayerId: PlayerId | null | undefined;
   myPlayerId: PlayerId | null;
   selectedCards: string[];
   toggleCardSelection: (cardId: string, isOwner: boolean) => void;
   socket: Socket;
   roomId: RoomId;
-  isDebug?: boolean; // デバッグ用フラグを追加
+  isDebug?: boolean;
 };
-
-const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: Card; canSeeFront: boolean }) => {
-  if (!canSeeFront) return null;
-  if (card.frontImage) {
-    return <img src={card.frontImage} alt={card.name} className={styles.cardImage} />;
-  }
-  return <strong className={styles.cardNameText}>{card.name}</strong>;
-});
-
-const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }: any) => {
-  const isMyToken = myPlayerId === playerIdBeingDisplayed;
-  if (!tokens || tokens.length === 0) return null;
-
-  return (
-    <div className={styles.tokenList}>
-      {tokens.map((token: Token) => (
-        <div
-          key={token.id}
-          className={`${styles.tokenBadge} ${isMyToken ? styles.tokenBadgeOwner : styles.tokenBadgeGuest}`}
-          onClick={() => {
-            if (!isMyToken) return;
-            socket.emit('token:reclaim', {
-              roomId,
-              playerId: myPlayerId,
-              tokenId: token.id,
-            });
-          }}
-        >
-          {token.name}
-        </div>
-      ))}
-    </div>
-  );
-});
 
 const PlayerListItem = React.memo(
   ({
@@ -74,7 +38,6 @@ const PlayerListItem = React.memo(
     const playerColor = (player as any).color || '#aaaaaa';
     const isOwner = player.id === myPlayerId;
 
-    // スコア増減ハンドラ
     const handleAddScore = (points: number) => {
       socket.emit('room:player:add-score', {
         roomId,
@@ -90,21 +53,24 @@ const PlayerListItem = React.memo(
     } as React.CSSProperties;
 
     return (
-      <li className={`${styles.playerItem} ${isActive ? styles.activePlayer : ''}`} style={customStyles}>
-        <div className={styles.playerHeader}>
-          <span className={styles.playerName}>
+      <li
+        className={`${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ''}`}
+        style={customStyles}
+      >
+        <div className={scoreBoardStyles.playerHeader}>
+          <span className={scoreBoardStyles.playerName}>
             {isActive && 'ᐅ '}
             {isOwner && '★ ME '}
             {player.name}
           </span>
-          <div className={styles.scoreArea}>
-            <span className={styles.playerScore}>スコア: {player.score}</span>
+          <div className={scoreBoardStyles.scoreArea}>
+            <span className={scoreBoardStyles.playerScore}>スコア: {player.score}</span>
             {isDebug && (
-              <div className={styles.debugScoreButtons}>
-                <button onClick={() => handleAddScore(-1)} className={styles.debugBtn}>
+              <div className={scoreBoardStyles.debugScoreButtons}>
+                <button onClick={() => handleAddScore(-1)} className={scoreBoardStyles.debugBtn}>
                   -
                 </button>
-                <button onClick={() => handleAddScore(1)} className={styles.debugBtn}>
+                <button onClick={() => handleAddScore(1)} className={scoreBoardStyles.debugBtn}>
                   +
                 </button>
               </div>
@@ -113,10 +79,10 @@ const PlayerListItem = React.memo(
         </div>
 
         {player.resources?.length > 0 && (
-          <div className={styles.resourceSection}>
-            <div className={styles.resourceList}>
+          <div className={scoreBoardStyles.resourceSection}>
+            <div className={scoreBoardStyles.resourceList}>
               {player.resources.map((resource: Resource) => (
-                <span key={resource.id} className={styles.resourceBadge}>
+                <span key={resource.resourceId} className={scoreBoardStyles.resourceBadge}>
                   {resource.icon} {resource.name}: {resource.currentValue} / {resource.maxValue}
                 </span>
               ))}
@@ -124,15 +90,26 @@ const PlayerListItem = React.memo(
           </div>
         )}
 
-        <TokenDisplayContent
-          tokens={player.tokens}
-          socket={socket}
-          roomId={roomId}
-          myPlayerId={myPlayerId}
-          playerIdBeingDisplayed={player.id}
-        />
+        <div className={scoreBoardStyles.tokenList}>
+          {player.tokens.map((token: Token) => (
+            <div
+              key={token.id}
+              className={`${scoreBoardStyles.tokenBadge} ${myPlayerId === player.id ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`}
+              onClick={() => {
+                socket.emit('token:reclaim', {
+                  roomId,
+                  playerId: myPlayerId,
+                  tokenId: token.id,
+                });
+              }}
+            >
+              <TokenDisplayContent token={token} />
+            </div>
+          ))}
+        </div>
 
-        <div className={styles.cardList}>
+        <div>{player.isHolding && 'カードをホールドしています'}</div>
+        <div className={scoreBoardStyles.cardList}>
           {player.cards.map((card: Card) => {
             const isSelected = selectedCards.includes(card.id);
             const canSeeFront = !!card.isFaceUp || isOwner;
@@ -147,22 +124,28 @@ const PlayerListItem = React.memo(
                   e.dataTransfer.setData('deckId', card.deckId);
                   e.dataTransfer.effectAllowed = 'move';
                 }}
-                className={`${styles.cardBase} rg-playfield-card-wrapper ${
-                  isSelected ? styles.cardSelected : ''
-                } ${card.isFaceUp ? styles.cardSuperRevealed : ''}`}
+                className={`${scoreBoardStyles.cardBase} rg-playfield-card-wrapper ${
+                  isSelected ? scoreBoardStyles.cardSelected : ''
+                } ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}`}
                 style={
                   {
-                    '--owner-color': playerColor,
-                    backgroundColor: canSeeFront ? '#fff' : card.backColor,
                     cursor: isOwner ? 'grab' : 'default',
                     border: card.isFaceUp ? '3px solid #00ffff' : '1px solid #ccc',
                     boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
+                    padding: 0,
+                    overflow: 'hidden',
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'stretch',
+                    justifyContent: 'stretch',
                   } as React.CSSProperties
                 }
                 onClick={() => toggleCardSelection(card.id, isOwner)}
               >
                 <CardDisplayContent card={card} canSeeFront={canSeeFront} />
-                {canSeeFront && card.description && <span className={styles.tooltip}>{card.description}</span>}
+                {canSeeFront && card.description && (
+                  <span className={scoreBoardStyles.tooltip}>{card.description}</span>
+                )}
               </div>
             );
           })}
@@ -176,35 +159,47 @@ const PlayerListItem = React.memo(
  * スコアボードコンポーネント
  * プレイヤーの一覧、現在のターン、各プレイヤーのスコアやトークン数を表示する
  * @param {Socket} socket - Socket.ioのインスタンス
- * @param {PlayerWithResources[]} players - ルームに参加しているプレイヤーのリスト
+ * @param {string} roomId - 現在のルームID
+ * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
  * @param {string | null} currentPlayerId - 現在の手番のプレイヤーID
  * @param {string | null} myPlayerId - ローカルプレイヤーのID
- * @param {string} roomId - 現在のルームID
  * @param {number} playCardLimit - 1ターンにプレイ可能なカードの上限枚数
  * @param {boolean} autoNextTurnOnCardPlay=false - カードプレイ時に自動でターンを終了するかどうか
+ * @param {boolean} holdButton=false - カードを一定期間ホールドしつつプレイするボタンの表示・非表示
+ * @param {boolean} revealButton=false - カード公開ボタンの表示・非表示
+ * @param {boolean} turnSkipButton=false - ターンスキップボタンの表示・非表示
+ * @param {boolean} roundSkipButton=false - ラウンドスキップボタンの表示・非表示
  * @param {booleam} isDebug=false - スコアを手動で増減できるようにするかどうか (デバッグ用)
  */
 export function ScoreBoard({
   socket,
+  roomId,
   players,
   currentPlayerId,
   myPlayerId,
-  roomId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
+  holdButton = false,
+  revealButton = false,
+  turnSkipButton = false,
+  roundSkipbutton = false,
   isDebug = false,
 }: {
   socket: Socket;
-  players: PlayerWithResources[];
+  roomId: RoomId;
+  players: Player[];
   currentPlayerId?: PlayerId | null;
   myPlayerId: PlayerId | null;
-  roomId: RoomId;
   playCardLimit?: number;
   autoNextTurnOnCardPlay?: boolean;
+  holdButton?: boolean;
+  revealButton?: boolean;
+  turnSkipButton?: boolean;
+  roundSkipbutton?: boolean;
   isDebug?: boolean;
 }) {
-  const displayedPlayers: DisplayedPlayer[] = React.useMemo(() => {
-    return (players || []).map((p: PlayerWithResources) => ({
+  const displayedPlayers: Player[] = React.useMemo(() => {
+    return (players || []).map((p: Player) => ({
       ...p,
       score: p.score ?? 0,
       cards: p.cards ?? [],
@@ -213,12 +208,58 @@ export function ScoreBoard({
     }));
   }, [players]);
 
-  const [selectedCards, setSelectedCards] = React.useState<string[]>([]);
+  const [selectedCards, setSelectedCards] = React.useState<CardId[]>([]);
 
-  const toggleCardSelection = React.useCallback((cardId: string, isOwner: boolean) => {
+  const toggleCardSelection = React.useCallback((cardId: CardId, isOwner: boolean) => {
     if (!isOwner) return;
     setSelectedCards((prev) => (prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]));
   }, []);
+
+  const playSelectedCards = React.useCallback(
+    ({ isHold = false } = {}) => {
+      if (selectedCards.length === 0 || !myPlayerId) return;
+      if (playCardLimit !== undefined && selectedCards.length > playCardLimit) return;
+
+      const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
+      if (!myPlayer) return;
+
+      const cardsByDeck: Record<string, string[]> = {};
+      let targetPlayLocation: CardLocation | undefined;
+
+      if (isHold == true) {
+        socket.emit('card:hold', { roomId: roomId, playerId: myPlayerId, cardIds: selectedCards } as CardHoldData);
+        return;
+      }
+
+      selectedCards.forEach((cardId) => {
+        const card = myPlayer.cards.find((c) => c.id === cardId);
+        if (!card) return;
+        if (!targetPlayLocation) targetPlayLocation = card.playLocation as CardLocation;
+        if (!cardsByDeck[card.deckId]) cardsByDeck[card.deckId] = [];
+        cardsByDeck[card.deckId].push(card.id);
+      });
+
+      if (!targetPlayLocation) return;
+      const finalLocation: CardLocation = targetPlayLocation;
+
+      Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
+        const playData: CardPlayData = {
+          roomId,
+          deckId,
+          cardIds,
+          playerId: myPlayerId,
+          playLocation: finalLocation,
+          coordinate: { x: 50, y: 50 },
+        };
+
+        socket.emit('card:play', playData);
+      });
+
+      if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId } as GameNextTrunData);
+      setSelectedCards([]);
+    },
+    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay],
+  );
 
   const revealSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
@@ -230,54 +271,20 @@ export function ScoreBoard({
       cardIds: selectedCards,
     });
 
-    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId });
+    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId } as GameNextTrunData);
     setSelectedCards([]);
   }, [selectedCards, myPlayerId, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
 
-  const playSelectedCards = React.useCallback(() => {
-    if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== undefined && selectedCards.length > playCardLimit) return;
-
-    const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
-    if (!myPlayer) return;
-
-    const cardsByDeck: Record<string, string[]> = {};
-    let targetPlayLocation: string | undefined;
-
-    selectedCards.forEach((cardId) => {
-      const card = myPlayer.cards.find((c) => c.id === cardId);
-      if (!card) return;
-      if (!targetPlayLocation) targetPlayLocation = card.playLocation as string;
-      if (!cardsByDeck[card.deckId]) cardsByDeck[card.deckId] = [];
-      cardsByDeck[card.deckId].push(card.id);
-    });
-
-    if (!targetPlayLocation) return;
-
-    Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
-      socket.emit('card:play', {
-        roomId,
-        deckId,
-        cardIds,
-        playerId: myPlayerId,
-        playLocation: targetPlayLocation,
-        position: { x: 50, y: 50 },
-      });
-    });
-
-    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId });
-    setSelectedCards([]);
-  }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
-
-  const nextTurn = () => socket.emit('game:next-turn', { roomId });
+  const nextTurn = () => socket.emit('game:next-turn', { roomId } as GameNextTrunData);
+  const nextRound = () => socket.emit('game:next-round', { roomId } as GameNextRoundData);
 
   const isOverLimit = playCardLimit !== undefined && selectedCards.length > playCardLimit;
   const isActionDisabled = selectedCards.length === 0 || isOverLimit;
 
   return (
-    <div className={styles.container}>
-      <h2 className={styles.title}>ゲームスコアボード</h2>
-      <ul className={styles.playerList}>
+    <div className={scoreBoardStyles.container}>
+      <h2 className={scoreBoardStyles.title}>ゲームスコアボード</h2>
+      <ul className={scoreBoardStyles.playerList}>
         {displayedPlayers.map((player) => (
           <PlayerListItem
             key={player.id}
@@ -293,17 +300,23 @@ export function ScoreBoard({
         ))}
       </ul>
 
-      <div className={styles.buttonArea}>
-        {isOverLimit && <p className={styles.limitMessage}>一度に出せるカードは {playCardLimit} 枚までです</p>}
+      <div className={scoreBoardStyles.buttonArea}>
+        {isOverLimit && (
+          <p className={scoreBoardStyles.limitMessage}>一度に出せるカードは {playCardLimit} 枚までです</p>
+        )}
 
-        <div className={styles.buttonGroup}>
-          <button onClick={playSelectedCards} disabled={isActionDisabled}>
+        <div className={scoreBoardStyles.buttonGroup}>
+          <button onClick={() => playSelectedCards()} disabled={isActionDisabled}>
             選択カードを出す
           </button>
-          <button onClick={revealSelectedCards} disabled={isActionDisabled}>
-            選択カードを公開する
-          </button>
-          <button onClick={nextTurn}>ターンをスキップ</button>
+          {holdButton && (
+            <button onClick={() => playSelectedCards({ isHold: true })} disabled={isActionDisabled}>
+              選択カードをホールドする
+            </button>
+          )}
+          {revealButton && <button onClick={revealSelectedCards}>選択カードを公開する</button>}
+          {turnSkipButton && <button onClick={nextTurn}>ターンをスキップ</button>}
+          {roundSkipbutton && <button onClick={nextRound}>ラウンドをスキップ</button>}
         </div>
       </div>
     </div>

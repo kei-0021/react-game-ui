@@ -968,175 +968,152 @@ const Cell = ({
     }
   );
 };
-const card = "_card_1mv54_3";
-const tooltip$1 = "_tooltip_1mv54_23";
-const deckContainer = "_deckContainer_1mv54_59";
-const deckCard = "_deckCard_1mv54_66";
-const deckCardFront = "_deckCardFront_1mv54_78";
-const deckSection = "_deckSection_1mv54_95";
-const discardPileWrapper = "_discardPileWrapper_1mv54_103";
-const styles$5 = {
+const card = "_card_1xb7m_3";
+const tooltip$2 = "_tooltip_1xb7m_20";
+const deckContainer = "_deckContainer_1xb7m_56";
+const deckCard = "_deckCard_1xb7m_63";
+const deckCardFront = "_deckCardFront_1xb7m_79";
+const deckSection = "_deckSection_1xb7m_96";
+const discardPileWrapper = "_discardPileWrapper_1xb7m_104";
+const cardNameText = "_cardNameText_1xb7m_129";
+const cardNameWrapper = "_cardNameWrapper_1xb7m_133";
+const cardImage = "_cardImage_1xb7m_146";
+const cardStyles = {
   card,
-  tooltip: tooltip$1,
+  tooltip: tooltip$2,
   deckContainer,
   deckCard,
   deckCardFront,
   deckSection,
-  discardPileWrapper
-};
-const cardImage$1 = "_cardImage_1s9db_1";
-const cardNameWrapper = "_cardNameWrapper_1s9db_7";
-const cardNameText$1 = "_cardNameText_1s9db_18";
-const deckTitle = "_deckTitle_1s9db_24";
-const deckWrapperFlex = "_deckWrapperFlex_1s9db_29";
-const tooltipBase = "_tooltipBase_1s9db_34";
-const deckStyles = {
-  cardImage: cardImage$1,
+  discardPileWrapper,
+  cardNameText,
   cardNameWrapper,
-  cardNameText: cardNameText$1,
+  cardImage
+};
+const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
+  if (!canSeeFront) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        className: cardStyles.deckCard,
+        style: {
+          backgroundColor: card2.backColor || "#333"
+        }
+      }
+    );
+  }
+  if (card2.frontImage) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: cardStyles.cardImage, style: {} });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, style: {}, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
+});
+const deckTitle = "_deckTitle_14nud_1";
+const deckWrapperFlex = "_deckWrapperFlex_14nud_6";
+const tooltipBase = "_tooltipBase_14nud_11";
+const deckStyles = {
   deckTitle,
   deckWrapperFlex,
   tooltipBase
 };
-const CardContent = ({ card: card2 }) => {
-  if (!card2.isFaceUp) return null;
-  if (card2.frontImage) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "img",
-      {
-        src: card2.frontImage,
-        alt: card2.name,
-        className: deckStyles.cardImage
-      }
-    );
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: deckStyles.cardNameText, children: card2.name }) });
-};
-function Deck({
-  socket,
-  roomId,
-  deckId,
-  name,
-  playerId = null
-}) {
+function Deck({ socket, roomId, deckId, title: title2, currentPlayerId, myPlayerId, alwaysDraw = false }) {
   const [deckCards, setDeckCards] = React.useState([]);
-  const [drawnCards, setDrawnCards] = React.useState([]);
   const [discardPile, setDiscardPile] = React.useState([]);
   const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
   React.useEffect(() => {
-    socket.on(`deck:init:${roomId}:${deckId}`, (data) => {
-      setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
-      setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
-      setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
-    });
     socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
-      setDrawnCards(data.drawnCards.map((c) => ({ ...c, deckId })));
       setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
     });
     return () => {
-      socket.off(`deck:init:${roomId}:${deckId}`);
       socket.off(`deck:update:${roomId}:${deckId}`);
     };
   }, [socket, roomId, deckId]);
   const draw = () => {
-    if (deckCards.length === 0) return;
+    if (!deckCards || deckCards.length === 0) return;
     const cardToDraw = deckCards[0];
-    const drawLocation = cardToDraw?.drawLocation || "hand";
+    const [targetLocation, targetState] = cardToDraw.drawCondition || ["hand", "back"];
     const requestData = {
       roomId,
       deckId,
-      drawLocation
+      drawCondition: [targetLocation, targetState]
     };
-    if (drawLocation === "hand" && playerId) {
-      requestData.playerId = playerId;
+    if (targetLocation === "hand") {
+      const canDrawToHand = alwaysDraw || currentPlayerId === myPlayerId;
+      if (canDrawToHand && myPlayerId) {
+        requestData.playerId = myPlayerId;
+      } else {
+        console.warn("手札に引く権限がありません。");
+        return;
+      }
     }
     socket.emit("deck:draw", requestData);
   };
   const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$5.deckSection, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: deckStyles.deckTitle, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.deckControls, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: cardStyles.deckSection, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: deckStyles.deckTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.deckControls, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, children: "シャッフル" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
-      {
-        className: `${styles$5.deckWrapper} ${deckStyles.deckWrapperFlex}`,
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              className: styles$5.deckCard,
-              style: {
-                zIndex: deckCards.length - i,
-                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                backgroundColor: c.backColor
-              }
-            },
-            c.id
-          )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.deckContainer, children: drawnCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              className: styles$5.deckCardFront,
-              style: {
-                zIndex: i + 1,
-                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
-              },
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c })
-            },
-            c.id
-          )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              className: `${styles$5.deckContainer} ${styles$5.discardPileWrapper}`,
-              children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                "div",
-                {
-                  className: styles$5.deckCardFront,
-                  style: {
-                    zIndex: i + 1,
-                    transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                    pointerEvents: i === discardPile.length - 1 ? "auto" : "none"
-                  },
-                  onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true),
-                  onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false),
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { card: c }),
-                    i === discardPile.length - 1 && c.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      "span",
-                      {
-                        className: `${styles$5.tooltip} ${deckStyles.tooltipBase}`,
-                        style: {
-                          visibility: isDiscardHovered ? "visible" : "hidden",
-                          opacity: isDiscardHovered ? 1 : 0
-                        },
-                        children: c.description
-                      }
-                    )
-                  ]
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${cardStyles.deckWrapper} ${deckStyles.deckWrapperFlex}`, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          className: cardStyles.deckCard,
+          style: {
+            zIndex: deckCards.length - i,
+            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
+            backgroundColor: c.backColor
+          }
+        },
+        c.id
+      )) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          className: cardStyles.deckCardFront,
+          style: {
+            zIndex: i + 1,
+            transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+            pointerEvents: i === discardPile.length - 1 ? "auto" : "none"
+          },
+          onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true),
+          onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false),
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true }),
+            i === discardPile.length - 1 && c.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "span",
+              {
+                className: `${cardStyles.tooltip} ${deckStyles.tooltipBase}`,
+                style: {
+                  visibility: isDiscardHovered ? "visible" : "hidden",
+                  opacity: isDiscardHovered ? 1 : 0
                 },
-                c.id
-              ))
-            }
-          )
-        ]
-      }
-    )
+                children: c.description
+              }
+            )
+          ]
+        },
+        c.id
+      )) })
+    ] })
   ] });
 }
-const dice = "_dice_9d2ym_1";
-const diceRolling = "_diceRolling_9d2ym_20";
-const diceNotRolling = "_diceNotRolling_9d2ym_24";
-const faceImage = "_faceImage_9d2ym_28";
-const faceContainer = "_faceContainer_9d2ym_34";
-const defaultText = "_defaultText_9d2ym_42";
-const styles$4 = {
+const diceWrapper = "_diceWrapper_1yy8i_1";
+const diceTitle = "_diceTitle_1yy8i_9";
+const dice = "_dice_1yy8i_1";
+const tooltip$1 = "_tooltip_1yy8i_41";
+const diceRolling = "_diceRolling_1yy8i_69";
+const diceNotRolling = "_diceNotRolling_1yy8i_74";
+const faceImage = "_faceImage_1yy8i_78";
+const faceContainer = "_faceContainer_1yy8i_85";
+const defaultText = "_defaultText_1yy8i_93";
+const styles$5 = {
+  diceWrapper,
+  diceTitle,
   dice,
+  tooltip: tooltip$1,
   diceRolling,
   diceNotRolling,
   faceImage,
@@ -1162,16 +1139,15 @@ function Dice({
   socket = null,
   diceId,
   roomId,
+  title: title2,
   onRoll,
-  customFaces
+  customFaces,
+  tooltipText
 }) {
   const [value, setValue] = useState(1);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef(null);
-  const rollEventName = useMemo(
-    () => `dice:rolled:${roomId}:${diceId}`,
-    [roomId, diceId]
-  );
+  const rollEventName = useMemo(() => `dice:rolled:${roomId}:${diceId}`, [roomId, diceId]);
   useEffect(() => {
     if (!socket || !roomId) return;
     const handleRoll = (rolledValue) => {
@@ -1205,73 +1181,95 @@ function Dice({
   };
   const renderDiceFace = () => {
     if (customFaces && customFaces[value - 1]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.faceContainer, children: customFaces[value - 1] });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.faceContainer, children: customFaces[value - 1] });
     }
     if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "img",
-        {
-          src: defaultDiceImages[value],
-          alt: `Dice face ${value}`,
-          className: styles$4.faceImage
-        }
-      );
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$5.faceImage });
     }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$4.defaultText, children: value });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$5.defaultText, children: value });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      className: `${styles$4.dice} ${rolling ? styles$4.diceRolling : styles$4.diceNotRolling}`,
-      onClick: roll,
-      children: renderDiceFace()
-    }
-  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.diceWrapper, children: [
+    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.diceTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$5.dice} ${rolling ? styles$5.diceRolling : styles$5.diceNotRolling}`, onClick: roll, children: [
+      renderDiceFace(),
+      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.tooltip, children: tooltipText })
+    ] })
+  ] });
 }
-const draggable = "_draggable_1bsjy_3";
-const styles$3 = {
+const draggable = "_draggable_1k3g7_3";
+const draggableStyles = {
   draggable
 };
 function Draggable({
-  image,
+  socket,
+  roomId,
+  draggableId,
+  initialXY = { x: 500, y: 500 },
+  image: image2,
   mask = false,
-  initialX = 500,
-  initialY = 500,
   size = 100,
   color = "yellow",
   isTransparent = false,
+  zIndex = 100,
+  isFrontOnDragging = false,
   children,
   style = {},
-  socket,
-  roomId,
-  pieceId,
-  onDragEnd,
   scale = 1,
   containerRef
 }) {
-  const [pos, setPos] = useState({ x: initialX, y: initialY });
+  const [pos, setPos] = useState(initialXY);
   const [rotation, setRotation] = useState(0);
+  const [currentZ, setCurrentZ] = useState(zIndex);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const posRef = useRef(pos);
   const isDraggingRef = useRef(false);
+  const emitUpdate = useCallback(
+    (targetPos, targetRot, targetZ) => {
+      if (socket && roomId && draggableId) {
+        socket.emit("draggable:moved", {
+          roomId,
+          draggableId,
+          coordinate: targetPos,
+          rotation: targetRot,
+          zIndex: targetZ
+        });
+      }
+    },
+    [socket, roomId, draggableId]
+  );
   useEffect(() => {
     posRef.current = pos;
   }, [pos]);
   useEffect(() => {
-    if (!socket || !pieceId) return;
-    const eventName = "draggable:update";
-    const handleRemoteMove = (move) => {
-      if (move.pieceId === pieceId && !isDraggingRef.current) {
-        setPos({ x: move.x, y: move.y });
+    setCurrentZ(zIndex);
+  }, [zIndex]);
+  useEffect(() => {
+    const closeMenu = () => setContextMenu(null);
+    if (contextMenu) {
+      window.addEventListener("click", closeMenu);
+    }
+    return () => window.removeEventListener("click", closeMenu);
+  }, [contextMenu]);
+  useEffect(() => {
+    if (!socket || !draggableId) return;
+    const handleRemoteMove = (data) => {
+      if (data.draggableId === draggableId && !isDraggingRef.current) {
+        setPos({ x: data.coordinate.x, y: data.coordinate.y });
+        if (data.rotation !== void 0) setRotation(data.rotation);
+        if (data.zIndex !== void 0) setCurrentZ(data.zIndex);
       }
     };
-    socket.on(eventName, handleRemoteMove);
+    socket.on("draggable:update", handleRemoteMove);
     return () => {
-      socket.off(eventName, handleRemoteMove);
+      socket.off("draggable:update", handleRemoteMove);
     };
-  }, [socket, pieceId]);
+  }, [socket, draggableId]);
   const handleMouseDown = (e) => {
+    if (e.button !== 0) return;
     e.preventDefault();
     isDraggingRef.current = true;
+    setIsDragging(true);
     const fixedContainer = containerRef?.current;
     if (!fixedContainer) {
       console.error("containerRef がセットされていません！");
@@ -1297,32 +1295,41 @@ function Draggable({
       };
       setPos(newPos);
       posRef.current = newPos;
-      if (socket && roomId && pieceId) {
-        socket.emit("draggable:moved", { roomId, pieceId, ...newPos });
-      }
+      emitUpdate(newPos, rotation, currentZ);
     };
     const handleMouseUp = () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-      const { x, y } = posRef.current;
-      if (socket && roomId && pieceId) {
-        socket.emit("draggable:moved", { roomId, pieceId, x, y });
-      }
+      emitUpdate(posRef.current, rotation, currentZ);
+      setIsDragging(false);
       setTimeout(() => {
         isDraggingRef.current = false;
       }, 50);
-      onDragEnd?.(x, y);
     };
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
   };
-  const handleDoubleClick = () => setRotation((prev) => prev + 90);
+  const handleContextMenu = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  }, []);
+  const onRotateClick = () => {
+    const nextRot = rotation + 90;
+    setRotation(nextRot);
+    emitUpdate(pos, nextRot, currentZ);
+  };
+  const onBringToFrontClick = () => {
+    const nextZ = currentZ + 100;
+    setCurrentZ(nextZ);
+    emitUpdate(pos, rotation, nextZ);
+  };
   const MASK_PROP = ["mask", "Image"].join("");
   const WEBKIT_MASK_PROP = ["Webkit", "Mask", "Image"].join("");
   const URL_FUNC = ["u", "r", "l"].join("");
-  const maskStyle = mask && image ? {
-    [WEBKIT_MASK_PROP]: `${URL_FUNC}("${image}")`,
-    [MASK_PROP]: `${URL_FUNC}("${image}")`,
+  const maskStyle = mask && image2 ? {
+    [WEBKIT_MASK_PROP]: `${URL_FUNC}("${image2}")`,
+    [MASK_PROP]: `${URL_FUNC}("${image2}")`,
     WebkitMaskSize: "contain",
     maskSize: "contain",
     WebkitMaskRepeat: "no-repeat",
@@ -1331,48 +1338,98 @@ function Draggable({
     maskPosition: "center",
     backgroundColor: color || "yellow"
   } : {};
+  const width = typeof size === "number" ? size : size.width;
+  const height = typeof size === "number" ? size : size.height;
+  const dynamicZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
   const dynamicStyle = {
-    left: `${pos.x}px`,
-    top: `${pos.y}px`,
-    width: `${size}px`,
-    height: `${size}px`,
-    background: mask && image ? void 0 : isTransparent ? "transparent" : color,
-    transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
     position: "absolute",
-    cursor: "grab",
+    cursor: isDragging ? "grabbing" : "grab",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    ...maskStyle,
-    ...style
+    transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+    // まず、外部から渡された汎用的な style を展開
+    ...style,
+    // 次に、このコンポーネントの専用 Props で上書き（絶対に勝たせる）
+    left: `${pos.x}px`,
+    top: `${pos.y}px`,
+    width: `${width}px`,
+    height: `${height}px`,
+    zIndex: dynamicZIndex,
+    background: mask && image2 ? void 0 : isTransparent ? "transparent" : color,
+    // マスク関連（これも特殊な計算結果なので最後に上書き）
+    ...maskStyle
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      onMouseDown: handleMouseDown,
-      onDoubleClick: handleDoubleClick,
-      className: styles$3.draggable,
-      style: dynamicStyle,
-      children: image ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "img",
-        {
-          src: image,
-          alt: "",
-          style: {
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            pointerEvents: "none",
-            userSelect: "none",
-            mixBlendMode: mask ? "multiply" : "normal"
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        onMouseDown: handleMouseDown,
+        onContextMenu: handleContextMenu,
+        className: draggableStyles.draggable,
+        style: dynamicStyle,
+        "data-draggable-id": draggableId,
+        children: image2 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "img",
+          {
+            src: image2,
+            alt: "",
+            style: {
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              pointerEvents: "none",
+              userSelect: "none",
+              mixBlendMode: mask ? "multiply" : "normal"
+            }
           }
-        }
-      ) : children
-    }
-  );
+        ) : children
+      }
+    ),
+    contextMenu && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        style: {
+          position: "fixed",
+          top: contextMenu.y,
+          left: contextMenu.x,
+          zIndex: 10001,
+          background: "#222",
+          color: "#fff",
+          border: "1px solid #444",
+          borderRadius: "4px",
+          padding: "4px 0",
+          fontSize: "12px",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.5)"
+        },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              style: { padding: "8px 16px", cursor: "pointer" },
+              onMouseOver: (e) => e.currentTarget.style.background = "#444",
+              onMouseOut: (e) => e.currentTarget.style.background = "transparent",
+              onClick: onRotateClick,
+              children: "🔄 90度回転"
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              style: { padding: "8px 16px", cursor: "pointer" },
+              onMouseOver: (e) => e.currentTarget.style.background = "#444",
+              onMouseOut: (e) => e.currentTarget.style.background = "transparent",
+              onClick: onBringToFrontClick,
+              children: "🔼 最前面へ"
+            }
+          )
+        ]
+      }
+    )
+  ] });
 }
 const piece = "_piece_wi08l_3";
-const styles$2 = {
+const styles$4 = {
   piece
 };
 function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
@@ -1389,8 +1446,8 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
     }
   };
   const pieceClasses = [
-    styles$2.piece,
-    isDraggable ? styles$2.draggable : styles$2.clickable
+    styles$4.piece,
+    isDraggable ? styles$4.draggable : styles$4.clickable
   ].join(" ");
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
@@ -1508,9 +1565,14 @@ function GridBoard({
     })
   ] });
 }
-function client_log(tag, ...args) {
-  console.log(`[${tag}]`, ...args);
-}
+const rgPlayFieldContainer = "_rgPlayFieldContainer_d0bw8_14";
+const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_d0bw8_22";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_d0bw8_31";
+const playFieldStyles = {
+  rgPlayFieldContainer,
+  rgPlayFieldCardWrapper,
+  rgPlayFieldOwnerBadge
+};
 function throttle(func, limit) {
   let inThrottle;
   return function(...args) {
@@ -1521,15 +1583,6 @@ function throttle(func, limit) {
     }
   };
 }
-const CardDisplayContent$1 = ({ card: card2, isFaceUp }) => {
-  if (!isFaceUp) {
-    return null;
-  }
-  if (card2.frontImage) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: "rg-card-image" });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-card-text-content", children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: "rg-card-name-label", children: card2.name }) });
-};
 function PlayField({
   socket,
   roomId,
@@ -1538,23 +1591,21 @@ function PlayField({
   players,
   myPlayerId,
   layoutMode = "free",
-  is_logging = false
+  is_logging = false,
+  backgroundImage,
+  baseZIndex = 100
 }) {
   const [playedCards, setPlayedCards] = React.useState([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState(null);
   const containerRef = React.useRef(null);
   const draggingIdRef = React.useRef(null);
   React.useEffect(() => {
-    const handleUpdate = (data) => {
+    socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
       const newCards = data.playFieldCards || [];
-      if (is_logging) {
-        client_log("playField", `[${deckId}] 場の更新: ${newCards.length}枚`);
-      }
       setPlayedCards(newCards);
-    };
-    socket.on(`deck:update:${roomId}:${deckId}`, handleUpdate);
+    });
     return () => {
-      socket.off(`deck:update:${roomId}:${deckId}`, handleUpdate);
+      socket.off(`deck:update:${roomId}:${deckId}`);
     };
   }, [socket, roomId, deckId, is_logging]);
   const emitMove = React.useMemo(
@@ -1602,100 +1653,120 @@ function PlayField({
     let y = (e.clientY - rect.top) / rect.height * 100;
     x = Math.max(0, Math.min(100, x));
     y = Math.max(0, Math.min(100, y));
-    socket.emit("card:play", {
+    const playData = {
       roomId,
       deckId: droppedDeckId,
       cardIds: [droppedCardId],
       playerId: myPlayerId,
-      // サーバー側の strict な if 文に合わせて "field" 固定で送る
       playLocation: "field",
       coordinate: { x, y }
-      // 座標を渡す
-    });
-    if (is_logging) {
-      client_log("playField", `Card ${droppedCardId} dropped at x:${x.toFixed(1)}%, y:${y.toFixed(1)}%`);
-    }
+    };
+    socket.emit("card:play", playData);
   };
   const handleDragOver = (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   };
   const handleCardBack = (card2) => {
-    const backTo = card2.fieldBackLocation || "discard";
+    if (!myPlayerId) return;
+    const backTo = card2.fieldBackCondition[0] || "discard";
     const requestData = {
       roomId,
       deckId: card2.deckId || deckId,
       cardId: card2.id
     };
     if (backTo === "hand") {
-      if (!card2.ownerId) return;
-      requestData.targetPlayerId = card2.ownerId;
+      requestData.playerId = myPlayerId;
     }
     socket.emit("card:move-from-field", requestData);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: `rg-playfield mode-${layoutMode}`, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "rg-playfield-title", children: title2 !== void 0 && title2 !== null ? title2 : `プレイフィールド (deckId=${deckId})` }),
-    " ",
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        ref: containerRef,
-        className: "rg-playfield-container",
-        onPointerMove: handlePointerMove,
-        onDrop: handleDrop,
-        onDragOver: handleDragOver,
-        style: {
-          position: layoutMode === "free" ? "relative" : void 0,
-          minHeight: "600px",
-          touchAction: "none",
-          overflow: "hidden"
-          // 枠外はみ出し防止
-        },
-        children: playedCards.map((card2, index) => {
-          const owner = players.find((p) => p.id === card2.ownerId);
-          const isDragging = activeDraggingId === card2.id;
-          const isOverlapping = playedCards.slice(0, index).some(
-            (other) => Math.abs((other.coordinate?.x ?? 50) - (card2.coordinate?.x ?? 50)) < 1 && Math.abs((other.coordinate?.y ?? 50) - (card2.coordinate?.y ?? 50)) < 1
-          );
-          const visualOffset = isOverlapping ? index * 12 : 0;
-          const freeStyle = layoutMode === "free" ? {
-            position: "absolute",
-            left: `${card2.coordinate?.x ?? 50}%`,
-            top: `${card2.coordinate?.y ?? 50}%`,
-            transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
-            zIndex: isDragging ? 9999 : Math.floor((card2.coordinate?.y ?? 0) * 100) + index
-          } : {};
-          return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "div",
-            {
-              onPointerDown: (e) => handlePointerDown(e, card2),
-              onPointerUp: handlePointerUp,
-              className: `${styles$5.card} rg-playfield-card-wrapper`,
-              style: {
-                "--owner-color": owner?.color || "#aaaaaa",
-                ...freeStyle,
-                touchAction: "none",
-                cursor: isDragging ? "grabbing" : layoutMode === "free" ? "grab" : "default"
-              },
-              onDoubleClick: () => handleCardBack(card2),
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent$1, { card: card2, isFaceUp: true }),
-                card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rg-playfield-owner-badge", title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
-                card2.description && !isDragging && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$5.tooltip, children: card2.description })
-              ]
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "section",
+    {
+      className: `rg-playfield mode-${layoutMode}`,
+      style: {
+        background: backgroundImage ? `({})(${backgroundImage}) center/cover no-repeat` : void 0,
+        // 親の zIndex を消すことで、中のカードが Draggable と同じ階層で比較されるようにする
+        position: "relative"
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title2 !== void 0 && title2 !== null ? title2 : `プレイフィールド (deckId=${deckId})` }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            ref: containerRef,
+            className: playFieldStyles.rgPlayFieldContainer,
+            onPointerMove: handlePointerMove,
+            onDrop: handleDrop,
+            onDragOver: handleDragOver,
+            style: {
+              position: "relative",
+              minHeight: "600px",
+              touchAction: "none",
+              overflow: "visible"
             },
-            card2.id
-          );
-        })
-      }
-    )
-  ] });
+            children: playedCards.map((card2, index) => {
+              const owner = players.find((p) => p.id === card2.ownerId);
+              const isDragging = activeDraggingId === card2.id;
+              const isActuallyFreeShape = !!(card2.freeShape && card2.frontImage);
+              const isOverlapping = playedCards.slice(0, index).some(
+                (other) => Math.abs((other.coordinate?.x ?? 50) - (card2.coordinate?.x ?? 50)) < 1 && Math.abs((other.coordinate?.y ?? 50) - (card2.coordinate?.y ?? 50)) < 1
+              );
+              const visualOffset = isOverlapping ? index * 12 : 0;
+              const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
+              const freeStyle = layoutMode === "free" ? {
+                position: "absolute",
+                left: `${card2.coordinate?.x ?? 50}%`,
+                top: `${card2.coordinate?.y ?? 50}%`,
+                transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
+                zIndex: currentZIndex,
+                transition: isDragging ? "none" : "left 0.2s ease, top 0.2s ease"
+              } : {};
+              return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  draggable: false,
+                  onDragStart: (e) => e.preventDefault(),
+                  onPointerDown: (e) => handlePointerDown(e, card2),
+                  onPointerUp: handlePointerUp,
+                  onPointerCancel: handlePointerUp,
+                  className: `${isActuallyFreeShape ? "" : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`,
+                  style: {
+                    "--owner-color": owner?.color || "#aaaaaa",
+                    ...freeStyle,
+                    touchAction: "none",
+                    cursor: isDragging ? "grabbing" : layoutMode === "free" ? "grab" : "default",
+                    width: "80px",
+                    height: "112px",
+                    // freeShape 時の設定
+                    ...isActuallyFreeShape ? {
+                      background: "transparent",
+                      border: "none",
+                      boxShadow: isDragging ? "0 0 15px var(--owner-color)" : "none",
+                      padding: 0
+                    } : {}
+                  },
+                  onDoubleClick: () => handleCardBack(card2),
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
+                    card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
+                    card2.description && !isDragging && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description })
+                  ]
+                },
+                card2.id
+              );
+            })
+          }
+        )
+      ]
+    }
+  );
 }
 const container$1 = "_container_17uio_2";
 const cursorWrapper = "_cursorWrapper_17uio_13";
 const icon = "_icon_17uio_21";
 const label = "_label_17uio_29";
-const styles$1 = {
+const styles$3 = {
   container: container$1,
   cursorWrapper,
   icon,
@@ -1750,7 +1821,7 @@ const RemoteCursor = React__default.memo(
       return () => window.removeEventListener("mousemove", handleMove);
     }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
     if (!visible) return null;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
       const player = players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
       const name = player ? player.name : "接続中...";
       const color = player?.color || "#000000";
@@ -1759,11 +1830,11 @@ const RemoteCursor = React__default.memo(
       return /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {
-          className: styles$1.cursorWrapper,
+          className: styles$3.cursorWrapper,
           style: { left, top },
           children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.icon, style: { color }, children: "👆" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.label, style: { backgroundColor: color }, children: name })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.icon, style: { color }, children: "👆" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.label, style: { backgroundColor: color }, children: name })
           ]
         },
         id
@@ -1771,36 +1842,34 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const container = "_container_1wg24_1";
-const title = "_title_1wg24_13";
-const playerList = "_playerList_1wg24_22";
-const playerItem = "_playerItem_1wg24_27";
-const activePlayer = "_activePlayer_1wg24_40";
-const playerHeader = "_playerHeader_1wg24_48";
-const playerName = "_playerName_1wg24_54";
-const playerScore = "_playerScore_1wg24_62";
-const resourceSection = "_resourceSection_1wg24_71";
-const resourceList = "_resourceList_1wg24_76";
-const resourceBadge = "_resourceBadge_1wg24_82";
-const tokenList = "_tokenList_1wg24_90";
-const tokenBadge = "_tokenBadge_1wg24_99";
-const tokenBadgeOwner = "_tokenBadgeOwner_1wg24_114";
-const tokenBadgeGuest = "_tokenBadgeGuest_1wg24_119";
-const cardList = "_cardList_1wg24_125";
-const cardBase = "_cardBase_1wg24_133";
-const cardSelected = "_cardSelected_1wg24_154";
-const cardImage = "_cardImage_1wg24_160";
-const cardNameText = "_cardNameText_1wg24_166";
-const tooltip = "_tooltip_1wg24_170";
-const buttonArea = "_buttonArea_1wg24_195";
-const limitMessage = "_limitMessage_1wg24_201";
-const buttonGroup = "_buttonGroup_1wg24_215";
-const scoreArea = "_scoreArea_1wg24_220";
-const debugScoreButtons = "_debugScoreButtons_1wg24_226";
-const debugBtn = "_debugBtn_1wg24_231";
-const styles = {
+const container = "_container_1wfh4_1";
+const title$1 = "_title_1wfh4_13";
+const playerList = "_playerList_1wfh4_22";
+const playerItem = "_playerItem_1wfh4_27";
+const activePlayer = "_activePlayer_1wfh4_40";
+const playerHeader = "_playerHeader_1wfh4_48";
+const playerName = "_playerName_1wfh4_54";
+const playerScore = "_playerScore_1wfh4_62";
+const resourceSection = "_resourceSection_1wfh4_71";
+const resourceList = "_resourceList_1wfh4_76";
+const resourceBadge = "_resourceBadge_1wfh4_82";
+const tokenList = "_tokenList_1wfh4_90";
+const tokenBadge = "_tokenBadge_1wfh4_99";
+const tokenBadgeOwner = "_tokenBadgeOwner_1wfh4_114";
+const tokenBadgeGuest = "_tokenBadgeGuest_1wfh4_119";
+const cardList = "_cardList_1wfh4_125";
+const cardBase = "_cardBase_1wfh4_133";
+const cardSelected = "_cardSelected_1wfh4_165";
+const tooltip = "_tooltip_1wfh4_171";
+const buttonArea = "_buttonArea_1wfh4_192";
+const limitMessage = "_limitMessage_1wfh4_198";
+const buttonGroup = "_buttonGroup_1wfh4_212";
+const scoreArea = "_scoreArea_1wfh4_217";
+const debugScoreButtons = "_debugScoreButtons_1wfh4_223";
+const debugBtn = "_debugBtn_1wfh4_228";
+const scoreBoardStyles = {
   container,
-  title,
+  title: title$1,
   playerList,
   playerItem,
   activePlayer,
@@ -1817,8 +1886,6 @@ const styles = {
   cardList,
   cardBase,
   cardSelected,
-  cardImage,
-  cardNameText,
   tooltip,
   buttonArea,
   limitMessage,
@@ -1827,32 +1894,24 @@ const styles = {
   debugScoreButtons,
   debugBtn
 };
-const CardDisplayContent = React.memo(({ card: card2, canSeeFront }) => {
-  if (!canSeeFront) return null;
-  if (card2.frontImage) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: styles.cardImage });
+const image = "_image_th9op_2";
+const textWrapper = "_textWrapper_th9op_10";
+const text = "_text_th9op_10";
+const contentWrapper = "_contentWrapper_th9op_26";
+const styles$2 = {
+  image,
+  textWrapper,
+  text,
+  contentWrapper
+};
+const TokenDisplayContent = React__default.memo(({ token }) => {
+  if (token.imageSrc) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.contentWrapper, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$2.image }),
+      ";"
+    ] });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles.cardNameText, children: card2.name });
-});
-const TokenDisplayContent = React.memo(({ tokens, socket, roomId, myPlayerId, playerIdBeingDisplayed }) => {
-  const isMyToken = myPlayerId === playerIdBeingDisplayed;
-  if (!tokens || tokens.length === 0) return null;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.tokenList, children: tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      className: `${styles.tokenBadge} ${isMyToken ? styles.tokenBadgeOwner : styles.tokenBadgeGuest}`,
-      onClick: () => {
-        if (!isMyToken) return;
-        socket.emit("token:reclaim", {
-          roomId,
-          playerId: myPlayerId,
-          tokenId: token.id
-        });
-      },
-      children: token.name
-    },
-    token.id
-  )) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$2.text, children: token.name }) }) });
 });
 const PlayerListItem = React.memo(
   ({
@@ -1880,84 +1939,105 @@ const PlayerListItem = React.memo(
       "--player-color-bg": playerColor.replace("hsl", "hsla").replace(")", ", 0.3)"),
       "--player-color-glow": playerColor.replace("hsl", "hsla").replace(")", ", 0.5)")
     };
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("li", { className: `${styles.playerItem} ${isActive ? styles.activePlayer : ""}`, style: customStyles, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.playerHeader, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.playerName, children: [
-          isActive && "ᐅ ",
-          isOwner && "★ ME ",
-          player.name
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.scoreArea, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.playerScore, children: [
-            "スコア: ",
-            player.score
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "li",
+      {
+        className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ""}`,
+        style: customStyles,
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.playerHeader, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerName, children: [
+              isActive && "ᐅ ",
+              isOwner && "★ ME ",
+              player.name
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreArea, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerScore, children: [
+                "スコア: ",
+                player.score
+              ] }),
+              isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(-1), className: scoreBoardStyles.debugBtn, children: "-" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), className: scoreBoardStyles.debugBtn, children: "+" })
+              ] })
+            ] })
           ] }),
-          isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.debugScoreButtons, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(-1), className: styles.debugBtn, children: "-" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), className: styles.debugBtn, children: "+" })
-          ] })
-        ] })
-      ] }),
-      player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.resourceSection, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.resourceList, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: styles.resourceBadge, children: [
-        resource.icon,
-        " ",
-        resource.name,
-        ": ",
-        resource.currentValue,
-        " / ",
-        resource.maxValue
-      ] }, resource.id)) }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        TokenDisplayContent,
-        {
-          tokens: player.tokens,
-          socket,
-          roomId,
-          myPlayerId,
-          playerIdBeingDisplayed: player.id
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.cardList, children: player.cards.map((card2) => {
-        const isSelected = selectedCards.includes(card2.id);
-        const canSeeFront = !!card2.isFaceUp || isOwner;
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            draggable: isOwner,
-            onDragStart: (e) => {
-              if (!isOwner) return;
-              e.dataTransfer.setData("cardId", card2.id);
-              e.dataTransfer.setData("deckId", card2.deckId);
-              e.dataTransfer.effectAllowed = "move";
+          player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.resourceSection, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [
+            resource.icon,
+            " ",
+            resource.name,
+            ": ",
+            resource.currentValue,
+            " / ",
+            resource.maxValue
+          ] }, resource.resourceId)) }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: player.tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: `${scoreBoardStyles.tokenBadge} ${myPlayerId === player.id ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`,
+              onClick: () => {
+                socket.emit("token:reclaim", {
+                  roomId,
+                  playerId: myPlayerId,
+                  tokenId: token.id
+                });
+              },
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token })
             },
-            className: `${styles.cardBase} rg-playfield-card-wrapper ${isSelected ? styles.cardSelected : ""} ${card2.isFaceUp ? styles.cardSuperRevealed : ""}`,
-            style: {
-              "--owner-color": playerColor,
-              backgroundColor: canSeeFront ? "#fff" : card2.backColor,
-              cursor: isOwner ? "grab" : "default",
-              border: card2.isFaceUp ? "3px solid #00ffff" : "1px solid #ccc",
-              boxShadow: card2.isFaceUp ? "0 0 10px #00ffff" : "none"
-            },
-            onClick: () => toggleCardSelection(card2.id, isOwner),
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
-              canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles.tooltip, children: card2.description })
-            ]
-          },
-          card2.id
-        );
-      }) })
-    ] });
+            token.id
+          )) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: player.isHolding && "カードをホールドしています" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card2) => {
+            const isSelected = selectedCards.includes(card2.id);
+            const canSeeFront = !!card2.isFaceUp || isOwner;
+            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "div",
+              {
+                draggable: isOwner,
+                onDragStart: (e) => {
+                  if (!isOwner) return;
+                  e.dataTransfer.setData("cardId", card2.id);
+                  e.dataTransfer.setData("deckId", card2.deckId);
+                  e.dataTransfer.effectAllowed = "move";
+                },
+                className: `${scoreBoardStyles.cardBase} rg-playfield-card-wrapper ${isSelected ? scoreBoardStyles.cardSelected : ""} ${card2.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ""}`,
+                style: {
+                  cursor: isOwner ? "grab" : "default",
+                  border: card2.isFaceUp ? "3px solid #00ffff" : "1px solid #ccc",
+                  boxShadow: card2.isFaceUp ? "0 0 10px #00ffff" : "none",
+                  padding: 0,
+                  overflow: "hidden",
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "stretch",
+                  justifyContent: "stretch"
+                },
+                onClick: () => toggleCardSelection(card2.id, isOwner),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
+                  canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: scoreBoardStyles.tooltip, children: card2.description })
+                ]
+              },
+              card2.id
+            );
+          }) })
+        ]
+      }
+    );
   }
 );
 function ScoreBoard({
   socket,
+  roomId,
   players,
   currentPlayerId,
   myPlayerId,
-  roomId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
+  holdButton = false,
+  revealButton = false,
+  turnSkipButton = false,
+  roundSkipbutton = false,
   isDebug = false
 }) {
   const displayedPlayers = React.useMemo(() => {
@@ -1974,6 +2054,43 @@ function ScoreBoard({
     if (!isOwner) return;
     setSelectedCards((prev) => prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]);
   }, []);
+  const playSelectedCards = React.useCallback(
+    ({ isHold = false } = {}) => {
+      if (selectedCards.length === 0 || !myPlayerId) return;
+      if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) return;
+      const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
+      if (!myPlayer) return;
+      const cardsByDeck = {};
+      let targetPlayLocation;
+      if (isHold == true) {
+        socket.emit("card:hold", { roomId, playerId: myPlayerId, cardIds: selectedCards });
+        return;
+      }
+      selectedCards.forEach((cardId) => {
+        const card2 = myPlayer.cards.find((c) => c.id === cardId);
+        if (!card2) return;
+        if (!targetPlayLocation) targetPlayLocation = card2.playLocation;
+        if (!cardsByDeck[card2.deckId]) cardsByDeck[card2.deckId] = [];
+        cardsByDeck[card2.deckId].push(card2.id);
+      });
+      if (!targetPlayLocation) return;
+      const finalLocation = targetPlayLocation;
+      Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
+        const playData = {
+          roomId,
+          deckId,
+          cardIds,
+          playerId: myPlayerId,
+          playLocation: finalLocation,
+          coordinate: { x: 50, y: 50 }
+        };
+        socket.emit("card:play", playData);
+      });
+      if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
+      setSelectedCards([]);
+    },
+    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]
+  );
   const revealSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
     if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) return;
@@ -1985,40 +2102,13 @@ function ScoreBoard({
     if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
     setSelectedCards([]);
   }, [selectedCards, myPlayerId, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
-  const playSelectedCards = React.useCallback(() => {
-    if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) return;
-    const myPlayer = displayedPlayers.find((p) => p.id === myPlayerId);
-    if (!myPlayer) return;
-    const cardsByDeck = {};
-    let targetPlayLocation;
-    selectedCards.forEach((cardId) => {
-      const card2 = myPlayer.cards.find((c) => c.id === cardId);
-      if (!card2) return;
-      if (!targetPlayLocation) targetPlayLocation = card2.playLocation;
-      if (!cardsByDeck[card2.deckId]) cardsByDeck[card2.deckId] = [];
-      cardsByDeck[card2.deckId].push(card2.id);
-    });
-    if (!targetPlayLocation) return;
-    Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
-      socket.emit("card:play", {
-        roomId,
-        deckId,
-        cardIds,
-        playerId: myPlayerId,
-        playLocation: targetPlayLocation,
-        position: { x: 50, y: 50 }
-      });
-    });
-    if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
-    setSelectedCards([]);
-  }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
   const nextTurn = () => socket.emit("game:next-turn", { roomId });
+  const nextRound = () => socket.emit("game:next-round", { roomId });
   const isOverLimit = playCardLimit !== void 0 && selectedCards.length > playCardLimit;
   const isActionDisabled = selectedCards.length === 0 || isOverLimit;
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.container, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: styles.title, children: "ゲームスコアボード" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: styles.playerList, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.container, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: scoreBoardStyles.title, children: "ゲームスコアボード" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       PlayerListItem,
       {
         player,
@@ -2032,20 +2122,73 @@ function ScoreBoard({
       },
       player.id
     )) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.buttonArea, children: [
-      isOverLimit && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: styles.limitMessage, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonArea, children: [
+      isOverLimit && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: scoreBoardStyles.limitMessage, children: [
         "一度に出せるカードは ",
         playCardLimit,
         " 枚までです"
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.buttonGroup, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: playSelectedCards, disabled: isActionDisabled, children: "選択カードを出す" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, disabled: isActionDisabled, children: "選択カードを公開する" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" })
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled, children: "選択カードを出す" }),
+        holdButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isActionDisabled, children: "選択カードをホールドする" }),
+        revealButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, children: "選択カードを公開する" }),
+        turnSkipButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" }),
+        roundSkipbutton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextRound, children: "ラウンドをスキップ" })
       ] })
     ] })
   ] });
 }
+const messageContainer = "_messageContainer_1akhg_3";
+const messageList = "_messageList_1akhg_29";
+const messageItemActive = "_messageItemActive_1akhg_38";
+const styles$1 = {
+  messageContainer,
+  messageList,
+  messageItemActive
+};
+const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
+  const [displayMessage, setDisplayMessage] = useState("");
+  const [currentData, setCurrentData] = useState(null);
+  const [queue, setQueue] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [msgKey, setMsgKey] = useState(0);
+  useEffect(() => {
+    if (!socket) return;
+    const onMessage = (data) => {
+      setQueue((prev) => [...prev, data]);
+    };
+    socket.on("system:message", onMessage);
+    return () => {
+      socket.off("system:message", onMessage);
+    };
+  }, [socket]);
+  useEffect(() => {
+    if (queue.length === 0) return;
+    if (isProcessing) {
+      setIsProcessing(false);
+      return;
+    }
+    const nextData = queue[0];
+    const remaining = queue.slice(1);
+    setQueue(remaining);
+    setCurrentData(nextData);
+    setDisplayMessage(nextData.message);
+    setMsgKey((prev) => prev + 1);
+    setIsProcessing(true);
+  }, [queue, isProcessing]);
+  useEffect(() => {
+    if (!isProcessing || !currentData || currentData.isPersistent) return;
+    const timer = setTimeout(() => {
+      setDisplayMessage("");
+      setIsProcessing(false);
+      setCurrentData(null);
+    }, displayDuration);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isProcessing, currentData, displayDuration]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$1.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageItemActive, children: displayMessage }, msgKey) }) });
+};
 function Timer({ socket = null, initialDuration, onFinish, roomId }) {
   const [timeLeft, setTimeLeft] = useState(initialDuration);
   useEffect(() => {
@@ -2120,133 +2263,355 @@ function Timer({ socket = null, initialDuration, onFinish, roomId }) {
     }
   );
 }
-const TokenContent = React__default.memo(({ token }) => {
-  if (token.imageSrc) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "img",
-      {
-        src: token.imageSrc,
-        alt: token.name,
-        style: {
-          width: "100%",
-          height: "100%",
-          objectFit: "contain"
-        }
-      }
-    );
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    height: "100%",
-    width: "100%",
-    padding: "5px"
-  }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { fontSize: "1em", wordBreak: "break-all", textAlign: "center" }, children: token.name }) });
-});
-function TokenStore({ socket, roomId, tokenStoreId, name, onSelect }) {
+const section = "_section_svsi4_2";
+const title = "_title_svsi4_10";
+const list = "_list_svsi4_15";
+const styles = {
+  section,
+  title,
+  list
+};
+function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
   const [tokens, setTokens] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const handleInitTokens = useCallback((initialTokens) => {
-    console.log(`TokenStore (${tokenStoreId}): 初期情報を受信しました。`, initialTokens);
-    setTokens(initialTokens && initialTokens.length > 0 ? initialTokens : []);
-  }, [tokenStoreId]);
-  const handleUpdateTokens = useCallback((updatedTokens) => {
-    console.log(`TokenStore (${tokenStoreId}): 更新情報を受信しました。`, updatedTokens);
-    setTokens(updatedTokens || []);
-  }, [tokenStoreId]);
+  const handleUpdateTokens = useCallback((data) => {
+    setTokens(data.tokenStore || []);
+  }, []);
   useEffect(() => {
-    if (!socket) {
-      console.warn("TokenStore: Socket connection is not available. UI remains empty.");
-      return;
-    }
-    const INIT_EVENT = `token-store:init:${roomId}:${tokenStoreId}`;
-    const UPDATE_EVENT = `token-store:update:${roomId}:${tokenStoreId}`;
-    socket.on(INIT_EVENT, handleInitTokens);
-    socket.on(UPDATE_EVENT, handleUpdateTokens);
-    console.log(`TokenStore (${tokenStoreId}): リスナーを登録しました。`);
+    if (!socket) return;
+    socket.on(`token-store:update`, handleUpdateTokens);
     return () => {
-      socket.off(INIT_EVENT, handleInitTokens);
-      socket.off(UPDATE_EVENT, handleUpdateTokens);
-      console.log(`TokenStore (${tokenStoreId}): リスナーを解除しました。`);
+      socket.off(`token-store:update`, handleUpdateTokens);
     };
-  }, [socket, roomId, tokenStoreId, handleInitTokens, handleUpdateTokens]);
-  const getTokenById = useMemo(
-    () => (id) => tokens.find((t) => t.id === id),
-    [tokens]
-  );
+  }, [socket, handleUpdateTokens]);
+  const getTokenById = useMemo(() => (id) => tokens.find((t) => t.id === id), [tokens]);
   const handleClick = (id) => {
     const token = getTokenById(id);
     if (!token) return;
-    setSelectedId(id);
     onSelect?.(token);
   };
   const handleDoubleClick = (id) => {
     const token = getTokenById(id);
     if (!token) return;
-    const payload = {
-      roomId,
-      // ⭐ 追加
-      tokenStoreId,
-      tokenId: id,
-      tokenName: token.name
-    };
-    console.log(`[TokenStore] ダブルクリック: トークン獲得イベント 'game:acquire-token' を送信`, payload);
-    socket.emit("game:acquire-token", payload);
-    setSelectedId(null);
+    const data = { roomId, tokenStoreId, tokenId: id };
+    socket.emit("token:aquire", data);
   };
-  const TOKEN_SIZE = "40px";
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "section",
-    {
-      style: {
-        backgroundColor: "#dededeff",
-        padding: "10px",
-        margin: "15px",
-        borderRadius: "10px",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
-      },
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { style: { marginBottom: "10px", color: "#333" }, children: name }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", gap: "12px", flexWrap: "wrap" }, children: tokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "div",
-          {
-            onClick: () => handleClick(t.id),
-            onDoubleClick: () => handleDoubleClick(t.id),
-            style: {
-              padding: "8px",
-              width: TOKEN_SIZE,
-              height: TOKEN_SIZE,
-              borderRadius: "50%",
-              border: selectedId === t.id ? "2px solid #f6fbd1ff" : "2px solid #ccc",
-              backgroundColor: "#4f4848ff",
-              cursor: "pointer",
-              textAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-around",
-              alignItems: "center",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.2)"
-            },
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "div",
-              {
-                style: {
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                },
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenContent, { token: t })
-              }
-            )
-          },
-          t.id
-        )) })
-      ]
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles.section, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.list, children: tokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t }) }, t.id)) })
+  ] });
+}
+let LOG_CATEGORIES = {
+  connection: true,
+  deck: false,
+  card: true,
+  cell: true,
+  game: true,
+  dice: true,
+  timer: false,
+  addScore: true,
+  resource: true,
+  token: true,
+  room: true,
+  lobby: true,
+  disconnect: true,
+  warn: true,
+  popup: true,
+  custom_event: true
+};
+const ANSI_RED = "\x1B[31m";
+const ANSI_RESET = "\x1B[0m";
+function server_log(tag, gameId, roomId, firstArg, ...args) {
+  if (!LOG_CATEGORIES[tag]) {
+    throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
+  }
+  const fullArgs = [firstArg, ...args];
+  if (tag === "warn") {
+    const header = `[${tag}] [${gameId} (${roomId})]`;
+    console.warn(ANSI_RED + header + ANSI_RESET, ...fullArgs.map((arg) => ANSI_RED + String(arg) + ANSI_RESET));
+  } else {
+    console.log(`[${tag}] [${gameId} (${roomId})]`, ...fullArgs);
+  }
+}
+class RoomManager {
+  constructor(io, param, state) {
+    this.io = io;
+    this.param = param;
+    this.state = state;
+  }
+  /**
+   * プレイヤー更新を通知する
+   */
+  emitPlayerUpdate = () => {
+    this.io.to(this.state.roomId).emit("players:update", this.state.players);
+  };
+  /**
+   * デッキ更新を通知する
+   */
+  emitDeckUpdate = (deckId) => {
+    const updateData = {
+      currentDeck: this.state.decks[deckId].filter((c) => c.location === "deck"),
+      playFieldCards: this.state.playFieldCards[deckId],
+      discardPile: this.state.discardPile[deckId]
+    };
+    this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
+  };
+  /**
+   * トークン置き場更新を通知する
+   */
+  emitTokenStoreUpdate = (tokenStoreId) => {
+    const updateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
+    this.io.to(this.state.roomId).emit(`token-store:update`, updateData);
+  };
+  emitSystemMessage = (message, isPersistent = false) => {
+    if (!this.state.systemMessageHistory.includes(message)) {
+      this.state.systemMessageHistory = [...this.state.systemMessageHistory.slice(-9), message];
     }
-  );
+    this.io.to(this.state.roomId).emit("system:message", { message, isPersistent });
+  };
+  /**
+   * カードをデッキから引く
+   */
+  drawCard(deckId, condition, playerId) {
+    const [targetLocation, targetState] = condition;
+    const currentDeck = this.state.decks[deckId].filter((c) => c.location === "deck");
+    if (!currentDeck.length) return false;
+    const card2 = currentDeck[0];
+    card2.isFaceUp = targetState === "face";
+    let destination = "";
+    server_log(
+      "deck",
+      this.state.gameId,
+      this.state.roomId,
+      `DRAW: ${card2.name} (ID:${card2.id}) (deck -> ${destination}, state: ${targetState})`
+    );
+    if (targetLocation === "discard") {
+      card2.location = "discard";
+      card2.ownerId = null;
+      this.state.discardPile[deckId].push(card2);
+      destination = "discard";
+    } else if (playerId && targetLocation === "hand") {
+      const player = this.state.players.find((p) => p.id === playerId);
+      if (player) {
+        card2.location = "hand";
+        card2.ownerId = playerId;
+        player.cards.push(card2);
+        destination = playerId;
+      }
+    } else {
+      card2.location = "field";
+      card2.ownerId = null;
+      this.state.playFieldCards[deckId].push(card2);
+      destination = "field";
+    }
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+    return true;
+  }
+  /**
+   * ホールド状態を解消し、カードを出す
+   */
+  unholdCards() {
+    this.state.players.forEach((p) => {
+      p.isHolding = false;
+      delete this.state.holdCards[p.id];
+    });
+    this.emitPlayerUpdate();
+  }
+  /**
+   * フィールドからカードを回収（手札に戻す or 捨て札へ）
+   */
+  moveFromField(deckId, cardId, playerId) {
+    const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
+    const fieldList = playFieldCards[deckId] || [];
+    const cardIndex = fieldList.findIndex((c) => c.id === cardId);
+    if (cardIndex === -1) return false;
+    const [card2] = fieldList.splice(cardIndex, 1);
+    card2.isFaceUp = card2.fieldBackCondition?.[1] === "face";
+    if (playerId) {
+      const player = players.find((p) => p.id === playerId);
+      if (!player) return false;
+      card2.location = "hand";
+      card2.ownerId = playerId;
+      player.cards = player.cards || [];
+      player.cards.push(card2);
+      server_log("card", gameId, roomId, `Return: ${card2.name} -> Player:${playerId}`);
+    } else {
+      card2.location = "discard";
+      card2.ownerId = null;
+      discardPile[deckId] = discardPile[deckId] || [];
+      discardPile[deckId].push(card2);
+      server_log("card", gameId, roomId, `Discard: ${card2.name} -> discard`);
+    }
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+    return true;
+  }
+  /**
+   * スコアを加算する
+   * @param playerId - 対象のプレイヤーのID
+   * @param points - 加算するスコア
+   */
+  addScore(playerId, points) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return;
+    player.score = (player.score || 0) + points;
+    server_log("addScore", this.state.gameId, this.state.roomId, `${player.name} に ${points}pt 加算`);
+    this.emitPlayerUpdate();
+  }
+  /**
+   * セル効果を発動する
+   * @param playerId - 効果を発動させたプレイヤーのID
+   * @param position - 発動対象となるマスの座標
+   * @param cellEffects - 各セル名に対応する効果処理の定義集
+   * @param updatePlayerResource - プレイヤーのリソース（資源）を更新するためのコールバック関数
+   * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
+   * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
+   */
+  applyCellEffect = (playerId, position, cellEffects, updatePlayerResource, updatePlayerToken, requirePopup) => {
+    const { row, col } = position;
+    const targetBoard = Object.values(this.state.board)[0];
+    if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
+      server_log(
+        "warn",
+        this.state.gameId,
+        this.state.roomId,
+        `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`
+      );
+      return;
+    }
+    const cell2 = targetBoard[row][col];
+    const effect = cellEffects[cell2.name];
+    if (effect) {
+      server_log("cell", this.state.gameId, this.state.roomId, `マス効果発動: ${cell2.name} by ${playerId}`);
+      try {
+        effect({
+          playerId,
+          updateResource: updatePlayerResource,
+          updateToken: updatePlayerToken,
+          requirePopup
+        });
+      } catch (e) {
+        server_log(
+          "warn",
+          this.state.gameId,
+          this.state.roomId,
+          `マス効果の実行中にエラーが発生しました: ${cell2.name}`,
+          e
+        );
+      }
+    } else {
+      server_log("cell", this.state.gameId, this.state.roomId, `マス効果なし: (${row}, ${col}) ${cell2.name}`);
+    }
+  };
+  /**
+   * トークンを取得する
+   * @param tokenStoreId - トークン置き場ID
+   * @param tokenId - トークンID
+   * @param playerId - プレイヤーID
+   */
+  acquireToken(tokenStoreId, tokenId, playerId) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return false;
+    const tokens = this.state.tokenStores[tokenStoreId];
+    const index = tokens.findIndex((t) => t.id === tokenId);
+    if (index !== -1) {
+      const acquiredToken = tokens.splice(index, 1)[0];
+      if (!Array.isArray(player.tokens)) {
+        player.tokens = [];
+      }
+      player.tokens.push(acquiredToken);
+      server_log(
+        "token",
+        this.state.gameId,
+        this.state.roomId,
+        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`
+      );
+      this.emitTokenStoreUpdate(tokenStoreId);
+    }
+  }
+  /**
+   * ターンを更新する
+   */
+  updateTurn() {
+    if (this.state.players.length === 0) return;
+    const checkGameEnd = this.param?.checkGameEnd;
+    const onGameEnd = this.param?.onGameEnd;
+    if (checkGameEnd && checkGameEnd(this.state) && onGameEnd) {
+      const results = onGameEnd(this.state);
+      this.io.to(this.state.roomId).emit("game:end", results);
+      return;
+    }
+    const nextIndex = this.state.currentTurnIndex + 1;
+    const isRoundEnd = nextIndex % this.state.players.length === 0;
+    if (nextIndex > 0 && isRoundEnd) {
+      this.state.currentRoundIndex += 1;
+      const onNextRound = this.param?.onNextRound;
+      if (onNextRound) {
+        onNextRound(this.state, this);
+      }
+    }
+    this.state.currentTurnIndex = nextIndex;
+    const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
+    server_log(
+      "game",
+      this.state.gameId,
+      this.state.roomId,
+      `ターン更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`
+    );
+    this.io.to(this.state.roomId).emit("game:turn", {
+      currentPlayerId: currentPlayer?.id,
+      currentRoundIndex: this.state.currentRoundIndex,
+      currentTurnIndex: this.state.currentTurnIndex
+    });
+  }
+  /**
+   * ラウンドを更新する
+   */
+  updateRound() {
+    if (this.state.players.length === 0) return;
+    const checkGameEnd = this.param?.checkGameEnd;
+    const onGameEnd = this.param?.onGameEnd;
+    if (checkGameEnd && checkGameEnd(this.state) && onGameEnd) {
+      const results = onGameEnd(this.state);
+      this.io.to(this.state.roomId).emit("game:end", results);
+      return;
+    }
+    this.state.currentRoundIndex += 1;
+    const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
+    const onNextRound = this.param?.onNextRound;
+    if (onNextRound) {
+      onNextRound(this.state, this);
+    }
+    server_log(
+      "game",
+      this.state.gameId,
+      this.state.roomId,
+      `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`
+    );
+    this.io.to(this.state.roomId).emit("game:turn", {
+      currentPlayerId: currentPlayer?.id,
+      currentRoundIndex: this.state.currentRoundIndex,
+      currentTurnIndex: this.state.currentTurnIndex
+    });
+  }
+  /**
+   * フェーズを更新する
+   * @param newPhase - 新しいフェーズ
+   */
+  updatePhase(newPhase) {
+    if (this.state.currentPhase !== newPhase) {
+      this.state.currentPhase = newPhase;
+      server_log("game", this.state.gameId, this.state.roomId, `フェーズを更新しました: ${newPhase}`);
+      this.io.to(this.state.roomId).emit("game:phase:update", {
+        newPhase: this.state.currentPhase
+      });
+    }
+  }
+}
+class Phase {
+  toString() {
+    return this.name;
+  }
 }
 export {
   Cell,
@@ -2254,9 +2619,12 @@ export {
   Dice,
   Draggable,
   GridBoard,
+  Phase,
   PlayField,
   RemoteCursor,
+  RoomManager,
   ScoreBoard,
+  SystemMessageWindow,
   Timer,
   TokenStore
 };

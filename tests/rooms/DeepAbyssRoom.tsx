@@ -1,34 +1,28 @@
+// tests/rooms/DeepAbyssRoom.tsx
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Deck from '../../src/components/Deck';
+import { Deck } from '../../src/components/Deck';
+import { Draggable } from '../../src/components/Draggable';
 import { PlayField } from '../../src/components/PlayField';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
-import TokenStore from '../../src/components/TokenStore';
+import { SystemMessageWindow } from '../../src/components/systemMessageWindow';
+import { TokenStore } from '../../src/components/TokenStore';
 import { useSocket } from '../../src/hooks/useSocket';
 import type { Player } from '../../src/types/player';
-import type { PlayerWithResources } from '../../src/types/playerWithResources';
+import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
 import MyBoard from '../components/MyBoard';
 import Popup from '../components/PopUp';
 import './DeepAbyssRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
 
-const RESOURCE_IDS = {
-  OXYGEN: 'OXYGEN',
-  BATTERY: 'BATTERY',
-  HULL: 'HULL',
-};
+const Z_INDX_DRAGGABLE = 201;
+const Z_INDX_CARD = 200;
 
 interface PopupState {
   message: string;
   color: string;
   visible: boolean;
-}
-
-interface TurnUpdatePayload {
-  playerId: string;
-  currentRound: number;
-  currentTurnIndex: number;
 }
 
 interface GameResult {
@@ -58,14 +52,12 @@ export function DeepAbyssRoom() {
   const [hasJoined, setHasJoined] = useState<boolean>(false);
 
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
-  const [players, setPlayers] = useState<PlayerWithResources[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
 
-  const [debugTargetId, setDebugTargetId] = useState<string | null>(null);
-  const [debugScoreAmount, setDebugScoreAmount] = useState<number>(10);
-  const [debugResourceAmount, setDebugResourceAmount] = useState<number>(1);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const showPopup = useCallback((message: string, color: string) => {
     if (popupTimerRef.current) {
@@ -79,16 +71,16 @@ export function DeepAbyssRoom() {
     popupTimerRef.current = newTimerId;
   }, []);
 
-  const GAME_PRESET_ID = 'deepsea';
+  const GAME_PRESET_ID = 'deepabyss';
 
   const handleJoinRoom = useCallback(() => {
     if (!socket || !roomId || userName.trim() === '' || isJoining) return;
     setIsJoining(true);
     socket.emit('room:join', {
       roomId,
+      gameId: GAME_PRESET_ID,
       playerName: userName.trim(),
-      gamePresetId: GAME_PRESET_ID,
-    });
+    } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);
 
   useEffect(() => {
@@ -96,22 +88,21 @@ export function DeepAbyssRoom() {
 
     const handleAssignId = (id: Player['id']) => {
       setMyPlayerId(id);
-      setDebugTargetId(id);
       setHasJoined(true);
       setIsJoining(false);
     };
 
-    const handlePlayersUpdate = (updatedPlayers: PlayerWithResources[]) => {
+    const onClientReady = () => {
+      socket.emit('client:ready', roomId);
+    };
+
+    const handlePlayersUpdate = (updatedPlayers: Player[]) => {
       setPlayers(updatedPlayers);
     };
 
-    const handleGameTurn = (data: TurnUpdatePayload | string) => {
-      if (typeof data === 'string') {
-        setCurrentPlayerId(data);
-      } else {
-        setCurrentPlayerId(data.playerId);
-        setCurrentRound(data.currentRound + 1);
-      }
+    const handleGameTurn = (data: GameTurnUpdateData) => {
+      setCurrentPlayerId(data.currentPlayerId);
+      setCurrentRound(data.currentRoundIndex + 1);
     };
 
     const handleShowPopup = (data: { message: string; color: string }) => {
@@ -123,6 +114,7 @@ export function DeepAbyssRoom() {
     };
 
     socket.on('player:assign-id', handleAssignId);
+    socket.on('client:ready-to-sync', onClientReady);
     socket.on('players:update', handlePlayersUpdate);
     socket.on('game:turn', handleGameTurn);
     socket.on('client:show-popup', handleShowPopup);
@@ -130,31 +122,13 @@ export function DeepAbyssRoom() {
 
     return () => {
       socket.off('player:assign-id', handleAssignId);
+      socket.off('client:ready-to-sync', onClientReady);
       socket.off('players:update', handlePlayersUpdate);
       socket.off('game:turn', handleGameTurn);
       socket.off('client:show-popup', handleShowPopup);
       socket.off('game:end', handleGameEnd);
     };
   }, [socket, roomId, showPopup]);
-
-  const handleDebugScore = (amount: number) => {
-    if (!socket || !debugTargetId || !roomId) return;
-    socket.emit('room:player:add-score', {
-      roomId,
-      targetPlayerId: debugTargetId,
-      points: amount,
-    });
-  };
-
-  const handleDebugResource = (resourceId: string, amount: number) => {
-    if (!socket || !debugTargetId || !roomId) return;
-    socket.emit('room:player:update-resource', {
-      roomId,
-      playerId: debugTargetId,
-      resourceId,
-      amount,
-    });
-  };
 
   if (!roomId) return <div className="deepsea-container">Room ID Not Found</div>;
   if (!socket) return <div className="deepsea-container">Connecting...</div>;
@@ -183,7 +157,7 @@ export function DeepAbyssRoom() {
 
   // ゲーム本編
   return (
-    <div className="deepsea-container">
+    <div className="deepsea-container" ref={containerRef}>
       {/* ゲーム終了リザルトモーダル */}
       {gameResult && (
         <div className="result-overlay">
@@ -235,7 +209,8 @@ export function DeepAbyssRoom() {
       <div className="board-wrapper">
         <MyBoard socket={socket} roomId={roomId} myPlayerId={myPlayerId} />
       </div>
-      <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" name="遺物" />
+      <SystemMessageWindow socket={socket} roomId={roomId} />
+      <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" title="遺物" />
 
       <div className="game-main-layout">
         {/* 左側グループ：デッキ列とフィールド列を横に並べる塊 */}
@@ -245,16 +220,18 @@ export function DeepAbyssRoom() {
             <Deck
               socket={socket}
               roomId={roomId}
-              deckId="deepSeaAction"
-              name="アクションカード"
-              playerId={currentPlayerId}
+              deckId="deepAbyssAction"
+              title="アクションカード"
+              currentPlayerId={currentPlayerId}
+              myPlayerId={myPlayerId}
             />
             <Deck
               socket={socket}
               roomId={roomId}
-              deckId="deepSeaSpecies"
-              name="深海生物カード"
-              playerId={currentPlayerId}
+              deckId="deepAbyssSpecies"
+              title="深海生物カード"
+              currentPlayerId={currentPlayerId}
+              myPlayerId={myPlayerId}
             />
           </div>
 
@@ -263,19 +240,33 @@ export function DeepAbyssRoom() {
             <PlayField
               socket={socket}
               roomId={roomId}
-              deckId="deepSeaAction"
+              deckId="deepAbyssAction"
               title="アクションカード"
               myPlayerId={myPlayerId}
               players={players}
+              backgroundImage="/gameboard.png"
+              is_logging={true}
+              baseZIndex={Z_INDX_CARD}
             />
             <PlayField
               socket={socket}
               roomId={roomId}
-              deckId="deepSeaSpecies"
+              deckId="deepAbyssSpecies"
               players={players}
               myPlayerId={myPlayerId}
               layoutMode="grid"
             />
+            <Draggable
+              socket={socket}
+              roomId={roomId}
+              initialXY={{ x: 1000, y: 500 }}
+              key={`piece`}
+              draggableId={`piece`}
+              size={{ width: 200, height: 100 }}
+              containerRef={containerRef}
+              zIndex={Z_INDX_DRAGGABLE}
+              isFrontOnDragging={true}
+            ></Draggable>
           </div>
         </div>
 
@@ -289,6 +280,9 @@ export function DeepAbyssRoom() {
             myPlayerId={myPlayerId}
             playCardLimit={2}
             isDebug={true}
+            holdButton={true}
+            revealButton={true}
+            turnSkipButton={true}
           />
         </div>
       </div>

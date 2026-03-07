@@ -1,9 +1,11 @@
 // src/components/Draggable.tsx
-import { PieceId, RoomId } from '@/types/definition.js';
+import { Coordinate } from '@/types/coodinate.js';
+import { DraggableId, RoomId } from '@/types/definition.js';
+import { DraggableMovedData, DraggableUpdateData } from '@/types/socketData.js';
 import type { CSSProperties, ReactNode } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Socket } from 'socket.io-client';
-import styles from './Draggable.module.css';
+import draggableStyles from './Draggable.module.css';
 
 interface GridBounds {
   left: number;
@@ -13,72 +15,134 @@ interface GridBounds {
   cellSize: number;
 }
 
-interface DraggableProps {
+type DraggableProps = {
+  socket: Socket;
+  roomId: RoomId;
+  draggableId: DraggableId;
   image?: string;
   mask?: boolean;
-  initialX?: number;
-  initialY?: number;
-  size?: number;
+  initialXY?: Coordinate;
+  size?: number | { width: number; height: number };
   color?: string;
   isTransparent?: boolean;
+  zIndex?: number;
+  isFrontOnDragging?: boolean;
   children?: ReactNode;
   style?: CSSProperties;
-  socket?: Socket;
-  roomId?: RoomId;
-  pieceId?: PieceId;
-  onDragEnd?: (x: number, y: number) => void;
   gridBounds?: GridBounds;
   scale?: number;
-  containerRef?: React.RefObject<HTMLElement | null>;
-}
+  containerRef: React.RefObject<HTMLElement | null>;
+};
 
+/**
+ * ドラッグ移動と移動のリアルタイムな位置同期機能を提供する
+ * @param {Socket} [socket] - リアルタイム同期用のSocket.ioインスタンス
+ * @param {RoomId} [roomId] - 同期対象のルームID
+ * @param {DraggableId} [draggableId] - この要素を一意に識別するためのID
+ * @param {string} [image] - 表示する画像URL
+ * @param {boolean} [mask=false] - 画像を背景色(color)でマスク（切り抜き）表示するかどうか
+ * @param {Coordinate} [initialXY={x:500, y:500}] - 初期配置のXY座標
+ * @param {number | {width: number, height: number}} [size=100] - 要素のサイズ（数値なら正方形、オブジェクトなら長方形）
+ * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
+ * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
+ * @param {number} [zIndex=90] - 重なり順。デフォルトは100
+ * @param {number} [isFrontOnDragging=false] - ドラッグ中に一時的に zIndex を跳ね上げるためのフラグ
+ * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
+ * @param {CSSProperties} [style] - 外側から適用する追加のスタイル
+ * @param {Coordinate => void} [onDragEnd] - ドラッグ終了時に確定座標を通知するハンドラ
+ * @param {GridBounds} [gridBounds] - スナップ移動を制御するためのグリッド境界情報
+ * @param {number} [scale=1] - 親コンテナのズーム倍率（座標計算の補正に使用）
+ * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
+ */
 export function Draggable({
+  socket,
+  roomId,
+  draggableId,
+  initialXY = { x: 500, y: 500 },
   image,
   mask = false,
-  initialX = 500,
-  initialY = 500,
   size = 100,
   color = 'yellow',
   isTransparent = false,
+  zIndex = 100,
+  isFrontOnDragging = false,
   children,
   style = {},
-  socket,
-  roomId,
-  pieceId,
-  onDragEnd,
   scale = 1,
   containerRef,
 }: DraggableProps) {
-  const [pos, setPos] = useState({ x: initialX, y: initialY });
+  // 座標と回転、重なり順を内部状態として管理
+  const [pos, setPos] = useState(initialXY);
   const [rotation, setRotation] = useState(0);
+  const [currentZ, setCurrentZ] = useState(zIndex);
+
+  // 右クリックメニューの表示状態
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+
+  const [isDragging, setIsDragging] = useState(false);
   const posRef = useRef(pos);
   // ドラッグ中かどうかを保持するRef（再レンダリングをトリガーしないようRefで管理）
   const isDraggingRef = useRef(false);
+
+  // サーバーへの同期送信を共通化
+  const emitUpdate = useCallback(
+    (targetPos: Coordinate, targetRot: number, targetZ: number) => {
+      if (socket && roomId && draggableId) {
+        socket.emit('draggable:moved', {
+          roomId: roomId,
+          draggableId: draggableId,
+          coordinate: targetPos,
+          rotation: targetRot,
+          zIndex: targetZ,
+        } as DraggableMovedData);
+      }
+    },
+    [socket, roomId, draggableId],
+  );
 
   useEffect(() => {
     posRef.current = pos;
   }, [pos]);
 
   useEffect(() => {
-    if (!socket || !pieceId) return;
-    const eventName = 'draggable:update';
-    const handleRemoteMove = (move: { pieceId: string; x: number; y: number }) => {
+    setCurrentZ(zIndex);
+  }, [zIndex]);
+
+  // メニュー外クリックで閉じる処理
+  useEffect(() => {
+    const closeMenu = () => setContextMenu(null);
+    if (contextMenu) {
+      window.addEventListener('click', closeMenu);
+    }
+    return () => window.removeEventListener('click', closeMenu);
+  }, [contextMenu]);
+
+  useEffect(() => {
+    if (!socket || !draggableId) return;
+    const handleRemoteMove = (data: DraggableUpdateData) => {
       // 自分がドラッグ中の時は、サーバーからの座標更新を無視する
-      if (move.pieceId === pieceId && !isDraggingRef.current) {
-        setPos({ x: move.x, y: move.y });
+      if (data.draggableId === draggableId && !isDraggingRef.current) {
+        setPos({ x: data.coordinate.x, y: data.coordinate.y });
+        // 他人からの回転と重なり順の更新を反映
+        if (data.rotation !== undefined) setRotation(data.rotation);
+        if (data.zIndex !== undefined) setCurrentZ(data.zIndex);
       }
     };
-    socket.on(eventName, handleRemoteMove);
+    socket.on('draggable:update', handleRemoteMove);
     return () => {
-      socket.off(eventName, handleRemoteMove);
+      socket.off('draggable:update', handleRemoteMove);
     };
-  }, [socket, pieceId]);
+  }, [socket, draggableId]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // 右クリック(button: 2)時はドラッグを開始しない
+    if (e.button !== 0) return;
+
     e.preventDefault();
 
     // ドラッグ開始
     isDraggingRef.current = true;
+    setIsDragging(true);
 
     const fixedContainer = containerRef?.current;
     if (!fixedContainer) {
@@ -93,7 +157,7 @@ export function Draggable({
     const offsetY = clientY_relative - pos.y;
 
     let lastTime = 0;
-    const targetFPS = 60; // 50から60へ微調整
+    const targetFPS = 60;
     const interval = 1000 / targetFPS;
 
     const handleMouseMove = (ev: MouseEvent) => {
@@ -112,33 +176,53 @@ export function Draggable({
       setPos(newPos);
       posRef.current = newPos;
 
-      if (socket && roomId && pieceId) {
-        socket.emit('draggable:moved', { roomId, pieceId, ...newPos });
-      }
+      // 移動中も最新の rotation と currentZ を含めて送信
+      emitUpdate(newPos, rotation, currentZ);
     };
 
     const handleMouseUp = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
 
-      const { x, y } = posRef.current;
-      if (socket && roomId && pieceId) {
-        socket.emit('draggable:moved', { roomId, pieceId, x, y });
-      }
+      // 最終座標を確定送信
+      emitUpdate(posRef.current, rotation, currentZ);
 
-      // ドラッグ終了（少し遅らせることで、最後に飛んできた自分の古い座標を捨てる）
+      setIsDragging(false);
       setTimeout(() => {
         isDraggingRef.current = false;
       }, 50);
-
-      onDragEnd?.(x, y);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleDoubleClick = () => setRotation((prev) => prev + 90);
+  /**
+   * 右クリックメニューを表示
+   */
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  /**
+   * メニューアクション：回転
+   */
+  const onRotateClick = () => {
+    const nextRot = rotation + 90;
+    setRotation(nextRot);
+    emitUpdate(pos, nextRot, currentZ);
+  };
+
+  /**
+   * メニューアクション：最前面
+   */
+  const onBringToFrontClick = () => {
+    const nextZ = currentZ + 100;
+    setCurrentZ(nextZ);
+    emitUpdate(pos, rotation, nextZ);
+  };
 
   const MASK_PROP = ['mask', 'Image'].join('');
   const WEBKIT_MASK_PROP = ['Webkit', 'Mask', 'Image'].join('');
@@ -159,45 +243,98 @@ export function Draggable({
         }
       : {};
 
+  // sizeが数値かオブジェクトかによって幅と高さを決定
+  const width = typeof size === 'number' ? size : size.width;
+  const height = typeof size === 'number' ? size : size.height;
+
+  // ドラッグ中は一時的に 9999、それ以外は currentZ を使用
+  const dynamicZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
+
   const dynamicStyle: CSSProperties = {
-    left: `${pos.x}px`,
-    top: `${pos.y}px`,
-    width: `${size}px`,
-    height: `${size}px`,
-    background: mask && image ? undefined : isTransparent ? 'transparent' : color,
-    transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
     position: 'absolute',
-    cursor: 'grab',
+    cursor: isDragging ? 'grabbing' : 'grab',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    ...maskStyle,
+    transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+
+    // まず、外部から渡された汎用的な style を展開
     ...style,
+
+    // 次に、このコンポーネントの専用 Props で上書き（絶対に勝たせる）
+    left: `${pos.x}px`,
+    top: `${pos.y}px`,
+    width: `${width}px`,
+    height: `${height}px`,
+    zIndex: dynamicZIndex,
+    background: mask && image ? undefined : isTransparent ? 'transparent' : color,
+
+    // マスク関連（これも特殊な計算結果なので最後に上書き）
+    ...maskStyle,
   };
 
   return (
-    <div
-      onMouseDown={handleMouseDown}
-      onDoubleClick={handleDoubleClick}
-      className={styles.draggable}
-      style={dynamicStyle}
-    >
-      {image ? (
-        <img
-          src={image}
-          alt=""
+    <>
+      <div
+        onMouseDown={handleMouseDown}
+        onContextMenu={handleContextMenu}
+        className={draggableStyles.draggable}
+        style={dynamicStyle}
+        data-draggable-id={draggableId}
+      >
+        {image ? (
+          <img
+            src={image}
+            alt=""
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              pointerEvents: 'none',
+              userSelect: 'none',
+              mixBlendMode: mask ? 'multiply' : 'normal',
+            }}
+          />
+        ) : (
+          children
+        )}
+      </div>
+
+      {/* 簡易右クリックメニュー */}
+      {contextMenu && (
+        <div
           style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-            pointerEvents: 'none',
-            userSelect: 'none',
-            mixBlendMode: mask ? 'multiply' : 'normal',
+            position: 'fixed',
+            top: contextMenu.y,
+            left: contextMenu.x,
+            zIndex: 10001,
+            background: '#222',
+            color: '#fff',
+            border: '1px solid #444',
+            borderRadius: '4px',
+            padding: '4px 0',
+            fontSize: '12px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
           }}
-        />
-      ) : (
-        children
+        >
+          <div
+            style={{ padding: '8px 16px', cursor: 'pointer' }}
+            onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
+            onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+            onClick={onRotateClick}
+          >
+            🔄 90度回転
+          </div>
+          <div
+            style={{ padding: '8px 16px', cursor: 'pointer' }}
+            onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
+            onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+            onClick={onBringToFrontClick}
+          >
+            🔼 最前面へ
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 }

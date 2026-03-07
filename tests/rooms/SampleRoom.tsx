@@ -1,24 +1,21 @@
+// src/rooms/SampleRoom.tsx
 /// <reference types="vite/client" />
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import Deck from '../../src/components/Deck';
+import { Deck } from '../../src/components/Deck';
 import Dice from '../../src/components/Dice';
 import { Draggable } from '../../src/components/Draggable';
+import { PlayField } from '../../src/components/PlayField';
 import { RemoteCursor } from '../../src/components/RemoteCursor';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
 import Timer from '../../src/components/Timer';
 import { useSocket } from '../../src/hooks/useSocket';
-import type { PlayerWithResources } from '../../src/types/playerWithResources';
+import { Player } from '../../src/types/player';
+import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
 import './SampleRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
 const DRAGGABLE_IMAGE_PATH = '/hanabishi.svg';
-
-interface TurnUpdatePayload {
-  playerId: string;
-  currentRound: number;
-  currentTurnIndex: number;
-}
 
 export function SampleRoom() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -29,7 +26,7 @@ export function SampleRoom() {
   const [hasJoined, setHasJoined] = useState<boolean>(false);
 
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
-  const [players, setPlayers] = useState<PlayerWithResources[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
 
@@ -44,9 +41,9 @@ export function SampleRoom() {
     setIsJoining(true);
     socket.emit('room:join', {
       roomId,
+      gameId: GAME_PRESET_ID,
       playerName: userName.trim(),
-      gamePresetId: GAME_PRESET_ID,
-    });
+    } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);
 
   useEffect(() => {
@@ -58,25 +55,29 @@ export function SampleRoom() {
       setIsJoining(false);
     };
 
-    const handlePlayersUpdate = (updatedPlayers: PlayerWithResources[]) => {
+    const onClientReady = () => {
+      socket.emit('client:ready', roomId);
+    };
+
+    const handlePlayersUpdate = (updatedPlayers: Player[]) => {
       setPlayers(updatedPlayers);
     };
 
-    const handleGameTurn = (data: TurnUpdatePayload | string) => {
-      if (typeof data === 'string') {
-        setCurrentPlayerId(data);
-      } else {
-        setCurrentPlayerId(data.playerId);
-        setCurrentRound(data.currentRound);
+    const handleGameTurn = (data: GameTurnUpdateData) => {
+      {
+        setCurrentPlayerId(data.currentPlayerId);
+        setCurrentRound(data.currentRoundIndex);
       }
     };
 
     socket.on('player:assign-id', handleAssignId);
+    socket.on('client:ready-to-sync', onClientReady);
     socket.on('players:update', handlePlayersUpdate);
     socket.on('game:turn', handleGameTurn);
 
     return () => {
       socket.off('player:assign-id', handleAssignId);
+      socket.off('client:ready-to-sync', onClientReady);
       socket.off('players:update', handlePlayersUpdate);
       socket.off('game:turn', handleGameTurn);
     };
@@ -115,35 +116,55 @@ export function SampleRoom() {
         players={players}
         currentPlayerId={currentPlayerId}
         myPlayerId={myPlayerId}
+        turnSkipButton={true}
       />
 
-      <Dice
-        socket={socket}
-        diceId="1"
-        roomId={roomId}
-        sides={3}
-        customFaces={[
-          <img key="f1" src="/weather_sunny.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-          <img key="f2" src="/weather_cloud.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-          <img key="f3" src="/weather_wind.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-          <img key="f4" src="/weather_rain.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-        ]}
-      />
+      <div style={{ display: 'flex', gap: '16px' }}>
+        <Dice
+          socket={socket}
+          diceId="天気"
+          roomId={roomId}
+          title="天気ダイス"
+          sides={4}
+          customFaces={[
+            <img key="f1" src="/weather_sunny.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
+            <img key="f2" src="/weather_cloud.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
+            <img key="f3" src="/weather_wind.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
+            <img key="f4" src="/weather_rain.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
+          ]}
+          tooltipText="快晴・曇り・風・雨"
+        />
+        <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" />
+      </div>
 
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>
-      <Deck socket={socket} roomId={roomId} deckId="numberDeck" name="数字カード"></Deck>
-      <Draggable
-        image={DRAGGABLE_IMAGE_PATH}
-        mask={true}
-        key={`piece`}
-        pieceId={`piece`}
+      <Deck
         socket={socket}
         roomId={roomId}
-        initialX={1000}
-        initialY={500}
+        deckId="numberDeck"
+        title="数字カード"
+        currentPlayerId={currentPlayerId}
+        myPlayerId={myPlayerId}
+      ></Deck>
+      <PlayField
+        socket={socket}
+        roomId={roomId}
+        deckId="numberDeck"
+        title="数字カード"
+        myPlayerId={myPlayerId}
+        players={players}
+      />
+      <Draggable
+        socket={socket}
+        roomId={roomId}
+        image={DRAGGABLE_IMAGE_PATH}
+        mask={true}
+        initialXY={{ x: 1000, y: 500 }}
+        key={`piece`}
+        draggableId={`piece`}
         containerRef={containerRef}
         color="red"
-        size={150}
+        size={100}
       ></Draggable>
       <RemoteCursor
         socket={socket!}
