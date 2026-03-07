@@ -47,6 +47,9 @@ export declare class RoomManager {
      * カードをデッキから引く
      */
     drawCard(deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): boolean;
+    /**
+     * カードをプレイする
+     */
     playCard(data: CardPlayData): void;
     /**
      * ホールド状態を解除し、カードを出す

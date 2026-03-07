@@ -2407,7 +2407,9 @@ class RoomManager {
     this.emitPlayerUpdate();
     return true;
   }
-  // カードプレイ
+  /**
+   * カードをプレイする
+   */
   playCard(data) {
     const { deckId, cardIds, playerId, playLocation = "field", coordinate } = data;
     const ids = Array.isArray(cardIds) ? cardIds : [cardIds];

@@ -286,57 +286,12 @@ export function initGameServer(io, options) {
         });
         // カードプレイ
         socket.on('card:play', (data) => {
-            const { roomId, deckId, cardIds, playerId, playLocation = 'field', coordinate } = data;
-            const state = activeRooms.get(roomId);
+            const state = activeRooms.get(data.roomId);
             if (!state)
                 return;
             const param = gameParams[state.gameId];
             const roomManager = new RoomManager(io, param, state);
-            const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
-            if (state.holdCards[playerId]) {
-                server_log('card', state.gameId, state.roomId, `${playerId} はカードをホールドしているので、カードをプレイできません`);
-                return;
-            }
-            ids.forEach((id) => {
-                const card = state.decks[deckId]?.find((c) => c.id === id);
-                if (!card)
-                    return;
-                if (playerId) {
-                    const p = state.players.find((p) => p.id === playerId);
-                    if (p)
-                        p.cards = p.cards.filter((c) => c.id !== id);
-                }
-                card.location = playLocation;
-                card.coordinate = coordinate;
-                card.isFaceUp = true;
-                state.playFieldCards[deckId] = state.playFieldCards[deckId].filter((c) => c.id !== id);
-                state.discardPile[deckId] = state.discardPile[deckId].filter((c) => c.id !== id);
-                if (playLocation === 'discard') {
-                    state.discardPile[deckId].push(card);
-                }
-                else {
-                    state.playFieldCards[deckId].push(card);
-                }
-                server_log('card', state.gameId, roomId, `"${card.name}" をプレイした`);
-                // カード効果
-                const effect = param?.cardEffects?.[card.name];
-                if (effect) {
-                    server_log('card', state.gameId, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
-                    effect({
-                        playerId,
-                        updateResource: (resourceId, amount) => roomManager.acquireResource(playerId, resourceId, amount),
-                        updateToken: (tokenId) => roomManager.acquireToken(roomId, playerId, tokenId),
-                    });
-                }
-            });
-            // カスタムフック処理
-            const onCardPlay = param?.onCardPlay;
-            if (onCardPlay) {
-                onCardPlay(state, roomManager, data);
-            }
-            // 更新通知
-            roomManager.emitDeckUpdate(deckId);
-            roomManager.emitPlayerUpdate();
+            roomManager.playCard(data);
         });
         // カードホールド
         socket.on('card:hold', ({ roomId, playerId, cardIds }) => {

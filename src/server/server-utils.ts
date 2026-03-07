@@ -262,7 +262,9 @@ export class RoomManager {
     return true;
   }
 
-  // カードプレイ
+  /**
+   * カードをプレイする
+   */
   playCard(data: CardPlayData): void {
     const { deckId, cardIds, playerId, playLocation = 'field', coordinate } = data;
     const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
