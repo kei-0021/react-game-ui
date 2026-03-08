@@ -17,8 +17,9 @@ import { PlayerId, RoomId } from '../types/definition.js';
  * @param {boolean} turnSkipButton=false - ターンスキップボタンの表示・非表示
  * @param {boolean} roundSkipButton=false - ラウンドスキップボタンの表示・非表示
  * @param {booleam} isDebug=false - スコアを手動で増減できるようにするかどうか (デバッグ用)
+ * @param {booleam} enabled=true - 各種操作が有効かどうかのフラグ
  */
-export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, autoNextTurnOnCardPlay, playCardButton, holdButton, revealButton, turnSkipButton, roundSkipbutton, isDebug, }: {
+export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, autoNextTurnOnCardPlay, playCardButton, holdButton, revealButton, turnSkipButton, roundSkipbutton, isDebug, enabled, }: {
     socket: Socket;
     roomId: RoomId;
     players: Player[];
@@ -32,5 +33,6 @@ export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, m
     turnSkipButton?: boolean;
     roundSkipbutton?: boolean;
     isDebug?: boolean;
+    enabled?: boolean;
 }): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=ScoreBoard.d.ts.map

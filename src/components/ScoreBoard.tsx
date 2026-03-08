@@ -23,10 +23,13 @@ type PlayerListItemProps = {
   socket: Socket;
   roomId: RoomId;
   isDebug?: boolean;
+  enabled: boolean;
 };
 
 const PlayerListItem = React.memo(
   ({
+    socket,
+    roomId,
     player,
     currentPlayerId,
     myPlayerId,
@@ -34,9 +37,8 @@ const PlayerListItem = React.memo(
     selectedCards,
     heldCards,
     toggleCardSelection,
-    socket,
-    roomId,
     isDebug,
+    enabled,
   }: PlayerListItemProps) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = (player as any).color || '#aaaaaa';
@@ -71,10 +73,10 @@ const PlayerListItem = React.memo(
             <span className={scoreBoardStyles.playerScore}>スコア: {player.score}</span>
             {isDebug && (
               <div className={scoreBoardStyles.debugScoreButtons}>
-                <button onClick={() => handleAddScore(-1)} className={scoreBoardStyles.debugBtn}>
+                <button onClick={() => handleAddScore(-1)} disabled={!enabled} className={scoreBoardStyles.debugBtn}>
                   -
                 </button>
-                <button onClick={() => handleAddScore(1)} className={scoreBoardStyles.debugBtn}>
+                <button onClick={() => handleAddScore(1)} disabled={!enabled} className={scoreBoardStyles.debugBtn}>
                   +
                 </button>
               </div>
@@ -123,7 +125,7 @@ const PlayerListItem = React.memo(
               <div
                 key={card.id}
                 // ホールド中、オーナーでない場合、カードプレイボタンがない場合はドラッグ不可
-                draggable={isOwner && !isHeld}
+                draggable={isOwner && !isHeld && enabled}
                 onDragStart={(e) => {
                   if (!isOwner || isHeld || !playCardButton) return;
                   e.dataTransfer.setData('cardId', card.id);
@@ -133,15 +135,14 @@ const PlayerListItem = React.memo(
                 className={`
                   ${scoreBoardStyles.cardBase} 
                   ${isSelected ? scoreBoardStyles.cardSelected : ''}
-                  ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}
                 `}
                 style={
                   {
                     // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
-                    cursor: isHeld ? 'not-allowed' : isOwner ? 'grab' : 'default',
+                    cursor: isHeld ? 'not-allowed' : isOwner && enabled ? 'grab' : 'default',
                     border: card.isFaceUp ? '3px solid #00ffff' : '1px solid #ccc',
                     boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
-                    opacity: isHeld ? 0.7 : 1, // ホールド中は少し暗くして「固定感」を出す
+                    opacity: !enabled || isHeld ? 0.7 : 1,
                     padding: 0,
                     overflow: 'hidden',
                     position: 'relative',
@@ -151,7 +152,7 @@ const PlayerListItem = React.memo(
                   } as React.CSSProperties
                 }
                 // ホールド中はクリック（選択）も無効化
-                onClick={() => !isHeld && toggleCardSelection(card.id, isOwner)}
+                onClick={() => !isHeld && enabled && toggleCardSelection(card.id, isOwner)}
               >
                 {/* カードのメインコンテンツ */}
                 <CardDisplayContent card={card} canSeeFront={canSeeFront} />
@@ -188,6 +189,7 @@ const PlayerListItem = React.memo(
  * @param {boolean} turnSkipButton=false - ターンスキップボタンの表示・非表示
  * @param {boolean} roundSkipButton=false - ラウンドスキップボタンの表示・非表示
  * @param {booleam} isDebug=false - スコアを手動で増減できるようにするかどうか (デバッグ用)
+ * @param {booleam} enabled=true - 各種操作が有効かどうかのフラグ
  */
 export function ScoreBoard({
   socket,
@@ -203,6 +205,7 @@ export function ScoreBoard({
   turnSkipButton = false,
   roundSkipbutton = false,
   isDebug = false,
+  enabled = true,
 }: {
   socket: Socket;
   roomId: RoomId;
@@ -217,6 +220,7 @@ export function ScoreBoard({
   turnSkipButton?: boolean;
   roundSkipbutton?: boolean;
   isDebug?: boolean;
+  enabled?: boolean;
 }) {
   const displayedPlayers: Player[] = React.useMemo(() => {
     return (players || []).map((p: Player) => ({
@@ -315,6 +319,8 @@ export function ScoreBoard({
       <ul className={scoreBoardStyles.playerList}>
         {displayedPlayers.map((player) => (
           <PlayerListItem
+            socket={socket}
+            roomId={roomId}
             key={player.id}
             player={player}
             currentPlayerId={currentPlayerId}
@@ -323,9 +329,8 @@ export function ScoreBoard({
             selectedCards={selectedCards}
             heldCards={heldCards}
             toggleCardSelection={toggleCardSelection}
-            socket={socket}
-            roomId={roomId}
             isDebug={isDebug}
+            enabled={enabled}
           />
         ))}
       </ul>
@@ -337,18 +342,30 @@ export function ScoreBoard({
 
         <div className={scoreBoardStyles.buttonGroup}>
           {playCardButton && (
-            <button onClick={() => playSelectedCards()} disabled={isActionDisabled}>
+            <button onClick={() => playSelectedCards()} disabled={isActionDisabled || !enabled}>
               選択カードを出す
             </button>
           )}
           {holdButton && (
-            <button onClick={() => playSelectedCards({ isHold: true })} disabled={isActionDisabled}>
+            <button onClick={() => playSelectedCards({ isHold: true })} disabled={isActionDisabled || !enabled}>
               選択カードをホールドする
             </button>
           )}
-          {revealButton && <button onClick={revealSelectedCards}>選択カードを公開する</button>}
-          {turnSkipButton && <button onClick={nextTurn}>ターンをスキップ</button>}
-          {roundSkipbutton && <button onClick={nextRound}>ラウンドをスキップ</button>}
+          {revealButton && (
+            <button onClick={revealSelectedCards} disabled={!enabled}>
+              選択カードを公開する
+            </button>
+          )}
+          {turnSkipButton && (
+            <button onClick={nextTurn} disabled={!enabled}>
+              ターンをスキップ
+            </button>
+          )}
+          {roundSkipbutton && (
+            <button onClick={nextRound} disabled={!enabled}>
+              ラウンドをスキップ
+            </button>
+          )}
         </div>
       </div>
     </div>

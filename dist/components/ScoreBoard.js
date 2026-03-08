@@ -3,7 +3,7 @@ import * as React from 'react';
 import { CardDisplayContent } from './Card.js';
 import scoreBoardStyles from './ScoreBoard.module.css';
 import { TokenDisplayContent } from './Token.js';
-const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, playCardButton, selectedCards, heldCards, toggleCardSelection, socket, roomId, isDebug, }) => {
+const PlayerListItem = React.memo(({ socket, roomId, player, currentPlayerId, myPlayerId, playCardButton, selectedCards, heldCards, toggleCardSelection, isDebug, enabled, }) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = player.color || '#aaaaaa';
     const isOwner = player.id === myPlayerId;
@@ -19,7 +19,7 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, playCa
         '--player-color-bg': playerColor.replace('hsl', 'hsla').replace(')', ', 0.3)'),
         '--player-color-glow': playerColor.replace('hsl', 'hsla').replace(')', ', 0.5)'),
     };
-    return (_jsxs("li", { className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ''}`, style: customStyles, children: [_jsxs("div", { className: scoreBoardStyles.playerHeader, children: [_jsxs("span", { className: scoreBoardStyles.playerName, children: [isActive && 'ᐅ ', isOwner && '★ ME ', player.name] }), _jsxs("div", { className: scoreBoardStyles.scoreArea, children: [_jsxs("span", { className: scoreBoardStyles.playerScore, children: ["\u30B9\u30B3\u30A2: ", player.score] }), isDebug && (_jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), className: scoreBoardStyles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), className: scoreBoardStyles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: scoreBoardStyles.resourceSection, children: _jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx("div", { className: scoreBoardStyles.tokenList, children: player.tokens.map((token) => (_jsx("div", { className: `${scoreBoardStyles.tokenBadge} ${myPlayerId === player.id ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`, onClick: () => {
+    return (_jsxs("li", { className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ''}`, style: customStyles, children: [_jsxs("div", { className: scoreBoardStyles.playerHeader, children: [_jsxs("span", { className: scoreBoardStyles.playerName, children: [isActive && 'ᐅ ', isOwner && '★ ME ', player.name] }), _jsxs("div", { className: scoreBoardStyles.scoreArea, children: [_jsxs("span", { className: scoreBoardStyles.playerScore, children: ["\u30B9\u30B3\u30A2: ", player.score] }), isDebug && (_jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: scoreBoardStyles.resourceSection, children: _jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx("div", { className: scoreBoardStyles.tokenList, children: player.tokens.map((token) => (_jsx("div", { className: `${scoreBoardStyles.tokenBadge} ${myPlayerId === player.id ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`, onClick: () => {
                         socket.emit('token:reclaim', {
                             roomId,
                             playerId: myPlayerId,
@@ -31,7 +31,7 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, playCa
                     const canSeeFront = !!card.isFaceUp || isOwner;
                     return (_jsxs("div", { 
                         // ホールド中、オーナーでない場合、カードプレイボタンがない場合はドラッグ不可
-                        draggable: isOwner && !isHeld, onDragStart: (e) => {
+                        draggable: isOwner && !isHeld && enabled, onDragStart: (e) => {
                             if (!isOwner || isHeld || !playCardButton)
                                 return;
                             e.dataTransfer.setData('cardId', card.id);
@@ -40,13 +40,12 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, playCa
                         }, className: `
                   ${scoreBoardStyles.cardBase} 
                   ${isSelected ? scoreBoardStyles.cardSelected : ''}
-                  ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}
                 `, style: {
                             // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
-                            cursor: isHeld ? 'not-allowed' : isOwner ? 'grab' : 'default',
+                            cursor: isHeld ? 'not-allowed' : isOwner && enabled ? 'grab' : 'default',
                             border: card.isFaceUp ? '3px solid #00ffff' : '1px solid #ccc',
                             boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
-                            opacity: isHeld ? 0.7 : 1, // ホールド中は少し暗くして「固定感」を出す
+                            opacity: !enabled || isHeld ? 0.7 : 1,
                             padding: 0,
                             overflow: 'hidden',
                             position: 'relative',
@@ -55,7 +54,7 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, playCa
                             justifyContent: 'stretch',
                         }, 
                         // ホールド中はクリック（選択）も無効化
-                        onClick: () => !isHeld && toggleCardSelection(card.id, isOwner), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront }), isHeld && _jsx("div", { className: scoreBoardStyles.cardIsHeld, children: "\uD83D\uDD10" }), canSeeFront && card.description && (_jsx("span", { className: scoreBoardStyles.tooltip, children: card.description }))] }, card.id));
+                        onClick: () => !isHeld && enabled && toggleCardSelection(card.id, isOwner), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront }), isHeld && _jsx("div", { className: scoreBoardStyles.cardIsHeld, children: "\uD83D\uDD10" }), canSeeFront && card.description && (_jsx("span", { className: scoreBoardStyles.tooltip, children: card.description }))] }, card.id));
                 }) })] }));
 });
 /**
@@ -74,8 +73,9 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, playCa
  * @param {boolean} turnSkipButton=false - ターンスキップボタンの表示・非表示
  * @param {boolean} roundSkipButton=false - ラウンドスキップボタンの表示・非表示
  * @param {booleam} isDebug=false - スコアを手動で増減できるようにするかどうか (デバッグ用)
+ * @param {booleam} enabled=true - 各種操作が有効かどうかのフラグ
  */
-export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, autoNextTurnOnCardPlay = false, playCardButton = true, holdButton = false, revealButton = false, turnSkipButton = false, roundSkipbutton = false, isDebug = false, }) {
+export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, autoNextTurnOnCardPlay = false, playCardButton = true, holdButton = false, revealButton = false, turnSkipButton = false, roundSkipbutton = false, isDebug = false, enabled = true, }) {
     const displayedPlayers = React.useMemo(() => {
         return (players || []).map((p) => ({
             ...p,
@@ -159,5 +159,5 @@ export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerI
     const nextRound = () => socket.emit('game:next-round', { roomId });
     const isOverLimit = playCardLimit !== undefined && selectedCards.length > playCardLimit;
     const isActionDisabled = selectedCards.length === 0 || isOverLimit;
-    return (_jsxs("div", { className: scoreBoardStyles.container, children: [_jsx("h2", { className: scoreBoardStyles.title, children: "\u30B2\u30FC\u30E0\u30B9\u30B3\u30A2\u30DC\u30FC\u30C9" }), _jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => (_jsx(PlayerListItem, { player: player, currentPlayerId: currentPlayerId, myPlayerId: myPlayerId, playCardButton: playCardButton, selectedCards: selectedCards, heldCards: heldCards, toggleCardSelection: toggleCardSelection, socket: socket, roomId: roomId, isDebug: isDebug }, player.id))) }), _jsxs("div", { className: scoreBoardStyles.buttonArea, children: [isOverLimit && (_jsxs("p", { className: scoreBoardStyles.limitMessage, children: ["\u4E00\u5EA6\u306B\u51FA\u305B\u308B\u30AB\u30FC\u30C9\u306F ", playCardLimit, " \u679A\u307E\u3067\u3067\u3059"] })), _jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [playCardButton && (_jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u51FA\u3059" })), holdButton && (_jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isActionDisabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u30DB\u30FC\u30EB\u30C9\u3059\u308B" })), revealButton && _jsx("button", { onClick: revealSelectedCards, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u516C\u958B\u3059\u308B" }), turnSkipButton && _jsx("button", { onClick: nextTurn, children: "\u30BF\u30FC\u30F3\u3092\u30B9\u30AD\u30C3\u30D7" }), roundSkipbutton && _jsx("button", { onClick: nextRound, children: "\u30E9\u30A6\u30F3\u30C9\u3092\u30B9\u30AD\u30C3\u30D7" })] })] })] }));
+    return (_jsxs("div", { className: scoreBoardStyles.container, children: [_jsx("h2", { className: scoreBoardStyles.title, children: "\u30B2\u30FC\u30E0\u30B9\u30B3\u30A2\u30DC\u30FC\u30C9" }), _jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => (_jsx(PlayerListItem, { socket: socket, roomId: roomId, player: player, currentPlayerId: currentPlayerId, myPlayerId: myPlayerId, playCardButton: playCardButton, selectedCards: selectedCards, heldCards: heldCards, toggleCardSelection: toggleCardSelection, isDebug: isDebug, enabled: enabled }, player.id))) }), _jsxs("div", { className: scoreBoardStyles.buttonArea, children: [isOverLimit && (_jsxs("p", { className: scoreBoardStyles.limitMessage, children: ["\u4E00\u5EA6\u306B\u51FA\u305B\u308B\u30AB\u30FC\u30C9\u306F ", playCardLimit, " \u679A\u307E\u3067\u3067\u3059"] })), _jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [playCardButton && (_jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled || !enabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u51FA\u3059" })), holdButton && (_jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isActionDisabled || !enabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u30DB\u30FC\u30EB\u30C9\u3059\u308B" })), revealButton && (_jsx("button", { onClick: revealSelectedCards, disabled: !enabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u516C\u958B\u3059\u308B" })), turnSkipButton && (_jsx("button", { onClick: nextTurn, disabled: !enabled, children: "\u30BF\u30FC\u30F3\u3092\u30B9\u30AD\u30C3\u30D7" })), roundSkipbutton && (_jsx("button", { onClick: nextRound, disabled: !enabled, children: "\u30E9\u30A6\u30F3\u30C9\u3092\u30B9\u30AD\u30C3\u30D7" }))] })] })] }));
 }

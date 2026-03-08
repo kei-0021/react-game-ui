@@ -110,9 +110,15 @@
     border-color 0.2s;
 }
 
-.debugBtn:hover {
+.debugBtn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.4);
+}
+
+.debugBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* --- 資源関連 --- */

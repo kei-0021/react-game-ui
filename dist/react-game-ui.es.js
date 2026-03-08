@@ -1862,33 +1862,33 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const container = "_container_3qm7i_7";
-const title$1 = "_title_3qm7i_19";
-const playerList = "_playerList_3qm7i_28";
-const playerItem = "_playerItem_3qm7i_38";
-const activePlayer = "_activePlayer_3qm7i_51";
-const playerHeader = "_playerHeader_3qm7i_59";
-const playerName = "_playerName_3qm7i_65";
-const scoreArea = "_scoreArea_3qm7i_75";
-const playerScore = "_playerScore_3qm7i_81";
-const debugScoreButtons = "_debugScoreButtons_3qm7i_90";
-const debugBtn = "_debugBtn_3qm7i_95";
-const resourceSection = "_resourceSection_3qm7i_120";
-const resourceList = "_resourceList_3qm7i_125";
-const resourceBadge = "_resourceBadge_3qm7i_131";
-const tokenList = "_tokenList_3qm7i_139";
-const tokenBadge = "_tokenBadge_3qm7i_148";
-const tokenBadgeOwner = "_tokenBadgeOwner_3qm7i_163";
-const tokenBadgeGuest = "_tokenBadgeGuest_3qm7i_168";
-const isHoldMessage = "_isHoldMessage_3qm7i_174";
-const cardList = "_cardList_3qm7i_181";
-const cardBase = "_cardBase_3qm7i_189";
-const cardSelected = "_cardSelected_3qm7i_221";
-const cardIsHeld = "_cardIsHeld_3qm7i_227";
-const tooltip = "_tooltip_3qm7i_239";
-const buttonArea = "_buttonArea_3qm7i_264";
-const limitMessage = "_limitMessage_3qm7i_271";
-const buttonGroup = "_buttonGroup_3qm7i_278";
+const container = "_container_xvtsm_7";
+const title$1 = "_title_xvtsm_19";
+const playerList = "_playerList_xvtsm_28";
+const playerItem = "_playerItem_xvtsm_38";
+const activePlayer = "_activePlayer_xvtsm_51";
+const playerHeader = "_playerHeader_xvtsm_59";
+const playerName = "_playerName_xvtsm_65";
+const scoreArea = "_scoreArea_xvtsm_75";
+const playerScore = "_playerScore_xvtsm_81";
+const debugScoreButtons = "_debugScoreButtons_xvtsm_90";
+const debugBtn = "_debugBtn_xvtsm_95";
+const resourceSection = "_resourceSection_xvtsm_126";
+const resourceList = "_resourceList_xvtsm_131";
+const resourceBadge = "_resourceBadge_xvtsm_137";
+const tokenList = "_tokenList_xvtsm_145";
+const tokenBadge = "_tokenBadge_xvtsm_154";
+const tokenBadgeOwner = "_tokenBadgeOwner_xvtsm_169";
+const tokenBadgeGuest = "_tokenBadgeGuest_xvtsm_174";
+const isHoldMessage = "_isHoldMessage_xvtsm_180";
+const cardList = "_cardList_xvtsm_187";
+const cardBase = "_cardBase_xvtsm_195";
+const cardSelected = "_cardSelected_xvtsm_227";
+const cardIsHeld = "_cardIsHeld_xvtsm_233";
+const tooltip = "_tooltip_xvtsm_245";
+const buttonArea = "_buttonArea_xvtsm_270";
+const limitMessage = "_limitMessage_xvtsm_277";
+const buttonGroup = "_buttonGroup_xvtsm_284";
 const scoreBoardStyles = {
   container,
   title: title$1,
@@ -1939,6 +1939,8 @@ const TokenDisplayContent = React__default.memo(({ token }) => {
 });
 const PlayerListItem = React.memo(
   ({
+    socket,
+    roomId,
     player,
     currentPlayerId,
     myPlayerId,
@@ -1946,9 +1948,8 @@ const PlayerListItem = React.memo(
     selectedCards,
     heldCards,
     toggleCardSelection,
-    socket,
-    roomId,
-    isDebug
+    isDebug,
+    enabled
   }) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = player.color || "#aaaaaa";
@@ -1983,8 +1984,8 @@ const PlayerListItem = React.memo(
                 player.score
               ] }),
               isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(-1), className: scoreBoardStyles.debugBtn, children: "-" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), className: scoreBoardStyles.debugBtn, children: "+" })
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "+" })
               ] })
             ] })
           ] }),
@@ -2020,7 +2021,7 @@ const PlayerListItem = React.memo(
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
-                draggable: isOwner && !isHeld,
+                draggable: isOwner && !isHeld && enabled,
                 onDragStart: (e) => {
                   if (!isOwner || isHeld || !playCardButton) return;
                   e.dataTransfer.setData("cardId", card2.id);
@@ -2030,15 +2031,13 @@ const PlayerListItem = React.memo(
                 className: `
                   ${scoreBoardStyles.cardBase} 
                   ${isSelected ? scoreBoardStyles.cardSelected : ""}
-                  ${card2.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ""}
                 `,
                 style: {
                   // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
-                  cursor: isHeld ? "not-allowed" : isOwner ? "grab" : "default",
+                  cursor: isHeld ? "not-allowed" : isOwner && enabled ? "grab" : "default",
                   border: card2.isFaceUp ? "3px solid #00ffff" : "1px solid #ccc",
                   boxShadow: card2.isFaceUp ? "0 0 10px #00ffff" : "none",
-                  opacity: isHeld ? 0.7 : 1,
-                  // ホールド中は少し暗くして「固定感」を出す
+                  opacity: !enabled || isHeld ? 0.7 : 1,
                   padding: 0,
                   overflow: "hidden",
                   position: "relative",
@@ -2046,7 +2045,7 @@ const PlayerListItem = React.memo(
                   alignItems: "stretch",
                   justifyContent: "stretch"
                 },
-                onClick: () => !isHeld && toggleCardSelection(card2.id, isOwner),
+                onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner),
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
                   isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardIsHeld, children: "🔐" }),
@@ -2074,7 +2073,8 @@ function ScoreBoard({
   revealButton = false,
   turnSkipButton = false,
   roundSkipbutton = false,
-  isDebug = false
+  isDebug = false,
+  enabled = true
 }) {
   const displayedPlayers = React.useMemo(() => {
     return (players || []).map((p) => ({
@@ -2154,6 +2154,8 @@ function ScoreBoard({
     /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       PlayerListItem,
       {
+        socket,
+        roomId,
         player,
         currentPlayerId,
         myPlayerId,
@@ -2161,9 +2163,8 @@ function ScoreBoard({
         selectedCards,
         heldCards,
         toggleCardSelection,
-        socket,
-        roomId,
-        isDebug
+        isDebug,
+        enabled
       },
       player.id
     )) }),
@@ -2174,11 +2175,11 @@ function ScoreBoard({
         " 枚までです"
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [
-        playCardButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled, children: "選択カードを出す" }),
-        holdButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isActionDisabled, children: "選択カードをホールドする" }),
-        revealButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, children: "選択カードを公開する" }),
-        turnSkipButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" }),
-        roundSkipbutton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextRound, children: "ラウンドをスキップ" })
+        playCardButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled || !enabled, children: "選択カードを出す" }),
+        holdButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isActionDisabled || !enabled, children: "選択カードをホールドする" }),
+        revealButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, disabled: !enabled, children: "選択カードを公開する" }),
+        turnSkipButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, disabled: !enabled, children: "ターンをスキップ" }),
+        roundSkipbutton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextRound, disabled: !enabled, children: "ラウンドをスキップ" })
       ] })
     ] })
   ] });
