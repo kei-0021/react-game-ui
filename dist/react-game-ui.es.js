@@ -2062,10 +2062,6 @@ function ScoreBoard({
       if (!myPlayer) return;
       const cardsByDeck = {};
       let targetPlayLocation;
-      if (isHold == true) {
-        socket.emit("card:hold", { roomId, playerId: myPlayerId, cardIds: selectedCards });
-        return;
-      }
       selectedCards.forEach((cardId) => {
         const card2 = myPlayer.cards.find((c) => c.id === cardId);
         if (!card2) return;
@@ -2073,6 +2069,11 @@ function ScoreBoard({
         if (!cardsByDeck[card2.deckId]) cardsByDeck[card2.deckId] = [];
         cardsByDeck[card2.deckId].push(card2.id);
       });
+      if (isHold == true) {
+        socket.emit("card:hold", { roomId, playerId: myPlayerId, cardIdsbyDeck: cardsByDeck });
+        setSelectedCards([]);
+        return;
+      }
       if (!targetPlayLocation) return;
       const finalLocation = targetPlayLocation;
       Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
@@ -2460,18 +2461,22 @@ class RoomManager {
    * ホールド状態を解除し、カードを出す
    */
   unholdCards() {
-    this.state.players.forEach((p) => {
-      p.isHolding = false;
-      const playData = {
-        roomId: this.state.roomId,
-        deckId: p.cards[0].deckId,
-        cardIds: this.state.holdCards[p.id],
-        playerId: p.id,
-        playLocation: "field",
-        coordinate: { x: 50, y: 50 }
-      };
-      this.playCard(playData);
-      delete this.state.holdCards[p.id];
+    this.state.players.forEach((player) => {
+      player.isHolding = false;
+      const playerHoldData = this.state.holdCards[player.id];
+      if (!playerHoldData) return;
+      Object.entries(playerHoldData).forEach(([deckId, cardIds]) => {
+        const playData = {
+          roomId: this.state.roomId,
+          deckId,
+          cardIds,
+          playerId: player.id,
+          playLocation: "field",
+          coordinate: { x: 50, y: 50 }
+        };
+        this.playCard(playData);
+      });
+      delete this.state.holdCards[player.id];
     });
     server_log("card", this.state.gameId, this.state.roomId, `プレイヤー全員のホールド状態を解除しました`);
   }

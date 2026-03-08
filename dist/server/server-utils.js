@@ -247,18 +247,24 @@ export class RoomManager {
      * ホールド状態を解除し、カードを出す
      */
     unholdCards() {
-        this.state.players.forEach((p) => {
-            p.isHolding = false;
-            const playData = {
-                roomId: this.state.roomId,
-                deckId: p.cards[0].deckId,
-                cardIds: this.state.holdCards[p.id],
-                playerId: p.id,
-                playLocation: 'field',
-                coordinate: { x: 50, y: 50 },
-            };
-            this.playCard(playData);
-            delete this.state.holdCards[p.id];
+        this.state.players.forEach((player) => {
+            player.isHolding = false;
+            // プレイヤーがホールドしているデータがない場合はスキップ
+            const playerHoldData = this.state.holdCards[player.id];
+            if (!playerHoldData)
+                return;
+            Object.entries(playerHoldData).forEach(([deckId, cardIds]) => {
+                const playData = {
+                    roomId: this.state.roomId,
+                    deckId: deckId,
+                    cardIds: cardIds,
+                    playerId: player.id,
+                    playLocation: 'field',
+                    coordinate: { x: 50, y: 50 },
+                };
+                this.playCard(playData);
+            });
+            delete this.state.holdCards[player.id];
         });
         server_log('card', this.state.gameId, this.state.roomId, `プレイヤー全員のホールド状態を解除しました`);
     }

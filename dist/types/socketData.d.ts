@@ -39,7 +39,7 @@ export type CardPlayData = {
 export type CardHoldData = {
     roomId: RoomId;
     playerId: PlayerId;
-    cardIds: CardId[];
+    cardIdsbyDeck: Record<DeckId, CardId[]>;
 };
 export type CardMoveFromFieldData = {
     roomId: RoomId;

@@ -294,19 +294,22 @@ export function initGameServer(io, options) {
             roomManager.playCard(data);
         });
         // カードホールド
-        socket.on('card:hold', ({ roomId, playerId, cardIds }) => {
+        socket.on('card:hold', ({ roomId, playerId, cardIdsbyDeck }) => {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;
             const param = gameParams[state.gameId];
             const roomManager = new RoomManager(io, param, state);
-            const p = state?.players.find((p) => p.id === playerId);
-            if (p) {
-                const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
-                state.holdCards[p.id] = ids;
-                p.isHolding = true;
+            const player = state.players.find((p) => p.id === playerId);
+            if (player) {
+                state.holdCards[player.id] = state.holdCards[player.id] || {};
+                Object.entries(cardIdsbyDeck).forEach(([deckId, cardIds]) => {
+                    const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+                    state.holdCards[player.id][deckId] = ids;
+                    server_log('card', state.gameId, state.roomId, `${playerId} がカード [${cardIds}] をホールドしました`);
+                });
+                player.isHolding = true;
             }
-            server_log('card', state.gameId, state.roomId, `${playerId} がカード [${cardIds}] をホールドしました`);
             roomManager.emitPlayerUpdate();
         });
         // カード公開

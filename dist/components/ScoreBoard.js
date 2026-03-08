@@ -89,10 +89,6 @@ export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerI
             return;
         const cardsByDeck = {};
         let targetPlayLocation;
-        if (isHold == true) {
-            socket.emit('card:hold', { roomId: roomId, playerId: myPlayerId, cardIds: selectedCards });
-            return;
-        }
         selectedCards.forEach((cardId) => {
             const card = myPlayer.cards.find((c) => c.id === cardId);
             if (!card)
@@ -103,6 +99,11 @@ export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerI
                 cardsByDeck[card.deckId] = [];
             cardsByDeck[card.deckId].push(card.id);
         });
+        if (isHold == true) {
+            socket.emit('card:hold', { roomId: roomId, playerId: myPlayerId, cardIdsbyDeck: cardsByDeck });
+            setSelectedCards([]);
+            return;
+        }
         if (!targetPlayLocation)
             return;
         const finalLocation = targetPlayLocation;

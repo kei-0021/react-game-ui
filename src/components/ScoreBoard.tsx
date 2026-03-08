@@ -226,11 +226,6 @@ export function ScoreBoard({
       const cardsByDeck: Record<string, string[]> = {};
       let targetPlayLocation: CardLocation | undefined;
 
-      if (isHold == true) {
-        socket.emit('card:hold', { roomId: roomId, playerId: myPlayerId, cardIds: selectedCards } as CardHoldData);
-        return;
-      }
-
       selectedCards.forEach((cardId) => {
         const card = myPlayer.cards.find((c) => c.id === cardId);
         if (!card) return;
@@ -238,6 +233,12 @@ export function ScoreBoard({
         if (!cardsByDeck[card.deckId]) cardsByDeck[card.deckId] = [];
         cardsByDeck[card.deckId].push(card.id);
       });
+
+      if (isHold == true) {
+        socket.emit('card:hold', { roomId: roomId, playerId: myPlayerId, cardIdsbyDeck: cardsByDeck } as CardHoldData);
+        setSelectedCards([]);
+        return;
+      }
 
       if (!targetPlayLocation) return;
       const finalLocation: CardLocation = targetPlayLocation;
