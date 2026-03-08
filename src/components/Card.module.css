@@ -61,6 +61,12 @@
   cursor: pointer;
 }
 
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .deckCard {
   position: absolute;
   width: 90px;

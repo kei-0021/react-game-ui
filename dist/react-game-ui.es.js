@@ -968,23 +968,23 @@ const Cell = ({
     }
   );
 };
-const card = "_card_1xb7m_3";
-const tooltip$2 = "_tooltip_1xb7m_20";
-const deckContainer = "_deckContainer_1xb7m_56";
-const deckCard = "_deckCard_1xb7m_63";
-const deckCardFront = "_deckCardFront_1xb7m_79";
-const deckSection = "_deckSection_1xb7m_96";
-const discardPileWrapper = "_discardPileWrapper_1xb7m_104";
-const cardNameText = "_cardNameText_1xb7m_129";
-const cardNameWrapper = "_cardNameWrapper_1xb7m_133";
-const cardImage = "_cardImage_1xb7m_146";
+const card = "_card_1pm0h_3";
+const tooltip$2 = "_tooltip_1pm0h_20";
+const deckContainer = "_deckContainer_1pm0h_57";
+const disabled = "_disabled_1pm0h_64";
+const deckCard = "_deckCard_1pm0h_70";
+const deckCardFront = "_deckCardFront_1pm0h_86";
+const discardPileWrapper = "_discardPileWrapper_1pm0h_103";
+const cardNameText = "_cardNameText_1pm0h_128";
+const cardNameWrapper = "_cardNameWrapper_1pm0h_132";
+const cardImage = "_cardImage_1pm0h_145";
 const cardStyles = {
   card,
   tooltip: tooltip$2,
   deckContainer,
+  disabled,
   deckCard,
   deckCardFront,
-  deckSection,
   discardPileWrapper,
   cardNameText,
   cardNameWrapper,
@@ -1007,13 +1007,17 @@ const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) =>
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, style: {}, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
 });
-const deckTitle = "_deckTitle_14nud_1";
-const deckWrapperFlex = "_deckWrapperFlex_14nud_6";
-const tooltipBase = "_tooltipBase_14nud_11";
+const deckSection = "_deckSection_190vd_3";
+const deckTitle = "_deckTitle_190vd_13";
+const deckWrapperFlex = "_deckWrapperFlex_190vd_18";
+const tooltipBase = "_tooltipBase_190vd_23";
+const deckControls = "_deckControls_190vd_32";
 const deckStyles = {
+  deckSection,
   deckTitle,
   deckWrapperFlex,
-  tooltipBase
+  tooltipBase,
+  deckControls
 };
 function Deck({
   socket,
@@ -1059,25 +1063,32 @@ function Deck({
   };
   const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: cardStyles.deckSection, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: deckStyles.deckSection, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: deckStyles.deckTitle, children: title2 }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.deckControls, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, children: "シャッフル" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.deckControls, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, disabled: !enabled, children: "シャッフル" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, disabled: !enabled, children: "山札に戻す" })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${cardStyles.deckWrapper} ${deckStyles.deckWrapperFlex}`, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckContainer, onClick: () => enabled && draw(), children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.deckWrapperFlex, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
-          className: cardStyles.deckCard,
-          style: {
-            zIndex: deckCards.length - i,
-            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-            backgroundColor: c.backColor
-          }
-        },
-        c.id
-      )) }),
+          className: `${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ""}`,
+          onClick: () => enabled && draw(),
+          children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: cardStyles.deckCard,
+              style: {
+                zIndex: deckCards.length - i,
+                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
+                backgroundColor: c.backColor
+              }
+            },
+            c.id
+          ))
+        }
+      ),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {

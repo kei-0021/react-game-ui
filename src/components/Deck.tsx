@@ -90,13 +90,20 @@ export function Deck({
       <h3 className={deckStyles.deckTitle}>{title}</h3>
 
       <div className={deckStyles.deckControls}>
-        <button onClick={shuffle}>シャッフル</button>
-        <button onClick={resetDeck}>山札に戻す</button>
+        <button onClick={shuffle} disabled={!enabled}>
+          シャッフル
+        </button>
+        <button onClick={resetDeck} disabled={!enabled}>
+          山札に戻す
+        </button>
       </div>
 
-      <div className={`${deckStyles.deckWrapperFlex}`}>
+      <div className={deckStyles.deckWrapperFlex}>
         {/* 山札 */}
-        <div className={cardStyles.deckContainer} onClick={() => enabled && draw()}>
+        <div
+          className={`${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ''}`}
+          onClick={() => enabled && draw()}
+        >
           {deckCards.map((c, i) => (
             <div
               key={c.id}
