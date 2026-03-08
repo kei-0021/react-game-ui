@@ -16,6 +16,7 @@ type DeckProps = {
   currentPlayerId: PlayerId | null;
   myPlayerId: PlayerId | null;
   alwaysDraw?: boolean;
+  enabled?: boolean;
 };
 
 /**
@@ -27,8 +28,18 @@ type DeckProps = {
  * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
  * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
+ * @param enabled=true - 各種操作が有効かどうかのフラグ。
  */
-export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerId, alwaysDraw = false }: DeckProps) {
+export function Deck({
+  socket,
+  roomId,
+  deckId,
+  title,
+  currentPlayerId,
+  myPlayerId,
+  alwaysDraw = false,
+  enabled = true,
+}: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
   const [discardPile, setDiscardPile] = React.useState<Card[]>([]);
   const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
@@ -75,17 +86,17 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
   const resetDeck = () => socket.emit('deck:reset', { roomId, deckId });
 
   return (
-    <section className={cardStyles.deckSection}>
+    <section className={deckStyles.deckSection}>
       <h3 className={deckStyles.deckTitle}>{title}</h3>
 
-      <div className={cardStyles.deckControls}>
+      <div className={deckStyles.deckControls}>
         <button onClick={shuffle}>シャッフル</button>
         <button onClick={resetDeck}>山札に戻す</button>
       </div>
 
-      <div className={`${cardStyles.deckWrapper} ${deckStyles.deckWrapperFlex}`}>
+      <div className={`${deckStyles.deckWrapperFlex}`}>
         {/* 山札 */}
-        <div className={cardStyles.deckContainer} onClick={draw}>
+        <div className={cardStyles.deckContainer} onClick={() => enabled && draw()}>
           {deckCards.map((c, i) => (
             <div
               key={c.id}

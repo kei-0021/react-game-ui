@@ -1,11 +1,23 @@
+/* src/components/Deck.module.css */
+
+.deckSection {
+  padding: 10px 16px 10px 16px;
+  border: 2px solid #888;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .deckTitle {
-  margin-bottom: 6px;
+  margin-bottom: 1px;
   color: #333;
 }
 
 .deckWrapperFlex {
   display: flex;
-  gap: 60px;
+  gap: 25px;
 }
 
 .tooltipBase {
@@ -15,4 +27,9 @@
   border: 1px solid #ccc;
   padding: 4px;
   border-radius: 4px;
+}
+
+.deckControls {
+  display: flex;
+  gap: 8px;
 }

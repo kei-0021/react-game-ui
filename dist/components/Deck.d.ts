@@ -8,6 +8,7 @@ type DeckProps = {
     currentPlayerId: PlayerId | null;
     myPlayerId: PlayerId | null;
     alwaysDraw?: boolean;
+    enabled?: boolean;
 };
 /**
  * 山札の描画、シャッフル、ドローの制御を行う。
@@ -18,7 +19,8 @@ type DeckProps = {
  * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
  * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
+ * @param enabled=true - 各種操作が有効かどうかのフラグ。
  */
-export declare function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerId, alwaysDraw }: DeckProps): import("react/jsx-runtime").JSX.Element;
+export declare function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerId, alwaysDraw, enabled, }: DeckProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Deck.d.ts.map

@@ -53,6 +53,7 @@
   cursor: pointer;
 }
 
+/* デッキ */
 .deckContainer {
   position: relative;
   width: 90px;
@@ -91,14 +92,6 @@
   font-size: 0.8rem;
   overflow: visible;
   padding: 0;
-}
-
-.deckSection {
-  padding: 16px;
-  border: 2px solid #888;
-  border-radius: 8px;
-  display: inline-block;
-  background-color: #f9f9f9;
 }
 
 .discardPileWrapper {

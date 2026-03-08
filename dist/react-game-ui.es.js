@@ -1015,7 +1015,16 @@ const deckStyles = {
   deckWrapperFlex,
   tooltipBase
 };
-function Deck({ socket, roomId, deckId, title: title2, currentPlayerId, myPlayerId, alwaysDraw = false }) {
+function Deck({
+  socket,
+  roomId,
+  deckId,
+  title: title2,
+  currentPlayerId,
+  myPlayerId,
+  alwaysDraw = false,
+  enabled = true
+}) {
   const [deckCards, setDeckCards] = React.useState([]);
   const [discardPile, setDiscardPile] = React.useState([]);
   const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
@@ -1057,7 +1066,7 @@ function Deck({ socket, roomId, deckId, title: title2, currentPlayerId, myPlayer
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${cardStyles.deckWrapper} ${deckStyles.deckWrapperFlex}`, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckContainer, onClick: () => enabled && draw(), children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
           className: cardStyles.deckCard,
