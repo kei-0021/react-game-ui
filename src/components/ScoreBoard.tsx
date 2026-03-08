@@ -16,7 +16,8 @@ type PlayerListItemProps = {
   player: Player;
   currentPlayerId: PlayerId | null | undefined;
   myPlayerId: PlayerId | null;
-  selectedCards: string[];
+  selectedCards: CardId[];
+  heldCards: CardId[];
   toggleCardSelection: (cardId: string, isOwner: boolean) => void;
   socket: Socket;
   roomId: RoomId;
@@ -29,6 +30,7 @@ const PlayerListItem = React.memo(
     currentPlayerId,
     myPlayerId,
     selectedCards,
+    heldCards,
     toggleCardSelection,
     socket,
     roomId,
@@ -108,30 +110,36 @@ const PlayerListItem = React.memo(
           ))}
         </div>
 
-        <div>{player.isHolding && 'カードをホールドしています'}</div>
+        {player.isHolding && <p className={scoreBoardStyles.isHoldMessage}>カードをホールドしています</p>}
         <div className={scoreBoardStyles.cardList}>
           {player.cards.map((card: Card) => {
             const isSelected = selectedCards.includes(card.id);
+            const isHeld = heldCards.includes(card.id);
             const canSeeFront = !!card.isFaceUp || isOwner;
 
             return (
               <div
                 key={card.id}
-                draggable={isOwner}
+                // ホールド中、またはオーナーでない場合はドラッグ不可
+                draggable={isOwner && !isHeld}
                 onDragStart={(e) => {
-                  if (!isOwner) return;
+                  if (!isOwner || isHeld) return;
                   e.dataTransfer.setData('cardId', card.id);
                   e.dataTransfer.setData('deckId', card.deckId);
                   e.dataTransfer.effectAllowed = 'move';
                 }}
-                className={`${scoreBoardStyles.cardBase} rg-playfield-card-wrapper ${
-                  isSelected ? scoreBoardStyles.cardSelected : ''
-                } ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}`}
+                className={`
+      ${scoreBoardStyles.cardBase} 
+      ${isSelected ? scoreBoardStyles.cardSelected : ''}
+      ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}
+    `}
                 style={
                   {
-                    cursor: isOwner ? 'grab' : 'default',
+                    // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
+                    cursor: isHeld ? 'not-allowed' : isOwner ? 'grab' : 'default',
                     border: card.isFaceUp ? '3px solid #00ffff' : '1px solid #ccc',
                     boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
+                    opacity: isHeld ? 0.7 : 1, // ホールド中は少し暗くして「固定感」を出す
                     padding: 0,
                     overflow: 'hidden',
                     position: 'relative',
@@ -140,9 +148,16 @@ const PlayerListItem = React.memo(
                     justifyContent: 'stretch',
                   } as React.CSSProperties
                 }
-                onClick={() => toggleCardSelection(card.id, isOwner)}
+                // ホールド中はクリック（選択）も無効化
+                onClick={() => !isHeld && toggleCardSelection(card.id, isOwner)}
               >
+                {/* カードのメインコンテンツ */}
                 <CardDisplayContent card={card} canSeeFront={canSeeFront} />
+
+                {/* 鍵マークのオーバーレイ表示 */}
+                {isHeld && <div className={scoreBoardStyles.cardIsHeld}>🔐</div>}
+
+                {/* ツールチップ */}
                 {canSeeFront && card.description && (
                   <span className={scoreBoardStyles.tooltip}>{card.description}</span>
                 )}
@@ -209,6 +224,7 @@ export function ScoreBoard({
   }, [players]);
 
   const [selectedCards, setSelectedCards] = React.useState<CardId[]>([]);
+  const [heldCards, setHeldCards] = React.useState<CardId[]>([]);
 
   const toggleCardSelection = React.useCallback((cardId: CardId, isOwner: boolean) => {
     if (!isOwner) return;
@@ -232,6 +248,7 @@ export function ScoreBoard({
         if (!targetPlayLocation) targetPlayLocation = card.playLocation as CardLocation;
         if (!cardsByDeck[card.deckId]) cardsByDeck[card.deckId] = [];
         cardsByDeck[card.deckId].push(card.id);
+        setHeldCards((prev) => [...prev, card.id]);
       });
 
       if (isHold == true) {
@@ -293,6 +310,7 @@ export function ScoreBoard({
             currentPlayerId={currentPlayerId}
             myPlayerId={myPlayerId}
             selectedCards={selectedCards}
+            heldCards={heldCards}
             toggleCardSelection={toggleCardSelection}
             socket={socket}
             roomId={roomId}

@@ -1842,31 +1842,33 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const container = "_container_1wfh4_1";
-const title$1 = "_title_1wfh4_13";
-const playerList = "_playerList_1wfh4_22";
-const playerItem = "_playerItem_1wfh4_27";
-const activePlayer = "_activePlayer_1wfh4_40";
-const playerHeader = "_playerHeader_1wfh4_48";
-const playerName = "_playerName_1wfh4_54";
-const playerScore = "_playerScore_1wfh4_62";
-const resourceSection = "_resourceSection_1wfh4_71";
-const resourceList = "_resourceList_1wfh4_76";
-const resourceBadge = "_resourceBadge_1wfh4_82";
-const tokenList = "_tokenList_1wfh4_90";
-const tokenBadge = "_tokenBadge_1wfh4_99";
-const tokenBadgeOwner = "_tokenBadgeOwner_1wfh4_114";
-const tokenBadgeGuest = "_tokenBadgeGuest_1wfh4_119";
-const cardList = "_cardList_1wfh4_125";
-const cardBase = "_cardBase_1wfh4_133";
-const cardSelected = "_cardSelected_1wfh4_165";
-const tooltip = "_tooltip_1wfh4_171";
-const buttonArea = "_buttonArea_1wfh4_192";
-const limitMessage = "_limitMessage_1wfh4_198";
-const buttonGroup = "_buttonGroup_1wfh4_212";
-const scoreArea = "_scoreArea_1wfh4_217";
-const debugScoreButtons = "_debugScoreButtons_1wfh4_223";
-const debugBtn = "_debugBtn_1wfh4_228";
+const container = "_container_3qm7i_7";
+const title$1 = "_title_3qm7i_19";
+const playerList = "_playerList_3qm7i_28";
+const playerItem = "_playerItem_3qm7i_38";
+const activePlayer = "_activePlayer_3qm7i_51";
+const playerHeader = "_playerHeader_3qm7i_59";
+const playerName = "_playerName_3qm7i_65";
+const scoreArea = "_scoreArea_3qm7i_75";
+const playerScore = "_playerScore_3qm7i_81";
+const debugScoreButtons = "_debugScoreButtons_3qm7i_90";
+const debugBtn = "_debugBtn_3qm7i_95";
+const resourceSection = "_resourceSection_3qm7i_120";
+const resourceList = "_resourceList_3qm7i_125";
+const resourceBadge = "_resourceBadge_3qm7i_131";
+const tokenList = "_tokenList_3qm7i_139";
+const tokenBadge = "_tokenBadge_3qm7i_148";
+const tokenBadgeOwner = "_tokenBadgeOwner_3qm7i_163";
+const tokenBadgeGuest = "_tokenBadgeGuest_3qm7i_168";
+const isHoldMessage = "_isHoldMessage_3qm7i_174";
+const cardList = "_cardList_3qm7i_181";
+const cardBase = "_cardBase_3qm7i_189";
+const cardSelected = "_cardSelected_3qm7i_221";
+const cardIsHeld = "_cardIsHeld_3qm7i_227";
+const tooltip = "_tooltip_3qm7i_239";
+const buttonArea = "_buttonArea_3qm7i_264";
+const limitMessage = "_limitMessage_3qm7i_271";
+const buttonGroup = "_buttonGroup_3qm7i_278";
 const scoreBoardStyles = {
   container,
   title: title$1,
@@ -1875,7 +1877,10 @@ const scoreBoardStyles = {
   activePlayer,
   playerHeader,
   playerName,
+  scoreArea,
   playerScore,
+  debugScoreButtons,
+  debugBtn,
   resourceSection,
   resourceList,
   resourceBadge,
@@ -1883,16 +1888,15 @@ const scoreBoardStyles = {
   tokenBadge,
   tokenBadgeOwner,
   tokenBadgeGuest,
+  isHoldMessage,
   cardList,
   cardBase,
   cardSelected,
+  cardIsHeld,
   tooltip,
   buttonArea,
   limitMessage,
-  buttonGroup,
-  scoreArea,
-  debugScoreButtons,
-  debugBtn
+  buttonGroup
 };
 const image = "_image_th9op_2";
 const textWrapper = "_textWrapper_th9op_10";
@@ -1919,6 +1923,7 @@ const PlayerListItem = React.memo(
     currentPlayerId,
     myPlayerId,
     selectedCards,
+    heldCards,
     toggleCardSelection,
     socket,
     roomId,
@@ -1986,25 +1991,33 @@ const PlayerListItem = React.memo(
             },
             token.id
           )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: player.isHolding && "カードをホールドしています" }),
+          player.isHolding && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: scoreBoardStyles.isHoldMessage, children: "カードをホールドしています" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card2) => {
             const isSelected = selectedCards.includes(card2.id);
+            const isHeld = heldCards.includes(card2.id);
             const canSeeFront = !!card2.isFaceUp || isOwner;
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
-                draggable: isOwner,
+                draggable: isOwner && !isHeld,
                 onDragStart: (e) => {
-                  if (!isOwner) return;
+                  if (!isOwner || isHeld) return;
                   e.dataTransfer.setData("cardId", card2.id);
                   e.dataTransfer.setData("deckId", card2.deckId);
                   e.dataTransfer.effectAllowed = "move";
                 },
-                className: `${scoreBoardStyles.cardBase} rg-playfield-card-wrapper ${isSelected ? scoreBoardStyles.cardSelected : ""} ${card2.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ""}`,
+                className: `
+      ${scoreBoardStyles.cardBase} 
+      ${isSelected ? scoreBoardStyles.cardSelected : ""}
+      ${card2.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ""}
+    `,
                 style: {
-                  cursor: isOwner ? "grab" : "default",
+                  // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
+                  cursor: isHeld ? "not-allowed" : isOwner ? "grab" : "default",
                   border: card2.isFaceUp ? "3px solid #00ffff" : "1px solid #ccc",
                   boxShadow: card2.isFaceUp ? "0 0 10px #00ffff" : "none",
+                  opacity: isHeld ? 0.7 : 1,
+                  // ホールド中は少し暗くして「固定感」を出す
                   padding: 0,
                   overflow: "hidden",
                   position: "relative",
@@ -2012,9 +2025,10 @@ const PlayerListItem = React.memo(
                   alignItems: "stretch",
                   justifyContent: "stretch"
                 },
-                onClick: () => toggleCardSelection(card2.id, isOwner),
+                onClick: () => !isHeld && toggleCardSelection(card2.id, isOwner),
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
+                  isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardIsHeld, children: "🔐" }),
                   canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: scoreBoardStyles.tooltip, children: card2.description })
                 ]
               },
@@ -2050,6 +2064,7 @@ function ScoreBoard({
     }));
   }, [players]);
   const [selectedCards, setSelectedCards] = React.useState([]);
+  const [heldCards, setHeldCards] = React.useState([]);
   const toggleCardSelection = React.useCallback((cardId, isOwner) => {
     if (!isOwner) return;
     setSelectedCards((prev) => prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]);
@@ -2068,6 +2083,7 @@ function ScoreBoard({
         if (!targetPlayLocation) targetPlayLocation = card2.playLocation;
         if (!cardsByDeck[card2.deckId]) cardsByDeck[card2.deckId] = [];
         cardsByDeck[card2.deckId].push(card2.id);
+        setHeldCards((prev) => [...prev, card2.id]);
       });
       if (isHold == true) {
         socket.emit("card:hold", { roomId, playerId: myPlayerId, cardIdsbyDeck: cardsByDeck });
@@ -2116,6 +2132,7 @@ function ScoreBoard({
         currentPlayerId,
         myPlayerId,
         selectedCards,
+        heldCards,
         toggleCardSelection,
         socket,
         roomId,

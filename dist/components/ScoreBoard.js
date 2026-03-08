@@ -3,7 +3,7 @@ import * as React from 'react';
 import { CardDisplayContent } from './Card.js';
 import scoreBoardStyles from './ScoreBoard.module.css';
 import { TokenDisplayContent } from './Token.js';
-const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, selectedCards, toggleCardSelection, socket, roomId, isDebug, }) => {
+const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, selectedCards, heldCards, toggleCardSelection, socket, roomId, isDebug, }) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = player.color || '#aaaaaa';
     const isOwner = player.id === myPlayerId;
@@ -25,26 +25,37 @@ const PlayerListItem = React.memo(({ player, currentPlayerId, myPlayerId, select
                             playerId: myPlayerId,
                             tokenId: token.id,
                         });
-                    }, children: _jsx(TokenDisplayContent, { token: token }) }, token.id))) }), _jsx("div", { children: player.isHolding && 'カードをホールドしています' }), _jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card) => {
+                    }, children: _jsx(TokenDisplayContent, { token: token }) }, token.id))) }), player.isHolding && _jsx("p", { className: scoreBoardStyles.isHoldMessage, children: "\u30AB\u30FC\u30C9\u3092\u30DB\u30FC\u30EB\u30C9\u3057\u3066\u3044\u307E\u3059" }), _jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card) => {
                     const isSelected = selectedCards.includes(card.id);
+                    const isHeld = heldCards.includes(card.id);
                     const canSeeFront = !!card.isFaceUp || isOwner;
-                    return (_jsxs("div", { draggable: isOwner, onDragStart: (e) => {
-                            if (!isOwner)
+                    return (_jsxs("div", { 
+                        // ホールド中、またはオーナーでない場合はドラッグ不可
+                        draggable: isOwner && !isHeld, onDragStart: (e) => {
+                            if (!isOwner || isHeld)
                                 return;
                             e.dataTransfer.setData('cardId', card.id);
                             e.dataTransfer.setData('deckId', card.deckId);
                             e.dataTransfer.effectAllowed = 'move';
-                        }, className: `${scoreBoardStyles.cardBase} rg-playfield-card-wrapper ${isSelected ? scoreBoardStyles.cardSelected : ''} ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}`, style: {
-                            cursor: isOwner ? 'grab' : 'default',
+                        }, className: `
+      ${scoreBoardStyles.cardBase} 
+      ${isSelected ? scoreBoardStyles.cardSelected : ''}
+      ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}
+    `, style: {
+                            // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
+                            cursor: isHeld ? 'not-allowed' : isOwner ? 'grab' : 'default',
                             border: card.isFaceUp ? '3px solid #00ffff' : '1px solid #ccc',
                             boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
+                            opacity: isHeld ? 0.7 : 1, // ホールド中は少し暗くして「固定感」を出す
                             padding: 0,
                             overflow: 'hidden',
                             position: 'relative',
                             display: 'flex',
                             alignItems: 'stretch',
                             justifyContent: 'stretch',
-                        }, onClick: () => toggleCardSelection(card.id, isOwner), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront }), canSeeFront && card.description && (_jsx("span", { className: scoreBoardStyles.tooltip, children: card.description }))] }, card.id));
+                        }, 
+                        // ホールド中はクリック（選択）も無効化
+                        onClick: () => !isHeld && toggleCardSelection(card.id, isOwner), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront }), isHeld && _jsx("div", { className: scoreBoardStyles.cardIsHeld, children: "\uD83D\uDD10" }), canSeeFront && card.description && (_jsx("span", { className: scoreBoardStyles.tooltip, children: card.description }))] }, card.id));
                 }) })] }));
 });
 /**
@@ -74,6 +85,7 @@ export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerI
         }));
     }, [players]);
     const [selectedCards, setSelectedCards] = React.useState([]);
+    const [heldCards, setHeldCards] = React.useState([]);
     const toggleCardSelection = React.useCallback((cardId, isOwner) => {
         if (!isOwner)
             return;
@@ -98,6 +110,7 @@ export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerI
             if (!cardsByDeck[card.deckId])
                 cardsByDeck[card.deckId] = [];
             cardsByDeck[card.deckId].push(card.id);
+            setHeldCards((prev) => [...prev, card.id]);
         });
         if (isHold == true) {
             socket.emit('card:hold', { roomId: roomId, playerId: myPlayerId, cardIdsbyDeck: cardsByDeck });
@@ -140,5 +153,5 @@ export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerI
     const nextRound = () => socket.emit('game:next-round', { roomId });
     const isOverLimit = playCardLimit !== undefined && selectedCards.length > playCardLimit;
     const isActionDisabled = selectedCards.length === 0 || isOverLimit;
-    return (_jsxs("div", { className: scoreBoardStyles.container, children: [_jsx("h2", { className: scoreBoardStyles.title, children: "\u30B2\u30FC\u30E0\u30B9\u30B3\u30A2\u30DC\u30FC\u30C9" }), _jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => (_jsx(PlayerListItem, { player: player, currentPlayerId: currentPlayerId, myPlayerId: myPlayerId, selectedCards: selectedCards, toggleCardSelection: toggleCardSelection, socket: socket, roomId: roomId, isDebug: isDebug }, player.id))) }), _jsxs("div", { className: scoreBoardStyles.buttonArea, children: [isOverLimit && (_jsxs("p", { className: scoreBoardStyles.limitMessage, children: ["\u4E00\u5EA6\u306B\u51FA\u305B\u308B\u30AB\u30FC\u30C9\u306F ", playCardLimit, " \u679A\u307E\u3067\u3067\u3059"] })), _jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [_jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u51FA\u3059" }), holdButton && (_jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isActionDisabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u30DB\u30FC\u30EB\u30C9\u3059\u308B" })), revealButton && _jsx("button", { onClick: revealSelectedCards, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u516C\u958B\u3059\u308B" }), turnSkipButton && _jsx("button", { onClick: nextTurn, children: "\u30BF\u30FC\u30F3\u3092\u30B9\u30AD\u30C3\u30D7" }), roundSkipbutton && _jsx("button", { onClick: nextRound, children: "\u30E9\u30A6\u30F3\u30C9\u3092\u30B9\u30AD\u30C3\u30D7" })] })] })] }));
+    return (_jsxs("div", { className: scoreBoardStyles.container, children: [_jsx("h2", { className: scoreBoardStyles.title, children: "\u30B2\u30FC\u30E0\u30B9\u30B3\u30A2\u30DC\u30FC\u30C9" }), _jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => (_jsx(PlayerListItem, { player: player, currentPlayerId: currentPlayerId, myPlayerId: myPlayerId, selectedCards: selectedCards, heldCards: heldCards, toggleCardSelection: toggleCardSelection, socket: socket, roomId: roomId, isDebug: isDebug }, player.id))) }), _jsxs("div", { className: scoreBoardStyles.buttonArea, children: [isOverLimit && (_jsxs("p", { className: scoreBoardStyles.limitMessage, children: ["\u4E00\u5EA6\u306B\u51FA\u305B\u308B\u30AB\u30FC\u30C9\u306F ", playCardLimit, " \u679A\u307E\u3067\u3067\u3059"] })), _jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [_jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u51FA\u3059" }), holdButton && (_jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isActionDisabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u30DB\u30FC\u30EB\u30C9\u3059\u308B" })), revealButton && _jsx("button", { onClick: revealSelectedCards, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u516C\u958B\u3059\u308B" }), turnSkipButton && _jsx("button", { onClick: nextTurn, children: "\u30BF\u30FC\u30F3\u3092\u30B9\u30AD\u30C3\u30D7" }), roundSkipbutton && _jsx("button", { onClick: nextRound, children: "\u30E9\u30A6\u30F3\u30C9\u3092\u30B9\u30AD\u30C3\u30D7" })] })] })] }));
 }
