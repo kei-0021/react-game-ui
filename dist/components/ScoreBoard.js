@@ -101,6 +101,10 @@ export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerI
             return;
         const cardsByDeck = {};
         let targetPlayLocation;
+        if (isHold && myPlayer.isHolding == true) {
+            console.log('ホールド中は追加でホールドすることができません');
+            return;
+        }
         selectedCards.forEach((cardId) => {
             const card = myPlayer.cards.find((c) => c.id === cardId);
             if (!card)
@@ -110,7 +114,8 @@ export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerI
             if (!cardsByDeck[card.deckId])
                 cardsByDeck[card.deckId] = [];
             cardsByDeck[card.deckId].push(card.id);
-            setHeldCards((prev) => [...prev, card.id]);
+            if (isHold)
+                setHeldCards((prev) => [...prev, card.id]);
         });
         if (isHold == true) {
             socket.emit('card:hold', { roomId: roomId, playerId: myPlayerId, cardIdsbyDeck: cardsByDeck });

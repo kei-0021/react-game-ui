@@ -242,13 +242,18 @@ export function ScoreBoard({
       const cardsByDeck: Record<string, string[]> = {};
       let targetPlayLocation: CardLocation | undefined;
 
+      if (isHold && myPlayer.isHolding == true) {
+        console.log('ホールド中は追加でホールドすることができません');
+        return;
+      }
+
       selectedCards.forEach((cardId) => {
         const card = myPlayer.cards.find((c) => c.id === cardId);
         if (!card) return;
         if (!targetPlayLocation) targetPlayLocation = card.playLocation as CardLocation;
         if (!cardsByDeck[card.deckId]) cardsByDeck[card.deckId] = [];
         cardsByDeck[card.deckId].push(card.id);
-        setHeldCards((prev) => [...prev, card.id]);
+        if (isHold) setHeldCards((prev) => [...prev, card.id]);
       });
 
       if (isHold == true) {

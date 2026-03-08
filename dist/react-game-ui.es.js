@@ -2077,13 +2077,17 @@ function ScoreBoard({
       if (!myPlayer) return;
       const cardsByDeck = {};
       let targetPlayLocation;
+      if (isHold && myPlayer.isHolding == true) {
+        console.log("ホールド中は追加でホールドすることができません");
+        return;
+      }
       selectedCards.forEach((cardId) => {
         const card2 = myPlayer.cards.find((c) => c.id === cardId);
         if (!card2) return;
         if (!targetPlayLocation) targetPlayLocation = card2.playLocation;
         if (!cardsByDeck[card2.deckId]) cardsByDeck[card2.deckId] = [];
         cardsByDeck[card2.deckId].push(card2.id);
-        setHeldCards((prev) => [...prev, card2.id]);
+        if (isHold) setHeldCards((prev) => [...prev, card2.id]);
       });
       if (isHold == true) {
         socket.emit("card:hold", { roomId, playerId: myPlayerId, cardIdsbyDeck: cardsByDeck });
