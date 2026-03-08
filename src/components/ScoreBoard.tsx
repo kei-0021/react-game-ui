@@ -16,6 +16,7 @@ type PlayerListItemProps = {
   player: Player;
   currentPlayerId: PlayerId | null | undefined;
   myPlayerId: PlayerId | null;
+  playCardButton: boolean;
   selectedCards: CardId[];
   heldCards: CardId[];
   toggleCardSelection: (cardId: string, isOwner: boolean) => void;
@@ -29,6 +30,7 @@ const PlayerListItem = React.memo(
     player,
     currentPlayerId,
     myPlayerId,
+    playCardButton,
     selectedCards,
     heldCards,
     toggleCardSelection,
@@ -120,19 +122,19 @@ const PlayerListItem = React.memo(
             return (
               <div
                 key={card.id}
-                // ホールド中、またはオーナーでない場合はドラッグ不可
+                // ホールド中、オーナーでない場合、カードプレイボタンがない場合はドラッグ不可
                 draggable={isOwner && !isHeld}
                 onDragStart={(e) => {
-                  if (!isOwner || isHeld) return;
+                  if (!isOwner || isHeld || !playCardButton) return;
                   e.dataTransfer.setData('cardId', card.id);
                   e.dataTransfer.setData('deckId', card.deckId);
                   e.dataTransfer.effectAllowed = 'move';
                 }}
                 className={`
-      ${scoreBoardStyles.cardBase} 
-      ${isSelected ? scoreBoardStyles.cardSelected : ''}
-      ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}
-    `}
+                  ${scoreBoardStyles.cardBase} 
+                  ${isSelected ? scoreBoardStyles.cardSelected : ''}
+                  ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}
+                `}
                 style={
                   {
                     // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
@@ -180,6 +182,7 @@ const PlayerListItem = React.memo(
  * @param {string | null} myPlayerId - ローカルプレイヤーのID
  * @param {number} playCardLimit - 1ターンにプレイ可能なカードの上限枚数
  * @param {boolean} autoNextTurnOnCardPlay=false - カードプレイ時に自動でターンを終了するかどうか
+ * @param {boolean} playCardButton=true - カードをプレイするボタンの表示・非表示
  * @param {boolean} holdButton=false - カードを一定期間ホールドしつつプレイするボタンの表示・非表示
  * @param {boolean} revealButton=false - カード公開ボタンの表示・非表示
  * @param {boolean} turnSkipButton=false - ターンスキップボタンの表示・非表示
@@ -194,6 +197,7 @@ export function ScoreBoard({
   myPlayerId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
+  playCardButton = true,
   holdButton = false,
   revealButton = false,
   turnSkipButton = false,
@@ -207,6 +211,7 @@ export function ScoreBoard({
   myPlayerId: PlayerId | null;
   playCardLimit?: number;
   autoNextTurnOnCardPlay?: boolean;
+  playCardButton?: boolean;
   holdButton?: boolean;
   revealButton?: boolean;
   turnSkipButton?: boolean;
@@ -314,6 +319,7 @@ export function ScoreBoard({
             player={player}
             currentPlayerId={currentPlayerId}
             myPlayerId={myPlayerId}
+            playCardButton={playCardButton}
             selectedCards={selectedCards}
             heldCards={heldCards}
             toggleCardSelection={toggleCardSelection}
@@ -330,9 +336,11 @@ export function ScoreBoard({
         )}
 
         <div className={scoreBoardStyles.buttonGroup}>
-          <button onClick={() => playSelectedCards()} disabled={isActionDisabled}>
-            選択カードを出す
-          </button>
+          {playCardButton && (
+            <button onClick={() => playSelectedCards()} disabled={isActionDisabled}>
+              選択カードを出す
+            </button>
+          )}
           {holdButton && (
             <button onClick={() => playSelectedCards({ isHold: true })} disabled={isActionDisabled}>
               選択カードをホールドする

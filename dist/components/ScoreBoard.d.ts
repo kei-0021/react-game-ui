@@ -11,13 +11,14 @@ import { PlayerId, RoomId } from '../types/definition.js';
  * @param {string | null} myPlayerId - ローカルプレイヤーのID
  * @param {number} playCardLimit - 1ターンにプレイ可能なカードの上限枚数
  * @param {boolean} autoNextTurnOnCardPlay=false - カードプレイ時に自動でターンを終了するかどうか
+ * @param {boolean} playCardButton=true - カードをプレイするボタンの表示・非表示
  * @param {boolean} holdButton=false - カードを一定期間ホールドしつつプレイするボタンの表示・非表示
  * @param {boolean} revealButton=false - カード公開ボタンの表示・非表示
  * @param {boolean} turnSkipButton=false - ターンスキップボタンの表示・非表示
  * @param {boolean} roundSkipButton=false - ラウンドスキップボタンの表示・非表示
  * @param {booleam} isDebug=false - スコアを手動で増減できるようにするかどうか (デバッグ用)
  */
-export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, autoNextTurnOnCardPlay, holdButton, revealButton, turnSkipButton, roundSkipbutton, isDebug, }: {
+export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, autoNextTurnOnCardPlay, playCardButton, holdButton, revealButton, turnSkipButton, roundSkipbutton, isDebug, }: {
     socket: Socket;
     roomId: RoomId;
     players: Player[];
@@ -25,6 +26,7 @@ export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, m
     myPlayerId: PlayerId | null;
     playCardLimit?: number;
     autoNextTurnOnCardPlay?: boolean;
+    playCardButton?: boolean;
     holdButton?: boolean;
     revealButton?: boolean;
     turnSkipButton?: boolean;

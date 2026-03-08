@@ -1922,6 +1922,7 @@ const PlayerListItem = React.memo(
     player,
     currentPlayerId,
     myPlayerId,
+    playCardButton,
     selectedCards,
     heldCards,
     toggleCardSelection,
@@ -2001,16 +2002,16 @@ const PlayerListItem = React.memo(
               {
                 draggable: isOwner && !isHeld,
                 onDragStart: (e) => {
-                  if (!isOwner || isHeld) return;
+                  if (!isOwner || isHeld || !playCardButton) return;
                   e.dataTransfer.setData("cardId", card2.id);
                   e.dataTransfer.setData("deckId", card2.deckId);
                   e.dataTransfer.effectAllowed = "move";
                 },
                 className: `
-      ${scoreBoardStyles.cardBase} 
-      ${isSelected ? scoreBoardStyles.cardSelected : ""}
-      ${card2.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ""}
-    `,
+                  ${scoreBoardStyles.cardBase} 
+                  ${isSelected ? scoreBoardStyles.cardSelected : ""}
+                  ${card2.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ""}
+                `,
                 style: {
                   // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
                   cursor: isHeld ? "not-allowed" : isOwner ? "grab" : "default",
@@ -2048,6 +2049,7 @@ function ScoreBoard({
   myPlayerId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
+  playCardButton = true,
   holdButton = false,
   revealButton = false,
   turnSkipButton = false,
@@ -2135,6 +2137,7 @@ function ScoreBoard({
         player,
         currentPlayerId,
         myPlayerId,
+        playCardButton,
         selectedCards,
         heldCards,
         toggleCardSelection,
@@ -2151,7 +2154,7 @@ function ScoreBoard({
         " 枚までです"
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled, children: "選択カードを出す" }),
+        playCardButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled, children: "選択カードを出す" }),
         holdButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isActionDisabled, children: "選択カードをホールドする" }),
         revealButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, children: "選択カードを公開する" }),
         turnSkipButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" }),
