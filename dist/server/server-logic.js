@@ -311,6 +311,11 @@ export function initGameServer(io, options) {
                 player.isHolding = true;
             }
             roomManager.emitPlayerUpdate();
+            // カスタムフック
+            const onAllPlayersCardHold = param.onAllPlayersCardHold;
+            if (onAllPlayersCardHold && state.players.every((p) => p.isHolding)) {
+                onAllPlayersCardHold(state, roomManager);
+            }
         });
         // カード公開
         socket.on('card:reveal', ({ roomId, playerId, cardIds }) => {

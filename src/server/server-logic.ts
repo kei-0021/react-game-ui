@@ -386,6 +386,12 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         player.isHolding = true;
       }
       roomManager.emitPlayerUpdate();
+
+      // カスタムフック
+      const onAllPlayersCardHold = param.onAllPlayersCardHold;
+      if (onAllPlayersCardHold && state.players.every((p) => p.isHolding)) {
+        onAllPlayersCardHold(state, roomManager);
+      }
     });
 
     // カード公開
