@@ -189,7 +189,7 @@ export function initGameServer(io, options) {
             // 全ての初期同期をここで実行
             const lastMessage = state.systemMessageHistory.at(-1);
             if (lastMessage)
-                roomManager.emitSystemMessage(lastMessage, true);
+                roomManager.emitSystemMessage(lastMessage, 0, true);
             // プレイヤー, デッキ, トークン置き場, ボード の初期状態を配信
             roomManager.emitPlayerUpdate();
             Object.keys(state.decks).forEach((id) => roomManager.emitDeckUpdate(id));

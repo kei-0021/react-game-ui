@@ -31,6 +31,11 @@ export declare class RoomManager {
     private state;
     constructor(io: Server, param: GameParam, state: RoomState);
     /**
+     * 一定時間待機する
+     * @param ms - 待機時間 (ms)
+     */
+    sleep: (ms: number) => Promise<unknown>;
+    /**
      * プレイヤー更新を通知する
      */
     emitPlayerUpdate: () => void;
@@ -42,7 +47,14 @@ export declare class RoomManager {
      * トークン置き場更新を通知する
      */
     emitTokenStoreUpdate: (tokenStoreId: TokenStoreId) => void;
-    emitSystemMessage: (message: string, isPersistent?: boolean) => void;
+    /**
+     * SystemMessageWindowコンポーネントにシステムメッセージを出力する
+     * @param message - メッセージ内容
+     * @param ms=0 - メッセージ表示時間 (ms)
+     * @param isPersistent=false - 次のメッセージが出るまで表示し続けるかどうかのフラグ
+     * @returns 待機が完了した時に解決されるPromise
+     */
+    emitSystemMessage: (message: string, ms?: number, isPersistent?: boolean) => Promise<void>;
     /**
      * カードをデッキから引く
      */

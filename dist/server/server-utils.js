@@ -121,6 +121,11 @@ export class RoomManager {
         this.state = state;
     }
     /**
+     * 一定時間待機する
+     * @param ms - 待機時間 (ms)
+     */
+    sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    /**
      * プレイヤー更新を通知する
      */
     emitPlayerUpdate = () => {
@@ -144,13 +149,21 @@ export class RoomManager {
         const updateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
         this.io.to(this.state.roomId).emit(`token-store:update`, updateData);
     };
-    emitSystemMessage = (message, isPersistent = false) => {
+    /**
+     * SystemMessageWindowコンポーネントにシステムメッセージを出力する
+     * @param message - メッセージ内容
+     * @param ms=0 - メッセージ表示時間 (ms)
+     * @param isPersistent=false - 次のメッセージが出るまで表示し続けるかどうかのフラグ
+     * @returns 待機が完了した時に解決されるPromise
+     */
+    emitSystemMessage = async (message, ms = 0, isPersistent = false) => {
         // 重複チェック: 履歴内に同じメッセージが存在すれば追加しない
         if (!this.state.systemMessageHistory.includes(message)) {
             // 最新10件に制限しつつ追加
             this.state.systemMessageHistory = [...this.state.systemMessageHistory.slice(-9), message];
         }
         this.io.to(this.state.roomId).emit('system:message', { message, isPersistent });
+        await this.sleep(ms);
     };
     /**
      * カードをデッキから引く
