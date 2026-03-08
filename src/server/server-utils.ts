@@ -269,7 +269,8 @@ export class RoomManager {
     const { deckId, cardIds, playerId, playLocation = 'field', coordinate } = data;
     const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
 
-    if (this.state.holdCards[playerId]) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (player?.isHolding) {
       server_log(
         'card',
         this.state.gameId,
@@ -283,10 +284,8 @@ export class RoomManager {
       const card = this.state.decks[deckId]?.find((c) => c.id === id);
       if (!card) return;
 
-      if (playerId) {
-        const p = this.state.players.find((p) => p.id === playerId);
-        if (p) p.cards = p.cards.filter((c) => c.id !== id);
-      }
+      const p = this.state.players.find((p) => p.id === playerId);
+      if (p) p.cards = p.cards.filter((c) => c.id !== id);
 
       card.location = playLocation;
       card.coordinate = coordinate;
@@ -332,10 +331,18 @@ export class RoomManager {
   unholdCards(): void {
     this.state.players.forEach((p) => {
       p.isHolding = false;
+      const playData: CardPlayData = {
+        roomId: this.state.roomId,
+        deckId: p.cards[0].deckId,
+        cardIds: this.state.holdCards[p.id],
+        playerId: p.id,
+        playLocation: 'field',
+        coordinate: { x: 50, y: 50 },
+      };
+      this.playCard(playData);
       delete this.state.holdCards[p.id];
     });
     server_log('card', this.state.gameId, this.state.roomId, `プレイヤー全員のホールド状態を解除しました`);
-    this.emitPlayerUpdate();
   }
 
   /**

@@ -92,7 +92,7 @@ export const deepAbyssConfig: RoomConfig = {
         });
         // 場のカードから名前を抽出して「、」で繋げる
         const cardNames = data.cardIds
-          .map((id) => state.playFieldCards['deepAbyssAction'].find((c) => c.id === id)?.name)
+          ?.map((id) => state.playFieldCards['deepAbyssAction'].find((c) => c.id === id)?.name)
           .filter(Boolean) // 名前が見つからない場合を除外
           .join('、');
 
