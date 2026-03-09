@@ -968,16 +968,16 @@ const Cell = ({
     }
   );
 };
-const card = "_card_rw9b5_4";
-const tooltip$2 = "_tooltip_rw9b5_22";
-const deckContainer = "_deckContainer_rw9b5_61";
-const disabled = "_disabled_rw9b5_68";
-const deckCard = "_deckCard_rw9b5_75";
-const deckCardFront = "_deckCardFront_rw9b5_89";
-const discardPileWrapper = "_discardPileWrapper_rw9b5_105";
-const cardNameWrapper = "_cardNameWrapper_rw9b5_131";
-const cardNameText = "_cardNameText_rw9b5_142";
-const cardImage = "_cardImage_rw9b5_148";
+const card = "_card_1etxq_4";
+const tooltip$2 = "_tooltip_1etxq_22";
+const deckContainer = "_deckContainer_1etxq_61";
+const disabled = "_disabled_1etxq_68";
+const deckCard = "_deckCard_1etxq_75";
+const deckCardFront = "_deckCardFront_1etxq_89";
+const discardPileWrapper = "_discardPileWrapper_1etxq_105";
+const cardNameWrapper = "_cardNameWrapper_1etxq_131";
+const cardNameText = "_cardNameText_1etxq_144";
+const cardImage = "_cardImage_1etxq_155";
 const cardStyles = {
   card,
   tooltip: tooltip$2,
@@ -1754,7 +1754,7 @@ function PlayField({
                     border: isActuallyFreeShape ? "none" : void 0,
                     boxShadow: isActuallyFreeShape && isDragging ? "0 0 15px var(--owner-color)" : "none",
                     padding: 0,
-                    display: "flex",
+                    display: "block",
                     alignItems: "center",
                     justifyContent: "center"
                   },

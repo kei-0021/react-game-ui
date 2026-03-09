@@ -246,7 +246,7 @@ export function PlayField({
                   border: isActuallyFreeShape ? 'none' : undefined,
                   boxShadow: isActuallyFreeShape && isDragging ? '0 0 15px var(--owner-color)' : 'none',
                   padding: 0,
-                  display: 'flex',
+                  display: 'block',
                   alignItems: 'center',
                   justifyContent: 'center',
                 } as React.CSSProperties
