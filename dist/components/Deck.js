@@ -1,5 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
+import { useEffect } from 'react';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
 import deckStyles from './Deck.module.css';
@@ -18,13 +19,13 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
     const [deckCards, setDeckCards] = React.useState([]);
     const [discardPile, setDiscardPile] = React.useState([]);
     const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
-    React.useEffect(() => {
-        socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
+    useEffect(() => {
+        socket.on(`deck:update:${deckId}`, (data) => {
             setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
             setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
         });
         return () => {
-            socket.off(`deck:update:${roomId}:${deckId}`);
+            socket.off(`deck:update:${deckId}`);
         };
     }, [socket, roomId, deckId]);
     const draw = () => {

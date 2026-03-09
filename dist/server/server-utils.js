@@ -140,14 +140,14 @@ export class RoomManager {
             playFieldCards: this.state.playFieldCards[deckId],
             discardPile: this.state.discardPile[deckId],
         };
-        this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
+        this.io.to(this.state.roomId).emit(`deck:update:${deckId}`, updateData);
     };
     /**
      * トークン置き場更新を通知する
      */
     emitTokenStoreUpdate = (tokenStoreId) => {
         const updateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
-        this.io.to(this.state.roomId).emit(`token-store:update`, updateData);
+        this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
     };
     /**
      * SystemMessageWindowコンポーネントにシステムメッセージを出力する

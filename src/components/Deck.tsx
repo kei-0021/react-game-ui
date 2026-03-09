@@ -1,6 +1,7 @@
 // src/components/Deck.tsx
 import { DeckDrawData, DeckUpdateData } from '@/types/socketData.js';
 import * as React from 'react';
+import { useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
@@ -44,14 +45,14 @@ export function Deck({
   const [discardPile, setDiscardPile] = React.useState<Card[]>([]);
   const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
 
-  React.useEffect(() => {
-    socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
+  useEffect(() => {
+    socket.on(`deck:update:${deckId}`, (data: DeckUpdateData) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
       setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
     });
 
     return () => {
-      socket.off(`deck:update:${roomId}:${deckId}`);
+      socket.off(`deck:update:${deckId}`);
     };
   }, [socket, roomId, deckId]);
 

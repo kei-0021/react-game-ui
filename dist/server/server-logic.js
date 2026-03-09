@@ -41,13 +41,14 @@ function initializeRoom(roomId, param) {
         discardPile[deck.deckId] = [];
         server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
     });
-    initialTokenStores.forEach((store) => {
-        const tokens = (store.tokens || []).map((t, index) => ({
+    initialTokenStores.forEach((tokenStore) => {
+        const tokens = (tokenStore.tokens || []).map((t, index) => ({
             ...t,
-            tokenStoreId: store.tokenStoreId,
+            tokenStoreId: tokenStore.tokenStoreId,
+            instanceId: `${roomId}_${tokenStore.tokenStoreId}_${index}`,
         }));
-        tokenStores[store.tokenStoreId] = tokens;
-        server_log('token', param.gameId, roomId, `トークン "${store}" を初期化完了`);
+        tokenStores[tokenStore.tokenStoreId] = tokens;
+        server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
     });
     const state = {
         roomId: roomId,

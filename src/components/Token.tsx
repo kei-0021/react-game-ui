@@ -7,7 +7,7 @@ export const TokenDisplayContent = React.memo(({ token }: { token: Token }) => {
   if (token.imageSrc) {
     return (
       <div className={styles.contentWrapper}>
-        <img src={token.imageSrc} alt={token.name} className={styles.image} />;
+        <img src={token.imageSrc} alt={token.name} className={styles.image} />
       </div>
     );
   }

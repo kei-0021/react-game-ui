@@ -62,9 +62,15 @@ export const deepAbyssConfig: RoomConfig = {
           tokenStoreId: 'ARTIFACT',
           name: '遺物',
           tokens: helper.createTokenStore(
-            'ARTIFACT',
-            '💰',
             [{ id: 'ARTIFACT', name: '💰', color: '#D4AF37', imageSrc: '', count: 1 }],
+            20,
+          ),
+        },
+        {
+          tokenStoreId: 'Hanabishi',
+          name: '花火師',
+          tokens: helper.createTokenStore(
+            [{ id: '花火師', name: '🎆', color: '#d43737', imageSrc: '/hanabishi.svg', count: 1 }],
             20,
           ),
         },

@@ -1,5 +1,6 @@
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/server.js';
+import { Token } from '@/types/token.js';
 import { Card } from '../types/card.js';
 import { Resource } from '../types/resource.js';
 export declare const Validators: {
@@ -33,12 +34,12 @@ export declare class SetupHelper {
      */
     createUniqueCards(cards: Card[], numSets: number): Card[];
     /**
+     * トークンストアの生成
+     */
+    createTokenStore(tokens: Token[], count: number): Token[];
+    /**
      * ボードレイアウトの生成
      */
     createBoardLayout(base: any[], counts: Record<string, number>, cols: number): any[][];
-    /**
-     * トークンストアの生成
-     */
-    createTokenStore(_id: string, _name: string, templates: any[], count: number): any[];
 }
 //# sourceMappingURL=server-io-utils.d.ts.map

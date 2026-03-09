@@ -2,6 +2,7 @@
 
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/server.js';
+import { Token } from '@/types/token.js';
 import fs from 'node:fs';
 import { Card } from '../types/card.js';
 import { Resource } from '../types/resource.js';
@@ -153,16 +154,16 @@ export class SetupHelper {
   }
 
   /**
+   * トークンストアの生成
+   */
+  createTokenStore(tokens: Token[], count: number): Token[] {
+    return replicateData(tokens, count);
+  }
+
+  /**
    * ボードレイアウトの生成
    */
   createBoardLayout(base: any[], counts: Record<string, number>, cols: number): any[][] {
     return chunkTo2D(generateFromTemplates(base, counts), cols);
-  }
-
-  /**
-   * トークンストアの生成
-   */
-  createTokenStore(_id: string, _name: string, templates: any[], count: number): any[] {
-    return replicateData(templates, count);
   }
 }

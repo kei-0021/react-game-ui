@@ -119,15 +119,15 @@ export class SetupHelper {
         return replicateData(cards, numSets);
     }
     /**
+     * トークンストアの生成
+     */
+    createTokenStore(tokens, count) {
+        return replicateData(tokens, count);
+    }
+    /**
      * ボードレイアウトの生成
      */
     createBoardLayout(base, counts, cols) {
         return chunkTo2D(generateFromTemplates(base, counts), cols);
-    }
-    /**
-     * トークンストアの生成
-     */
-    createTokenStore(_id, _name, templates, count) {
-        return replicateData(templates, count);
     }
 }

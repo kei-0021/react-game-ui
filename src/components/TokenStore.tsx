@@ -1,6 +1,6 @@
 // src/components/TokenStore.tsx
 import { TokenAcquireData, TokenStoreUpdateData } from '@/types/socketData.js';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import { RoomId, TokenId, TokenStoreId } from '../types/definition.js';
 import { Token } from '../types/token.js';
@@ -26,21 +26,19 @@ type TokenStoreProps = {
  * @param {(token: Token) => void} [onSelect] - トークンが選択された際に呼び出されるオプションのコールバック関数
  */
 export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }: TokenStoreProps) {
-  const [tokens, setTokens] = useState<Token[]>([]);
-
-  const handleUpdateTokens = useCallback((data: TokenStoreUpdateData) => {
-    setTokens(data.tokenStore || []);
-  }, []);
+  const [tokenStoreTokens, setTokenStoreTokens] = useState<Token[]>([]);
 
   useEffect(() => {
-    if (!socket) return;
-    socket.on(`token-store:update`, handleUpdateTokens);
+    socket.on(`token-store:update:${tokenStoreId}`, (data: TokenStoreUpdateData) => {
+      const newTokens = data.tokenStore || [];
+      setTokenStoreTokens(newTokens);
+    });
     return () => {
-      socket.off(`token-store:update`, handleUpdateTokens);
+      socket.off(`token-store:update:${tokenStoreId}`);
     };
-  }, [socket, handleUpdateTokens]);
+  }, [socket]);
 
-  const getTokenById = useMemo(() => (id: TokenId) => tokens.find((t) => t.id === id), [tokens]);
+  const getTokenById = useMemo(() => (id: TokenId) => tokenStoreTokens.find((t) => t.id === id), [tokenStoreTokens]);
 
   const handleClick = (id: TokenId) => {
     const token = getTokenById(id);
@@ -48,10 +46,11 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
     onSelect?.(token);
   };
 
-  const handleDoubleClick = (id: TokenId) => {
-    const token = getTokenById(id);
+  // トークン獲得
+  const handleDoubleClick = (tokenId: TokenId) => {
+    const token = getTokenById(tokenId);
     if (!token) return;
-    const data: TokenAcquireData = { roomId, tokenStoreId, tokenId: id };
+    const data: TokenAcquireData = { roomId, tokenStoreId, tokenId };
     socket.emit('token:aquire', data);
   };
 
@@ -59,7 +58,7 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
     <section className={styles.section}>
       <h3 className={styles.title}>{name}</h3>
       <div className={styles.list}>
-        {tokens.map((t) => (
+        {tokenStoreTokens.map((t) => (
           <div key={t.id} onClick={() => handleClick(t.id)} onDoubleClick={() => handleDoubleClick(t.id)}>
             <TokenDisplayContent token={t} />
           </div>

@@ -33,12 +33,12 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
     const containerRef = React.useRef(null);
     const draggingIdRef = React.useRef(null);
     React.useEffect(() => {
-        socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
+        socket.on(`deck:update:${deckId}`, (data) => {
             const newCards = data.playFieldCards || [];
             setPlayedCards(newCards);
         });
         return () => {
-            socket.off(`deck:update:${roomId}:${deckId}`);
+            socket.off(`deck:update:${deckId}`);
         };
     }, [socket, roomId, deckId]);
     // リアルタイム送信ロジック（境界制限付き）

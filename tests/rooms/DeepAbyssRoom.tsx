@@ -209,7 +209,7 @@ export function DeepAbyssRoom() {
       </div>
       <SystemMessageWindow socket={socket} roomId={roomId} />
       <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" title="遺物" />
-      <TokenStore socket={socket} roomId={roomId} tokenStoreId="hanabishi" title="花火師" />
+      <TokenStore socket={socket} roomId={roomId} tokenStoreId="Hanabishi" title="花火師" />
 
       <div className="game-main-layout">
         {/* 左側グループ：デッキ列とフィールド列を横に並べる塊 */}

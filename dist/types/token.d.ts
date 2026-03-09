@@ -5,7 +5,6 @@ import { TokenId } from './definition.js';
  * @property {string} name - トークン名
  * @property {string} [imageSrc] - トークンの画像URL（省略時は名前を表示）
  * @property {string} [description] - トークンの説明文
- * @property {number} count - 現在の保持数
  * @property {string} [color] - UI表示用のカラーコード
  */
 export type Token = {
@@ -13,7 +12,6 @@ export type Token = {
     name: string;
     imageSrc?: string;
     description?: string;
-    count: number;
     color?: string;
 };
 //# sourceMappingURL=token.d.ts.map

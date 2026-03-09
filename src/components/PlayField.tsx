@@ -66,13 +66,13 @@ export function PlayField({
   const draggingIdRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
-    socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
+    socket.on(`deck:update:${deckId}`, (data: DeckUpdateData) => {
       const newCards = data.playFieldCards || [];
       setPlayedCards(newCards);
     });
 
     return () => {
-      socket.off(`deck:update:${roomId}:${deckId}`);
+      socket.off(`deck:update:${deckId}`);
     };
   }, [socket, roomId, deckId]);
 

@@ -80,13 +80,14 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
   });
 
-  initialTokenStores.forEach((store: TokenStore) => {
-    const tokens: Token[] = (store.tokens || []).map((t, index) => ({
+  initialTokenStores.forEach((tokenStore: TokenStore) => {
+    const tokens: Token[] = (tokenStore.tokens || []).map((t, index) => ({
       ...t,
-      tokenStoreId: store.tokenStoreId,
+      tokenStoreId: tokenStore.tokenStoreId,
+      instanceId: `${roomId}_${tokenStore.tokenStoreId}_${index}`,
     }));
-    tokenStores[store.tokenStoreId] = tokens;
-    server_log('token', param.gameId, roomId, `トークン "${store}" を初期化完了`);
+    tokenStores[tokenStore.tokenStoreId] = tokens;
+    server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
   });
 
   const state: RoomState = {

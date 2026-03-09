@@ -1,5 +1,5 @@
 import * as React from "react";
-import React__default, { useState, useRef, useMemo, useEffect, useCallback } from "react";
+import React__default, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production_min = {};
 /**
@@ -1024,13 +1024,13 @@ function Deck({
   const [deckCards, setDeckCards] = React.useState([]);
   const [discardPile, setDiscardPile] = React.useState([]);
   const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
-  React.useEffect(() => {
-    socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
+  useEffect(() => {
+    socket.on(`deck:update:${deckId}`, (data) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
       setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
     });
     return () => {
-      socket.off(`deck:update:${roomId}:${deckId}`);
+      socket.off(`deck:update:${deckId}`);
     };
   }, [socket, roomId, deckId]);
   const draw = () => {
@@ -1659,12 +1659,12 @@ function PlayField({
   const containerRef = React.useRef(null);
   const draggingIdRef = React.useRef(null);
   React.useEffect(() => {
-    socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
+    socket.on(`deck:update:${deckId}`, (data) => {
       const newCards = data.playFieldCards || [];
       setPlayedCards(newCards);
     });
     return () => {
-      socket.off(`deck:update:${roomId}:${deckId}`);
+      socket.off(`deck:update:${deckId}`);
     };
   }, [socket, roomId, deckId]);
   const emitMove = React.useMemo(
@@ -1967,10 +1967,7 @@ const styles$2 = {
 };
 const TokenDisplayContent = React__default.memo(({ token }) => {
   if (token.imageSrc) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.contentWrapper, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$2.image }),
-      ";"
-    ] });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$2.image }) });
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$2.text, children: token.name }) }) });
 });
@@ -2355,32 +2352,31 @@ const styles = {
   list
 };
 function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
-  const [tokens, setTokens] = useState([]);
-  const handleUpdateTokens = useCallback((data) => {
-    setTokens(data.tokenStore || []);
-  }, []);
+  const [tokenStoreTokens, setTokenStoreTokens] = useState([]);
   useEffect(() => {
-    if (!socket) return;
-    socket.on(`token-store:update`, handleUpdateTokens);
+    socket.on(`token-store:update:${tokenStoreId}`, (data) => {
+      const newTokens = data.tokenStore || [];
+      setTokenStoreTokens(newTokens);
+    });
     return () => {
-      socket.off(`token-store:update`, handleUpdateTokens);
+      socket.off(`token-store:update:${tokenStoreId}`);
     };
-  }, [socket, handleUpdateTokens]);
-  const getTokenById = useMemo(() => (id) => tokens.find((t) => t.id === id), [tokens]);
+  }, [socket]);
+  const getTokenById = useMemo(() => (id) => tokenStoreTokens.find((t) => t.id === id), [tokenStoreTokens]);
   const handleClick = (id) => {
     const token = getTokenById(id);
     if (!token) return;
     onSelect?.(token);
   };
-  const handleDoubleClick = (id) => {
-    const token = getTokenById(id);
+  const handleDoubleClick = (tokenId) => {
+    const token = getTokenById(tokenId);
     if (!token) return;
-    const data = { roomId, tokenStoreId, tokenId: id };
+    const data = { roomId, tokenStoreId, tokenId };
     socket.emit("token:aquire", data);
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles.section, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.list, children: tokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t }) }, t.id)) })
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.list, children: tokenStoreTokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t }) }, t.id)) })
   ] });
 }
 let LOG_CATEGORIES = {
@@ -2441,14 +2437,14 @@ class RoomManager {
       playFieldCards: this.state.playFieldCards[deckId],
       discardPile: this.state.discardPile[deckId]
     };
-    this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
+    this.io.to(this.state.roomId).emit(`deck:update:${deckId}`, updateData);
   };
   /**
    * トークン置き場更新を通知する
    */
   emitTokenStoreUpdate = (tokenStoreId) => {
     const updateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
-    this.io.to(this.state.roomId).emit(`token-store:update`, updateData);
+    this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
   };
   /**
    * SystemMessageWindowコンポーネントにシステムメッセージを出力する
