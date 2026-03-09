@@ -1721,16 +1721,14 @@ function PlayField({
               const owner = players.find((p) => p.id === card2.ownerId);
               const isDragging = activeDraggingId === card2.id;
               const isActuallyFreeShape = !!(card2.freeShape && card2.frontImage);
-              const isOverlapping = playedCards.slice(0, index).some(
+              playedCards.slice(0, index).some(
                 (other) => Math.abs((other.coordinate?.x ?? 50) - (card2.coordinate?.x ?? 50)) < 1 && Math.abs((other.coordinate?.y ?? 50) - (card2.coordinate?.y ?? 50)) < 1
               );
-              const visualOffset = isOverlapping ? index * 12 : 0;
               const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
               const freeStyle = layoutMode === "free" ? {
                 position: "absolute",
                 left: `${card2.coordinate?.x ?? 50}%`,
                 top: `${card2.coordinate?.y ?? 50}%`,
-                transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
                 zIndex: currentZIndex,
                 transition: isDragging ? "none" : "left 0.2s ease, top 0.2s ease"
               } : {};

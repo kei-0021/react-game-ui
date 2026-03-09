@@ -145,7 +145,6 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                             position: 'absolute',
                             left: `${card.coordinate?.x ?? 50}%`,
                             top: `${card.coordinate?.y ?? 50}%`,
-                            transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
                             zIndex: currentZIndex,
                             transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                         }
