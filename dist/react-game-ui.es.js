@@ -968,16 +968,16 @@ const Cell = ({
     }
   );
 };
-const card = "_card_1pm0h_3";
-const tooltip$2 = "_tooltip_1pm0h_20";
-const deckContainer = "_deckContainer_1pm0h_57";
-const disabled = "_disabled_1pm0h_64";
-const deckCard = "_deckCard_1pm0h_70";
-const deckCardFront = "_deckCardFront_1pm0h_86";
-const discardPileWrapper = "_discardPileWrapper_1pm0h_103";
-const cardNameText = "_cardNameText_1pm0h_128";
-const cardNameWrapper = "_cardNameWrapper_1pm0h_132";
-const cardImage = "_cardImage_1pm0h_145";
+const card = "_card_rw9b5_4";
+const tooltip$2 = "_tooltip_rw9b5_22";
+const deckContainer = "_deckContainer_rw9b5_61";
+const disabled = "_disabled_rw9b5_68";
+const deckCard = "_deckCard_rw9b5_75";
+const deckCardFront = "_deckCardFront_rw9b5_89";
+const discardPileWrapper = "_discardPileWrapper_rw9b5_105";
+const cardNameWrapper = "_cardNameWrapper_rw9b5_131";
+const cardNameText = "_cardNameText_rw9b5_142";
+const cardImage = "_cardImage_rw9b5_148";
 const cardStyles = {
   card,
   tooltip: tooltip$2,
@@ -986,26 +986,18 @@ const cardStyles = {
   deckCard,
   deckCardFront,
   discardPileWrapper,
-  cardNameText,
   cardNameWrapper,
+  cardNameText,
   cardImage
 };
 const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
   if (!canSeeFront) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        className: cardStyles.deckCard,
-        style: {
-          backgroundColor: card2.backColor || "#333"
-        }
-      }
-    );
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card2.backColor || "#333" } });
   }
   if (card2.frontImage) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: cardStyles.cardImage, style: {} });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: cardStyles.cardImage });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, style: {}, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
 });
 const deckSection = "_deckSection_190vd_3";
 const deckTitle = "_deckTitle_190vd_13";
@@ -1627,7 +1619,7 @@ function PlayField({
     return () => {
       socket.off(`deck:update:${roomId}:${deckId}`);
     };
-  }, [socket, roomId, deckId, is_logging]);
+  }, [socket, roomId, deckId]);
   const emitMove = React.useMemo(
     () => throttle((cardId, clientX, clientY) => {
       if (!containerRef.current) return;
@@ -1758,13 +1750,13 @@ function PlayField({
                     cursor: isDragging ? "grabbing" : layoutMode === "free" ? "grab" : "default",
                     width: "80px",
                     height: "112px",
-                    // freeShape 時の設定
-                    ...isActuallyFreeShape ? {
-                      background: "transparent",
-                      border: "none",
-                      boxShadow: isDragging ? "0 0 15px var(--owner-color)" : "none",
-                      padding: 0
-                    } : {}
+                    background: "transparent",
+                    border: isActuallyFreeShape ? "none" : void 0,
+                    boxShadow: isActuallyFreeShape && isDragging ? "0 0 15px var(--owner-color)" : "none",
+                    padding: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
                   },
                   onDoubleClick: () => handleCardBack(card2),
                   children: [

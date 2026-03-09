@@ -68,30 +68,19 @@ export function PlayField({
   React.useEffect(() => {
     socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
       const newCards = data.playFieldCards || [];
-      if (is_logging) {
-        // console.table(
-        //   newCards.map((c: Card) => ({
-        //     id: c.id,
-        //     name: c.name,
-        //     faceUp: c.isFaceUp,
-        //     owner: c.ownerId,
-        //   })),
-        // );
-      }
       setPlayedCards(newCards);
     });
 
     return () => {
       socket.off(`deck:update:${roomId}:${deckId}`);
     };
-  }, [socket, roomId, deckId, is_logging]);
+  }, [socket, roomId, deckId]);
 
   // リアルタイム送信ロジック（境界制限付き）
   const emitMove = React.useMemo(
     () =>
       throttle((cardId: string, clientX: number, clientY: number) => {
         if (!containerRef.current) return;
-
         const rect = containerRef.current.getBoundingClientRect();
 
         // 座標計算 & 0-100% の範囲にクランプ
@@ -253,15 +242,13 @@ export function PlayField({
                   cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
                   width: '80px',
                   height: '112px',
-                  // freeShape 時の設定
-                  ...(isActuallyFreeShape
-                    ? {
-                        background: 'transparent',
-                        border: 'none',
-                        boxShadow: isDragging ? '0 0 15px var(--owner-color)' : 'none',
-                        padding: 0,
-                      }
-                    : {}),
+                  background: 'transparent',
+                  border: isActuallyFreeShape ? 'none' : undefined,
+                  boxShadow: isActuallyFreeShape && isDragging ? '0 0 15px var(--owner-color)' : 'none',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 } as React.CSSProperties
               }
               onDoubleClick={() => handleCardBack(card)}

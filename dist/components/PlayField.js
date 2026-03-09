@@ -35,22 +35,12 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
     React.useEffect(() => {
         socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
             const newCards = data.playFieldCards || [];
-            if (is_logging) {
-                // console.table(
-                //   newCards.map((c: Card) => ({
-                //     id: c.id,
-                //     name: c.name,
-                //     faceUp: c.isFaceUp,
-                //     owner: c.ownerId,
-                //   })),
-                // );
-            }
             setPlayedCards(newCards);
         });
         return () => {
             socket.off(`deck:update:${roomId}:${deckId}`);
         };
-    }, [socket, roomId, deckId, is_logging]);
+    }, [socket, roomId, deckId]);
     // リアルタイム送信ロジック（境界制限付き）
     const emitMove = React.useMemo(() => throttle((cardId, clientX, clientY) => {
         if (!containerRef.current)
@@ -167,15 +157,13 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                             cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
                             width: '80px',
                             height: '112px',
-                            // freeShape 時の設定
-                            ...(isActuallyFreeShape
-                                ? {
-                                    background: 'transparent',
-                                    border: 'none',
-                                    boxShadow: isDragging ? '0 0 15px var(--owner-color)' : 'none',
-                                    padding: 0,
-                                }
-                                : {}),
+                            background: 'transparent',
+                            border: isActuallyFreeShape ? 'none' : undefined,
+                            boxShadow: isActuallyFreeShape && isDragging ? '0 0 15px var(--owner-color)' : 'none',
+                            padding: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                         }, onDoubleClick: () => handleCardBack(card), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && _jsx("span", { className: cardStyles.tooltip, children: card.description })] }, card.id));
                 }) })] }));
 }
