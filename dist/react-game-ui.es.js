@@ -1967,9 +1967,9 @@ const styles$2 = {
 };
 const TokenDisplayContent = React__default.memo(({ token }) => {
   if (token.imageSrc) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$2.image }) });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$2.image }) });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$2.text, children: token.name }) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$2.text, children: token.name }) }) });
 });
 const PlayerListItem = React.memo(
   ({

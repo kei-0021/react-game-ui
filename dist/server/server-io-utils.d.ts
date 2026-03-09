@@ -34,9 +34,14 @@ export declare class SetupHelper {
      */
     createUniqueCards(cards: Card[], numSets: number): Card[];
     /**
-     * トークンストアの生成
+     * トークンストアの生成。共通情報の初期化も可能。
+     * @param tokens - 入力トークンデータ
+     * @param count - トークン置き場に置くトークンの数
+     * @param imageSrc - トークンの画像URL（省略可能）
+     * @param color - トークンの背景用のカラーコード（省略可能）
+     * @returns トークン置き場
      */
-    createTokenStore(tokens: Token[], count: number): Token[];
+    createTokenStore(tokens: Token[], count: number, imageSrc?: string, color?: string): Token[];
     /**
      * ボードレイアウトの生成
      */

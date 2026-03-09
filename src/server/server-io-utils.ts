@@ -74,7 +74,7 @@ export function loadJsonAssert<T>(relativePath: string, validator: (data: any) =
 
 /**
  * 指定した枚数分、IDをユニークにしながらデータを複製する
- * デッキのセット数を増やしたい時に便利
+ * 同じカードやトークンの数を増やすのに使用する
  */
 const replicateData = <T extends { id: string }>(data: T[], numSets: number): T[] => {
   return Array.from({ length: numSets }).flatMap((_, i) =>
@@ -154,10 +154,26 @@ export class SetupHelper {
   }
 
   /**
-   * トークンストアの生成
+   * トークンストアの生成。共通情報の初期化も可能。
+   * @param tokens - 入力トークンデータ
+   * @param count - トークン置き場に置くトークンの数
+   * @param imageSrc - トークンの画像URL（省略可能）
+   * @param color - トークンの背景用のカラーコード（省略可能）
+   * @returns トークン置き場
    */
-  createTokenStore(tokens: Token[], count: number): Token[] {
-    return replicateData(tokens, count);
+  createTokenStore(tokens: Token[], count: number, imageSrc?: string, color?: string): Token[] {
+    const replicatedTokens = replicateData(tokens, count);
+    if (imageSrc) {
+      replicatedTokens.forEach((token) => {
+        token.imageSrc = imageSrc;
+      });
+    }
+    if (color) {
+      replicatedTokens.forEach((token) => {
+        token.color = color;
+      });
+    }
+    return replicatedTokens;
   }
 
   /**

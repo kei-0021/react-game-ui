@@ -58,7 +58,7 @@ export function loadJsonAssert(relativePath, validator) {
 }
 /**
  * 指定した枚数分、IDをユニークにしながらデータを複製する
- * デッキのセット数を増やしたい時に便利
+ * 同じカードやトークンの数を増やすのに使用する
  */
 const replicateData = (data, numSets) => {
     return Array.from({ length: numSets }).flatMap((_, i) => data.map((item) => ({ ...item, id: `${item.id}-s${i + 1}` })));
@@ -119,10 +119,26 @@ export class SetupHelper {
         return replicateData(cards, numSets);
     }
     /**
-     * トークンストアの生成
+     * トークンストアの生成。共通情報の初期化も可能。
+     * @param tokens - 入力トークンデータ
+     * @param count - トークン置き場に置くトークンの数
+     * @param imageSrc - トークンの画像URL（省略可能）
+     * @param color - トークンの背景用のカラーコード（省略可能）
+     * @returns トークン置き場
      */
-    createTokenStore(tokens, count) {
-        return replicateData(tokens, count);
+    createTokenStore(tokens, count, imageSrc, color) {
+        const replicatedTokens = replicateData(tokens, count);
+        if (imageSrc) {
+            replicatedTokens.forEach((token) => {
+                token.imageSrc = imageSrc;
+            });
+        }
+        if (color) {
+            replicatedTokens.forEach((token) => {
+                token.color = color;
+            });
+        }
+        return replicatedTokens;
     }
     /**
      * ボードレイアウトの生成
