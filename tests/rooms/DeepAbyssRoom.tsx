@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Deck } from '../../src/components/Deck';
-import { Draggable } from '../../src/components/Draggable';
 import { PlayField } from '../../src/components/PlayField';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
 import { SystemMessageWindow } from '../../src/components/systemMessageWindow';
@@ -16,7 +15,6 @@ import './DeepAbyssRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
 
-const Z_INDX_DRAGGABLE = 201;
 const Z_INDX_CARD = 200;
 
 interface PopupState {
@@ -211,6 +209,7 @@ export function DeepAbyssRoom() {
       </div>
       <SystemMessageWindow socket={socket} roomId={roomId} />
       <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" title="遺物" />
+      <TokenStore socket={socket} roomId={roomId} tokenStoreId="hanabishi" title="花火師" />
 
       <div className="game-main-layout">
         {/* 左側グループ：デッキ列とフィールド列を横に並べる塊 */}
@@ -256,17 +255,6 @@ export function DeepAbyssRoom() {
               myPlayerId={myPlayerId}
               layoutMode="grid"
             />
-            <Draggable
-              socket={socket}
-              roomId={roomId}
-              initialXY={{ x: 1000, y: 500 }}
-              key={`piece`}
-              draggableId={`piece`}
-              size={{ width: 200, height: 100 }}
-              containerRef={containerRef}
-              zIndex={Z_INDX_DRAGGABLE}
-              isFrontOnDragging={true}
-            ></Draggable>
           </div>
         </div>
 

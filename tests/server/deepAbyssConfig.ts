@@ -96,12 +96,12 @@ export const deepAbyssConfig: RoomConfig = {
           .filter(Boolean) // 名前が見つからない場合を除外
           .join('、');
 
-        manager.emitSystemMessage(`${cardNames} を出した！`, true);
+        manager.emitSystemMessage(`${cardNames} を出した！`, 1000, true);
         manager.updatePhase(DeepAbyssPhase.NEXT);
       },
       onNextRound: (state: RoomState, manager: RoomManager) => {
         manager.updatePhase(DeepAbyssPhase.NEXT);
-        manager.emitSystemMessage(`第 ${state.currentRoundIndex + 1} ラウンド開始！`, true);
+        manager.emitSystemMessage(`第 ${state.currentRoundIndex + 1} ラウンド開始！`, 1000, true);
         manager.unholdCards();
       },
       checkGameEnd: (state: RoomState) =>

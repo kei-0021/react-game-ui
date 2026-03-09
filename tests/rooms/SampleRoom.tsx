@@ -1,4 +1,5 @@
 // src/rooms/SampleRoom.tsx
+// ドラッグ可能オブジェクトの動作確認
 /// <reference types="vite/client" />
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
