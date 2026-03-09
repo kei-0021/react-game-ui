@@ -1208,9 +1208,15 @@ function Dice({
     ] })
   ] });
 }
-const draggable = "_draggable_1k3g7_3";
+const draggable = "_draggable_1gt9q_3";
+const contextMenu = "_contextMenu_1gt9q_28";
+const menuItem = "_menuItem_1gt9q_42";
+const separator = "_separator_1gt9q_63";
 const draggableStyles = {
-  draggable
+  draggable,
+  contextMenu,
+  menuItem,
+  separator
 };
 function Draggable({
   socket,
@@ -1232,7 +1238,7 @@ function Draggable({
   const [pos, setPos] = useState(initialXY);
   const [rotation, setRotation] = useState(0);
   const [currentZ, setCurrentZ] = useState(zIndex);
-  const [contextMenu, setContextMenu] = useState(null);
+  const [contextMenu2, setContextMenu] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const posRef = useRef(pos);
   const isDraggingRef = useRef(false);
@@ -1258,11 +1264,11 @@ function Draggable({
   }, [zIndex]);
   useEffect(() => {
     const closeMenu = () => setContextMenu(null);
-    if (contextMenu) {
+    if (contextMenu2) {
       window.addEventListener("click", closeMenu);
     }
     return () => window.removeEventListener("click", closeMenu);
-  }, [contextMenu]);
+  }, [contextMenu2]);
   useEffect(() => {
     if (!socket || !draggableId) return;
     const handleRemoteMove = (data) => {
@@ -1332,7 +1338,12 @@ function Draggable({
     emitUpdate(pos, nextRot, currentZ);
   };
   const onBringToFrontClick = () => {
-    const nextZ = currentZ + 100;
+    const nextZ = currentZ + 1e3;
+    setCurrentZ(nextZ);
+    emitUpdate(pos, rotation, nextZ);
+  };
+  const onBringToBackClick = () => {
+    const nextZ = 100;
     setCurrentZ(nextZ);
     emitUpdate(pos, rotation, nextZ);
   };
@@ -1398,41 +1409,77 @@ function Draggable({
         ) : children
       }
     ),
-    contextMenu && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    contextMenu2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
+        className: draggableStyles.contextMenu,
         style: {
-          position: "fixed",
-          top: contextMenu.y,
-          left: contextMenu.x,
-          zIndex: 10001,
-          background: "#222",
-          color: "#fff",
-          border: "1px solid #444",
-          borderRadius: "4px",
-          padding: "4px 0",
-          fontSize: "12px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.5)"
+          top: contextMenu2.y,
+          left: contextMenu2.x
         },
+        onClick: (e) => e.stopPropagation(),
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "div",
             {
-              style: { padding: "8px 16px", cursor: "pointer" },
-              onMouseOver: (e) => e.currentTarget.style.background = "#444",
-              onMouseOut: (e) => e.currentTarget.style.background = "transparent",
-              onClick: onRotateClick,
-              children: "🔄 90度回転"
+              className: draggableStyles.menuItem,
+              onClick: (e) => {
+                e.stopPropagation();
+                onRotateClick();
+                setContextMenu(null);
+              },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "🔄" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "90度回転" })
+              ]
             }
           ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "div",
             {
-              style: { padding: "8px 16px", cursor: "pointer" },
-              onMouseOver: (e) => e.currentTarget.style.background = "#444",
-              onMouseOut: (e) => e.currentTarget.style.background = "transparent",
-              onClick: onBringToFrontClick,
-              children: "🔼 最前面へ"
+              className: draggableStyles.menuItem,
+              onClick: (e) => {
+                e.stopPropagation();
+                onBringToFrontClick();
+                setContextMenu(null);
+              },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "⬆️" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最前面に移動" })
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "div",
+            {
+              className: draggableStyles.menuItem,
+              onClick: (e) => {
+                e.stopPropagation();
+                onBringToBackClick();
+                setContextMenu(null);
+              },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "⬇️" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最背面に移動" })
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: draggableStyles.separator }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "div",
+            {
+              className: draggableStyles.menuItem,
+              onClick: (e) => {
+                e.stopPropagation();
+                const nextRot = 0;
+                setRotation(nextRot);
+                emitUpdate(pos, nextRot, currentZ);
+                setContextMenu(null);
+              },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "🧹" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "角度をリセット" })
+              ]
             }
           )
         ]

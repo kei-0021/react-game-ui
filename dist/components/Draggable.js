@@ -147,7 +147,15 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
      * メニューアクション：最前面
      */
     const onBringToFrontClick = () => {
-        const nextZ = currentZ + 100;
+        const nextZ = currentZ + 1000;
+        setCurrentZ(nextZ);
+        emitUpdate(pos, rotation, nextZ);
+    };
+    /**
+     * メニューアクション：最背面
+     */
+    const onBringToBackClick = () => {
+        const nextZ = 100;
         setCurrentZ(nextZ);
         emitUpdate(pos, rotation, nextZ);
     };
@@ -198,17 +206,26 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
                         pointerEvents: 'none',
                         userSelect: 'none',
                         mixBlendMode: mask ? 'multiply' : 'normal',
-                    } })) : (children) }), contextMenu && (_jsxs("div", { style: {
-                    position: 'fixed',
+                    } })) : (children) }), contextMenu && (_jsxs("div", { className: draggableStyles.contextMenu, style: {
                     top: contextMenu.y,
                     left: contextMenu.x,
-                    zIndex: 10001,
-                    background: '#222',
-                    color: '#fff',
-                    border: '1px solid #444',
-                    borderRadius: '4px',
-                    padding: '4px 0',
-                    fontSize: '12px',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
-                }, children: [_jsx("div", { style: { padding: '8px 16px', cursor: 'pointer' }, onMouseOver: (e) => (e.currentTarget.style.background = '#444'), onMouseOut: (e) => (e.currentTarget.style.background = 'transparent'), onClick: onRotateClick, children: "\uD83D\uDD04 90\u5EA6\u56DE\u8EE2" }), _jsx("div", { style: { padding: '8px 16px', cursor: 'pointer' }, onMouseOver: (e) => (e.currentTarget.style.background = '#444'), onMouseOut: (e) => (e.currentTarget.style.background = 'transparent'), onClick: onBringToFrontClick, children: "\uD83D\uDD3C \u6700\u524D\u9762\u3078" })] }))] }));
+                }, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {
+                            e.stopPropagation();
+                            onRotateClick();
+                            setContextMenu(null);
+                        }, children: [_jsx("span", { className: draggableStyles.menuIcon, children: "\uD83D\uDD04" }), _jsx("span", { children: "90\u5EA6\u56DE\u8EE2" })] }), _jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {
+                            e.stopPropagation();
+                            onBringToFrontClick();
+                            setContextMenu(null);
+                        }, children: [_jsx("span", { className: draggableStyles.menuIcon, children: "\u2B06\uFE0F" }), _jsx("span", { children: "\u6700\u524D\u9762\u306B\u79FB\u52D5" })] }), _jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {
+                            e.stopPropagation();
+                            onBringToBackClick();
+                            setContextMenu(null);
+                        }, children: [_jsx("span", { className: draggableStyles.menuIcon, children: "\u2B07\uFE0F" }), _jsx("span", { children: "\u6700\u80CC\u9762\u306B\u79FB\u52D5" })] }), _jsx("div", { className: draggableStyles.separator }), _jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {
+                            e.stopPropagation();
+                            const nextRot = 0;
+                            setRotation(nextRot);
+                            emitUpdate(pos, nextRot, currentZ);
+                            setContextMenu(null);
+                        }, children: [_jsx("span", { className: draggableStyles.menuIcon, children: "\uD83E\uDDF9" }), _jsx("span", { children: "\u89D2\u5EA6\u3092\u30EA\u30BB\u30C3\u30C8" })] })] }))] }));
 }

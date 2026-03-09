@@ -219,7 +219,16 @@ export function Draggable({
    * メニューアクション：最前面
    */
   const onBringToFrontClick = () => {
-    const nextZ = currentZ + 100;
+    const nextZ = currentZ + 1000;
+    setCurrentZ(nextZ);
+    emitUpdate(pos, rotation, nextZ);
+  };
+
+  /**
+   * メニューアクション：最背面
+   */
+  const onBringToBackClick = () => {
+    const nextZ = 100;
     setCurrentZ(nextZ);
     emitUpdate(pos, rotation, nextZ);
   };
@@ -303,35 +312,63 @@ export function Draggable({
       {/* 簡易右クリックメニュー */}
       {contextMenu && (
         <div
+          className={draggableStyles.contextMenu}
           style={{
-            position: 'fixed',
             top: contextMenu.y,
             left: contextMenu.x,
-            zIndex: 10001,
-            background: '#222',
-            color: '#fff',
-            border: '1px solid #444',
-            borderRadius: '4px',
-            padding: '4px 0',
-            fontSize: '12px',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
           }}
+          onClick={(e) => e.stopPropagation()}
         >
           <div
-            style={{ padding: '8px 16px', cursor: 'pointer' }}
-            onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
-            onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-            onClick={onRotateClick}
+            className={draggableStyles.menuItem}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRotateClick();
+              setContextMenu(null);
+            }}
           >
-            🔄 90度回転
+            <span className={draggableStyles.menuIcon}>🔄</span>
+            <span>90度回転</span>
           </div>
+
           <div
-            style={{ padding: '8px 16px', cursor: 'pointer' }}
-            onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
-            onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-            onClick={onBringToFrontClick}
+            className={draggableStyles.menuItem}
+            onClick={(e) => {
+              e.stopPropagation();
+              onBringToFrontClick();
+              setContextMenu(null);
+            }}
           >
-            🔼 最前面へ
+            <span className={draggableStyles.menuIcon}>⬆️</span>
+            <span>最前面に移動</span>
+          </div>
+
+          <div
+            className={draggableStyles.menuItem}
+            onClick={(e) => {
+              e.stopPropagation();
+              onBringToBackClick();
+              setContextMenu(null);
+            }}
+          >
+            <span className={draggableStyles.menuIcon}>⬇️</span>
+            <span>最背面に移動</span>
+          </div>
+
+          <div className={draggableStyles.separator} />
+
+          <div
+            className={draggableStyles.menuItem}
+            onClick={(e) => {
+              e.stopPropagation();
+              const nextRot = 0;
+              setRotation(nextRot);
+              emitUpdate(pos, nextRot, currentZ);
+              setContextMenu(null);
+            }}
+          >
+            <span className={draggableStyles.menuIcon}>🧹</span>
+            <span>角度をリセット</span>
           </div>
         </div>
       )}
