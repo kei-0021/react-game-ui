@@ -224,7 +224,6 @@ export function DeepAbyssRoom() {
               title="アクションカード"
               currentPlayerId={currentPlayerId}
               myPlayerId={myPlayerId}
-              enabled={false}
             />
             <Deck
               socket={socket}
@@ -284,7 +283,6 @@ export function DeepAbyssRoom() {
             holdButton={true}
             revealButton={true}
             turnSkipButton={true}
-            enabled={false}
           />
         </div>
       </div>

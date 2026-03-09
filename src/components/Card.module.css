@@ -1,5 +1,6 @@
 /* Card.module.css */
 
+/* カードの基本構造 */
 .card {
   width: 90px;
   height: 120px;
@@ -17,9 +18,10 @@
     box-shadow 0.2s;
 }
 
+/* ツールチップ */
 .tooltip {
-  visibility: hidden; /* ⭐ 追記: デフォルトで非表示に戻す */
-  opacity: 0; /* ⭐ 追記: デフォルトで透明に戻す */
+  visibility: hidden;
+  opacity: 0;
   position: absolute;
   top: -10px;
   left: 50%;
@@ -34,6 +36,7 @@
   text-align: left;
   transition: opacity 0.2s;
   z-index: 1000;
+  pointer-events: none; /* ツールチップ自体がマウスを邪魔しないように */
 }
 
 .card:hover .tooltip {
@@ -41,6 +44,7 @@
   opacity: 1;
 }
 
+/* カードの裏面 */
 .cardBack {
   width: 90px;
   height: 120px;
@@ -53,7 +57,7 @@
   cursor: pointer;
 }
 
-/* デッキ */
+/* デッキコンテナ */
 .deckContainer {
   position: relative;
   width: 90px;
@@ -67,39 +71,37 @@
   pointer-events: none;
 }
 
+/* デッキ内のカード */
 .deckCard {
   position: absolute;
-  width: 90px;
-  height: 120px;
-  background-color: #333;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+  width: 100%; /* クォーテーションを削除 */
+  height: 100%;
   top: 0;
   left: 0;
-  width: '100%';
-  height: '100%';
-  display: 'block';
-  border-radius: 'inherit';
+  background-color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: block;
   transition: transform 0.2s;
 }
 
+/* 表面の土台 */
 .deckCardFront {
   position: absolute;
   top: 0;
   left: 0;
   width: 90px;
   height: 120px;
-  background-color: #fff;
-  border-radius: 4px;
+  background-color: transparent; /* 透明に変更 */
   border: 1px solid #ccc;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
   overflow: visible;
-  padding: 0;
 }
 
+/* 捨て札置き場 */
 .discardPileWrapper {
   border: 1px solid #777;
   background-color: #e0e0e0;
@@ -122,31 +124,33 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 0px;
+  padding: 0;
 }
 
-.cardNameText {
-  width: 100%;
-}
-
+/* テキスト表示用 */
 .cardNameWrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #fff;
+  background-color: #fff; /* 画像がない時だけ白にする */
   color: #000;
   height: 100%;
   width: 100%;
-  padding: 0;
-  text-align: center;
-  border-radius: 'inherit';
+  border-radius: inherit;
 }
 
+.cardNameText {
+  width: 100%;
+  padding: 4px;
+}
+
+/* 画像表示（PNG透過対応） */
 .cardImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-  display: 'block';
-  border-radius: 'inherit';
+  object-fit: contain;
+  display: block;
+  border-radius: inherit;
+  /* 画像自体に背景色は持たせない */
+  background-color: transparent;
 }
