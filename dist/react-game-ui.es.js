@@ -1,5 +1,5 @@
 import * as React from "react";
-import React__default, { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import React__default, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production_min = {};
 /**
@@ -968,16 +968,20 @@ const Cell = ({
     }
   );
 };
-const card = "_card_1etxq_4";
-const tooltip$2 = "_tooltip_1etxq_22";
-const deckContainer = "_deckContainer_1etxq_61";
-const disabled = "_disabled_1etxq_68";
-const deckCard = "_deckCard_1etxq_75";
-const deckCardFront = "_deckCardFront_1etxq_89";
-const discardPileWrapper = "_discardPileWrapper_1etxq_105";
-const cardNameWrapper = "_cardNameWrapper_1etxq_131";
-const cardNameText = "_cardNameText_1etxq_144";
-const cardImage = "_cardImage_1etxq_155";
+const card = "_card_zuj83_4";
+const tooltip$2 = "_tooltip_zuj83_22";
+const deckContainer = "_deckContainer_zuj83_61";
+const disabled = "_disabled_zuj83_68";
+const deckCard = "_deckCard_zuj83_75";
+const deckCardFront = "_deckCardFront_zuj83_89";
+const discardPileWrapper = "_discardPileWrapper_zuj83_105";
+const cardNameWrapper = "_cardNameWrapper_zuj83_131";
+const cardNameText = "_cardNameText_zuj83_144";
+const cardImage = "_cardImage_zuj83_155";
+const previewTrigger = "_previewTrigger_zuj83_165";
+const previewOverlay = "_previewOverlay_zuj83_169";
+const previewContent = "_previewContent_zuj83_183";
+const previewDescription = "_previewDescription_zuj83_187";
 const cardStyles = {
   card,
   tooltip: tooltip$2,
@@ -988,7 +992,11 @@ const cardStyles = {
   discardPileWrapper,
   cardNameWrapper,
   cardNameText,
-  cardImage
+  cardImage,
+  previewTrigger,
+  previewOverlay,
+  previewContent,
+  previewDescription
 };
 const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
   if (!canSeeFront) {
@@ -999,16 +1007,36 @@ const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) =>
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
 });
+const CardPreview = ({ card: card2, children }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const hasPreview = !!card2.frontImage || !!card2.description;
+  if (!hasPreview) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      className: cardStyles.previewTrigger,
+      onMouseEnter: () => setIsHovered(true),
+      onMouseLeave: () => setIsHovered(false),
+      children: [
+        children,
+        isHovered && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.previewOverlay, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewContent, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
+          card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardStyles.previewDescription, children: card2.description })
+        ] }) })
+      ]
+    }
+  );
+};
 const deckSection = "_deckSection_190vd_3";
 const deckTitle = "_deckTitle_190vd_13";
 const deckWrapperFlex = "_deckWrapperFlex_190vd_18";
-const tooltipBase = "_tooltipBase_190vd_23";
 const deckControls = "_deckControls_190vd_32";
 const deckStyles = {
   deckSection,
   deckTitle,
   deckWrapperFlex,
-  tooltipBase,
   deckControls
 };
 function Deck({
@@ -1081,34 +1109,17 @@ function Deck({
           ))
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: c, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
           className: cardStyles.deckCardFront,
           style: {
             zIndex: i + 1,
-            transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-            pointerEvents: i === discardPile.length - 1 ? "auto" : "none"
+            transform: `translate(${i * -0.3}px, ${i * -0.3}px)`
           },
-          onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true),
-          onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false),
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true }),
-            i === discardPile.length - 1 && c.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "span",
-              {
-                className: `${cardStyles.tooltip} ${deckStyles.tooltipBase}`,
-                style: {
-                  visibility: isDiscardHovered ? "visible" : "hidden",
-                  opacity: isDiscardHovered ? 1 : 0
-                },
-                children: c.description
-              }
-            )
-          ]
-        },
-        c.id
-      )) })
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true })
+        }
+      ) }, c.id)) })
     ] })
   ] });
 }

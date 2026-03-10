@@ -7,6 +7,7 @@ import type { Card } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
+import { CardPreview } from './CardPreview.js';
 import deckStyles from './Deck.module.css';
 
 type DeckProps = {
@@ -121,31 +122,17 @@ export function Deck({
         {/* 捨て札 */}
         <div className={`${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`}>
           {discardPile.map((c, i) => (
-            <div
-              key={c.id}
-              className={cardStyles.deckCardFront}
-              style={{
-                zIndex: i + 1,
-                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                pointerEvents: i === discardPile.length - 1 ? 'auto' : 'none',
-              }}
-              onMouseEnter={() => i === discardPile.length - 1 && setIsDiscardHovered(true)}
-              onMouseLeave={() => i === discardPile.length - 1 && setIsDiscardHovered(false)}
-            >
-              <CardDisplayContent card={c} canSeeFront={true} />
-
-              {i === discardPile.length - 1 && c.description && (
-                <span
-                  className={`${cardStyles.tooltip} ${deckStyles.tooltipBase}`}
-                  style={{
-                    visibility: isDiscardHovered ? 'visible' : 'hidden',
-                    opacity: isDiscardHovered ? 1 : 0,
-                  }}
-                >
-                  {c.description}
-                </span>
-              )}
-            </div>
+            <CardPreview key={c.id} card={c}>
+              <div
+                className={cardStyles.deckCardFront}
+                style={{
+                  zIndex: i + 1,
+                  transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+                }}
+              >
+                <CardDisplayContent card={c} canSeeFront={true} />
+              </div>
+            </CardPreview>
           ))}
         </div>
       </div>

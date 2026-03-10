@@ -36,7 +36,7 @@
   text-align: left;
   transition: opacity 0.2s;
   z-index: 1000;
-  pointer-events: none; /* ツールチップ自体がマウスを邪魔しないように */
+  pointer-events: none;
 }
 
 .card:hover .tooltip {
@@ -74,7 +74,7 @@
 /* デッキ内のカード */
 .deckCard {
   position: absolute;
-  width: 100%; /* クォーテーションを削除 */
+  width: 100%;
   height: 100%;
   top: 0;
   left: 0;
@@ -92,7 +92,7 @@
   left: 0;
   width: 90px;
   height: 120px;
-  background-color: transparent; /* 透明に変更 */
+  background-color: transparent;
   border: 1px solid #ccc;
   border-radius: 4px;
   display: flex;
@@ -158,6 +158,34 @@
   object-fit: contain;
   display: block;
   border-radius: inherit;
-  /* 画像自体に背景色は持たせない */
   background-color: transparent;
+}
+
+/* プレビューオーバーレイ */
+.previewTrigger {
+  display: inline-block;
+}
+
+.previewOverlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  text-align: center;
+}
+
+.previewContent {
+  width: 200px;
+}
+
+.previewDescription {
+  color: white;
+  margin-top: 10px;
+  font-size: 0.9rem;
 }

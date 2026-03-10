@@ -3,6 +3,7 @@ import * as React from 'react';
 import { useEffect } from 'react';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
+import { CardPreview } from './CardPreview.js';
 import deckStyles from './Deck.module.css';
 /**
  * 山札の描画、シャッフル、ドローの制御を行う。
@@ -58,12 +59,8 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
                                 zIndex: deckCards.length - i,
                                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
                                 backgroundColor: c.backColor,
-                            } }, c.id))) }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => (_jsxs("div", { className: cardStyles.deckCardFront, style: {
-                                zIndex: i + 1,
-                                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                                pointerEvents: i === discardPile.length - 1 ? 'auto' : 'none',
-                            }, onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true), onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false), children: [_jsx(CardDisplayContent, { card: c, canSeeFront: true }), i === discardPile.length - 1 && c.description && (_jsx("span", { className: `${cardStyles.tooltip} ${deckStyles.tooltipBase}`, style: {
-                                        visibility: isDiscardHovered ? 'visible' : 'hidden',
-                                        opacity: isDiscardHovered ? 1 : 0,
-                                    }, children: c.description }))] }, c.id))) })] })] }));
+                            } }, c.id))) }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => (_jsx(CardPreview, { card: c, children: _jsx("div", { className: cardStyles.deckCardFront, style: {
+                                    zIndex: i + 1,
+                                    transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+                                }, children: _jsx(CardDisplayContent, { card: c, canSeeFront: true }) }) }, c.id))) })] })] }));
 }
