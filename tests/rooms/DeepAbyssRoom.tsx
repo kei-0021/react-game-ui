@@ -1,6 +1,7 @@
 // tests/rooms/DeepAbyssRoom.tsx
 // カードの動作確認
 // トークンの動作確認
+// スコアボードのボタンの動作確認
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Deck } from '../../src/components/Deck';
@@ -273,9 +274,12 @@ export function DeepAbyssRoom() {
             myPlayerId={myPlayerId}
             playCardLimit={2}
             isDebug={true}
-            holdButton={true}
-            revealButton={true}
-            turnSkipButton={true}
+            playCardButton={[true, false]}
+            holdButton={[true, false]}
+            revealButton={[true, false]}
+            turnSkipButton={[true, true]}
+            roundSkipButton={[true, false]}
+            enabled={true}
           />
         </div>
       </div>

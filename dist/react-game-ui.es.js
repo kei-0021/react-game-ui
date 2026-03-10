@@ -1999,6 +1999,7 @@ const PlayerListItem = React.memo(
     const isActive = player.id === currentPlayerId;
     const playerColor = player.color || "#aaaaaa";
     const isOwner = player.id === myPlayerId;
+    const [showPlay] = playCardButton;
     const handleAddScore = (points) => {
       socket.emit("room:player:add-score", {
         roomId,
@@ -2067,7 +2068,7 @@ const PlayerListItem = React.memo(
               {
                 draggable: isOwner && !isHeld && enabled,
                 onDragStart: (e) => {
-                  if (!isOwner || isHeld || !playCardButton) return;
+                  if (!isOwner || isHeld || !showPlay) return;
                   e.dataTransfer.setData("cardId", card2.id);
                   e.dataTransfer.setData("deckId", card2.deckId);
                   e.dataTransfer.effectAllowed = "move";
@@ -2112,11 +2113,11 @@ function ScoreBoard({
   myPlayerId,
   playCardLimit,
   autoNextTurnOnCardPlay = false,
-  playCardButton = true,
-  holdButton = false,
-  revealButton = false,
-  turnSkipButton = false,
-  roundSkipbutton = false,
+  playCardButton = [true, true],
+  holdButton = [false, true],
+  revealButton = [false, true],
+  turnSkipButton = [false, true],
+  roundSkipButton = [false, true],
   isDebug = false,
   enabled = true
 }) {
@@ -2143,10 +2144,7 @@ function ScoreBoard({
       if (!myPlayer) return;
       const cardsByDeck = {};
       let targetPlayLocation;
-      if (isHold && myPlayer.isHolding == true) {
-        console.log("ホールド中は追加でホールドすることができません");
-        return;
-      }
+      if (isHold && myPlayer.isHolding == true) return;
       selectedCards.forEach((cardId) => {
         const card2 = myPlayer.cards.find((c) => c.id === cardId);
         if (!card2) return;
@@ -2163,15 +2161,14 @@ function ScoreBoard({
       if (!targetPlayLocation) return;
       const finalLocation = targetPlayLocation;
       Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
-        const playData = {
+        socket.emit("card:play", {
           roomId,
           deckId,
           cardIds,
           playerId: myPlayerId,
           playLocation: finalLocation,
           coordinate: { x: 50, y: 50 }
-        };
-        socket.emit("card:play", playData);
+        });
       });
       if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
       setSelectedCards([]);
@@ -2180,19 +2177,21 @@ function ScoreBoard({
   );
   const revealSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) return;
-    socket.emit("card:reveal", {
-      roomId,
-      playerId: myPlayerId,
-      cardIds: selectedCards
-    });
+    socket.emit("card:reveal", { roomId, playerId: myPlayerId, cardIds: selectedCards });
     if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
     setSelectedCards([]);
-  }, [selectedCards, myPlayerId, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
-  const nextTurn = () => socket.emit("game:next-turn", { roomId });
-  const nextRound = () => socket.emit("game:next-round", { roomId });
+  }, [selectedCards, myPlayerId, socket, roomId, autoNextTurnOnCardPlay]);
+  const [showPlay, canPlay] = playCardButton;
+  const [showHold, canHold] = holdButton;
+  const [showReveal, canReveal] = revealButton;
+  const [showTurnSkip, canTurnSkip] = turnSkipButton;
+  const [showRoundSkip, canRoundSkip] = roundSkipButton;
+  const isPlayDisabled = (canPlay !== void 0 ? !canPlay : !enabled) || selectedCards.length === 0;
+  const isHoldDisabled = (canHold !== void 0 ? !canHold : !enabled) || selectedCards.length === 0;
+  const isRevealDisabled = (canReveal !== void 0 ? !canReveal : !enabled) || selectedCards.length === 0;
+  const isTurnSkipDisabled = canTurnSkip !== void 0 ? !canTurnSkip : !enabled;
+  const isRoundSkipDisabled = canRoundSkip !== void 0 ? !canRoundSkip : !enabled;
   const isOverLimit = playCardLimit !== void 0 && selectedCards.length > playCardLimit;
-  const isActionDisabled = selectedCards.length === 0 || isOverLimit;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.container, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: scoreBoardStyles.title, children: "ゲームスコアボード" }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -2219,11 +2218,25 @@ function ScoreBoard({
         " 枚までです"
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [
-        playCardButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled || !enabled, children: "選択カードを出す" }),
-        holdButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isActionDisabled || !enabled, children: "選択カードをホールドする" }),
-        revealButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, disabled: !enabled, children: "選択カードを公開する" }),
-        turnSkipButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, disabled: !enabled, children: "ターンをスキップ" }),
-        roundSkipbutton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextRound, disabled: !enabled, children: "ラウンドをスキップ" })
+        showPlay && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isPlayDisabled || isOverLimit, children: "選択カードを出す" }),
+        showHold && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isHoldDisabled || isOverLimit, children: "選択カードをホールドする" }),
+        showReveal && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, disabled: isRevealDisabled || isOverLimit, children: "選択カードを公開する" }),
+        showTurnSkip && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "button",
+          {
+            onClick: () => socket.emit("game:next-turn", { roomId }),
+            disabled: isTurnSkipDisabled,
+            children: "ターンをスキップ"
+          }
+        ),
+        showRoundSkip && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "button",
+          {
+            onClick: () => socket.emit("game:next-round", { roomId }),
+            disabled: isRoundSkipDisabled,
+            children: "ラウンドをスキップ"
+          }
+        )
       ] })
     ] })
   ] });
