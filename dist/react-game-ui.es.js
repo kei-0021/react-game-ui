@@ -2112,7 +2112,6 @@ function ScoreBoard({
   currentPlayerId,
   myPlayerId,
   playCardLimit,
-  autoNextTurnOnCardPlay = false,
   playCardButton = [true, true],
   holdButton = [false, true],
   revealButton = [false, true],
@@ -2170,17 +2169,15 @@ function ScoreBoard({
           coordinate: { x: 50, y: 50 }
         });
       });
-      if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
       setSelectedCards([]);
     },
-    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]
+    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit]
   );
   const revealSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
     socket.emit("card:reveal", { roomId, playerId: myPlayerId, cardIds: selectedCards });
-    if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
     setSelectedCards([]);
-  }, [selectedCards, myPlayerId, socket, roomId, autoNextTurnOnCardPlay]);
+  }, [selectedCards, myPlayerId, socket, roomId]);
   const [showPlay, canPlay] = playCardButton;
   const [showHold, canHold] = holdButton;
   const [showReveal, canReveal] = revealButton;

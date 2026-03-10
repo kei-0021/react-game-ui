@@ -12,7 +12,6 @@ import { PlayerId, RoomId } from '../types/definition.js';
  * @param {PlayerId | null} [currentPlayerId] - 現在の手番のプレイヤーID
  * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
  * @param {number} [playCardLimit] - 1ターンにプレイ可能なカードの上限枚数
- * @param {boolean} [autoNextTurnOnCardPlay=false] - カードプレイ時に自動でターンを終了するかどうか
  * @param {[boolean, boolean]} [playCardButton=[true, true]] - カードプレイボタンの [表示, 有効]
  * @param {[boolean, boolean]} [holdButton=[false, true]] - カードホールドボタンの [表示, 有効]
  * @param {[boolean, boolean]} [revealButton=[false, true]] - カード公開ボタンの [表示, 有効]
@@ -21,7 +20,7 @@ import { PlayerId, RoomId } from '../types/definition.js';
  * @param {boolean} [isDebug=false] - スコアを手動で増減できるようにするかどうか (デバッグ用)
  * @param {boolean} [enabled=true] - 各種操作が全体的に有効かどうかのフラグ (個別設定がない場合のデフォルト)
  */
-export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, autoNextTurnOnCardPlay, playCardButton, holdButton, revealButton, turnSkipButton, roundSkipButton, isDebug, enabled, }: {
+export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, playCardButton, holdButton, revealButton, turnSkipButton, roundSkipButton, isDebug, enabled, }: {
     socket: Socket;
     roomId: RoomId;
     players: Player[];

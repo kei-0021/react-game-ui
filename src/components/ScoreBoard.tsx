@@ -184,7 +184,6 @@ const PlayerListItem = React.memo(
  * @param {PlayerId | null} [currentPlayerId] - 現在の手番のプレイヤーID
  * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
  * @param {number} [playCardLimit] - 1ターンにプレイ可能なカードの上限枚数
- * @param {boolean} [autoNextTurnOnCardPlay=false] - カードプレイ時に自動でターンを終了するかどうか
  * @param {[boolean, boolean]} [playCardButton=[true, true]] - カードプレイボタンの [表示, 有効]
  * @param {[boolean, boolean]} [holdButton=[false, true]] - カードホールドボタンの [表示, 有効]
  * @param {[boolean, boolean]} [revealButton=[false, true]] - カード公開ボタンの [表示, 有効]
@@ -200,7 +199,6 @@ export function ScoreBoard({
   currentPlayerId,
   myPlayerId,
   playCardLimit,
-  autoNextTurnOnCardPlay = false,
   playCardButton = [true, true],
   holdButton = [false, true],
   revealButton = [false, true],
@@ -284,18 +282,16 @@ export function ScoreBoard({
         } as CardPlayData);
       });
 
-      if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId } as GameNextTrunData);
       setSelectedCards([]);
     },
-    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay],
+    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit],
   );
 
   const revealSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
     socket.emit('card:reveal', { roomId, playerId: myPlayerId, cardIds: selectedCards });
-    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId } as GameNextTrunData);
     setSelectedCards([]);
-  }, [selectedCards, myPlayerId, socket, roomId, autoNextTurnOnCardPlay]);
+  }, [selectedCards, myPlayerId, socket, roomId]);
 
   // 各ボタンの状態を分解
   const [showPlay, canPlay] = playCardButton;
