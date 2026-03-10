@@ -151,31 +151,6 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.tokenBadge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #a1561499;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  font-size: 0.75em;
-  font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  flex-shrink: 0;
-  color: #000;
-}
-
-.tokenBadgeOwner {
-  cursor: pointer;
-  opacity: 1;
-}
-
-.tokenBadgeGuest {
-  cursor: default;
-  opacity: 0.7;
-}
-
 /* --- カード関連 --- */
 .isHoldMessage {
   color: #000000;

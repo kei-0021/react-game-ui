@@ -1899,33 +1899,30 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const container = "_container_xvtsm_7";
-const title$1 = "_title_xvtsm_19";
-const playerList = "_playerList_xvtsm_28";
-const playerItem = "_playerItem_xvtsm_38";
-const activePlayer = "_activePlayer_xvtsm_51";
-const playerHeader = "_playerHeader_xvtsm_59";
-const playerName = "_playerName_xvtsm_65";
-const scoreArea = "_scoreArea_xvtsm_75";
-const playerScore = "_playerScore_xvtsm_81";
-const debugScoreButtons = "_debugScoreButtons_xvtsm_90";
-const debugBtn = "_debugBtn_xvtsm_95";
-const resourceSection = "_resourceSection_xvtsm_126";
-const resourceList = "_resourceList_xvtsm_131";
-const resourceBadge = "_resourceBadge_xvtsm_137";
-const tokenList = "_tokenList_xvtsm_145";
-const tokenBadge = "_tokenBadge_xvtsm_154";
-const tokenBadgeOwner = "_tokenBadgeOwner_xvtsm_169";
-const tokenBadgeGuest = "_tokenBadgeGuest_xvtsm_174";
-const isHoldMessage = "_isHoldMessage_xvtsm_180";
-const cardList = "_cardList_xvtsm_187";
-const cardBase = "_cardBase_xvtsm_195";
-const cardSelected = "_cardSelected_xvtsm_227";
-const cardIsHeld = "_cardIsHeld_xvtsm_233";
-const tooltip = "_tooltip_xvtsm_245";
-const buttonArea = "_buttonArea_xvtsm_270";
-const limitMessage = "_limitMessage_xvtsm_277";
-const buttonGroup = "_buttonGroup_xvtsm_284";
+const container = "_container_4hhky_7";
+const title$1 = "_title_4hhky_19";
+const playerList = "_playerList_4hhky_28";
+const playerItem = "_playerItem_4hhky_38";
+const activePlayer = "_activePlayer_4hhky_51";
+const playerHeader = "_playerHeader_4hhky_59";
+const playerName = "_playerName_4hhky_65";
+const scoreArea = "_scoreArea_4hhky_75";
+const playerScore = "_playerScore_4hhky_81";
+const debugScoreButtons = "_debugScoreButtons_4hhky_90";
+const debugBtn = "_debugBtn_4hhky_95";
+const resourceSection = "_resourceSection_4hhky_126";
+const resourceList = "_resourceList_4hhky_131";
+const resourceBadge = "_resourceBadge_4hhky_137";
+const tokenList = "_tokenList_4hhky_145";
+const isHoldMessage = "_isHoldMessage_4hhky_155";
+const cardList = "_cardList_4hhky_162";
+const cardBase = "_cardBase_4hhky_170";
+const cardSelected = "_cardSelected_4hhky_202";
+const cardIsHeld = "_cardIsHeld_4hhky_208";
+const tooltip = "_tooltip_4hhky_220";
+const buttonArea = "_buttonArea_4hhky_245";
+const limitMessage = "_limitMessage_4hhky_252";
+const buttonGroup = "_buttonGroup_4hhky_259";
 const scoreBoardStyles = {
   container,
   title: title$1,
@@ -1942,9 +1939,6 @@ const scoreBoardStyles = {
   resourceList,
   resourceBadge,
   tokenList,
-  tokenBadge,
-  tokenBadgeOwner,
-  tokenBadgeGuest,
   isHoldMessage,
   cardList,
   cardBase,
@@ -1955,10 +1949,10 @@ const scoreBoardStyles = {
   limitMessage,
   buttonGroup
 };
-const image = "_image_th9op_2";
-const textWrapper = "_textWrapper_th9op_10";
-const text = "_text_th9op_10";
-const contentWrapper = "_contentWrapper_th9op_26";
+const image = "_image_965of_2";
+const textWrapper = "_textWrapper_965of_10";
+const text = "_text_965of_10";
+const contentWrapper = "_contentWrapper_965of_26";
 const styles$2 = {
   image,
   textWrapper,
@@ -2035,7 +2029,6 @@ const PlayerListItem = React.memo(
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: player.tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
-              className: `${scoreBoardStyles.tokenBadge} ${myPlayerId === player.id ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`,
               onClick: () => {
                 socket.emit("token:reclaim", {
                   roomId,

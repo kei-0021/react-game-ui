@@ -100,7 +100,6 @@ const PlayerListItem = React.memo(
           {player.tokens.map((token: Token) => (
             <div
               key={token.id}
-              className={`${scoreBoardStyles.tokenBadge} ${myPlayerId === player.id ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`}
               onClick={() => {
                 socket.emit('token:reclaim', {
                   roomId,
