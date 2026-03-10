@@ -1,4 +1,5 @@
 // tests/rooms/DeepAbyssRoom.tsx
+// カードの動作確認
 // トークンの動作確認
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -209,8 +210,11 @@ export function DeepAbyssRoom() {
         <MyBoard socket={socket} roomId={roomId} myPlayerId={myPlayerId} />
       </div>
       <SystemMessageWindow socket={socket} roomId={roomId} />
-      <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" title="遺物トークン" />
-      <TokenStore socket={socket} roomId={roomId} tokenStoreId="Hanabishi" title="花火師トークン" />
+
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" title="遺物トークン" />
+        <TokenStore socket={socket} roomId={roomId} tokenStoreId="Hanabishi" title="花火師トークン" />
+      </div>
 
       <div className="game-main-layout">
         {/* 左側グループ：デッキ列とフィールド列を横に並べる塊 */}

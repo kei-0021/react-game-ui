@@ -1,5 +1,5 @@
 import * as React from "react";
-import React__default, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React__default, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production_min = {};
 /**
@@ -1008,26 +1008,32 @@ const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) =>
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
 });
 const CardPreview = ({ card: card2, children }) => {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
+  const timerRef = useRef(null);
   const hasPreview = !!card2.frontImage || !!card2.description;
+  const handleMouseEnter = (e) => {
+    timerRef.current = setTimeout(() => {
+      setPosition({ x: e.clientX, y: e.clientY - 180 });
+      setIsHovered(true);
+    }, 500);
+  };
+  const handleMouseLeave = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    setIsHovered(false);
+  };
   if (!hasPreview) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "div",
-    {
-      className: cardStyles.previewTrigger,
-      onMouseEnter: () => setIsHovered(true),
-      onMouseLeave: () => setIsHovered(false),
-      children: [
-        children,
-        isHovered && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.previewOverlay, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewContent, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
-          card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardStyles.previewDescription, children: card2.description })
-        ] }) })
-      ]
-    }
-  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewTrigger, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, children: [
+    children,
+    isHovered && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewContent, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
+      card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardStyles.previewDescription, children: card2.description })
+    ] }) })
+  ] });
 };
 const deckSection = "_deckSection_190vd_3";
 const deckTitle = "_deckTitle_190vd_13";
