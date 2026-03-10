@@ -1,5 +1,7 @@
 /* src/components/TokenStore.tsx */
 .section {
+  width: 320px;
+  height: 150px;
   background-color: #dededeff;
   padding: 10px;
   margin: 15px;
@@ -13,7 +15,11 @@
 }
 
 .list {
+  position: relative;
+  margin: 0 auto;
+  min-height: 50px;
+  border-radius: 8px;
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
 }

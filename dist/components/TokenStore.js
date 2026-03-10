@@ -38,5 +38,17 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
         const data = { roomId, tokenStoreId, tokenId };
         socket.emit('token:aquire', data);
     };
-    return (_jsxs("section", { className: styles.section, children: [_jsx("h3", { className: styles.title, children: name }), _jsx("div", { className: styles.list, children: tokenStoreTokens.map((t) => (_jsx("div", { onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: _jsx(TokenDisplayContent, { token: t }) }, t.id))) })] }));
+    return (_jsxs("section", { className: styles.section, children: [_jsx("h3", { className: styles.title, children: name }), _jsx("div", { className: styles.list, children: tokenStoreTokens.map((t, i) => {
+                    // インデックスを利用して擬似的に散らばった位置を計算
+                    const offsetX = (i % 5) * 40 - 80;
+                    const offsetY = ((i * 3) % 4) * 10 - 20;
+                    const rotation = ((i * 13) % 30) - 15;
+                    return (_jsx("div", { style: {
+                            position: 'absolute',
+                            left: `calc(40% + ${offsetX}px)`,
+                            top: `calc(50% + ${offsetY}px)`,
+                            transform: `rotate(${rotation}deg)`,
+                            zIndex: i,
+                        }, onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: _jsx(TokenDisplayContent, { token: t }) }, t.id));
+                }) })] }));
 }

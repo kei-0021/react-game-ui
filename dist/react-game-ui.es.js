@@ -2336,9 +2336,9 @@ function Timer({ socket = null, initialDuration, onFinish, roomId }) {
     }
   );
 }
-const section = "_section_svsi4_2";
-const title = "_title_svsi4_10";
-const list = "_list_svsi4_15";
+const section = "_section_5m8u8_2";
+const title = "_title_5m8u8_12";
+const list = "_list_5m8u8_17";
 const styles = {
   section,
   title,
@@ -2369,7 +2369,27 @@ function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles.section, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.list, children: tokenStoreTokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t }) }, t.id)) })
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.list, children: tokenStoreTokens.map((t, i) => {
+      const offsetX = i % 5 * 40 - 80;
+      const offsetY = i * 3 % 4 * 10 - 20;
+      const rotation = i * 13 % 30 - 15;
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          style: {
+            position: "absolute",
+            left: `calc(40% + ${offsetX}px)`,
+            top: `calc(50% + ${offsetY}px)`,
+            transform: `rotate(${rotation}deg)`,
+            zIndex: i
+          },
+          onClick: () => handleClick(t.id),
+          onDoubleClick: () => handleDoubleClick(t.id),
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t })
+        },
+        t.id
+      );
+    }) })
   ] });
 }
 let LOG_CATEGORIES = {
