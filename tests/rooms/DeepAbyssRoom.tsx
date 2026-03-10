@@ -1,4 +1,5 @@
 // tests/rooms/DeepAbyssRoom.tsx
+// トークンの動作確認
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Deck } from '../../src/components/Deck';
@@ -239,6 +240,14 @@ export function DeepAbyssRoom() {
             <PlayField
               socket={socket}
               roomId={roomId}
+              deckId="deepAbyssSpecies"
+              players={players}
+              myPlayerId={myPlayerId}
+              layoutMode="grid"
+            />
+            <PlayField
+              socket={socket}
+              roomId={roomId}
               deckId="deepAbyssAction"
               title="アクションカード"
               myPlayerId={myPlayerId}
@@ -246,14 +255,6 @@ export function DeepAbyssRoom() {
               backgroundImage="/gameboard.png"
               is_logging={true}
               baseZIndex={Z_INDX_CARD}
-            />
-            <PlayField
-              socket={socket}
-              roomId={roomId}
-              deckId="deepAbyssSpecies"
-              players={players}
-              myPlayerId={myPlayerId}
-              layoutMode="grid"
             />
           </div>
         </div>
