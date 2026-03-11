@@ -176,7 +176,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                 transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                             }
                             : {};
-                        return (_jsxs("div", { draggable: false, onDragStart: (e) => e.preventDefault(), onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, onContextMenu: (e) => handleContextMenu(e, card), className: `${playFieldStyles.rgPlayFieldCardWrapper}`, style: {
+                        return (_jsxs("div", { draggable: false, onDragStart: (e) => e.preventDefault(), onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, onContextMenu: (e) => handleContextMenu(e, card), onPointerCancel: handlePointerUp, className: `${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`, style: {
                                 '--owner-color': owner?.color || '#aaaaaa',
                                 ...freeStyle,
                                 touchAction: 'none',

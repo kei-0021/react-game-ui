@@ -266,7 +266,8 @@ export function PlayField({
               onPointerDown={(e) => handlePointerDown(e, card)}
               onPointerUp={handlePointerUp}
               onContextMenu={(e) => handleContextMenu(e, card)}
-              className={`${playFieldStyles.rgPlayFieldCardWrapper}`}
+              onPointerCancel={handlePointerUp}
+              className={`${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`}
               style={
                 {
                   '--owner-color': owner?.color || '#aaaaaa',

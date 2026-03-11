@@ -36,7 +36,8 @@
     "location": "deck",
     "drawCondition": ["hand", "back"],
     "playLocation": "field",
-    "fieldBackCondition": ["hand", "face"]
+    "fieldBackCondition": ["hand", "face"],
+    "frontImage": "/blue_1.png"
   },
   {
     "id": "card-B-02",

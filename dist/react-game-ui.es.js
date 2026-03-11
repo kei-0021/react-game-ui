@@ -968,6 +968,7 @@ const Cell = ({
     }
   );
 };
+const card = "_card_zuj83_4";
 const tooltip$2 = "_tooltip_zuj83_22";
 const deckContainer = "_deckContainer_zuj83_61";
 const disabled = "_disabled_zuj83_68";
@@ -982,6 +983,7 @@ const previewOverlay = "_previewOverlay_zuj83_169";
 const previewContent = "_previewContent_zuj83_183";
 const previewDescription = "_previewDescription_zuj83_187";
 const cardStyles = {
+  card,
   tooltip: tooltip$2,
   deckContainer,
   disabled,
@@ -996,20 +998,20 @@ const cardStyles = {
   previewContent,
   previewDescription
 };
-const CardDisplayContent = React__default.memo(({ card, canSeeFront }) => {
+const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
   if (!canSeeFront) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card.backColor || "#333" } });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card2.backColor || "#333" } });
   }
-  if (card.frontImage) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card.frontImage, alt: card.name, className: cardStyles.cardImage });
+  if (card2.frontImage) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: cardStyles.cardImage });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card.name }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
 });
-const CardPreview = ({ card, children }) => {
+const CardPreview = ({ card: card2, children }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef(null);
-  const hasPreview = !!card.frontImage || !!card.description;
+  const hasPreview = !!card2.frontImage || !!card2.description;
   const handleMouseEnter = (e) => {
     timerRef.current = setTimeout(() => {
       setPosition({ x: e.clientX, y: e.clientY - 180 });
@@ -1028,8 +1030,8 @@ const CardPreview = ({ card, children }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewTrigger, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, children: [
     children,
     isHovered && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewContent, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card, canSeeFront: true }),
-      card.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardStyles.previewDescription, children: card.description })
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
+      card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardStyles.previewDescription, children: card2.description })
     ] }) })
   ] });
 };
@@ -1713,17 +1715,17 @@ function PlayField({
     }, 30),
     [socket, roomId, deckId]
   );
-  const handlePointerDown = (e, card) => {
+  const handlePointerDown = (e, card2) => {
     if (layoutMode !== "free") return;
-    draggingIdRef.current = card.id;
-    setActiveDraggingId(card.id);
-    setDragPos({ x: card.coordinate?.x ?? 50, y: card.coordinate?.y ?? 50 });
+    draggingIdRef.current = card2.id;
+    setActiveDraggingId(card2.id);
+    setDragPos({ x: card2.coordinate?.x ?? 50, y: card2.coordinate?.y ?? 50 });
     e.currentTarget.setPointerCapture(e.pointerId);
   };
-  const handleContextMenu = (e, card) => {
+  const handleContextMenu = (e, card2) => {
     e.preventDefault();
     e.stopPropagation();
-    setContextMenu({ x: e.clientX, y: e.clientY, card });
+    setContextMenu({ x: e.clientX, y: e.clientY, card: card2 });
   };
   const handlePointerMove = (e) => {
     if (!draggingIdRef.current || !containerRef.current) return;
@@ -1766,13 +1768,13 @@ function PlayField({
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   };
-  const handleCardBack = (card) => {
+  const handleCardBack = (card2) => {
     if (!myPlayerId) return;
-    const backTo = card.fieldBackCondition[0] || "discard";
+    const backTo = card2.fieldBackCondition[0] || "discard";
     const requestData = {
       roomId,
-      deckId: card.deckId || deckId,
-      cardId: card.id
+      deckId: card2.deckId || deckId,
+      cardId: card2.id
     };
     if (backTo === "hand") {
       requestData.playerId = myPlayerId;
@@ -1805,12 +1807,12 @@ function PlayField({
               overflow: "visible"
             },
             children: [
-              playedCards.map((card, index) => {
-                const owner = players.find((p) => p.id === card.ownerId);
-                const isDragging = activeDraggingId === card.id;
-                const isActuallyFreeShape = !!(card.freeShape && card.frontImage);
-                const displayX = isDragging && dragPos ? dragPos.x : card.coordinate?.x ?? 50;
-                const displayY = isDragging && dragPos ? dragPos.y : card.coordinate?.y ?? 50;
+              playedCards.map((card2, index) => {
+                const owner = players.find((p) => p.id === card2.ownerId);
+                const isDragging = activeDraggingId === card2.id;
+                const isActuallyFreeShape = !!(card2.freeShape && card2.frontImage);
+                const displayX = isDragging && dragPos ? dragPos.x : card2.coordinate?.x ?? 50;
+                const displayY = isDragging && dragPos ? dragPos.y : card2.coordinate?.y ?? 50;
                 const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
                 const freeStyle = layoutMode === "free" ? {
                   position: "absolute",
@@ -1827,10 +1829,11 @@ function PlayField({
                   {
                     draggable: false,
                     onDragStart: (e) => e.preventDefault(),
-                    onPointerDown: (e) => handlePointerDown(e, card),
+                    onPointerDown: (e) => handlePointerDown(e, card2),
                     onPointerUp: handlePointerUp,
-                    onContextMenu: (e) => handleContextMenu(e, card),
-                    className: `${playFieldStyles.rgPlayFieldCardWrapper}`,
+                    onContextMenu: (e) => handleContextMenu(e, card2),
+                    onPointerCancel: handlePointerUp,
+                    className: `${isActuallyFreeShape ? "" : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`,
                     style: {
                       "--owner-color": owner?.color || "#aaaaaa",
                       ...freeStyle,
@@ -1846,12 +1849,12 @@ function PlayField({
                       position: layoutMode === "free" ? "absolute" : "relative"
                     },
                     children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card, canSeeFront: card.isFaceUp }),
-                      card.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
-                      card.description && !isDragging && card.isFaceUp && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card.description })
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: card2.isFaceUp }),
+                      card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
+                      card2.description && !isDragging && card2.isFaceUp && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description })
                     ]
                   },
-                  card.id
+                  card2.id
                 );
               }),
               contextMenu2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -2166,18 +2169,18 @@ const PlayerListItem = React.memo(
             token.id
           )) }),
           player.isHolding && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: scoreBoardStyles.isHoldMessage, children: "カードをホールドしています" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card) => {
-            const isSelected = selectedCards.includes(card.id);
-            const isHeld = heldCards.includes(card.id);
-            const canSeeFront = !!card.isFaceUp || isOwner;
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card2) => {
+            const isSelected = selectedCards.includes(card2.id);
+            const isHeld = heldCards.includes(card2.id);
+            const canSeeFront = !!card2.isFaceUp || isOwner;
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
                 draggable: isOwner && !isHeld && enabled,
                 onDragStart: (e) => {
                   if (!isOwner || isHeld || !showPlay) return;
-                  e.dataTransfer.setData("cardId", card.id);
-                  e.dataTransfer.setData("deckId", card.deckId);
+                  e.dataTransfer.setData("cardId", card2.id);
+                  e.dataTransfer.setData("deckId", card2.deckId);
                   e.dataTransfer.effectAllowed = "move";
                 },
                 className: `
@@ -2187,8 +2190,8 @@ const PlayerListItem = React.memo(
                 style: {
                   // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
                   cursor: isHeld ? "not-allowed" : isOwner && enabled ? "grab" : "default",
-                  border: card.isFaceUp ? "3px solid #00ffff" : "1px solid #ccc",
-                  boxShadow: card.isFaceUp ? "0 0 10px #00ffff" : "none",
+                  border: card2.isFaceUp ? "3px solid #00ffff" : "1px solid #ccc",
+                  boxShadow: card2.isFaceUp ? "0 0 10px #00ffff" : "none",
                   opacity: !enabled || isHeld ? 0.7 : 1,
                   padding: 0,
                   overflow: "hidden",
@@ -2197,14 +2200,14 @@ const PlayerListItem = React.memo(
                   alignItems: "stretch",
                   justifyContent: "stretch"
                 },
-                onClick: () => !isHeld && enabled && toggleCardSelection(card.id, isOwner),
+                onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner),
                 children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card, canSeeFront }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
                   isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardIsHeld, children: "🔐" }),
-                  canSeeFront && card.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: scoreBoardStyles.tooltip, children: card.description })
+                  canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: scoreBoardStyles.tooltip, children: card2.description })
                 ]
               },
-              card.id
+              card2.id
             );
           }) })
         ]
@@ -2252,12 +2255,12 @@ function ScoreBoard({
       let targetPlayLocation;
       if (isHold && myPlayer.isHolding == true) return;
       selectedCards.forEach((cardId) => {
-        const card = myPlayer.cards.find((c) => c.id === cardId);
-        if (!card) return;
-        if (!targetPlayLocation) targetPlayLocation = card.playLocation;
-        if (!cardsByDeck[card.deckId]) cardsByDeck[card.deckId] = [];
-        cardsByDeck[card.deckId].push(card.id);
-        if (isHold) setHeldCards((prev) => [...prev, card.id]);
+        const card2 = myPlayer.cards.find((c) => c.id === cardId);
+        if (!card2) return;
+        if (!targetPlayLocation) targetPlayLocation = card2.playLocation;
+        if (!cardsByDeck[card2.deckId]) cardsByDeck[card2.deckId] = [];
+        cardsByDeck[card2.deckId].push(card2.id);
+        if (isHold) setHeldCards((prev) => [...prev, card2.id]);
       });
       if (isHold == true) {
         socket.emit("card:hold", { roomId, playerId: myPlayerId, cardIdsbyDeck: cardsByDeck });
@@ -2614,32 +2617,32 @@ class RoomManager {
     const [targetLocation, targetState] = condition;
     const currentDeck = this.state.decks[deckId].filter((c) => c.location === "deck");
     if (!currentDeck.length) return false;
-    const card = currentDeck[0];
-    card.isFaceUp = targetState === "face";
+    const card2 = currentDeck[0];
+    card2.isFaceUp = targetState === "face";
     let destination = "";
     server_log(
       "deck",
       this.state.gameId,
       this.state.roomId,
-      `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`
+      `DRAW: ${card2.name} (ID:${card2.id}) (deck -> ${destination}, state: ${targetState})`
     );
     if (targetLocation === "discard") {
-      card.location = "discard";
-      card.ownerId = null;
-      this.state.discardPile[deckId].push(card);
+      card2.location = "discard";
+      card2.ownerId = null;
+      this.state.discardPile[deckId].push(card2);
       destination = "discard";
     } else if (playerId && targetLocation === "hand") {
       const player = this.state.players.find((p) => p.id === playerId);
       if (player) {
-        card.location = "hand";
-        card.ownerId = playerId;
-        player.cards.push(card);
+        card2.location = "hand";
+        card2.ownerId = playerId;
+        player.cards.push(card2);
         destination = playerId;
       }
     } else {
-      card.location = "field";
-      card.ownerId = null;
-      this.state.playFieldCards[deckId].push(card);
+      card2.location = "field";
+      card2.ownerId = null;
+      this.state.playFieldCards[deckId].push(card2);
       destination = "field";
     }
     this.emitDeckUpdate(deckId);
@@ -2663,24 +2666,24 @@ class RoomManager {
       return;
     }
     ids.forEach((id) => {
-      const card = this.state.decks[deckId]?.find((c) => c.id === id);
-      if (!card) return;
+      const card2 = this.state.decks[deckId]?.find((c) => c.id === id);
+      if (!card2) return;
       const p = this.state.players.find((p2) => p2.id === playerId);
       if (p) p.cards = p.cards.filter((c) => c.id !== id);
-      card.location = playLocation;
-      card.coordinate = coordinate;
-      card.isFaceUp = true;
+      card2.location = playLocation;
+      card2.coordinate = coordinate;
+      card2.isFaceUp = true;
       this.state.playFieldCards[deckId] = this.state.playFieldCards[deckId].filter((c) => c.id !== id);
       this.state.discardPile[deckId] = this.state.discardPile[deckId].filter((c) => c.id !== id);
       if (playLocation === "discard") {
-        this.state.discardPile[deckId].push(card);
+        this.state.discardPile[deckId].push(card2);
       } else {
-        this.state.playFieldCards[deckId].push(card);
+        this.state.playFieldCards[deckId].push(card2);
       }
-      server_log("card", this.state.gameId, this.state.roomId, `"${card.name}" をプレイした`);
-      const effect = this.param.cardEffects?.[card.name];
+      server_log("card", this.state.gameId, this.state.roomId, `"${card2.name}" をプレイした`);
+      const effect = this.param.cardEffects?.[card2.name];
       if (effect) {
-        server_log("card", this.state.gameId, this.state.roomId, `カード効果発揮: ${card.name} by ${playerId}`);
+        server_log("card", this.state.gameId, this.state.roomId, `カード効果発揮: ${card2.name} by ${playerId}`);
         effect({
           playerId,
           updateResource: (resourceId, amount) => this.acquireResource(playerId, resourceId, amount),
@@ -2726,22 +2729,22 @@ class RoomManager {
     const fieldList = playFieldCards[deckId] || [];
     const cardIndex = fieldList.findIndex((c) => c.id === cardId);
     if (cardIndex === -1) return false;
-    const [card] = fieldList.splice(cardIndex, 1);
-    card.isFaceUp = card.fieldBackCondition?.[1] === "face";
+    const [card2] = fieldList.splice(cardIndex, 1);
+    card2.isFaceUp = card2.fieldBackCondition?.[1] === "face";
     if (playerId) {
       const player = players.find((p) => p.id === playerId);
       if (!player) return false;
-      card.location = "hand";
-      card.ownerId = playerId;
+      card2.location = "hand";
+      card2.ownerId = playerId;
       player.cards = player.cards || [];
-      player.cards.push(card);
-      server_log("card", gameId, roomId, `Return: ${card.name} -> Player:${playerId}`);
+      player.cards.push(card2);
+      server_log("card", gameId, roomId, `Return: ${card2.name} -> Player:${playerId}`);
     } else {
-      card.location = "discard";
-      card.ownerId = null;
+      card2.location = "discard";
+      card2.ownerId = null;
       discardPile[deckId] = discardPile[deckId] || [];
-      discardPile[deckId].push(card);
-      server_log("card", gameId, roomId, `Discard: ${card.name} -> discard`);
+      discardPile[deckId].push(card2);
+      server_log("card", gameId, roomId, `Discard: ${card2.name} -> discard`);
     }
     this.emitDeckUpdate(deckId);
     this.emitPlayerUpdate();
