@@ -309,7 +309,7 @@ export function Draggable({
         )}
       </div>
 
-      {/* 簡易右クリックメニュー */}
+      {/* 右クリックメニュー */}
       {contextMenu && (
         <div
           className={draggableStyles.contextMenu}

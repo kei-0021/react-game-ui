@@ -46,7 +46,6 @@ type PlayFieldProps = {
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
  * @param {string} [baseZIndex] - カードの重ね順
- * @param {boolean} [is_logging=false] - デバッグログを出力するかどうか
  */
 export function PlayField({
   socket,
@@ -56,7 +55,6 @@ export function PlayField({
   players,
   myPlayerId,
   layoutMode = 'free',
-  is_logging = false,
   backgroundImage,
   baseZIndex = 100,
 }: PlayFieldProps) {
@@ -66,8 +64,20 @@ export function PlayField({
   // ドラッグ中のローカルな座標を保持（ラグを消すためのステート）
   const [dragPos, setDragPos] = React.useState<{ x: number; y: number } | null>(null);
 
+  // 右クリックメニュー用のステート (Draggableの仕様に合わせる)
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; card: Card } | null>(null);
+
   const containerRef = React.useRef<HTMLDivElement>(null);
   const draggingIdRef = React.useRef<string | null>(null);
+
+  // メニュー外クリックで閉じる (Draggableと同様の処理)
+  React.useEffect(() => {
+    const closeMenu = () => setContextMenu(null);
+    if (contextMenu) {
+      window.addEventListener('click', closeMenu);
+    }
+    return () => window.removeEventListener('click', closeMenu);
+  }, [contextMenu]);
 
   React.useEffect(() => {
     socket.on(`deck:update:${deckId}`, (data: DeckUpdateData) => {
@@ -113,6 +123,13 @@ export function PlayField({
     setDragPos({ x: card.coordinate?.x ?? 50, y: card.coordinate?.y ?? 50 });
 
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  // 右クリックハンドラ (Draggableの形式に合わせる)
+  const handleContextMenu = (e: React.MouseEvent, card: Card) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, card });
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -248,8 +265,8 @@ export function PlayField({
               onDragStart={(e) => e.preventDefault()}
               onPointerDown={(e) => handlePointerDown(e, card)}
               onPointerUp={handlePointerUp}
-              onPointerCancel={handlePointerUp}
-              className={`${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`}
+              onContextMenu={(e) => handleContextMenu(e, card)}
+              className={`${playFieldStyles.rgPlayFieldCardWrapper}`}
               style={
                 {
                   '--owner-color': owner?.color || '#aaaaaa',
@@ -280,6 +297,45 @@ export function PlayField({
             </div>
           );
         })}
+
+        {/* DraggableのCSSクラス名に合わせた右クリックメニュー */}
+        {contextMenu && (
+          <div
+            className={playFieldStyles.contextMenu}
+            style={{
+              top: contextMenu.y,
+              left: contextMenu.x,
+              position: 'fixed', // Draggableに合わせてfixed
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className={playFieldStyles.menuItem}
+              onClick={() => {
+                socket.emit('card:flip', {
+                  roomId,
+                  deckId: contextMenu.card.deckId || deckId,
+                  cardId: contextMenu.card.id,
+                });
+                setContextMenu(null);
+              }}
+            >
+              <span className={playFieldStyles.menuIcon}>🔄</span>
+              <span>カードを裏返す</span>
+            </div>
+
+            <div
+              className={playFieldStyles.menuItem}
+              onClick={() => {
+                handleCardBack(contextMenu.card);
+                setContextMenu(null);
+              }}
+            >
+              <span className={playFieldStyles.menuIcon}>✋</span>
+              <span>手札/捨て札へ戻す</span>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
