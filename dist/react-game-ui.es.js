@@ -1846,9 +1846,9 @@ function PlayField({
                       position: layoutMode === "free" ? "absolute" : "relative"
                     },
                     children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card, canSeeFront: true }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card, canSeeFront: card.isFaceUp }),
                       card.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
-                      card.description && !isDragging && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card.description })
+                      card.description && !isDragging && card.isFaceUp && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card.description })
                     ]
                   },
                   card.id

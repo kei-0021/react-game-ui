@@ -189,7 +189,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                 padding: 0,
                                 display: 'block',
                                 position: layoutMode === 'free' ? 'absolute' : 'relative',
-                            }, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && _jsx("span", { className: cardStyles.tooltip, children: card.description })] }, card.id));
+                            }, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: card.isFaceUp }), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && card.isFaceUp && (_jsx("span", { className: cardStyles.tooltip, children: card.description }))] }, card.id));
                     }), contextMenu && (_jsxs("div", { className: playFieldStyles.contextMenu, style: {
                             top: contextMenu.y,
                             left: contextMenu.x,

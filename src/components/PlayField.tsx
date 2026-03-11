@@ -284,7 +284,7 @@ export function PlayField({
                 } as React.CSSProperties
               }
             >
-              <CardDisplayContent card={card} canSeeFront={true} />
+              <CardDisplayContent card={card} canSeeFront={card.isFaceUp} />
 
               {card.ownerId && (
                 <div className={playFieldStyles.rgPlayFieldOwnerBadge} title={`所有者: ${owner?.name || '不明'}`}>
@@ -292,7 +292,10 @@ export function PlayField({
                 </div>
               )}
 
-              {card.description && !isDragging && <span className={cardStyles.tooltip}>{card.description}</span>}
+              {/* 裏向きの時は説明文（ツールチップ）も隠す */}
+              {card.description && !isDragging && card.isFaceUp && (
+                <span className={cardStyles.tooltip}>{card.description}</span>
+              )}
             </div>
           );
         })}
