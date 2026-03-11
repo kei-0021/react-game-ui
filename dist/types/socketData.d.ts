@@ -68,10 +68,6 @@ export type DraggableUpdateData = {
     rotation: number;
     zIndex: number;
 };
-export type SystemMessageData = {
-    message: string;
-    isPersistent?: boolean;
-};
 export type GamePhaseUpdateData = {
     newPhase: Phase;
 };
@@ -85,5 +81,9 @@ export type GameTurnUpdateData = {
     currentPlayerId: PlayerId;
     currentRoundIndex: number;
     currentTurnIndex: number;
+};
+export type SystemMessageData = {
+    message: string;
+    isPersistent?: boolean;
 };
 //# sourceMappingURL=socketData.d.ts.map

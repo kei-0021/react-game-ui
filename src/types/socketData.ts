@@ -8,6 +8,11 @@ import { CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenSt
 import { Phase } from './phase.js';
 import { Token } from './token.js';
 
+/*
+ * ===========================================
+ * ルーム・接続関連
+ * ===========================================
+ */
 export type RoomMeta = {
   id: RoomId;
   gameId: GameId;
@@ -22,6 +27,11 @@ export type RoomJoinData = {
   playerName: PlayerId;
 };
 
+/*
+ * ===========================================
+ * カード・デッキ操作関連
+ * ===========================================
+ */
 export type DeckDrawData = {
   roomId: RoomId;
   deckId: DeckId;
@@ -57,6 +67,11 @@ export type CardMoveFromFieldData = {
   playerId?: PlayerId | null;
 };
 
+/*
+ * ===========================================
+ * トークン・リソース操作関連
+ * ===========================================
+ */
 export type TokenAcquireData = {
   roomId: RoomId;
   tokenStoreId: TokenStoreId;
@@ -67,6 +82,11 @@ export type TokenStoreUpdateData = {
   tokenStore: Token[];
 };
 
+/*
+ * ===========================================
+ * ドラッグ可能オブジェクト
+ * ===========================================
+ */
 export type DraggableMovedData = {
   roomId: RoomId;
   draggableId: DraggableId;
@@ -82,11 +102,11 @@ export type DraggableUpdateData = {
   zIndex: number;
 };
 
-export type SystemMessageData = {
-  message: string;
-  isPersistent?: boolean;
-};
-
+/*
+ * ===========================================
+ * ゲーム進行・フェーズ管理
+ * ===========================================
+ */
 export type GamePhaseUpdateData = {
   newPhase: Phase;
 };
@@ -103,4 +123,14 @@ export type GameTurnUpdateData = {
   currentPlayerId: PlayerId;
   currentRoundIndex: number;
   currentTurnIndex: number;
+};
+
+/*
+ * ===========================================
+ * システム・ユーティリティ
+ * ===========================================
+ */
+export type SystemMessageData = {
+  message: string;
+  isPersistent?: boolean;
 };
