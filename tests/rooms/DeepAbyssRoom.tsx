@@ -277,7 +277,7 @@ export function DeepAbyssRoom() {
             isDebug={true}
             playCardButton={[true, true]}
             holdButton={[true, false]}
-            revealButton={[true, false]}
+            flipButton={[true, true]}
             turnSkipButton={[true, true]}
             roundSkipButton={[true, false]}
             enabled={true}

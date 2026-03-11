@@ -1,7 +1,7 @@
 // src/components/PlayField.tsx
 
 import { Player } from '@/types/player.js';
-import { CardMoveFromFieldData, CardPlayData, DeckUpdateData } from '@/types/socketData.js';
+import { CardFlipData, CardMoveFromFieldData, CardPlayData, DeckUpdateData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
@@ -312,10 +312,10 @@ export function PlayField({
               className={playFieldStyles.menuItem}
               onClick={() => {
                 socket.emit('card:flip', {
-                  roomId,
-                  deckId: contextMenu.card.deckId || deckId,
-                  cardId: contextMenu.card.id,
-                });
+                  roomId: roomId,
+                  playerId: myPlayerId,
+                  cardIds: [contextMenu.card.id],
+                } as CardFlipData);
                 setContextMenu(null);
               }}
             >

@@ -196,9 +196,9 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                             position: 'fixed', // Draggableに合わせてfixed
                         }, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
                                     socket.emit('card:flip', {
-                                        roomId,
-                                        deckId: contextMenu.card.deckId || deckId,
-                                        cardId: contextMenu.card.id,
+                                        roomId: roomId,
+                                        playerId: myPlayerId,
+                                        cardIds: [contextMenu.card.id],
                                     });
                                     setContextMenu(null);
                                 }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\uD83D\uDD04" }), _jsx("span", { children: "\u30AB\u30FC\u30C9\u3092\u88CF\u8FD4\u3059" })] }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {

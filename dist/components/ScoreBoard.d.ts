@@ -14,13 +14,13 @@ import { PlayerId, RoomId } from '../types/definition.js';
  * @param {number} [playCardLimit] - 1ターンにプレイ可能なカードの上限枚数
  * @param {[boolean, boolean]} [playCardButton=[true, true]] - カードプレイボタンの [表示, 有効]
  * @param {[boolean, boolean]} [holdButton=[false, true]] - カードホールドボタンの [表示, 有効]
- * @param {[boolean, boolean]} [revealButton=[false, true]] - カード公開ボタンの [表示, 有効]
+ * @param {[boolean, boolean]} [flipButton=[false, true]] - カードをひっくり返すボタンの [表示, 有効]
  * @param {[boolean, boolean]} [turnSkipButton=[false, true]] - ターンスキップボタンの [表示, 有効]
  * @param {[boolean, boolean]} [roundSkipButton=[false, true]] - ラウンドスキップボタンの [表示, 有効]
  * @param {boolean} [isDebug=false] - スコアを手動で増減できるようにするかどうか (デバッグ用)
  * @param {boolean} [enabled=true] - 各種操作が全体的に有効かどうかのフラグ (個別設定がない場合のデフォルト)
  */
-export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, playCardButton, holdButton, revealButton, turnSkipButton, roundSkipButton, isDebug, enabled, }: {
+export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, playCardButton, holdButton, flipButton, turnSkipButton, roundSkipButton, isDebug, enabled, }: {
     socket: Socket;
     roomId: RoomId;
     players: Player[];
@@ -30,7 +30,7 @@ export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, m
     autoNextTurnOnCardPlay?: boolean;
     playCardButton?: [boolean, boolean];
     holdButton?: [boolean, boolean];
-    revealButton?: [boolean, boolean];
+    flipButton?: [boolean, boolean];
     turnSkipButton?: [boolean, boolean];
     roundSkipButton?: [boolean, boolean];
     isDebug?: boolean;

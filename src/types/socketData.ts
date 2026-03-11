@@ -60,6 +60,12 @@ export type CardHoldData = {
   cardIdsbyDeck: Record<DeckId, CardId[]>;
 };
 
+export type CardFlipData = {
+  roomId: RoomId;
+  playerId: PlayerId;
+  cardIds: CardId[];
+};
+
 export type CardMoveFromFieldData = {
   roomId: RoomId;
   deckId: DeckId;

@@ -318,8 +318,8 @@ export function initGameServer(io, options) {
                 onAllPlayersCardHold(state, roomManager);
             }
         });
-        // カード公開
-        socket.on('card:reveal', ({ roomId, playerId, cardIds }) => {
+        // カードをひっくり返す
+        socket.on('card:flip', ({ roomId, playerId, cardIds }) => {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;
@@ -329,11 +329,22 @@ export function initGameServer(io, options) {
             if (p) {
                 const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
                 p.cards.forEach((c) => {
-                    if (ids.includes(c.id))
-                        c.isFaceUp = true;
+                    if (ids.includes(c.id)) {
+                        c.isFaceUp = !c.isFaceUp;
+                        server_log('card', state.gameId, state.roomId, `${playerId} がカード ${c.id} をひっくり返しました`);
+                    }
                 });
                 roomManager.emitPlayerUpdate();
             }
+            Object.entries(state.playFieldCards).forEach(([deckId, cards]) => {
+                cards.forEach((c) => {
+                    if (cardIds.includes(c.id)) {
+                        c.isFaceUp = !c.isFaceUp;
+                        server_log('card', state.gameId, state.roomId, `${playerId} がカード ${c.id} をひっくり返しました`);
+                    }
+                });
+                roomManager.emitDeckUpdate(deckId);
+            });
         });
         // カード位置同期
         socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {

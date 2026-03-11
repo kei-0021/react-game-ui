@@ -1873,8 +1873,8 @@ function PlayField({
                         onClick: () => {
                           socket.emit("card:flip", {
                             roomId,
-                            deckId: contextMenu2.card.deckId || deckId,
-                            cardId: contextMenu2.card.id
+                            playerId: myPlayerId,
+                            cardIds: [contextMenu2.card.id]
                           });
                           setContextMenu(null);
                         },
@@ -2221,7 +2221,7 @@ function ScoreBoard({
   playCardLimit,
   playCardButton = [true, true],
   holdButton = [false, true],
-  revealButton = [false, true],
+  flipButton = [false, true],
   turnSkipButton = [false, true],
   roundSkipButton = [false, true],
   isDebug = false,
@@ -2280,19 +2280,19 @@ function ScoreBoard({
     },
     [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit]
   );
-  const revealSelectedCards = React.useCallback(() => {
+  const flipSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
-    socket.emit("card:reveal", { roomId, playerId: myPlayerId, cardIds: selectedCards });
+    socket.emit("card:flip", { roomId, playerId: myPlayerId, cardIds: selectedCards });
     setSelectedCards([]);
   }, [selectedCards, myPlayerId, socket, roomId]);
   const [showPlay, canPlay] = playCardButton;
   const [showHold, canHold] = holdButton;
-  const [showReveal, canReveal] = revealButton;
+  const [showFlip, canFlip] = flipButton;
   const [showTurnSkip, canTurnSkip] = turnSkipButton;
   const [showRoundSkip, canRoundSkip] = roundSkipButton;
   const isPlayDisabled = (canPlay !== void 0 ? !canPlay : !enabled) || selectedCards.length === 0;
   const isHoldDisabled = (canHold !== void 0 ? !canHold : !enabled) || selectedCards.length === 0;
-  const isRevealDisabled = (canReveal !== void 0 ? !canReveal : !enabled) || selectedCards.length === 0;
+  const isFlipDisabled = (canFlip !== void 0 ? !canFlip : !enabled) || selectedCards.length === 0;
   const isTurnSkipDisabled = canTurnSkip !== void 0 ? !canTurnSkip : !enabled;
   const isRoundSkipDisabled = canRoundSkip !== void 0 ? !canRoundSkip : !enabled;
   const isOverLimit = playCardLimit !== void 0 && selectedCards.length > playCardLimit;
@@ -2324,7 +2324,7 @@ function ScoreBoard({
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [
         showPlay && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isPlayDisabled || isOverLimit, children: "選択カードを出す" }),
         showHold && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isHoldDisabled || isOverLimit, children: "選択カードをホールドする" }),
-        showReveal && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, disabled: isRevealDisabled || isOverLimit, children: "選択カードを公開する" }),
+        showFlip && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: flipSelectedCards, disabled: isFlipDisabled, children: "選択カードをひっくり返す" }),
         showTurnSkip && /* @__PURE__ */ jsxRuntimeExports.jsx(
           "button",
           {

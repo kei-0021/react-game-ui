@@ -13,6 +13,7 @@ import {
 import { CardId, DeckId, PlayerId, RoomId } from '@/types/definition.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
+  CardFlipData,
   CardHoldData,
   CardMoveFromFieldData,
   CardPlayData,
@@ -395,8 +396,8 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       }
     });
 
-    // カード公開
-    socket.on('card:reveal', ({ roomId, playerId, cardIds }) => {
+    // カードをひっくり返す
+    socket.on('card:flip', ({ roomId, playerId, cardIds }: CardFlipData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
@@ -406,10 +407,23 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (p) {
         const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
         p.cards.forEach((c) => {
-          if (ids.includes(c.id)) c.isFaceUp = true;
+          if (ids.includes(c.id)) {
+            c.isFaceUp = !c.isFaceUp;
+            server_log('card', state.gameId, state.roomId, `${playerId} がカード ${c.id} をひっくり返しました`);
+          }
         });
         roomManager.emitPlayerUpdate();
       }
+
+      Object.entries(state.playFieldCards).forEach(([deckId, cards]) => {
+        cards.forEach((c) => {
+          if (cardIds.includes(c.id)) {
+            c.isFaceUp = !c.isFaceUp;
+            server_log('card', state.gameId, state.roomId, `${playerId} がカード ${c.id} をひっくり返しました`);
+          }
+        });
+        roomManager.emitDeckUpdate(deckId);
+      });
     });
 
     // カード位置同期

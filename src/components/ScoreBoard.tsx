@@ -1,7 +1,7 @@
 // src/components/ScoreBoard.tsx
 import { CardLocation } from '@/types/cardLocation.js';
 import { Player } from '@/types/player.js';
-import { CardHoldData, CardPlayData, GameNextRoundData, GameNextTrunData } from '@/types/socketData.js';
+import { CardFlipData, CardHoldData, CardPlayData, GameNextRoundData, GameNextTrunData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import { Card } from '../types/card.js';
@@ -224,7 +224,7 @@ const PlayerListItem = React.memo(
  * @param {number} [playCardLimit] - 1ターンにプレイ可能なカードの上限枚数
  * @param {[boolean, boolean]} [playCardButton=[true, true]] - カードプレイボタンの [表示, 有効]
  * @param {[boolean, boolean]} [holdButton=[false, true]] - カードホールドボタンの [表示, 有効]
- * @param {[boolean, boolean]} [revealButton=[false, true]] - カード公開ボタンの [表示, 有効]
+ * @param {[boolean, boolean]} [flipButton=[false, true]] - カードをひっくり返すボタンの [表示, 有効]
  * @param {[boolean, boolean]} [turnSkipButton=[false, true]] - ターンスキップボタンの [表示, 有効]
  * @param {[boolean, boolean]} [roundSkipButton=[false, true]] - ラウンドスキップボタンの [表示, 有効]
  * @param {boolean} [isDebug=false] - スコアを手動で増減できるようにするかどうか (デバッグ用)
@@ -239,7 +239,7 @@ export function ScoreBoard({
   playCardLimit,
   playCardButton = [true, true],
   holdButton = [false, true],
-  revealButton = [false, true],
+  flipButton = [false, true],
   turnSkipButton = [false, true],
   roundSkipButton = [false, true],
   isDebug = false,
@@ -254,7 +254,7 @@ export function ScoreBoard({
   autoNextTurnOnCardPlay?: boolean;
   playCardButton?: [boolean, boolean];
   holdButton?: [boolean, boolean];
-  revealButton?: [boolean, boolean];
+  flipButton?: [boolean, boolean];
   turnSkipButton?: [boolean, boolean];
   roundSkipButton?: [boolean, boolean];
   isDebug?: boolean;
@@ -325,23 +325,23 @@ export function ScoreBoard({
     [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit],
   );
 
-  const revealSelectedCards = React.useCallback(() => {
+  const flipSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
-    socket.emit('card:reveal', { roomId, playerId: myPlayerId, cardIds: selectedCards });
+    socket.emit('card:flip', { roomId, playerId: myPlayerId, cardIds: selectedCards } as CardFlipData);
     setSelectedCards([]);
   }, [selectedCards, myPlayerId, socket, roomId]);
 
   // 各ボタンの状態を分解
   const [showPlay, canPlay] = playCardButton;
   const [showHold, canHold] = holdButton;
-  const [showReveal, canReveal] = revealButton;
+  const [showFlip, canFlip] = flipButton;
   const [showTurnSkip, canTurnSkip] = turnSkipButton;
   const [showRoundSkip, canRoundSkip] = roundSkipButton;
 
   // 無効判定ロジック：個別設定がある場合はそちらを優先、なければ全体のenabledを参照
   const isPlayDisabled = (canPlay !== undefined ? !canPlay : !enabled) || selectedCards.length === 0;
   const isHoldDisabled = (canHold !== undefined ? !canHold : !enabled) || selectedCards.length === 0;
-  const isRevealDisabled = (canReveal !== undefined ? !canReveal : !enabled) || selectedCards.length === 0;
+  const isFlipDisabled = (canFlip !== undefined ? !canFlip : !enabled) || selectedCards.length === 0;
   const isTurnSkipDisabled = canTurnSkip !== undefined ? !canTurnSkip : !enabled;
   const isRoundSkipDisabled = canRoundSkip !== undefined ? !canRoundSkip : !enabled;
 
@@ -385,9 +385,9 @@ export function ScoreBoard({
               選択カードをホールドする
             </button>
           )}
-          {showReveal && (
-            <button onClick={revealSelectedCards} disabled={isRevealDisabled || isOverLimit}>
-              選択カードを公開する
+          {showFlip && (
+            <button onClick={flipSelectedCards} disabled={isFlipDisabled}>
+              選択カードをひっくり返す
             </button>
           )}
           {showTurnSkip && (

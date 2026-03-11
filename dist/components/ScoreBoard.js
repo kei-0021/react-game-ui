@@ -94,13 +94,13 @@ const PlayerListItem = React.memo(({ socket, roomId, player, currentPlayerId, my
  * @param {number} [playCardLimit] - 1ターンにプレイ可能なカードの上限枚数
  * @param {[boolean, boolean]} [playCardButton=[true, true]] - カードプレイボタンの [表示, 有効]
  * @param {[boolean, boolean]} [holdButton=[false, true]] - カードホールドボタンの [表示, 有効]
- * @param {[boolean, boolean]} [revealButton=[false, true]] - カード公開ボタンの [表示, 有効]
+ * @param {[boolean, boolean]} [flipButton=[false, true]] - カードをひっくり返すボタンの [表示, 有効]
  * @param {[boolean, boolean]} [turnSkipButton=[false, true]] - ターンスキップボタンの [表示, 有効]
  * @param {[boolean, boolean]} [roundSkipButton=[false, true]] - ラウンドスキップボタンの [表示, 有効]
  * @param {boolean} [isDebug=false] - スコアを手動で増減できるようにするかどうか (デバッグ用)
  * @param {boolean} [enabled=true] - 各種操作が全体的に有効かどうかのフラグ (個別設定がない場合のデフォルト)
  */
-export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, playCardButton = [true, true], holdButton = [false, true], revealButton = [false, true], turnSkipButton = [false, true], roundSkipButton = [false, true], isDebug = false, enabled = true, }) {
+export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, playCardButton = [true, true], holdButton = [false, true], flipButton = [false, true], turnSkipButton = [false, true], roundSkipButton = [false, true], isDebug = false, enabled = true, }) {
     const displayedPlayers = React.useMemo(() => {
         return (players || []).map((p) => ({
             ...p,
@@ -161,24 +161,24 @@ export function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerI
         });
         setSelectedCards([]);
     }, [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit]);
-    const revealSelectedCards = React.useCallback(() => {
+    const flipSelectedCards = React.useCallback(() => {
         if (selectedCards.length === 0 || !myPlayerId)
             return;
-        socket.emit('card:reveal', { roomId, playerId: myPlayerId, cardIds: selectedCards });
+        socket.emit('card:flip', { roomId, playerId: myPlayerId, cardIds: selectedCards });
         setSelectedCards([]);
     }, [selectedCards, myPlayerId, socket, roomId]);
     // 各ボタンの状態を分解
     const [showPlay, canPlay] = playCardButton;
     const [showHold, canHold] = holdButton;
-    const [showReveal, canReveal] = revealButton;
+    const [showFlip, canFlip] = flipButton;
     const [showTurnSkip, canTurnSkip] = turnSkipButton;
     const [showRoundSkip, canRoundSkip] = roundSkipButton;
     // 無効判定ロジック：個別設定がある場合はそちらを優先、なければ全体のenabledを参照
     const isPlayDisabled = (canPlay !== undefined ? !canPlay : !enabled) || selectedCards.length === 0;
     const isHoldDisabled = (canHold !== undefined ? !canHold : !enabled) || selectedCards.length === 0;
-    const isRevealDisabled = (canReveal !== undefined ? !canReveal : !enabled) || selectedCards.length === 0;
+    const isFlipDisabled = (canFlip !== undefined ? !canFlip : !enabled) || selectedCards.length === 0;
     const isTurnSkipDisabled = canTurnSkip !== undefined ? !canTurnSkip : !enabled;
     const isRoundSkipDisabled = canRoundSkip !== undefined ? !canRoundSkip : !enabled;
     const isOverLimit = playCardLimit !== undefined && selectedCards.length > playCardLimit;
-    return (_jsxs("div", { className: scoreBoardStyles.container, children: [_jsx("h2", { className: scoreBoardStyles.title, children: "\u30B2\u30FC\u30E0\u30B9\u30B3\u30A2\u30DC\u30FC\u30C9" }), _jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => (_jsx(PlayerListItem, { socket: socket, roomId: roomId, player: player, currentPlayerId: currentPlayerId, myPlayerId: myPlayerId, playCardButton: playCardButton, selectedCards: selectedCards, heldCards: heldCards, toggleCardSelection: toggleCardSelection, isDebug: isDebug, enabled: enabled }, player.id))) }), _jsxs("div", { className: scoreBoardStyles.buttonArea, children: [isOverLimit && (_jsxs("p", { className: scoreBoardStyles.limitMessage, children: ["\u4E00\u5EA6\u306B\u51FA\u305B\u308B\u30AB\u30FC\u30C9\u306F ", playCardLimit, " \u679A\u307E\u3067\u3067\u3059"] })), _jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [showPlay && (_jsx("button", { onClick: () => playSelectedCards(), disabled: isPlayDisabled || isOverLimit, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u51FA\u3059" })), showHold && (_jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isHoldDisabled || isOverLimit, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u30DB\u30FC\u30EB\u30C9\u3059\u308B" })), showReveal && (_jsx("button", { onClick: revealSelectedCards, disabled: isRevealDisabled || isOverLimit, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u516C\u958B\u3059\u308B" })), showTurnSkip && (_jsx("button", { onClick: () => socket.emit('game:next-turn', { roomId }), disabled: isTurnSkipDisabled, children: "\u30BF\u30FC\u30F3\u3092\u30B9\u30AD\u30C3\u30D7" })), showRoundSkip && (_jsx("button", { onClick: () => socket.emit('game:next-round', { roomId }), disabled: isRoundSkipDisabled, children: "\u30E9\u30A6\u30F3\u30C9\u3092\u30B9\u30AD\u30C3\u30D7" }))] })] })] }));
+    return (_jsxs("div", { className: scoreBoardStyles.container, children: [_jsx("h2", { className: scoreBoardStyles.title, children: "\u30B2\u30FC\u30E0\u30B9\u30B3\u30A2\u30DC\u30FC\u30C9" }), _jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => (_jsx(PlayerListItem, { socket: socket, roomId: roomId, player: player, currentPlayerId: currentPlayerId, myPlayerId: myPlayerId, playCardButton: playCardButton, selectedCards: selectedCards, heldCards: heldCards, toggleCardSelection: toggleCardSelection, isDebug: isDebug, enabled: enabled }, player.id))) }), _jsxs("div", { className: scoreBoardStyles.buttonArea, children: [isOverLimit && (_jsxs("p", { className: scoreBoardStyles.limitMessage, children: ["\u4E00\u5EA6\u306B\u51FA\u305B\u308B\u30AB\u30FC\u30C9\u306F ", playCardLimit, " \u679A\u307E\u3067\u3067\u3059"] })), _jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [showPlay && (_jsx("button", { onClick: () => playSelectedCards(), disabled: isPlayDisabled || isOverLimit, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u51FA\u3059" })), showHold && (_jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isHoldDisabled || isOverLimit, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u30DB\u30FC\u30EB\u30C9\u3059\u308B" })), showFlip && (_jsx("button", { onClick: flipSelectedCards, disabled: isFlipDisabled, children: "\u9078\u629E\u30AB\u30FC\u30C9\u3092\u3072\u3063\u304F\u308A\u8FD4\u3059" })), showTurnSkip && (_jsx("button", { onClick: () => socket.emit('game:next-turn', { roomId }), disabled: isTurnSkipDisabled, children: "\u30BF\u30FC\u30F3\u3092\u30B9\u30AD\u30C3\u30D7" })), showRoundSkip && (_jsx("button", { onClick: () => socket.emit('game:next-round', { roomId }), disabled: isRoundSkipDisabled, children: "\u30E9\u30A6\u30F3\u30C9\u3092\u30B9\u30AD\u30C3\u30D7" }))] })] })] }));
 }
