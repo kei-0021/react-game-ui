@@ -8,6 +8,26 @@ const PlayerListItem = React.memo(({ socket, roomId, player, currentPlayerId, my
     const playerColor = player.color || '#aaaaaa';
     const isOwner = player.id === myPlayerId;
     const [showPlay] = playCardButton;
+    // --- スコアエフェクト用ステート ---
+    const [scoreDiff, setScoreDiff] = React.useState(null);
+    const [isScoreUpdating, setIsScoreUpdating] = React.useState(false);
+    const prevScoreRef = React.useRef(player.score);
+    React.useEffect(() => {
+        const prevScore = prevScoreRef.current;
+        if (prevScore !== player.score) {
+            const diff = player.score - prevScore;
+            setScoreDiff(diff);
+            setIsScoreUpdating(true);
+            // バーストに合わせて短くクリア (600ms)
+            const timer = setTimeout(() => {
+                setScoreDiff(null);
+                setIsScoreUpdating(false);
+            }, 600);
+            prevScoreRef.current = player.score;
+            return () => clearTimeout(timer);
+        }
+    }, [player.score]);
+    // ----------------------------
     const handleAddScore = (points) => {
         socket.emit('room:player:add-score', {
             roomId,
@@ -20,7 +40,10 @@ const PlayerListItem = React.memo(({ socket, roomId, player, currentPlayerId, my
         '--player-color-bg': playerColor.replace('hsl', 'hsla').replace(')', ', 0.3)'),
         '--player-color-glow': playerColor.replace('hsl', 'hsla').replace(')', ', 0.5)'),
     };
-    return (_jsxs("li", { className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ''}`, style: customStyles, children: [_jsxs("div", { className: scoreBoardStyles.playerHeader, children: [_jsxs("span", { className: scoreBoardStyles.playerName, children: [isActive && 'ᐅ ', isOwner && '★ ME ', player.name] }), _jsxs("div", { className: scoreBoardStyles.scoreArea, children: [_jsxs("span", { className: scoreBoardStyles.playerScore, children: ["\u30B9\u30B3\u30A2: ", player.score] }), isDebug && (_jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: scoreBoardStyles.resourceSection, children: _jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx("div", { className: scoreBoardStyles.tokenList, children: player.tokens.map((token) => (_jsx("div", { onClick: () => {
+    return (_jsxs("li", { className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ''}`, style: customStyles, children: [_jsxs("div", { className: scoreBoardStyles.playerHeader, children: [_jsxs("span", { className: scoreBoardStyles.playerName, children: [isActive && 'ᐅ ', isOwner && '★ ME ', player.name] }), _jsxs("div", { className: scoreBoardStyles.scoreArea, children: [_jsxs("div", { className: scoreBoardStyles.scoreWrapper, style: { position: 'relative', display: 'inline-block' }, children: [_jsxs("span", { className: scoreBoardStyles.playerScore, children: ["\u30B9\u30B3\u30A2: ", player.score] }), scoreDiff !== null && (_jsx("span", { className: `
+      ${scoreBoardStyles.scoreChange} 
+      ${scoreDiff > 0 ? scoreBoardStyles.plus : scoreBoardStyles.minus}
+    `, children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff }))] }), isDebug && (_jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: scoreBoardStyles.resourceSection, children: _jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx("div", { className: scoreBoardStyles.tokenList, children: player.tokens.map((token) => (_jsx("div", { onClick: () => {
                         socket.emit('token:reclaim', {
                             roomId,
                             playerId: myPlayerId,

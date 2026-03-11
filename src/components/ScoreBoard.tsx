@@ -45,6 +45,30 @@ const PlayerListItem = React.memo(
     const isOwner = player.id === myPlayerId;
     const [showPlay] = playCardButton;
 
+    // --- スコアエフェクト用ステート ---
+    const [scoreDiff, setScoreDiff] = React.useState<number | null>(null);
+    const [isScoreUpdating, setIsScoreUpdating] = React.useState(false);
+    const prevScoreRef = React.useRef(player.score);
+
+    React.useEffect(() => {
+      const prevScore = prevScoreRef.current;
+      if (prevScore !== player.score) {
+        const diff = player.score - prevScore;
+        setScoreDiff(diff);
+        setIsScoreUpdating(true);
+
+        // バーストに合わせて短くクリア (600ms)
+        const timer = setTimeout(() => {
+          setScoreDiff(null);
+          setIsScoreUpdating(false);
+        }, 600);
+
+        prevScoreRef.current = player.score;
+        return () => clearTimeout(timer);
+      }
+    }, [player.score]);
+    // ----------------------------
+
     const handleAddScore = (points: number) => {
       socket.emit('room:player:add-score', {
         roomId,
@@ -71,7 +95,21 @@ const PlayerListItem = React.memo(
             {player.name}
           </span>
           <div className={scoreBoardStyles.scoreArea}>
-            <span className={scoreBoardStyles.playerScore}>スコア: {player.score}</span>
+            <div className={scoreBoardStyles.scoreWrapper} style={{ position: 'relative', display: 'inline-block' }}>
+              <span className={scoreBoardStyles.playerScore}>スコア: {player.score}</span>
+
+              {/* ここで plus / minus クラスを付与して色を変える */}
+              {scoreDiff !== null && (
+                <span
+                  className={`
+      ${scoreBoardStyles.scoreChange} 
+      ${scoreDiff > 0 ? scoreBoardStyles.plus : scoreBoardStyles.minus}
+    `}
+                >
+                  {scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff}
+                </span>
+              )}
+            </div>
             {isDebug && (
               <div className={scoreBoardStyles.debugScoreButtons}>
                 <button onClick={() => handleAddScore(-1)} disabled={!enabled} className={scoreBoardStyles.debugBtn}>

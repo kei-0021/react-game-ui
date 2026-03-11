@@ -1916,30 +1916,33 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const container = "_container_4hhky_7";
-const title$1 = "_title_4hhky_19";
-const playerList = "_playerList_4hhky_28";
-const playerItem = "_playerItem_4hhky_38";
-const activePlayer = "_activePlayer_4hhky_51";
-const playerHeader = "_playerHeader_4hhky_59";
-const playerName = "_playerName_4hhky_65";
-const scoreArea = "_scoreArea_4hhky_75";
-const playerScore = "_playerScore_4hhky_81";
-const debugScoreButtons = "_debugScoreButtons_4hhky_90";
-const debugBtn = "_debugBtn_4hhky_95";
-const resourceSection = "_resourceSection_4hhky_126";
-const resourceList = "_resourceList_4hhky_131";
-const resourceBadge = "_resourceBadge_4hhky_137";
-const tokenList = "_tokenList_4hhky_145";
-const isHoldMessage = "_isHoldMessage_4hhky_155";
-const cardList = "_cardList_4hhky_162";
-const cardBase = "_cardBase_4hhky_170";
-const cardSelected = "_cardSelected_4hhky_202";
-const cardIsHeld = "_cardIsHeld_4hhky_208";
-const tooltip = "_tooltip_4hhky_220";
-const buttonArea = "_buttonArea_4hhky_245";
-const limitMessage = "_limitMessage_4hhky_252";
-const buttonGroup = "_buttonGroup_4hhky_259";
+const container = "_container_k18kw_7";
+const title$1 = "_title_k18kw_19";
+const playerList = "_playerList_k18kw_28";
+const playerItem = "_playerItem_k18kw_38";
+const activePlayer = "_activePlayer_k18kw_51";
+const playerHeader = "_playerHeader_k18kw_59";
+const playerName = "_playerName_k18kw_65";
+const scoreArea = "_scoreArea_k18kw_75";
+const playerScore = "_playerScore_k18kw_81";
+const plus = "_plus_k18kw_102";
+const minus = "_minus_k18kw_107";
+const scoreChange = "_scoreChange_k18kw_128";
+const debugScoreButtons = "_debugScoreButtons_k18kw_157";
+const debugBtn = "_debugBtn_k18kw_162";
+const resourceSection = "_resourceSection_k18kw_193";
+const resourceList = "_resourceList_k18kw_198";
+const resourceBadge = "_resourceBadge_k18kw_204";
+const tokenList = "_tokenList_k18kw_212";
+const isHoldMessage = "_isHoldMessage_k18kw_222";
+const cardList = "_cardList_k18kw_229";
+const cardBase = "_cardBase_k18kw_237";
+const cardSelected = "_cardSelected_k18kw_269";
+const cardIsHeld = "_cardIsHeld_k18kw_275";
+const tooltip = "_tooltip_k18kw_287";
+const buttonArea = "_buttonArea_k18kw_312";
+const limitMessage = "_limitMessage_k18kw_319";
+const buttonGroup = "_buttonGroup_k18kw_326";
 const scoreBoardStyles = {
   container,
   title: title$1,
@@ -1950,6 +1953,9 @@ const scoreBoardStyles = {
   playerName,
   scoreArea,
   playerScore,
+  plus,
+  minus,
+  scoreChange,
   debugScoreButtons,
   debugBtn,
   resourceSection,
@@ -2000,6 +2006,23 @@ const PlayerListItem = React.memo(
     const playerColor = player.color || "#aaaaaa";
     const isOwner = player.id === myPlayerId;
     const [showPlay] = playCardButton;
+    const [scoreDiff, setScoreDiff] = React.useState(null);
+    const [isScoreUpdating, setIsScoreUpdating] = React.useState(false);
+    const prevScoreRef = React.useRef(player.score);
+    React.useEffect(() => {
+      const prevScore = prevScoreRef.current;
+      if (prevScore !== player.score) {
+        const diff = player.score - prevScore;
+        setScoreDiff(diff);
+        setIsScoreUpdating(true);
+        const timer = setTimeout(() => {
+          setScoreDiff(null);
+          setIsScoreUpdating(false);
+        }, 600);
+        prevScoreRef.current = player.score;
+        return () => clearTimeout(timer);
+      }
+    }, [player.score]);
     const handleAddScore = (points) => {
       socket.emit("room:player:add-score", {
         roomId,
@@ -2025,9 +2048,21 @@ const PlayerListItem = React.memo(
               player.name
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreArea, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerScore, children: [
-                "スコア: ",
-                player.score
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreWrapper, style: { position: "relative", display: "inline-block" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerScore, children: [
+                  "スコア: ",
+                  player.score
+                ] }),
+                scoreDiff !== null && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "span",
+                  {
+                    className: `
+      ${scoreBoardStyles.scoreChange} 
+      ${scoreDiff > 0 ? scoreBoardStyles.plus : scoreBoardStyles.minus}
+    `,
+                    children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff
+                  }
+                )
               ] }),
               isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }),

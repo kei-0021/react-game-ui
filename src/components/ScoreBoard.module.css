@@ -87,6 +87,73 @@
   font-size: 0.9em;
 }
 
+/* スコア表示の箱（ここは変形させない） */
+.scoreArea {
+  position: relative;
+}
+
+/* スコアの数字自体がバウンドする演出（外枠には干渉しない） */
+.scoreUpdate {
+  display: inline-block;
+  animation: staticShock 0.3s ease-out;
+}
+
+/* プラスの時の色（青系） */
+.plus {
+  color: #002fff;
+}
+
+/* マイナスの時の色（赤系） */
+.minus {
+  color: #ff0000;
+}
+
+/* スコア本体：サイズは一切変えず、色と光だけで「跳ね」を表現 */
+@keyframes staticShock {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    color: #fff;
+    text-shadow:
+      0 0 15px #fff,
+      0 0 30px #fff;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 爆発する数字（完全に浮いているので箱は動かない） */
+.scoreChange {
+  font-size: 6rem;
+  position: absolute;
+  /* スコア表示の真ん中に重ねる */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 900;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 100;
+  animation: staticBurst 0.6s cubic-bezier(0.12, 0, 0.39, 0) forwards;
+}
+
+@keyframes staticBurst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
 .debugScoreButtons {
   display: flex;
   gap: 4px;
