@@ -1673,6 +1673,7 @@ function PlayField({
 }) {
   const [playedCards, setPlayedCards] = React.useState([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState(null);
+  const [dragPos, setDragPos] = React.useState(null);
   const containerRef = React.useRef(null);
   const draggingIdRef = React.useRef(null);
   React.useEffect(() => {
@@ -1698,17 +1699,22 @@ function PlayField({
         cardId,
         coordinate: { x, y }
       });
-    }, 50),
+    }, 30),
     [socket, roomId, deckId]
   );
   const handlePointerDown = (e, card2) => {
     if (layoutMode !== "free") return;
     draggingIdRef.current = card2.id;
     setActiveDraggingId(card2.id);
+    setDragPos({ x: card2.coordinate?.x ?? 50, y: card2.coordinate?.y ?? 50 });
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const handlePointerMove = (e) => {
-    if (!draggingIdRef.current) return;
+    if (!draggingIdRef.current || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
+    const y = Math.max(0, Math.min(100, (e.clientY - rect.top) / rect.height * 100));
+    setDragPos({ x, y });
     emitMove(draggingIdRef.current, e.clientX, e.clientY);
   };
   const handlePointerUp = (e) => {
@@ -1717,6 +1723,7 @@ function PlayField({
     e.currentTarget.releasePointerCapture(e.pointerId);
     draggingIdRef.current = null;
     setActiveDraggingId(null);
+    setDragPos(null);
   };
   const handleDrop = (e) => {
     e.preventDefault();
@@ -1785,15 +1792,17 @@ function PlayField({
               const owner = players.find((p) => p.id === card2.ownerId);
               const isDragging = activeDraggingId === card2.id;
               const isActuallyFreeShape = !!(card2.freeShape && card2.frontImage);
-              playedCards.slice(0, index).some(
-                (other) => Math.abs((other.coordinate?.x ?? 50) - (card2.coordinate?.x ?? 50)) < 1 && Math.abs((other.coordinate?.y ?? 50) - (card2.coordinate?.y ?? 50)) < 1
-              );
+              const displayX = isDragging && dragPos ? dragPos.x : card2.coordinate?.x ?? 50;
+              const displayY = isDragging && dragPos ? dragPos.y : card2.coordinate?.y ?? 50;
               const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
               const freeStyle = layoutMode === "free" ? {
                 position: "absolute",
-                left: `${card2.coordinate?.x ?? 50}%`,
-                top: `${card2.coordinate?.y ?? 50}%`,
+                left: `${displayX}%`,
+                top: `${displayY}%`,
                 zIndex: currentZIndex,
+                // マウスの先端ではなく、カードの中心を掴むように補正
+                transform: "translate(-50%, -50%)",
+                // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                 transition: isDragging ? "none" : "left 0.2s ease, top 0.2s ease"
               } : {};
               return /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -1817,8 +1826,7 @@ function PlayField({
                     boxShadow: isActuallyFreeShape && isDragging ? "0 0 15px var(--owner-color)" : "none",
                     padding: 0,
                     display: "block",
-                    alignItems: "center",
-                    justifyContent: "center"
+                    position: layoutMode === "free" ? "absolute" : "relative"
                   },
                   onDoubleClick: () => handleCardBack(card2),
                   children: [

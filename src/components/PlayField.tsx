@@ -62,6 +62,10 @@ export function PlayField({
 }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(null);
+
+  // ドラッグ中のローカルな座標を保持（ラグを消すためのステート）
+  const [dragPos, setDragPos] = React.useState<{ x: number; y: number } | null>(null);
+
   const containerRef = React.useRef<HTMLDivElement>(null);
   const draggingIdRef = React.useRef<string | null>(null);
 
@@ -76,7 +80,7 @@ export function PlayField({
     };
   }, [socket, roomId, deckId]);
 
-  // リアルタイム送信ロジック（境界制限付き）
+  // リアルタイム送信ロジック（throttleを30msに短縮して追従性を向上）
   const emitMove = React.useMemo(
     () =>
       throttle((cardId: string, clientX: number, clientY: number) => {
@@ -96,7 +100,7 @@ export function PlayField({
           cardId,
           coordinate: { x, y },
         });
-      }, 50),
+      }, 30),
     [socket, roomId, deckId],
   );
 
@@ -104,11 +108,25 @@ export function PlayField({
     if (layoutMode !== 'free') return;
     draggingIdRef.current = card.id;
     setActiveDraggingId(card.id);
+
+    // 掴んだ瞬間の座標を即座にステートに入れる
+    setDragPos({ x: card.coordinate?.x ?? 50, y: card.coordinate?.y ?? 50 });
+
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!draggingIdRef.current) return;
+    if (!draggingIdRef.current || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+
+    // 画面更新用のローカル座標を計算
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+
+    // 通信とは別に、自分の画面の表示を即座に更新する
+    setDragPos({ x, y });
+
     emitMove(draggingIdRef.current, e.clientX, e.clientY);
   };
 
@@ -118,6 +136,7 @@ export function PlayField({
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     draggingIdRef.current = null;
     setActiveDraggingId(null);
+    setDragPos(null);
   };
 
   // --- 手札（ScoreBoard）からの新規ドロップ受け入れ ---
@@ -201,14 +220,9 @@ export function PlayField({
           const isDragging = activeDraggingId === card.id;
           const isActuallyFreeShape = !!(card.freeShape && card.frontImage);
 
-          const isOverlapping = playedCards
-            .slice(0, index)
-            .some(
-              (other) =>
-                Math.abs((other.coordinate?.x ?? 50) - (card.coordinate?.x ?? 50)) < 1 &&
-                Math.abs((other.coordinate?.y ?? 50) - (card.coordinate?.y ?? 50)) < 1,
-            );
-          const visualOffset = isOverlapping ? index * 12 : 0;
+          // ドラッグ中ならローカルの座標、そうでなければカード情報の座標を使用
+          const displayX = isDragging && dragPos ? dragPos.x : (card.coordinate?.x ?? 50);
+          const displayY = isDragging && dragPos ? dragPos.y : (card.coordinate?.y ?? 50);
 
           // カード個別の zIndex
           const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
@@ -217,9 +231,12 @@ export function PlayField({
             layoutMode === 'free'
               ? {
                   position: 'absolute',
-                  left: `${card.coordinate?.x ?? 50}%`,
-                  top: `${card.coordinate?.y ?? 50}%`,
+                  left: `${displayX}%`,
+                  top: `${displayY}%`,
                   zIndex: currentZIndex,
+                  // マウスの先端ではなく、カードの中心を掴むように補正
+                  transform: 'translate(-50%, -50%)',
+                  // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                   transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                 }
               : {};
@@ -246,8 +263,7 @@ export function PlayField({
                   boxShadow: isActuallyFreeShape && isDragging ? '0 0 15px var(--owner-color)' : 'none',
                   padding: 0,
                   display: 'block',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  position: layoutMode === 'free' ? 'absolute' : 'relative',
                 } as React.CSSProperties
               }
               onDoubleClick={() => handleCardBack(card)}
