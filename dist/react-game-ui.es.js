@@ -1845,7 +1845,6 @@ function PlayField({
                       display: "block",
                       position: layoutMode === "free" ? "absolute" : "relative"
                     },
-                    onDoubleClick: () => handleCardBack(card),
                     children: [
                       /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card, canSeeFront: true }),
                       card.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),

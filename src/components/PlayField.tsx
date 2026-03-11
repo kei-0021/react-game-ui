@@ -283,7 +283,6 @@ export function PlayField({
                   position: layoutMode === 'free' ? 'absolute' : 'relative',
                 } as React.CSSProperties
               }
-              onDoubleClick={() => handleCardBack(card)}
             >
               <CardDisplayContent card={card} canSeeFront={true} />
 
