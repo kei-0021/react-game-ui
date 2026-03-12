@@ -1504,7 +1504,7 @@ function Draggable({
     )
   ] });
 }
-const piece = "_piece_wi08l_3";
+const piece = "_piece_1x956_3";
 const styles$4 = {
   piece
 };
@@ -2841,7 +2841,7 @@ class RoomManager {
    * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
    * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
    */
-  applyCellEffect = (playerId, position, cellEffects, updatePlayerResource, updatePlayerToken, requirePopup) => {
+  applyCellEffect = (playerId, position, cellEffects) => {
     const { row, col } = position;
     const targetBoard = Object.values(this.state.board)[0];
     if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
@@ -2858,12 +2858,7 @@ class RoomManager {
     if (effect) {
       server_log("cell", this.state.gameId, this.state.roomId, `マス効果発動: ${cell2.name} by ${playerId}`);
       try {
-        effect({
-          playerId,
-          updateResource: updatePlayerResource,
-          updateToken: updatePlayerToken,
-          requirePopup
-        });
+        effect(this, playerId);
       } catch (e) {
         server_log(
           "warn",

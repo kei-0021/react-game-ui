@@ -1,1 +1,0 @@
-{"version":3,"file":"cellEffectParams.d.ts","sourceRoot":"","sources":["../../src/types/cellEffectParams.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,gBAAgB,GAAG;IAC7B,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,QAAQ,EAAE,CAAC,QAAQ,EAAE,MAAM,EAAE,MAAM,EAAE,MAAM,KAAK,IAAI,CAAC;IACrD,cAAc,EAAE,CAAC,QAAQ,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,MAAM,EAAE,MAAM,KAAK,IAAI,CAAC;CAChF,CAAC"}

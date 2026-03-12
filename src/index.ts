@@ -21,8 +21,6 @@ export { type CardEffectParams } from './types/cardEffectParams.js';
 /* @ts-ignore */
 export * from './types/cardLocation.js';
 /* @ts-ignore */
-export { type CellEffectParams } from './types/cellEffectParams.js';
-/* @ts-ignore */
 export * from './types/definition.js';
 /* @ts-ignore */
 export * from './types/player.js';

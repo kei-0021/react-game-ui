@@ -105,7 +105,7 @@ export declare class RoomManager {
      * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
      * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
      */
-    applyCellEffect: (playerId: PlayerId, position: Position, cellEffects: Record<string, (params: any) => void>, updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void, updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void, requirePopup: (params: any) => void) => void;
+    applyCellEffect: (playerId: PlayerId, position: Position, cellEffects: Record<string, (manager: RoomManager, playerId: PlayerId) => void>) => void;
     /**
      * ターンを更新する
      */

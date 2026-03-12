@@ -381,7 +381,7 @@ export class RoomManager {
      * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
      * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
      */
-    applyCellEffect = (playerId, position, cellEffects, updatePlayerResource, updatePlayerToken, requirePopup) => {
+    applyCellEffect = (playerId, position, cellEffects) => {
         const { row, col } = position;
         // Record（オブジェクト）の最初の値（ボード配列）を取得
         const targetBoard = Object.values(this.state.board)[0];
@@ -396,12 +396,7 @@ export class RoomManager {
         if (effect) {
             server_log('cell', this.state.gameId, this.state.roomId, `マス効果発動: ${cell.name} by ${playerId}`);
             try {
-                effect({
-                    playerId,
-                    updateResource: updatePlayerResource,
-                    updateToken: updatePlayerToken,
-                    requirePopup: requirePopup,
-                });
+                effect(this, playerId);
             }
             catch (e) {
                 server_log('warn', this.state.gameId, this.state.roomId, `マス効果の実行中にエラーが発生しました: ${cell.name}`, e);

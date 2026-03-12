@@ -48,7 +48,7 @@ export type GameParam = {
   initialBoard?: Record<BoardId, any>;
   initialPhase?: Phase;
   cardEffects?: Record<string, any>;
-  cellEffects?: any;
+  cellEffects?: Record<string, (manager: RoomManager, player: PlayerId) => void>;
   onDeckDraw?: (state: RoomState, manager: RoomManager, data: DeckDrawData) => void;
   onCardPlay?: (state: RoomState, manager: RoomManager, data: CardPlayData) => void;
   onAllPlayersCardHold?: (state: RoomState, manager: RoomManager) => void;

@@ -489,10 +489,7 @@ export class RoomManager {
   applyCellEffect = (
     playerId: PlayerId,
     position: Position,
-    cellEffects: Record<string, (params: any) => void>,
-    updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void,
-    updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void,
-    requirePopup: (params: any) => void,
+    cellEffects: Record<string, (manager: RoomManager, playerId: PlayerId) => void>,
   ): void => {
     const { row, col } = position;
 
@@ -517,12 +514,7 @@ export class RoomManager {
     if (effect) {
       server_log('cell', this.state.gameId, this.state.roomId, `マス効果発動: ${cell.name} by ${playerId}`);
       try {
-        effect({
-          playerId,
-          updateResource: updatePlayerResource,
-          updateToken: updatePlayerToken,
-          requirePopup: requirePopup,
-        });
+        effect(this, playerId);
       } catch (e) {
         server_log(
           'warn',

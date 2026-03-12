@@ -12,7 +12,6 @@ export { TokenStore } from './components/TokenStore.js';
 export * from './types/card.js';
 export { type CardEffectParams } from './types/cardEffectParams.js';
 export * from './types/cardLocation.js';
-export { type CellEffectParams } from './types/cellEffectParams.js';
 export * from './types/definition.js';
 export * from './types/player.js';
 export { type PieceData } from './types/piece.js';

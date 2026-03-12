@@ -258,41 +258,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       }
     });
 
-    // 移動・探索
-    socket.on('game:move-player', ({ roomId, playerId, newPosition }) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-
-      const player = state?.players.find((p) => p.id === playerId);
-      if (player && state) {
-        player.position = newPosition;
-        roomManager.applyCellEffect(
-          playerId,
-          newPosition,
-          param?.cellEffects,
-          (pId, rId, amt) => roomManager.acquireResource(pId, rId, amt),
-          (pId, tId) => roomManager.acquireToken(roomId, pId, tId),
-          ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }),
-        );
-        roomManager.emitPlayerUpdate();
-        if (roomManager.updateCellExploredStatus(newPosition, true))
-          io.to(roomId).emit('board-update', state.exploredCells);
-      }
-    });
-
-    socket.on('game:explore-cell', ({ roomId, targetPosition, shouldExplore }) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-
-      if (state && roomManager.updateCellExploredStatus(targetPosition, shouldExplore)) {
-        io.to(roomId).emit('board-update', state.exploredCells);
-      }
-    });
-
     // カードを引く
     socket.on('deck:draw', (data: DeckDrawData) => {
       const { roomId, deckId, playerId, drawCondition } = data;
@@ -462,6 +427,34 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (state && player) {
         roomManager.acquireToken(tokenStoreId, tokenId, player.id);
         roomManager.emitPlayerUpdate();
+      }
+    });
+
+    // 移動・探索
+    socket.on('game:move-player', ({ roomId, playerId, newPosition }) => {
+      const state = activeRooms.get(roomId);
+      if (!state) return;
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
+
+      const player = state?.players.find((p) => p.id === playerId);
+      if (player && state) {
+        player.position = newPosition;
+        roomManager.applyCellEffect(playerId, newPosition, param?.cellEffects!);
+        roomManager.emitPlayerUpdate();
+        if (roomManager.updateCellExploredStatus(newPosition, true))
+          io.to(roomId).emit('board-update', state.exploredCells);
+      }
+    });
+
+    socket.on('game:explore-cell', ({ roomId, targetPosition, shouldExplore }) => {
+      const state = activeRooms.get(roomId);
+      if (!state) return;
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
+
+      if (state && roomManager.updateCellExploredStatus(targetPosition, shouldExplore)) {
+        io.to(roomId).emit('board-update', state.exploredCells);
       }
     });
 

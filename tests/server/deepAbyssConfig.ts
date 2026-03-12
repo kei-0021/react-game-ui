@@ -6,7 +6,14 @@ import { RoomManager } from 'react-game-ui/server-utils';
 import { CardPlayData } from '../../src/types/socketData.js';
 import { DeepAbyssPhase } from '../types/phase.js';
 
-const CELL_COUNTS = { RA: 5, RB: 10, B_NORM: 4, B_TRACK: 3, T_VOL: 7, T_CRF: 6, N_A: 12, N_B: 17 };
+export const CELL_COUNTS = {
+  RELIC_1: 5,
+  RELIC_2: 10,
+  ENERGY: 8,
+  DANGER: 7,
+  EMPTY: 29,
+  ABYSS: 5,
+};
 
 export const deepAbyssConfig: RoomConfig = {
   gameId: 'deepabyss',

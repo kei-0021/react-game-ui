@@ -1,6 +1,6 @@
 [
   {
-    "templateId": "RA",
+    "templateId": "RELIC_1",
     "name": "Relic Site 1",
     "shapeType": "square",
     "backgroundColor": "#1c2a38",
@@ -9,7 +9,7 @@
     "changedColor": "#4aaebbff"
   },
   {
-    "templateId": "RB",
+    "templateId": "RELIC_2",
     "name": "Relic Site 2",
     "shapeType": "square",
     "backgroundColor": "#0d1721",
@@ -18,25 +18,16 @@
     "changedColor": "#c0c0c0"
   },
   {
-    "templateId": "B_NORM",
-    "name": "危険生物 (通常)",
+    "templateId": "ENERGY",
+    "name": "Energy Vein",
     "shapeType": "square",
     "backgroundColor": "#1c2a38",
     "content": "",
-    "changedContent": "🦑",
-    "changedColor": "#ff5c5c"
+    "changedContent": "🫧",
+    "changedColor": "#3cb371"
   },
   {
-    "templateId": "B_TRACK",
-    "name": "危険生物 (追跡型)",
-    "shapeType": "square",
-    "backgroundColor": "#0d1721",
-    "content": "",
-    "changedContent": "🦈",
-    "changedColor": "#cc0000"
-  },
-  {
-    "templateId": "T_VOL",
+    "templateId": "DANGER",
     "name": "Dangerous Zone",
     "shapeType": "custom",
     "backgroundColor": "#1c2a38",
@@ -46,30 +37,21 @@
     "changedColor": "#ff4500"
   },
   {
-    "templateId": "T_CRF",
-    "name": "特殊地形 (珊瑚礁)",
-    "shapeType": "square",
-    "backgroundColor": "#0d1721",
-    "content": "",
-    "changedContent": "🐠",
-    "changedColor": "#3cb371"
-  },
-  {
-    "templateId": "N_A",
-    "name": "通常地形 (深海A)",
-    "shapeType": "square",
-    "backgroundColor": "#1c2a38",
-    "content": "",
-    "changedContent": "",
-    "changedColor": "#6a89cc"
-  },
-  {
-    "templateId": "N_B",
-    "name": "通常地形 (深海B)",
+    "templateId": "EMPTY",
+    "name": "Empty Deep Sea",
     "shapeType": "square",
     "backgroundColor": "#0d1721",
     "content": "",
     "changedContent": "",
     "changedColor": "#407398"
+  },
+  {
+    "templateId": "ABYSS",
+    "name": "Abyss Landmark",
+    "shapeType": "square",
+    "backgroundColor": "#0d1721",
+    "content": "",
+    "changedContent": "🔱",
+    "changedColor": "#6a89cc"
   }
 ]
