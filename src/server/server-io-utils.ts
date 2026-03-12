@@ -1,11 +1,18 @@
 // src/server/server-io-utils.ts
 
+import { CellData } from '@/components/Cell.js';
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import fs from 'node:fs';
 import { Card } from '../types/card.js';
 import { Resource } from '../types/resource.js';
+
+export type RoomConfig = {
+  gameId: GameId;
+  dataFiles: Record<string, any>;
+  setup: (loadedData: Record<string, any>) => Promise<GameParam>;
+};
 
 // --- 型バリデーター関数群 ---
 export const Validators = {
@@ -108,23 +115,6 @@ const generateFromTemplates = <T extends { templateId: string }>(
 };
 
 /**
- * 1次元配列を2次元（ボード形式）に変換する
- */
-const chunkTo2D = <T>(array: T[], cols: number): T[][] => {
-  const rows: T[][] = [];
-  for (let i = 0; i < array.length; i += cols) {
-    rows.push(array.slice(i, i + cols));
-  }
-  return rows;
-};
-
-export type RoomConfig = {
-  gameId: GameId;
-  dataFiles: Record<string, any>;
-  setup: (loadedData: Record<string, any>) => Promise<GameParam>;
-};
-
-/**
  * プリセット準備の関数群
  */
 export class SetupHelper {
@@ -177,9 +167,24 @@ export class SetupHelper {
   }
 
   /**
-   * ボードレイアウトの生成
+   * グリッド状ボードレイアウトの生成
    */
-  createBoardLayout(base: any[], counts: Record<string, number>, cols: number): any[][] {
-    return chunkTo2D(generateFromTemplates(base, counts), cols);
+  createGridBoardLayout(base: any[], counts: Record<string, number>, rows: number, cols?: number): CellData[][] {
+    const effectiveCols = cols ?? rows;
+    const expectedTotal = rows * effectiveCols;
+    const actualTotal = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+    if (actualTotal !== expectedTotal) {
+      throw new Error(`[Grid Error] Size:${rows}x${effectiveCols}(${expectedTotal}) != Total:${actualTotal}`);
+    }
+
+    const templates = generateFromTemplates(base, counts);
+    const grid: CellData[][] = [];
+
+    for (let i = 0; i < rows; i++) {
+      grid.push(templates.slice(i * effectiveCols, (i + 1) * effectiveCols));
+    }
+
+    return grid;
   }
 }

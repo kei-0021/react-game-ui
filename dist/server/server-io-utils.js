@@ -82,16 +82,6 @@ const generateFromTemplates = (templates, counts) => {
     });
 };
 /**
- * 1次元配列を2次元（ボード形式）に変換する
- */
-const chunkTo2D = (array, cols) => {
-    const rows = [];
-    for (let i = 0; i < array.length; i += cols) {
-        rows.push(array.slice(i, i + cols));
-    }
-    return rows;
-};
-/**
  * プリセット準備の関数群
  */
 export class SetupHelper {
@@ -141,9 +131,20 @@ export class SetupHelper {
         return replicatedTokens;
     }
     /**
-     * ボードレイアウトの生成
+     * グリッド状ボードレイアウトの生成
      */
-    createBoardLayout(base, counts, cols) {
-        return chunkTo2D(generateFromTemplates(base, counts), cols);
+    createGridBoardLayout(base, counts, rows, cols) {
+        const effectiveCols = cols ?? rows;
+        const expectedTotal = rows * effectiveCols;
+        const actualTotal = Object.values(counts).reduce((sum, count) => sum + count, 0);
+        if (actualTotal !== expectedTotal) {
+            throw new Error(`[Grid Error] Size:${rows}x${effectiveCols}(${expectedTotal}) != Total:${actualTotal}`);
+        }
+        const templates = generateFromTemplates(base, counts);
+        const grid = [];
+        for (let i = 0; i < rows; i++) {
+            grid.push(templates.slice(i * effectiveCols, (i + 1) * effectiveCols));
+        }
+        return grid;
     }
 }

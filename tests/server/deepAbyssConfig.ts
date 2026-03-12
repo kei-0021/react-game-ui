@@ -18,9 +18,9 @@ export const CELL_COUNTS = {
 export const deepAbyssConfig: RoomConfig = {
   gameId: 'deepabyss',
   dataFiles: {
-    deepAbyssSpeciesCards: './data/deepSeaSpeciesCards.json',
-    deepAbyssActionCards: './data/deepSeaActionCards.json',
-    deepAbyssCells: './data/deepSeaCells.json',
+    deepAbyssSpeciesCards: './data/deepAbyssSpeciesCards.json',
+    deepAbyssActionCards: './data/deepAbyssActionCards.json',
+    deepAbyssCells: './data/deepAbyssCells.json',
   },
   setup: async (loadedData: Record<string, any>): Promise<GameParam> => {
     const helper = new SetupHelper();
@@ -37,7 +37,7 @@ export const deepAbyssConfig: RoomConfig = {
       1,
     );
     const deepAbyssActionDeck = helper.createUniqueCards(helper.assertCards(loadedData.deepAbyssActionCards), 3);
-    const deepAbyssBoard = helper.createBoardLayout(loadedData.deepAbyssCells, CELL_COUNTS, 8);
+    const deepAbyssBoard = helper.createGridBoardLayout(loadedData.deepAbyssCells, CELL_COUNTS, 8);
 
     // エフェクトデータの動的ロード
     const [cardEffectsModule, cellEffectsModule] = await Promise.all([

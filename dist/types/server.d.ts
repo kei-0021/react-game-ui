@@ -1,3 +1,4 @@
+import { CellData } from '@/components/Cell.js';
 import { Player } from '@/index.js';
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
@@ -43,7 +44,7 @@ export type GameParam = {
         tokenId: TokenId;
         count: number;
     };
-    initialBoard?: Record<BoardId, any>;
+    initialBoard?: Record<BoardId, CellData[][]>;
     initialPhase?: Phase;
     cardEffects?: Record<string, any>;
     cellEffects?: Record<string, (manager: RoomManager, player: PlayerId) => void>;

@@ -1,8 +1,14 @@
+import { CellData } from '@/components/Cell.js';
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import { Card } from '../types/card.js';
 import { Resource } from '../types/resource.js';
+export type RoomConfig = {
+    gameId: GameId;
+    dataFiles: Record<string, any>;
+    setup: (loadedData: Record<string, any>) => Promise<GameParam>;
+};
 export declare const Validators: {
     isCardArray: (data: Card[]) => data is Card[];
     isResourceArray: (data: any) => data is Resource[];
@@ -12,11 +18,6 @@ export declare const Validators: {
  * 内部でバリデーションまで完結させる JSON ローダー
  */
 export declare function loadJsonAssert<T>(relativePath: string, validator: (data: any) => data is T): T;
-export type RoomConfig = {
-    gameId: GameId;
-    dataFiles: Record<string, any>;
-    setup: (loadedData: Record<string, any>) => Promise<GameParam>;
-};
 /**
  * プリセット準備の関数群
  */
@@ -43,8 +44,8 @@ export declare class SetupHelper {
      */
     createTokenStore(tokens: Token[], count: number, imageSrc?: string, color?: string): Token[];
     /**
-     * ボードレイアウトの生成
+     * グリッド状ボードレイアウトの生成
      */
-    createBoardLayout(base: any[], counts: Record<string, number>, cols: number): any[][];
+    createGridBoardLayout(base: any[], counts: Record<string, number>, rows: number, cols?: number): CellData[][];
 }
 //# sourceMappingURL=server-io-utils.d.ts.map
