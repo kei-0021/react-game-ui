@@ -24,7 +24,7 @@ type GridBoardProps = {
   onCellDoubleClick: (cellData: CellData, loc: GridLocation) => void;
   onPieceClick: (pieceId: PieceId) => void;
   onPieceDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
-  onCellDrop: (e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void;
+  onPieceDrop: (e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void;
 };
 
 /**
@@ -40,7 +40,7 @@ type GridBoardProps = {
  * @param {(cellData: CellData, loc: GridLocation) => void} onCellDoubleClick - セルがダブルクリックされた時の処理
  * @param {(pieceId: string) => void} onPieceClick - 駒がクリックされた時の処理
  * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} onPieceDragStart - 駒のドラッグが開始された時の処理
- * @param {(e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void} onCellDrop - セルに要素がドロップされた時の処理
+ * @param {(e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void} onPieceDrop - セルに駒がドロップされた時の処理
  */
 export function GridBoard({
   rows,
@@ -54,7 +54,7 @@ export function GridBoard({
   onPieceClick,
   allowPieceDrag = false,
   onPieceDragStart,
-  onCellDrop,
+  onPieceDrop,
 }: GridBoardProps) {
   const handleCellClick = (loc: GridLocation) => {
     const data = cellData[loc.row][loc.col];
@@ -105,7 +105,7 @@ export function GridBoard({
               cellData={cellDataForRenderer}
               onClick={handleCellClick}
               onDoubleClick={handleCellDoubleClick}
-              onDrop={(e) => onCellDrop(e, row, col)}
+              onDrop={(e) => onPieceDrop(e, row, col)}
               onDragOver={(e) => e.preventDefault()}
               changed={isChanged}
             >

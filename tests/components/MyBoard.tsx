@@ -4,8 +4,9 @@ import { DragEvent } from 'react';
 import { Socket } from 'socket.io-client';
 import type { CellData } from '../../src/components/Cell';
 import { GridBoard } from '../../src/components/GridBoard';
-import type { PlayerId } from '../../src/types/definition';
+import type { PieceId, PlayerId } from '../../src/types/definition';
 import type { PieceData } from '../../src/types/piece';
+import type { Player } from '../../src/types/player';
 
 type GridLocation = { row: number; col: number };
 
@@ -53,19 +54,7 @@ const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
 
 const initialPieces: PieceData[] = [];
 
-const handlePieceClick = (pieceId: string) => {
-  console.log(`Piece Clicked: ${pieceId}`);
-};
-
-type ServerPlayer = {
-  id: PlayerId;
-  name: string;
-  color: string;
-  cards: any[];
-  score: number;
-  resources: any[];
-  position: GridLocation;
-};
+const handlePieceClick = (pieceId: PieceId) => {};
 
 const EMPTY_BOARD: CellData[][] = [[], []];
 
@@ -73,30 +62,28 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
   const [pieces, setPieces] = React.useState(initialPieces);
   const [deepSeaCells, setDeepSeaCells] = React.useState<CellData[][]>(EMPTY_BOARD);
   const [isBoardReady, setIsBoardReady] = React.useState(false);
-  const [serverPlayers, setServerPlayers] = React.useState<ServerPlayer[]>([]);
-  const [exploredCells, setExploredCells] = React.useState<GridLocation[]>([]); // 💡 Location を GridLocation に変更
+  const [players, setPlayers] = React.useState<Player[]>([]);
+  const [exploredCells, setExploredCells] = React.useState<GridLocation[]>([]);
 
   const rows = deepSeaCells.length;
   const cols = deepSeaCells[0]?.length || 0;
 
   const handleBoardClick = (celldata: CellData, loc: GridLocation) => {
     if (!isBoardReady || !socket || !myPlayerId) return;
-    console.log(`[Client] Sending EXPLORE request for player ${myPlayerId} to (${loc.row},${loc.col})`);
     socket.emit('game:explore-cell', {
       playerId: myPlayerId,
       targetPosition: loc,
       roomId,
+      shouldExplore: true,
     });
   };
 
   const handleBoardDoubleClick = (celldata: CellData, loc: GridLocation) => {
     if (!isBoardReady || !socket) return;
-    console.log(`[Client] Sending UNEXPLORE request to (${loc.row},${loc.col})`);
-    socket.emit('game:unexplore-cell', { targetPosition: loc, roomId });
+    socket.emit('game:explore-cell', { targetPosition: loc, roomId, shouldExplore: false });
   };
 
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
-    console.log(`[Piece Drag Started]: ${piece.id} from (${piece.location.row}, ${piece.location.col})`);
     e.dataTransfer.setData('pieceId', piece.id);
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -112,14 +99,12 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
         newPosition: { row: targetRow, col: targetCol },
         roomId,
       });
-      console.log(`[Piece Dropped]: ${draggedPieceId} to r${targetRow}c${targetCol}`);
     }
   };
 
   // ------------------- Socket Effects -------------------
   React.useEffect(() => {
     const handleInitBoard = (boardData: CellData[][]) => {
-      console.log('[Socket] GridBoard initialized.');
       if (boardData.length > 0) {
         setDeepSeaCells(boardData);
         setIsBoardReady(true);
@@ -133,7 +118,6 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
 
   React.useEffect(() => {
     const handleExploredUpdate = (updatedExploredCells: GridLocation[]) => {
-      console.log('[Socket] Explored cells updated.', updatedExploredCells);
       setExploredCells(updatedExploredCells);
     };
     socket.on('board-update', handleExploredUpdate);
@@ -143,8 +127,8 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
   }, [socket]);
 
   React.useEffect(() => {
-    const handlePlayersUpdate = (updatedPlayers: ServerPlayer[]) => {
-      setServerPlayers(updatedPlayers);
+    const handlePlayersUpdate = (updatedPlayers: Player[]) => {
+      setPlayers(updatedPlayers);
     };
     socket.on('players:update', handlePlayersUpdate);
     return () => {
@@ -154,7 +138,7 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
 
   React.useEffect(() => {
     setPieces((prevPieces) => {
-      return serverPlayers.map((p) => {
+      return players.map((p) => {
         const existingPiece = prevPieces.find((piece) => piece.id === p.id);
         const location: GridLocation = p.position;
 
@@ -170,7 +154,7 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
         } as PieceData;
       });
     });
-  }, [serverPlayers]);
+  }, [players]);
 
   if (!isBoardReady) {
     return (
@@ -202,7 +186,7 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
           onPieceClick={handlePieceClick}
           allowPieceDrag={true}
           onPieceDragStart={handlePieceDragStart}
-          onCellDrop={handleCellDrop}
+          onPieceDrop={handleCellDrop}
         />
       ) : (
         <div

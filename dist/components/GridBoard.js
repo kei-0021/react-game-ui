@@ -15,9 +15,9 @@ import { Piece } from './Piece.js';
  * @param {(cellData: CellData, loc: GridLocation) => void} onCellDoubleClick - セルがダブルクリックされた時の処理
  * @param {(pieceId: string) => void} onPieceClick - 駒がクリックされた時の処理
  * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} onPieceDragStart - 駒のドラッグが開始された時の処理
- * @param {(e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void} onCellDrop - セルに要素がドロップされた時の処理
+ * @param {(e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void} onPieceDrop - セルに駒がドロップされた時の処理
  */
-export function GridBoard({ rows, cols, cellData, pieces, changedCells, renderCell, onCellClick, onCellDoubleClick, onPieceClick, allowPieceDrag = false, onPieceDragStart, onCellDrop, }) {
+export function GridBoard({ rows, cols, cellData, pieces, changedCells, renderCell, onCellClick, onCellDoubleClick, onPieceClick, allowPieceDrag = false, onPieceDragStart, onPieceDrop, }) {
     const handleCellClick = (loc) => {
         const data = cellData[loc.row][loc.col];
         onCellClick(data, loc);
@@ -48,7 +48,7 @@ export function GridBoard({ rows, cols, cellData, pieces, changedCells, renderCe
                     content: effectiveContent,
                 };
                 const loc = { row, col };
-                return (_jsx(Cell, { locationData: loc, cellData: cellDataForRenderer, onClick: handleCellClick, onDoubleClick: handleCellDoubleClick, onDrop: (e) => onCellDrop(e, row, col), onDragOver: (e) => e.preventDefault(), changed: isChanged, children: renderCell(cellDataForRenderer, row, col) }, originalCellData.id));
+                return (_jsx(Cell, { locationData: loc, cellData: cellDataForRenderer, onClick: handleCellClick, onDoubleClick: handleCellDoubleClick, onDrop: (e) => onPieceDrop(e, row, col), onDragOver: (e) => e.preventDefault(), changed: isChanged, children: renderCell(cellDataForRenderer, row, col) }, originalCellData.id));
             })), pieces.map((piece) => {
                 const sameLocationPieces = pieces.filter((p) => p.location.row === piece.location.row && p.location.col === piece.location.col);
                 const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece.id);

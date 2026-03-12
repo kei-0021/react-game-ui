@@ -1549,7 +1549,7 @@ function GridBoard({
   onPieceClick,
   allowPieceDrag = false,
   onPieceDragStart,
-  onCellDrop
+  onPieceDrop
 }) {
   const handleCellClick = (loc) => {
     const data = cellData[loc.row][loc.col];
@@ -1590,7 +1590,7 @@ function GridBoard({
             cellData: cellDataForRenderer,
             onClick: handleCellClick,
             onDoubleClick: handleCellDoubleClick,
-            onDrop: (e) => onCellDrop(e, row, col),
+            onDrop: (e) => onPieceDrop(e, row, col),
             onDragOver: (e) => e.preventDefault(),
             changed: isChanged,
             children: renderCell(cellDataForRenderer, row, col)
@@ -2524,21 +2524,21 @@ function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
 }
 let LOG_CATEGORIES = {
   connection: true,
+  lobby: true,
+  game: true,
+  room: true,
   deck: false,
   card: true,
   cell: true,
-  game: true,
   dice: true,
   timer: false,
   addScore: true,
   resource: true,
   token: true,
-  room: true,
-  lobby: true,
-  disconnect: true,
   warn: true,
   popup: true,
-  custom_event: true
+  custom_event: true,
+  disconnect: true
 };
 const ANSI_RED = "\x1B[31m";
 const ANSI_RESET = "\x1B[0m";
@@ -2554,6 +2554,9 @@ function server_log(tag, gameId, roomId, firstArg, ...args) {
     console.log(`[${tag}] [${gameId} (${roomId})]`, ...fullArgs);
   }
 }
+const isExplored = (roomState, position) => {
+  return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
+};
 class RoomManager {
   constructor(io, param, state) {
     this.io = io;
@@ -2796,6 +2799,38 @@ class RoomManager {
       this.emitTokenStoreUpdate(tokenStoreId);
     }
   }
+  /**
+   * 特定のセルの探索状態を切り替える
+   * @param {Position} position - 操作対象の座標
+   * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
+   * @returns {boolean} 状態が実際に変化した場合は true
+   */
+  updateCellExploredStatus = (position, shouldMark) => {
+    const isCurrentlyExplored = isExplored(this.state, position);
+    if (shouldMark && !isCurrentlyExplored) {
+      this.state.exploredCells.push(position);
+      server_log(
+        "cell",
+        this.state.gameId,
+        this.state.roomId,
+        `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`
+      );
+      return true;
+    }
+    if (!shouldMark && isCurrentlyExplored) {
+      this.state.exploredCells = this.state.exploredCells.filter(
+        (loc) => !(loc.row === position.row && loc.col === position.col)
+      );
+      server_log(
+        "cell",
+        this.state.gameId,
+        this.state.roomId,
+        `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`
+      );
+      return true;
+    }
+    return false;
+  };
   /**
    * セル効果を発動する
    * @param playerId - 効果を発動させたプレイヤーのID

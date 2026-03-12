@@ -1,14 +1,6 @@
 // src/server/server.ts
 import { Server, Socket } from 'socket.io';
-import {
-  createRandomBoard,
-  generateColorFromId,
-  LOG_CATEGORIES,
-  markCellAsExplored,
-  RoomManager,
-  server_log,
-  unmarkCellAsExplored,
-} from './server-utils.js';
+import { createRandomBoard, generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 
 import { CardId, DeckId, PlayerId, RoomId } from '@/types/definition.js';
 import { GameParam, RoomState } from '@/types/server.js';
@@ -271,13 +263,11 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
-
       const roomManager = new RoomManager(io, param, state);
+
       const player = state?.players.find((p) => p.id === playerId);
       if (player && state) {
         player.position = newPosition;
-        const updated = markCellAsExplored(state, state.gameId, roomId, newPosition);
-
         roomManager.applyCellEffect(
           playerId,
           newPosition,
@@ -287,20 +277,18 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }),
         );
         roomManager.emitPlayerUpdate();
-        if (updated) io.to(roomId).emit('board-update', state.exploredCells);
+        if (roomManager.updateCellExploredStatus(newPosition, true))
+          io.to(roomId).emit('board-update', state.exploredCells);
       }
     });
 
-    socket.on('game:explore-cell', ({ roomId, targetPosition }) => {
+    socket.on('game:explore-cell', ({ roomId, targetPosition, shouldExplore }) => {
       const state = activeRooms.get(roomId);
-      if (state && markCellAsExplored(state, state.gameId, roomId, targetPosition)) {
-        io.to(roomId).emit('board-update', state.exploredCells);
-      }
-    });
+      if (!state) return;
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
 
-    socket.on('game:unexplore-cell', ({ roomId, targetPosition }) => {
-      const state = activeRooms.get(roomId);
-      if (state && unmarkCellAsExplored(state, state.gameId, roomId, targetPosition)) {
+      if (state && roomManager.updateCellExploredStatus(targetPosition, shouldExplore)) {
         io.to(roomId).emit('board-update', state.exploredCells);
       }
     });

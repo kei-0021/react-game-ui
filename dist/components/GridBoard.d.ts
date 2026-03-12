@@ -19,7 +19,7 @@ type GridBoardProps = {
     onCellDoubleClick: (cellData: CellData, loc: GridLocation) => void;
     onPieceClick: (pieceId: PieceId) => void;
     onPieceDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
-    onCellDrop: (e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void;
+    onPieceDrop: (e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void;
 };
 /**
  * 盤面（グリッド）を表示し、セルや駒のインタラクション、ドラッグ＆ドロップを管理する
@@ -34,8 +34,8 @@ type GridBoardProps = {
  * @param {(cellData: CellData, loc: GridLocation) => void} onCellDoubleClick - セルがダブルクリックされた時の処理
  * @param {(pieceId: string) => void} onPieceClick - 駒がクリックされた時の処理
  * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} onPieceDragStart - 駒のドラッグが開始された時の処理
- * @param {(e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void} onCellDrop - セルに要素がドロップされた時の処理
+ * @param {(e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void} onPieceDrop - セルに駒がドロップされた時の処理
  */
-export declare function GridBoard({ rows, cols, cellData, pieces, changedCells, renderCell, onCellClick, onCellDoubleClick, onPieceClick, allowPieceDrag, onPieceDragStart, onCellDrop, }: GridBoardProps): import("react/jsx-runtime").JSX.Element;
+export declare function GridBoard({ rows, cols, cellData, pieces, changedCells, renderCell, onCellClick, onCellDoubleClick, onPieceClick, allowPieceDrag, onPieceDragStart, onPieceDrop, }: GridBoardProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=GridBoard.d.ts.map

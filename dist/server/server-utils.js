@@ -1,20 +1,20 @@
 export let LOG_CATEGORIES = {
     connection: true,
+    lobby: true,
+    game: true,
+    room: true,
     deck: false,
     card: true,
     cell: true,
-    game: true,
     dice: true,
     timer: false,
     addScore: true,
     resource: true,
     token: true,
-    room: true,
-    lobby: true,
-    disconnect: true,
     warn: true,
     popup: true,
     custom_event: true,
+    disconnect: true,
 };
 const ANSI_RED = '\x1b[31m';
 const ANSI_RESET = '\x1b[0m';
@@ -41,23 +41,6 @@ export function server_log(tag, gameId, roomId, firstArg, ...args) {
 }
 export const isExplored = (roomState, position) => {
     return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
-};
-export const markCellAsExplored = (roomState, gameId, roomId, position) => {
-    if (!isExplored(roomState, position)) {
-        roomState.exploredCells.push(position);
-        server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
-        return true;
-    }
-    return false;
-};
-export const unmarkCellAsExplored = (roomState, gameId, roomId, position) => {
-    const initialLength = roomState.exploredCells.length;
-    roomState.exploredCells = roomState.exploredCells.filter((loc) => !(loc.row === position.row && loc.col === position.col));
-    const wasRemoved = roomState.exploredCells.length < initialLength;
-    if (wasRemoved) {
-        server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
-    }
-    return wasRemoved;
 };
 const shuffleArray = (array) => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -369,6 +352,26 @@ export class RoomManager {
             this.emitTokenStoreUpdate(tokenStoreId);
         }
     }
+    /**
+     * 特定のセルの探索状態を切り替える
+     * @param {Position} position - 操作対象の座標
+     * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
+     * @returns {boolean} 状態が実際に変化した場合は true
+     */
+    updateCellExploredStatus = (position, shouldMark) => {
+        const isCurrentlyExplored = isExplored(this.state, position);
+        if (shouldMark && !isCurrentlyExplored) {
+            this.state.exploredCells.push(position);
+            server_log('cell', this.state.gameId, this.state.roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
+            return true;
+        }
+        if (!shouldMark && isCurrentlyExplored) {
+            this.state.exploredCells = this.state.exploredCells.filter((loc) => !(loc.row === position.row && loc.col === position.col));
+            server_log('cell', this.state.gameId, this.state.roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
+            return true;
+        }
+        return false;
+    };
     /**
      * セル効果を発動する
      * @param playerId - 効果を発動させたプレイヤーのID

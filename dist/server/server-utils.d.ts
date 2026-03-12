@@ -6,7 +6,7 @@ import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import { CardPlayData } from '@/types/socketData.js';
 import { Server } from 'socket.io';
-export type LogCategory = 'connection' | 'deck' | 'card' | 'cell' | 'game' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'room' | 'lobby' | 'disconnect' | 'warn' | 'popup' | 'custom_event';
+export type LogCategory = 'connection' | 'lobby' | 'game' | 'room' | 'deck' | 'card' | 'cell' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'warn' | 'popup' | 'custom_event' | 'disconnect';
 export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
 /**
  * サーバーの実行ログを出力する
@@ -18,8 +18,6 @@ export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
  */
 export declare function server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void;
 export declare const isExplored: (roomState: RoomState, position: Position) => boolean;
-export declare const markCellAsExplored: (roomState: RoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
-export declare const unmarkCellAsExplored: (roomState: RoomState, gameId: GameId, roomId: RoomId, position: Position) => boolean;
 export declare const createRandomBoard: (initialBoard: any[][]) => any[][];
 export declare const generateColorFromId: (id: string) => string;
 /**
@@ -91,6 +89,13 @@ export declare class RoomManager {
      * @param playerId - プレイヤーID
      */
     acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): void;
+    /**
+     * 特定のセルの探索状態を切り替える
+     * @param {Position} position - 操作対象の座標
+     * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
+     * @returns {boolean} 状態が実際に変化した場合は true
+     */
+    updateCellExploredStatus: (position: Position, shouldMark: boolean) => boolean;
     /**
      * セル効果を発動する
      * @param playerId - 効果を発動させたプレイヤーのID
