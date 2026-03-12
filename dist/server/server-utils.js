@@ -333,22 +333,25 @@ export class RoomManager {
     /**
      * トークンを取得する
      * @param tokenStoreId - トークン置き場ID
-     * @param tokenId - トークンID
+     * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
      * @param playerId - プレイヤーID
      */
-    acquireToken(tokenStoreId, tokenId, playerId) {
+    acquireToken(tokenStoreId, tokenId = null, playerId) {
         const player = this.state.players.find((p) => p.id === playerId);
         if (!player)
             return;
         const tokens = this.state.tokenStores[tokenStoreId];
-        const index = tokens.findIndex((t) => t.id === tokenId);
+        if (tokens.length === 0)
+            return;
+        // tokenId が指定されていればそのインデックス、null ならランダムなインデックスを選択
+        const index = tokenId !== null ? tokens.findIndex((t) => t.id === tokenId) : Math.floor(Math.random() * tokens.length);
         if (index !== -1) {
             const acquiredToken = tokens.splice(index, 1)[0];
             if (!Array.isArray(player.tokens)) {
                 player.tokens = [];
             }
             player.tokens.push(acquiredToken);
-            server_log('token', this.state.gameId, this.state.roomId, `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`);
+            server_log('token', this.state.gameId, this.state.roomId, `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${acquiredToken.id} を獲得しました。`);
             this.emitTokenStoreUpdate(tokenStoreId);
         }
     }

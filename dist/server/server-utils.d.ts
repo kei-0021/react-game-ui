@@ -85,10 +85,10 @@ export declare class RoomManager {
     /**
      * トークンを取得する
      * @param tokenStoreId - トークン置き場ID
-     * @param tokenId - トークンID
+     * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
      * @param playerId - プレイヤーID
      */
-    acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId): void;
+    acquireToken(tokenStoreId: TokenStoreId, tokenId: (TokenId | null) | undefined, playerId: PlayerId): void;
     /**
      * 特定のセルの探索状態を切り替える
      * @param {Position} position - 操作対象の座標

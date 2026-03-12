@@ -6,12 +6,14 @@ import type { PlayerId, RoomManager } from '../../src/index';
 export const cellEffects: Record<string, (manager: RoomManager, playerId: PlayerId) => void> = {
   'Relic Site 1': (manager, playerId) => {
     if (playerId) {
+      manager.addScore(playerId, 2);
       console.log(`[EFFECT] ${playerId} が 遺跡跡地(1) に着地し、アーティファクト を +1 獲得。`);
     }
   },
 
   'Relic Site 2': (manager, playerId) => {
     if (playerId) {
+      manager.addScore(playerId, 5);
       console.log(`[EFFECT] ${playerId} が 遺跡跡地(2) に着地し、アーティファクト を +1 獲得。`);
     }
   },
@@ -38,7 +40,7 @@ export const cellEffects: Record<string, (manager: RoomManager, playerId: Player
   'Abyss Landmark': (manager, playerId) => {
     if (playerId) {
       console.log(`[EFFECT] ${playerId} が 深淵のランドマーク に到達し、アーティファクト を +5 獲得。`);
-      manager.addScore(playerId, 5);
+      manager.acquireToken('ARTIFACT', null, playerId);
     }
   },
 };

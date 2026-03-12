@@ -1,6 +1,7 @@
 // tests/rooms/DeepAbyssRoom.tsx
 // カードの動作確認
 // トークンの動作確認
+// ボードの動作確認
 // スコアボードのボタンの動作確認
 // システムメッセージの動作確認
 import { useCallback, useEffect, useRef, useState } from 'react';
