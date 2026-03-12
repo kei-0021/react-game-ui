@@ -37,7 +37,7 @@ export const deepAbyssConfig: RoomConfig = {
       1,
     );
     const deepAbyssActionDeck = helper.createUniqueCards(helper.assertCards(loadedData.deepAbyssActionCards), 3);
-    const deepAbyssBoard = helper.createGridBoardLayout(loadedData.deepAbyssCells, CELL_COUNTS, 8);
+    const deepAbyssBoard = helper.createGridBoardLayout(loadedData.deepAbyssCells, CELL_COUNTS, 8, undefined, true);
 
     // エフェクトデータの動的ロード
     const [cardEffectsModule, cellEffectsModule] = await Promise.all([

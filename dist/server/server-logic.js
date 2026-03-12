@@ -1,4 +1,4 @@
-import { createRandomBoard, generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
+import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 const activeRooms = new Map();
 const roomTimers = new Map();
 /**
@@ -18,7 +18,7 @@ function initializeRoom(roomId, param) {
     let Cells = {};
     const boardEntries = Object.entries(initialBoard);
     boardEntries.forEach(([boardId, boardData]) => {
-        Cells[boardId] = createRandomBoard(boardData);
+        Cells[boardId] = boardData;
         server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
     });
     const decks = {};

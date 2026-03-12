@@ -18,7 +18,6 @@ export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
  */
 export declare function server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void;
 export declare const isExplored: (roomState: RoomState, position: Position) => boolean;
-export declare const createRandomBoard: (initialBoard: any[][]) => any[][];
 export declare const generateColorFromId: (id: string) => string;
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。

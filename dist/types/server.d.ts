@@ -86,7 +86,7 @@ export interface RoomState {
     playFieldCards: Record<DeckId, Card[]>;
     discardPile: Record<PlayerId, Card[]>;
     holdCards: Record<PlayerId, Record<DeckId, CardId[]>>;
-    board: Record<BoardId, any[][]>;
+    board: Record<BoardId, CellData[][]>;
     exploredCells: Position[];
     tokenStores: Record<TokenId, Token[]>;
     systemMessageHistory: string[];

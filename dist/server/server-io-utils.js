@@ -81,6 +81,44 @@ const generateFromTemplates = (templates, counts) => {
         }));
     });
 };
+const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+};
+const createRandomBoard = (initialBoard) => {
+    if (!initialBoard || initialBoard.length === 0 || initialBoard[0].length === 0) {
+        return [];
+    }
+    const rows = initialBoard.length;
+    const cols = initialBoard[0].length;
+    let allCells = [];
+    initialBoard.forEach((rowArr) => {
+        allCells = allCells.concat(rowArr);
+    });
+    shuffleArray(allCells);
+    const newBoard = [];
+    let cellIndex = 0;
+    for (let r = 0; r < rows; r++) {
+        const newRow = [];
+        for (let c = 0; c < cols; c++) {
+            if (cellIndex >= allCells.length)
+                break;
+            const originalCell = allCells[cellIndex];
+            newRow.push({
+                ...originalCell,
+                id: `r${r}c${c}`,
+            });
+            cellIndex++;
+        }
+        if (newRow.length > 0) {
+            newBoard.push(newRow);
+        }
+    }
+    return newBoard;
+};
 /**
  * プリセット準備の関数群
  */
@@ -133,17 +171,29 @@ export class SetupHelper {
     /**
      * グリッド状ボードレイアウトの生成
      */
-    createGridBoardLayout(base, counts, rows, cols) {
+    createGridBoardLayout(base, counts, rows, cols, isRandom = false) {
         const effectiveCols = cols ?? rows;
         const expectedTotal = rows * effectiveCols;
         const actualTotal = Object.values(counts).reduce((sum, count) => sum + count, 0);
         if (actualTotal !== expectedTotal) {
             throw new Error(`[Grid Error] Size:${rows}x${effectiveCols}(${expectedTotal}) != Total:${actualTotal}`);
         }
-        const templates = generateFromTemplates(base, counts);
+        let templates = generateFromTemplates(base, counts);
+        // ランダム配置が有効な場合はシャッフル
+        if (isRandom) {
+            templates = shuffleArray(templates);
+        }
         const grid = [];
-        for (let i = 0; i < rows; i++) {
-            grid.push(templates.slice(i * effectiveCols, (i + 1) * effectiveCols));
+        for (let r = 0; r < rows; r++) {
+            const rowArr = [];
+            for (let c = 0; c < effectiveCols; c++) {
+                const template = templates[r * effectiveCols + c];
+                rowArr.push({
+                    ...template,
+                    id: `r${r}c${c}`, // 配置確定後に座標ベースのIDを付与
+                });
+            }
+            grid.push(rowArr);
         }
         return grid;
     }

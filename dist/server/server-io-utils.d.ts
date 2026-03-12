@@ -46,6 +46,6 @@ export declare class SetupHelper {
     /**
      * グリッド状ボードレイアウトの生成
      */
-    createGridBoardLayout(base: any[], counts: Record<string, number>, rows: number, cols?: number): CellData[][];
+    createGridBoardLayout(base: any[], counts: Record<string, number>, rows: number, cols?: number, isRandom?: boolean): CellData[][];
 }
 //# sourceMappingURL=server-io-utils.d.ts.map

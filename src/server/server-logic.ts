@@ -1,8 +1,9 @@
 // src/server/server.ts
 import { Server, Socket } from 'socket.io';
-import { createRandomBoard, generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
+import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 
-import { CardId, DeckId, PlayerId, RoomId } from '@/types/definition.js';
+import { CellData } from '@/components/Cell.js';
+import { CardId, DeckId, PlayerId, RoomId, TokenStoreId } from '@/types/definition.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
   CardFlipData,
@@ -42,11 +43,11 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   const initialTokenStores = param.initialTokenStores || [];
   const initialBoard = param.initialBoard || {};
 
-  let Cells: Record<string, any> = {};
+  let Cells: Record<string, CellData[][]> = {};
   const boardEntries = Object.entries(initialBoard);
 
   boardEntries.forEach(([boardId, boardData]) => {
-    Cells[boardId] = createRandomBoard(boardData as any[][]);
+    Cells[boardId] = boardData;
     server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
   });
 
@@ -55,7 +56,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   const discardPile: Record<DeckId, Card[]> = {};
   const holdCards: Record<PlayerId, Record<DeckId, CardId[]>> = {};
 
-  const tokenStores: Record<string, Token[]> = {};
+  const tokenStores: Record<TokenStoreId, Token[]> = {};
 
   initialDecks.forEach((deck: Deck) => {
     const cards: Card[] = (deck.cards || []).map((c, index) => ({

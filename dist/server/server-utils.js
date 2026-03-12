@@ -42,44 +42,6 @@ export function server_log(tag, gameId, roomId, firstArg, ...args) {
 export const isExplored = (roomState, position) => {
     return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
-const shuffleArray = (array) => {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-};
-export const createRandomBoard = (initialBoard) => {
-    if (!initialBoard || initialBoard.length === 0 || initialBoard[0].length === 0) {
-        return [];
-    }
-    const rows = initialBoard.length;
-    const cols = initialBoard[0].length;
-    let allCells = [];
-    initialBoard.forEach((rowArr) => {
-        allCells = allCells.concat(rowArr);
-    });
-    shuffleArray(allCells);
-    const newBoard = [];
-    let cellIndex = 0;
-    for (let r = 0; r < rows; r++) {
-        const newRow = [];
-        for (let c = 0; c < cols; c++) {
-            if (cellIndex >= allCells.length)
-                break;
-            const originalCell = allCells[cellIndex];
-            newRow.push({
-                ...originalCell,
-                id: `r${r}c${c}`,
-            });
-            cellIndex++;
-        }
-        if (newRow.length > 0) {
-            newBoard.push(newRow);
-        }
-    }
-    return newBoard;
-};
 export const generateColorFromId = (id) => {
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
