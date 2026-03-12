@@ -68,6 +68,7 @@ export const Cell = <TLocation,>({
 
   const cellStyle: React.CSSProperties = {
     backgroundColor: effectiveBackgroundColor,
+    userSelect: 'none',
   };
 
   return (

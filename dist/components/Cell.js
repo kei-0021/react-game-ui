@@ -21,6 +21,7 @@ export const Cell = ({ locationData, cellData, onClick, onDoubleClick, children,
     const effectiveBackgroundColor = changed ? cellData.changedColor : cellData.backgroundColor;
     const cellStyle = {
         backgroundColor: effectiveBackgroundColor,
+        userSelect: 'none',
     };
     return (_jsx("div", { className: styles.cell, onClick: handleClick, onDoubleClick: handleDoubleClick, onDrop: onDrop, onDragOver: onDragOver, style: cellStyle, children: children }));
 };

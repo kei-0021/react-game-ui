@@ -952,7 +952,8 @@ const Cell = ({
   };
   const effectiveBackgroundColor = changed ? cellData.changedColor : cellData.backgroundColor;
   const cellStyle = {
-    backgroundColor: effectiveBackgroundColor
+    backgroundColor: effectiveBackgroundColor,
+    userSelect: "none"
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
