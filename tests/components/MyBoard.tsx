@@ -3,7 +3,7 @@ import * as React from 'react';
 import { DragEvent } from 'react';
 import { Socket } from 'socket.io-client';
 import type { CellData } from '../../src/components/Cell';
-import GridBoard from '../../src/components/GridBoard';
+import { GridBoard } from '../../src/components/GridBoard';
 import type { PlayerId } from '../../src/types/definition';
 import type { PieceData } from '../../src/types/piece';
 
@@ -79,7 +79,6 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
   const rows = deepSeaCells.length;
   const cols = deepSeaCells[0]?.length || 0;
 
-  // 💡 修正 2: handleBoardClick の引数を (celldata, loc) に変更
   const handleBoardClick = (celldata: CellData, loc: GridLocation) => {
     if (!isBoardReady || !socket || !myPlayerId) return;
     console.log(`[Client] Sending EXPLORE request for player ${myPlayerId} to (${loc.row},${loc.col})`);
@@ -90,7 +89,6 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
     });
   };
 
-  // 💡 修正 3: handleBoardDoubleClick の引数を (celldata, loc) に変更
   const handleBoardDoubleClick = (celldata: CellData, loc: GridLocation) => {
     if (!isBoardReady || !socket) return;
     console.log(`[Client] Sending UNEXPLORE request to (${loc.row},${loc.col})`);
@@ -111,7 +109,6 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
     if (draggedPieceId) {
       socket.emit('game:move-player', {
         playerId: draggedPieceId,
-        // 💡 修正 4: ドロップイベントは row/col で渡されますが、socketへの送信はLocation形式に変換します
         newPosition: { row: targetRow, col: targetCol },
         roomId,
       });
@@ -120,7 +117,6 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
   };
 
   // ------------------- Socket Effects -------------------
-  // ... (Socket Effectsは変更なし) ...
   React.useEffect(() => {
     const handleInitBoard = (boardData: CellData[][]) => {
       console.log('[Socket] GridBoard initialized.');
@@ -162,11 +158,9 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
         const existingPiece = prevPieces.find((piece) => piece.id === p.id);
         const location: GridLocation = p.position;
 
-        // 💡 サーバーからの色（p.color）を最優先。なければ既存の色、それもなければデフォルト。
         const playerColor = p.color || existingPiece?.color || '#aaaaaa';
         const playerName = p.name || existingPiece?.name || `P?`;
 
-        // 既存のデータがある場合は位置と色を更新、なければ新規作成
         return {
           ...existingPiece,
           id: p.id,
@@ -196,15 +190,13 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
   return (
     <div style={{ textAlign: 'center' }}>
       {rows > 0 && cols > 0 ? (
-        // 💡 修正 5: GridBoard に GridLocation 型を渡す (型安全性のため)
         <GridBoard
           rows={rows}
           cols={cols}
-          boardData={deepSeaCells}
+          cellData={deepSeaCells}
           pieces={pieces}
           changedCells={exploredCells}
           renderCell={MyCustomCellRenderer}
-          // 💡 修正 6: イベントハンドラは関数そのものを渡します
           onCellClick={handleBoardClick}
           onCellDoubleClick={handleBoardDoubleClick}
           onPieceClick={handlePieceClick}

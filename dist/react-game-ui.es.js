@@ -935,7 +935,6 @@ const styles$6 = {
   cell
 };
 const Cell = ({
-  // ⭐ [修正 1]: ジェネリクスをコンポーネント定義時に適用 (Trailing Commaが必要)
   locationData,
   cellData,
   onClick,
@@ -1521,10 +1520,7 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
       onDragStart(e, piece2);
     }
   };
-  const pieceClasses = [
-    styles$4.piece,
-    isDraggable ? styles$4.draggable : styles$4.clickable
-  ].join(" ");
+  const pieceClasses = [styles$4.piece, isDraggable ? styles$4.draggable : styles$4.clickable].join(" ");
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
@@ -1544,7 +1540,7 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
 function GridBoard({
   rows,
   cols,
-  boardData,
+  cellData,
   pieces,
   changedCells,
   renderCell,
@@ -1556,11 +1552,11 @@ function GridBoard({
   onCellDrop
 }) {
   const handleCellClick = (loc) => {
-    const data = boardData[loc.row][loc.col];
+    const data = cellData[loc.row][loc.col];
     onCellClick(data, loc);
   };
   const handleCellDoubleClick = (loc) => {
-    const data = boardData[loc.row][loc.col];
+    const data = cellData[loc.row][loc.col];
     onCellDoubleClick(data, loc);
   };
   const handlePieceDragStart = (e, piece2) => {
@@ -1578,19 +1574,16 @@ function GridBoard({
     position: "relative"
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [
-    boardData.map((rowArr, row) => rowArr.map((originalCellData, col) => {
-      const isChanged = changedCells.some(
-        (loc2) => loc2.row === row && loc2.col === col
-      );
-      const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
-      const cellDataForRenderer = {
-        ...originalCellData,
-        content: effectiveContent
-      };
-      const loc = { row, col };
-      return (
-        // 💡 修正点 5: Cell にジェネリクス型 (GridLocation) を適用
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
+    cellData.map(
+      (rowArr, row) => rowArr.map((originalCellData, col) => {
+        const isChanged = changedCells.some((loc2) => loc2.row === row && loc2.col === col);
+        const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
+        const cellDataForRenderer = {
+          ...originalCellData,
+          content: effectiveContent
+        };
+        const loc = { row, col };
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(
           Cell,
           {
             locationData: loc,
@@ -1603,9 +1596,9 @@ function GridBoard({
             children: renderCell(cellDataForRenderer, row, col)
           },
           originalCellData.id
-        )
-      );
-    })),
+        );
+      })
+    ),
     pieces.map((piece2) => {
       const sameLocationPieces = pieces.filter(
         (p) => p.location.row === piece2.location.row && p.location.col === piece2.location.col
