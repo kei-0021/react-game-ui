@@ -1,6 +1,6 @@
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
-import { BoardId, CardId, DeckId, GameId, PlayerId, ResourceId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { BoardId, CardId, CellId, DeckId, GameId, PlayerId, ResourceId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
@@ -95,6 +95,10 @@ export declare class RoomManager {
      * @returns {boolean} 状態が実際に変化した場合は true
      */
     updateCellExploredStatus: (position: Position, shouldMark: boolean) => boolean;
+    /**
+     * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+     */
+    getMovableCellIds: (boardId: BoardId, startCellId: CellId, moveRange: number) => CellId[];
     /**
      * セル効果を発動する
      * @param boardId - ボードID

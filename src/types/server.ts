@@ -71,7 +71,7 @@ export type GameParam = {
  * @param decks - 各デッキIDごとの残りカードリスト。
  * @param playFieldCards - プレイフィールド上のカード（キーは "firework" 等の場所名）。
  * @param discardPile - 捨て札置き場のカードリスト。
- * @param board - ボード上のセルデータ。
+ * @param boards - ボード上のセルデータ。
  * @param exploredCells - すでに探索・公開されたセルの座標リスト。
  * @param tokenStores - 共有トークンの現在のストック状況。
  * @param systemMessageHistory - 過去のシステムメッセージの履歴。
@@ -89,7 +89,7 @@ export interface RoomState {
   playFieldCards: Record<DeckId, Card[]>;
   discardPile: Record<PlayerId, Card[]>;
   holdCards: Record<PlayerId, Record<DeckId, CardId[]>>;
-  board: Record<BoardId, CellData[]>;
+  boards: Record<BoardId, CellData[]>;
   exploredCells: Position[];
   tokenStores: Record<TokenId, Token[]>;
   systemMessageHistory: string[];

@@ -1542,6 +1542,7 @@ function GridBoard({
   cols,
   cellData,
   pieces,
+  highlightendCells,
   changedCells,
   renderCell,
   onCellClick,
@@ -2836,6 +2837,29 @@ class RoomManager {
     return false;
   };
   /**
+   * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+   */
+  getMovableCellIds = (boardId, startCellId, moveRange) => {
+    const targetBoard = this.state.boards[boardId];
+    const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
+    const reachable = /* @__PURE__ */ new Set();
+    const queue = [{ id: startCellId, dist: 0 }];
+    const visited = /* @__PURE__ */ new Set([startCellId]);
+    while (queue.length > 0) {
+      const { id, dist } = queue.shift();
+      if (dist > 0) reachable.add(id);
+      if (dist >= moveRange) continue;
+      const cell2 = boardMap.get(id);
+      cell2?.adjacentCellIds.forEach((nextId) => {
+        if (!visited.has(nextId)) {
+          visited.add(nextId);
+          queue.push({ id: nextId, dist: dist + 1 });
+        }
+      });
+    }
+    return Array.from(reachable);
+  };
+  /**
    * セル効果を発動する
    * @param boardId - ボードID
    * @param playerId - 効果を発動させたプレイヤーのID
@@ -2844,7 +2868,7 @@ class RoomManager {
    */
   applyCellEffect = (boardId, playerId, position, cellEffects) => {
     const { row, col } = position;
-    const targetBoard = this.state.board[boardId];
+    const targetBoard = this.state.boards[boardId];
     if (!targetBoard) {
       server_log("warn", this.state.gameId, this.state.roomId, "applyCellEffect: ボードがありません。");
       return;

@@ -17,6 +17,7 @@ type GridBoardProps = {
   cols: number;
   cellData: CellData[];
   pieces: PieceData[];
+  highlightendCells: GridLocation[];
   changedCells: GridLocation[];
   allowPieceDrag?: boolean;
   renderCell: (cellData: CellData, row: number, col: number) => React.ReactNode;
@@ -35,7 +36,8 @@ type GridBoardProps = {
  * @param {number} cols - 盤面の列数
  * @param {CellData[]} cellData - 各セルの状態を持つ2次元配列
  * @param {PieceData[]} pieces - 盤面上に配置される駒（Piece）のデータ
- * @param {GridLocation[]} changedCells - 状態変化（ハイライト等）を適用する座標のリスト
+ * @param {GridLocation[]} highlightendCells - ハイライトを適用する座標のリスト
+ * @param {GridLocation[]} changedCells - 状態変化を適用する座標のリスト
  * @param {boolean} [allowPieceDrag=false] - 駒のドラッグ操作を許可するかどうか
  * @param {(cellData: CellData, row: number, col: number) => React.ReactNode} renderCell - 各マスの内部コンテンツを描画する関数
  * @param {(cellData: CellData, loc: GridLocation) => void} onCellClick - セルがクリックされた時の処理
@@ -51,6 +53,7 @@ export function GridBoard({
   cols,
   cellData,
   pieces,
+  highlightendCells,
   changedCells,
   renderCell,
   onCellClick,

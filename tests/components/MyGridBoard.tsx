@@ -55,9 +55,6 @@ const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
 };
 
 const initialPieces: PieceData[] = [];
-
-const handlePieceClick = (pieceId: PieceId) => {};
-
 const EMPTY_BOARD: CellData[] = [];
 
 /**
@@ -73,13 +70,31 @@ export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoard
   const [cells, setCells] = React.useState<CellData[]>(EMPTY_BOARD);
   const [isBoardReady, setIsBoardReady] = React.useState(false);
   const [exploredCells, setExploredCells] = React.useState<GridLocation[]>([]);
+  const [highlightedCells, setHighlightedCells] = React.useState<GridLocation[]>([]);
 
   // IDから盤面の最大行列数を計算（一次元配列対応）
   const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || '0', 10))) + 1 : 0;
   const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || '0', 10))) + 1 : 0;
 
+  /**
+   * 駒クリック時のハンドラ
+   * 移動可能範囲を表示するためにサーバーへリクエストを飛ばす
+   */
+  const handlePieceClick = (pieceId: PieceId) => {
+    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
+
+    socket.emit('board:movable-range', {
+      roomId,
+      boardId,
+      playerId: pieceId,
+    });
+  };
+
   const handleBoardClick = (celldata: CellData, loc: GridLocation) => {
     if (!isBoardReady || !socket || !myPlayerId) return;
+    // クリック時にハイライトをクリア（キャンセル動作）
+    setHighlightedCells([]);
+
     socket.emit('game:explore-cell', {
       playerId: myPlayerId,
       targetPosition: loc,
@@ -96,6 +111,7 @@ export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoard
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
     e.dataTransfer.setData('pieceId', piece.id);
     e.dataTransfer.effectAllowed = 'move';
+    handlePieceClick(piece.id);
   };
 
   const handleCellDrop = (e: DragEvent<HTMLDivElement>, targetRow: number, targetCol: number) => {
@@ -104,6 +120,9 @@ export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoard
 
     const draggedPieceId = e.dataTransfer.getData('pieceId');
     if (draggedPieceId) {
+      // ドロップ（移動確定）したら一旦ハイライトを消す
+      setHighlightedCells([]);
+
       socket.emit('game:move-player', {
         boardId: boardId,
         playerId: draggedPieceId,
@@ -114,6 +133,8 @@ export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoard
   };
 
   // ------------------- Socket Effects -------------------
+
+  // 盤面初期化/更新
   React.useEffect(() => {
     const handleInitBoard = (data: BoardUpdateData) => {
       if (data.board && data.board.length > 0) {
@@ -127,16 +148,19 @@ export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoard
     };
   }, [socket]);
 
+  // ハイライト（移動範囲など）の更新
   React.useEffect(() => {
-    const handleExploredUpdate = (updatedExploredCells: GridLocation[]) => {
-      setExploredCells(updatedExploredCells);
+    const handleCellUpdate = (updatedLocs: GridLocation[]) => {
+      // サーバーから空配列が来たらハイライト解除、座標が来たら上書き
+      setHighlightedCells(updatedLocs);
     };
-    socket.on('cell:update', handleExploredUpdate);
+    socket.on('cell:update', handleCellUpdate);
     return () => {
-      socket.off('cell:update', handleExploredUpdate);
+      socket.off('cell:update', handleCellUpdate);
     };
   }, [socket]);
 
+  // プレイヤー情報更新
   React.useEffect(() => {
     const handlePlayersUpdate = (updatedPlayers: Player[]) => {
       setPlayers(updatedPlayers);
@@ -147,6 +171,7 @@ export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoard
     };
   }, [socket]);
 
+  // プレイヤー情報を描画用の駒データに変換
   React.useEffect(() => {
     setPieces((prevPieces) => {
       return players.map((p) => {
@@ -191,6 +216,7 @@ export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoard
           cellData={cells}
           pieces={pieces}
           changedCells={exploredCells}
+          highlightendCells={highlightedCells}
           renderCell={MyCustomCellRenderer}
           onCellClick={handleBoardClick}
           onCellDoubleClick={handleBoardDoubleClick}

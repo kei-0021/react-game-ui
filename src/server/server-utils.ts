@@ -4,6 +4,7 @@ import { CardState } from '@/types/cardState.js';
 import {
   BoardId,
   CardId,
+  CellId,
   DeckId,
   GameId,
   PlayerId,
@@ -454,6 +455,34 @@ export class RoomManager {
   };
 
   /**
+   * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+   */
+  getMovableCellIds = (boardId: BoardId, startCellId: CellId, moveRange: number): CellId[] => {
+    const targetBoard = this.state.boards[boardId];
+    const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
+
+    const reachable = new Set<string>();
+    const queue: { id: string; dist: number }[] = [{ id: startCellId, dist: 0 }];
+    const visited = new Set<string>([startCellId]);
+
+    while (queue.length > 0) {
+      const { id, dist } = queue.shift()!;
+
+      if (dist > 0) reachable.add(id); // スタート地点以外を登録
+      if (dist >= moveRange) continue;
+
+      const cell = boardMap.get(id);
+      cell?.adjacentCellIds.forEach((nextId) => {
+        if (!visited.has(nextId)) {
+          visited.add(nextId);
+          queue.push({ id: nextId, dist: dist + 1 });
+        }
+      });
+    }
+    return Array.from(reachable);
+  };
+
+  /**
    * セル効果を発動する
    * @param boardId - ボードID
    * @param playerId - 効果を発動させたプレイヤーのID
@@ -469,7 +498,7 @@ export class RoomManager {
     const { row, col } = position;
 
     // ボード配列を取得
-    const targetBoard = this.state.board[boardId];
+    const targetBoard = this.state.boards[boardId];
 
     if (!targetBoard) {
       server_log('warn', this.state.gameId, this.state.roomId, 'applyCellEffect: ボードがありません。');

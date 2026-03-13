@@ -63,7 +63,7 @@ function initializeRoom(roomId, param) {
         playFieldCards: playFieldCards,
         discardPile: discardPile,
         holdCards: holdCards,
-        board: Cells,
+        boards: Cells,
         exploredCells: [],
         tokenStores: tokenStores,
         systemMessageHistory: [],
@@ -197,7 +197,7 @@ export function initGameServer(io, options) {
             Object.keys(state.tokenStores).forEach((id) => roomManager.emitTokenStoreUpdate(id));
             if (state.exploredCells.length > 0)
                 socket.emit('cell:update', state.exploredCells);
-            Object.entries(state.board).forEach(([boardId, board]) => {
+            Object.entries(state.boards).forEach(([boardId, board]) => {
                 socket.emit('board:update', { boardId, board });
             });
             // 初回の一人のみターンを更新する
@@ -386,6 +386,33 @@ export function initGameServer(io, options) {
             if (state && roomManager.updateCellExploredStatus(targetPosition, shouldExplore)) {
                 io.to(roomId).emit('cell:update', state.exploredCells);
             }
+        });
+        // プレイヤーの移動可能範囲リクエストを処理する
+        socket.on('board:movable-range', ({ roomId, boardId, playerId }) => {
+            const state = activeRooms.get(roomId);
+            if (!state)
+                return;
+            const param = gameParams[state.gameId];
+            const roomManager = new RoomManager(io, param, state);
+            // プレイヤーの現在位置を取得
+            const player = state.players.find((p) => p.id === playerId);
+            if (!player)
+                return;
+            const { row, col } = player.position;
+            const startCellId = `r${row}c${col}`;
+            // 移動範囲を計算（今回は固定で「2」に設定、キャラごとに変えるのもアリ）
+            const moveRange = 2;
+            const movableIds = roomManager.getMovableCellIds(boardId, startCellId, moveRange);
+            // セルIDをクライアントが解釈できる GridLocation[] 形式に変換
+            const movableLocs = movableIds.map((id) => {
+                const m = id.match(/r(\d+)c(\d+)/);
+                return {
+                    row: parseInt(m[1], 10),
+                    col: parseInt(m[2], 10),
+                };
+            });
+            // そのプレイヤーにだけ、移動可能範囲を「ハイライト」として送り返す
+            socket.emit('cell:update', movableLocs);
         });
         // ダイス
         socket.on('dice:roll', ({ roomId, diceId, sides }) => {
