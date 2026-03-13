@@ -459,22 +459,29 @@ export class RoomManager {
   ): void => {
     const { row, col } = position;
 
-    // Record（オブジェクト）の最初の値（ボード配列）を取得
+    // ボード配列を取得
     const targetBoard = Object.values(this.state.board)[0];
 
-    // ボードが存在しない、または座標が範囲外の場合のガード
-    if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
+    if (!targetBoard) {
+      server_log('warn', this.state.gameId, this.state.roomId, 'applyCellEffect: ボードがありません。');
+      return;
+    }
+
+    // ID（座標形式）で対象のセルを検索
+    const targetId = `r${row}c${col}`;
+    const cell = targetBoard.find((c) => c.id === targetId);
+
+    // セルが見つからない場合のガード
+    if (!cell) {
       server_log(
         'warn',
         this.state.gameId,
         this.state.roomId,
-        `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`,
+        `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`,
       );
       return;
     }
 
-    // 特定したボードからセルを取得
-    const cell = targetBoard[row][col];
     const effect = cellEffects[cell.name];
 
     if (effect) {

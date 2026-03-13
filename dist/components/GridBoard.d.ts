@@ -10,7 +10,7 @@ type GridLocation = {
 type GridBoardProps = {
     rows: number;
     cols: number;
-    cellData: CellData[][];
+    cellData: CellData[];
     pieces: PieceData[];
     changedCells: GridLocation[];
     allowPieceDrag?: boolean;
@@ -27,7 +27,7 @@ type GridBoardProps = {
  * 盤面（グリッド）を表示し、セルや駒のインタラクション、ドラッグ＆ドロップを管理する
  * @param {number} rows - 盤面の行数
  * @param {number} cols - 盤面の列数
- * @param {CellData[][]} cellData - 各セルの状態を持つ2次元配列
+ * @param {CellData[]} cellData - 各セルの状態を持つ2次元配列
  * @param {PieceData[]} pieces - 盤面上に配置される駒（Piece）のデータ
  * @param {GridLocation[]} changedCells - 状態変化（ハイライト等）を適用する座標のリスト
  * @param {boolean} [allowPieceDrag=false] - 駒のドラッグ操作を許可するかどうか

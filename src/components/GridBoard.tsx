@@ -15,7 +15,7 @@ type GridLocation = {
 type GridBoardProps = {
   rows: number;
   cols: number;
-  cellData: CellData[][];
+  cellData: CellData[];
   pieces: PieceData[];
   changedCells: GridLocation[];
   allowPieceDrag?: boolean;
@@ -33,7 +33,7 @@ type GridBoardProps = {
  * 盤面（グリッド）を表示し、セルや駒のインタラクション、ドラッグ＆ドロップを管理する
  * @param {number} rows - 盤面の行数
  * @param {number} cols - 盤面の列数
- * @param {CellData[][]} cellData - 各セルの状態を持つ2次元配列
+ * @param {CellData[]} cellData - 各セルの状態を持つ2次元配列
  * @param {PieceData[]} pieces - 盤面上に配置される駒（Piece）のデータ
  * @param {GridLocation[]} changedCells - 状態変化（ハイライト等）を適用する座標のリスト
  * @param {boolean} [allowPieceDrag=false] - 駒のドラッグ操作を許可するかどうか
@@ -91,37 +91,40 @@ export function GridBoard({
   return (
     <div className={styles.boardContainer} style={boardStyle}>
       {/* マス目のレンダリング */}
-      {cellData.map((rowArr, row) =>
-        rowArr.map((originalCellData, col) => {
-          const isChanged = changedCells.some((loc) => loc.row === row && loc.col === col);
+      {cellData.map((originalCellData) => {
+        // ID (例: "r1c2") から座標を抽出
+        const match = originalCellData.id.match(/r(\d+)c(\d+)/);
+        const row = match ? parseInt(match[1], 10) : 0;
+        const col = match ? parseInt(match[2], 10) : 0;
 
-          const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
+        const isChanged = changedCells.some((loc) => loc.row === row && loc.col === col);
 
-          const cellDataForRenderer: CellData = {
-            ...originalCellData,
-            content: effectiveContent,
-          };
+        const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
 
-          const loc: GridLocation = { row, col };
+        const cellDataForRenderer: CellData = {
+          ...originalCellData,
+          content: effectiveContent,
+        };
 
-          return (
-            <Cell<GridLocation>
-              key={originalCellData.id}
-              locationData={loc}
-              cellData={cellDataForRenderer}
-              onClick={handleCellClick}
-              onDoubleClick={handleCellDoubleClick}
-              onDrop={(e) => onPieceDrop(e, row, col)}
-              onDragOver={(e) => e.preventDefault()}
-              changed={isChanged}
-            >
-              {renderCell(cellDataForRenderer, row, col)}
-            </Cell>
-          );
-        }),
-      )}
+        const loc: GridLocation = { row, col };
 
-      {/*コマのレンダリング */}
+        return (
+          <Cell<GridLocation>
+            key={originalCellData.id}
+            locationData={loc}
+            cellData={cellDataForRenderer}
+            onClick={handleCellClick}
+            onDoubleClick={handleCellDoubleClick}
+            onDrop={(e) => onPieceDrop(e, row, col)}
+            onDragOver={(e) => e.preventDefault()}
+            changed={isChanged}
+          >
+            {renderCell(cellDataForRenderer, row, col)}
+          </Cell>
+        );
+      })}
+
+      {/* コマのレンダリング */}
       {pieces.map((piece) => {
         const sameLocationPieces = pieces.filter(
           (p) => p.location.row === piece.location.row && p.location.col === piece.location.col,

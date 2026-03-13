@@ -56,17 +56,24 @@ const initialPieces: PieceData[] = [];
 
 const handlePieceClick = (pieceId: PieceId) => {};
 
-const EMPTY_BOARD: CellData[][] = [[], []];
+const EMPTY_BOARD: CellData[] = [];
 
 export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardViewProps) {
   const [pieces, setPieces] = React.useState(initialPieces);
-  const [deepSeaCells, setDeepSeaCells] = React.useState<CellData[][]>(EMPTY_BOARD);
+  const [deepSeaCells, setDeepSeaCells] = React.useState<CellData[]>(EMPTY_BOARD);
   const [isBoardReady, setIsBoardReady] = React.useState(false);
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [exploredCells, setExploredCells] = React.useState<GridLocation[]>([]);
 
-  const rows = deepSeaCells.length;
-  const cols = deepSeaCells[0]?.length || 0;
+  // IDから盤面の最大行列数を計算（一次元配列対応）
+  const rows =
+    deepSeaCells.length > 0
+      ? Math.max(...deepSeaCells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || '0', 10))) + 1
+      : 0;
+  const cols =
+    deepSeaCells.length > 0
+      ? Math.max(...deepSeaCells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || '0', 10))) + 1
+      : 0;
 
   const handleBoardClick = (celldata: CellData, loc: GridLocation) => {
     if (!isBoardReady || !socket || !myPlayerId) return;
@@ -104,8 +111,8 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
 
   // ------------------- Socket Effects -------------------
   React.useEffect(() => {
-    const handleInitBoard = (boardData: CellData[][]) => {
-      if (boardData.length > 0) {
+    const handleInitBoard = (boardData: CellData[]) => {
+      if (boardData && boardData.length > 0) {
         setDeepSeaCells(boardData);
         setIsBoardReady(true);
       }

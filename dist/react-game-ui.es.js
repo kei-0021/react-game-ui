@@ -1577,31 +1577,32 @@ function GridBoard({
     position: "relative"
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [
-    cellData.map(
-      (rowArr, row) => rowArr.map((originalCellData, col) => {
-        const isChanged = changedCells.some((loc2) => loc2.row === row && loc2.col === col);
-        const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
-        const cellDataForRenderer = {
-          ...originalCellData,
-          content: effectiveContent
-        };
-        const loc = { row, col };
-        return /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Cell,
-          {
-            locationData: loc,
-            cellData: cellDataForRenderer,
-            onClick: handleCellClick,
-            onDoubleClick: handleCellDoubleClick,
-            onDrop: (e) => onPieceDrop(e, row, col),
-            onDragOver: (e) => e.preventDefault(),
-            changed: isChanged,
-            children: renderCell(cellDataForRenderer, row, col)
-          },
-          originalCellData.id
-        );
-      })
-    ),
+    cellData.map((originalCellData) => {
+      const match = originalCellData.id.match(/r(\d+)c(\d+)/);
+      const row = match ? parseInt(match[1], 10) : 0;
+      const col = match ? parseInt(match[2], 10) : 0;
+      const isChanged = changedCells.some((loc2) => loc2.row === row && loc2.col === col);
+      const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
+      const cellDataForRenderer = {
+        ...originalCellData,
+        content: effectiveContent
+      };
+      const loc = { row, col };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Cell,
+        {
+          locationData: loc,
+          cellData: cellDataForRenderer,
+          onClick: handleCellClick,
+          onDoubleClick: handleCellDoubleClick,
+          onDrop: (e) => onPieceDrop(e, row, col),
+          onDragOver: (e) => e.preventDefault(),
+          changed: isChanged,
+          children: renderCell(cellDataForRenderer, row, col)
+        },
+        originalCellData.id
+      );
+    }),
     pieces.map((piece2) => {
       const sameLocationPieces = pieces.filter(
         (p) => p.location.row === piece2.location.row && p.location.col === piece2.location.col
@@ -2847,16 +2848,21 @@ class RoomManager {
   applyCellEffect = (playerId, position, cellEffects) => {
     const { row, col } = position;
     const targetBoard = Object.values(this.state.board)[0];
-    if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
+    if (!targetBoard) {
+      server_log("warn", this.state.gameId, this.state.roomId, "applyCellEffect: ボードがありません。");
+      return;
+    }
+    const targetId = `r${row}c${col}`;
+    const cell2 = targetBoard.find((c) => c.id === targetId);
+    if (!cell2) {
       server_log(
         "warn",
         this.state.gameId,
         this.state.roomId,
-        `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`
+        `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`
       );
       return;
     }
-    const cell2 = targetBoard[row][col];
     const effect = cellEffects[cell2.name];
     if (effect) {
       server_log("cell", this.state.gameId, this.state.roomId, `マス効果発動: ${cell2.name} by ${playerId}`);

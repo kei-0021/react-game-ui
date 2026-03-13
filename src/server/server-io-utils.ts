@@ -214,7 +214,7 @@ export class SetupHelper {
     rows: number,
     cols?: number,
     isRandom: boolean = false,
-  ): CellData[][] {
+  ): CellData[] {
     const effectiveCols = cols ?? rows;
     const expectedTotal = rows * effectiveCols;
     const actualTotal = Object.values(counts).reduce((sum, count) => sum + count, 0);
@@ -230,17 +230,15 @@ export class SetupHelper {
       templates = shuffleArray(templates);
     }
 
-    const grid: CellData[][] = [];
+    const grid: CellData[] = [];
     for (let r = 0; r < rows; r++) {
-      const rowArr: CellData[] = [];
       for (let c = 0; c < effectiveCols; c++) {
         const template = templates[r * effectiveCols + c];
-        rowArr.push({
+        grid.push({
           ...template,
-          id: `r${r}c${c}`, // 配置確定後に座標ベースのIDを付与
+          id: `r${r}c${c}`, // 座標ベースのIDを維持
         });
       }
-      grid.push(rowArr);
     }
 
     return grid;

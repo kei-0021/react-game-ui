@@ -185,15 +185,13 @@ export class SetupHelper {
         }
         const grid = [];
         for (let r = 0; r < rows; r++) {
-            const rowArr = [];
             for (let c = 0; c < effectiveCols; c++) {
                 const template = templates[r * effectiveCols + c];
-                rowArr.push({
+                grid.push({
                     ...template,
-                    id: `r${r}c${c}`, // 配置確定後に座標ベースのIDを付与
+                    id: `r${r}c${c}`, // 座標ベースのIDを維持
                 });
             }
-            grid.push(rowArr);
         }
         return grid;
     }

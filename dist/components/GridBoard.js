@@ -6,7 +6,7 @@ import { Piece } from './Piece.js';
  * 盤面（グリッド）を表示し、セルや駒のインタラクション、ドラッグ＆ドロップを管理する
  * @param {number} rows - 盤面の行数
  * @param {number} cols - 盤面の列数
- * @param {CellData[][]} cellData - 各セルの状態を持つ2次元配列
+ * @param {CellData[]} cellData - 各セルの状態を持つ2次元配列
  * @param {PieceData[]} pieces - 盤面上に配置される駒（Piece）のデータ
  * @param {GridLocation[]} changedCells - 状態変化（ハイライト等）を適用する座標のリスト
  * @param {boolean} [allowPieceDrag=false] - 駒のドラッグ操作を許可するかどうか
@@ -42,7 +42,11 @@ export function GridBoard({ rows, cols, cellData, pieces, changedCells, renderCe
         height: height,
         position: 'relative',
     };
-    return (_jsxs("div", { className: styles.boardContainer, style: boardStyle, children: [cellData.map((rowArr, row) => rowArr.map((originalCellData, col) => {
+    return (_jsxs("div", { className: styles.boardContainer, style: boardStyle, children: [cellData.map((originalCellData) => {
+                // ID (例: "r1c2") から座標を抽出
+                const match = originalCellData.id.match(/r(\d+)c(\d+)/);
+                const row = match ? parseInt(match[1], 10) : 0;
+                const col = match ? parseInt(match[2], 10) : 0;
                 const isChanged = changedCells.some((loc) => loc.row === row && loc.col === col);
                 const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
                 const cellDataForRenderer = {
@@ -51,7 +55,7 @@ export function GridBoard({ rows, cols, cellData, pieces, changedCells, renderCe
                 };
                 const loc = { row, col };
                 return (_jsx(Cell, { locationData: loc, cellData: cellDataForRenderer, onClick: handleCellClick, onDoubleClick: handleCellDoubleClick, onDrop: (e) => onPieceDrop(e, row, col), onDragOver: (e) => e.preventDefault(), changed: isChanged, children: renderCell(cellDataForRenderer, row, col) }, originalCellData.id));
-            })), pieces.map((piece) => {
+            }), pieces.map((piece) => {
                 const sameLocationPieces = pieces.filter((p) => p.location.row === piece.location.row && p.location.col === piece.location.col);
                 const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece.id);
                 const groupCount = sameLocationPieces.length;

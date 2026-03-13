@@ -3,7 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 
 import { CellData } from '@/components/Cell.js';
-import { CardId, DeckId, PlayerId, RoomId, TokenStoreId } from '@/types/definition.js';
+import { BoardId, CardId, DeckId, PlayerId, RoomId, TokenStoreId } from '@/types/definition.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
   CardFlipData,
@@ -43,7 +43,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   const initialTokenStores = param.initialTokenStores || [];
   const initialBoard = param.initialBoard || {};
 
-  let Cells: Record<string, CellData[][]> = {};
+  let Cells: Record<BoardId, CellData[]> = {};
   const boardEntries = Object.entries(initialBoard);
 
   boardEntries.forEach(([boardId, boardData]) => {

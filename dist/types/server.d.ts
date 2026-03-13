@@ -44,7 +44,7 @@ export type GameParam = {
         tokenId: TokenId;
         count: number;
     };
-    initialBoard?: Record<BoardId, CellData[][]>;
+    initialBoard?: Record<BoardId, CellData[]>;
     initialPhase?: Phase;
     cardEffects?: Record<string, any>;
     cellEffects?: Record<string, (manager: RoomManager, player: PlayerId) => void>;
@@ -68,7 +68,7 @@ export type GameParam = {
  * @param decks - 各デッキIDごとの残りカードリスト。
  * @param playFieldCards - プレイフィールド上のカード（キーは "firework" 等の場所名）。
  * @param discardPile - 捨て札置き場のカードリスト。
- * @param board - ボード上の2次元グリッドデータ。
+ * @param board - ボード上のセルデータ。
  * @param exploredCells - すでに探索・公開されたセルの座標リスト。
  * @param tokenStores - 共有トークンの現在のストック状況。
  * @param systemMessageHistory - 過去のシステムメッセージの履歴。
@@ -86,7 +86,7 @@ export interface RoomState {
     playFieldCards: Record<DeckId, Card[]>;
     discardPile: Record<PlayerId, Card[]>;
     holdCards: Record<PlayerId, Record<DeckId, CardId[]>>;
-    board: Record<BoardId, CellData[][]>;
+    board: Record<BoardId, CellData[]>;
     exploredCells: Position[];
     tokenStores: Record<TokenId, Token[]>;
     systemMessageHistory: string[];
