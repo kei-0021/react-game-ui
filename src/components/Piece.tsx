@@ -40,7 +40,6 @@ export function Piece({ piece, style, onClick, isDraggable, onDragStart }: Piece
       onClick={handleClick}
       draggable={isDraggable}
       onDragStart={handleDragStart}
-      title={piece.name}
     >
       {/* コマの中に表示する文字やアイコン */}
       {piece.name.substring(0, 1)}

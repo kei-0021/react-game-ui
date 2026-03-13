@@ -1533,7 +1533,6 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
       onClick: handleClick,
       draggable: isDraggable,
       onDragStart: handleDragStart,
-      title: piece2.name,
       children: piece2.name.substring(0, 1)
     }
   );

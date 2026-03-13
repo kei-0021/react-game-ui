@@ -18,5 +18,5 @@ export function Piece({ piece, style, onClick, isDraggable, onDragStart }) {
     return (_jsx("div", { className: pieceClasses, style: {
             ...style,
             backgroundColor: piece.color,
-        }, onClick: handleClick, draggable: isDraggable, onDragStart: handleDragStart, title: piece.name, children: piece.name.substring(0, 1) }));
+        }, onClick: handleClick, draggable: isDraggable, onDragStart: handleDragStart, children: piece.name.substring(0, 1) }));
 }
