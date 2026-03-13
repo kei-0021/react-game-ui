@@ -1,8 +1,9 @@
+import { CellData } from '@/components/Cell.js';
 import { Card } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
-import { CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
+import { BoardId, CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
 import { Phase } from './phase.js';
 import { Token } from './token.js';
 export type RoomMeta = {
@@ -59,6 +60,10 @@ export type TokenAcquireData = {
 };
 export type TokenStoreUpdateData = {
     tokenStore: Token[];
+};
+export type BoardUpdateData = {
+    boardId: BoardId;
+    board: CellData[];
 };
 export type DraggableMovedData = {
     roomId: RoomId;

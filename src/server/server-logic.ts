@@ -6,6 +6,7 @@ import { CellData } from '@/components/Cell.js';
 import { BoardId, CardId, DeckId, PlayerId, RoomId, TokenStoreId } from '@/types/definition.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
+  BoardUpdateData,
   CardFlipData,
   CardHoldData,
   CardMoveFromFieldData,
@@ -244,8 +245,10 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       roomManager.emitPlayerUpdate();
       Object.keys(state.decks).forEach((id) => roomManager.emitDeckUpdate(id));
       Object.keys(state.tokenStores).forEach((id) => roomManager.emitTokenStoreUpdate(id));
-      if (state.exploredCells.length > 0) socket.emit('board-update', state.exploredCells);
-      Object.values(state.board).forEach((board) => socket.emit('game:init-board', board));
+      if (state.exploredCells.length > 0) socket.emit('cell:update', state.exploredCells);
+      Object.entries(state.board).forEach(([boardId, board]) => {
+        socket.emit('board:update', { boardId, board } as BoardUpdateData);
+      });
 
       // 初回の一人のみターンを更新する
       if (state.players.length == 1) {
@@ -444,7 +447,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         roomManager.applyCellEffect(playerId, newPosition, param?.cellEffects!);
         roomManager.emitPlayerUpdate();
         if (roomManager.updateCellExploredStatus(newPosition, true))
-          io.to(roomId).emit('board-update', state.exploredCells);
+          io.to(roomId).emit('cell:update', state.exploredCells);
       }
     });
 
@@ -455,7 +458,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const roomManager = new RoomManager(io, param, state);
 
       if (state && roomManager.updateCellExploredStatus(targetPosition, shouldExplore)) {
-        io.to(roomId).emit('board-update', state.exploredCells);
+        io.to(roomId).emit('cell:update', state.exploredCells);
       }
     });
 

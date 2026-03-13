@@ -196,8 +196,10 @@ export function initGameServer(io, options) {
             Object.keys(state.decks).forEach((id) => roomManager.emitDeckUpdate(id));
             Object.keys(state.tokenStores).forEach((id) => roomManager.emitTokenStoreUpdate(id));
             if (state.exploredCells.length > 0)
-                socket.emit('board-update', state.exploredCells);
-            Object.values(state.board).forEach((board) => socket.emit('game:init-board', board));
+                socket.emit('cell:update', state.exploredCells);
+            Object.entries(state.board).forEach(([boardId, board]) => {
+                socket.emit('board:update', { boardId, board });
+            });
             // 初回の一人のみターンを更新する
             if (state.players.length == 1) {
                 roomManager.updateRound();
@@ -372,7 +374,7 @@ export function initGameServer(io, options) {
                 roomManager.applyCellEffect(playerId, newPosition, param?.cellEffects);
                 roomManager.emitPlayerUpdate();
                 if (roomManager.updateCellExploredStatus(newPosition, true))
-                    io.to(roomId).emit('board-update', state.exploredCells);
+                    io.to(roomId).emit('cell:update', state.exploredCells);
             }
         });
         socket.on('game:explore-cell', ({ roomId, targetPosition, shouldExplore }) => {
@@ -382,7 +384,7 @@ export function initGameServer(io, options) {
             const param = gameParams[state.gameId];
             const roomManager = new RoomManager(io, param, state);
             if (state && roomManager.updateCellExploredStatus(targetPosition, shouldExplore)) {
-                io.to(roomId).emit('board-update', state.exploredCells);
+                io.to(roomId).emit('cell:update', state.exploredCells);
             }
         });
         // ダイス

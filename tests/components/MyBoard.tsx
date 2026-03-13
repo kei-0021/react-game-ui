@@ -4,15 +4,16 @@ import { DragEvent } from 'react';
 import { Socket } from 'socket.io-client';
 import type { CellData } from '../../src/components/Cell';
 import { GridBoard } from '../../src/components/GridBoard';
-import type { PieceId, PlayerId } from '../../src/types/definition';
+import type { PieceId, PlayerId, RoomId } from '../../src/types/definition';
 import type { PieceData } from '../../src/types/piece';
 import type { Player } from '../../src/types/player';
+import type { BoardUpdateData } from '../../src/types/socketData';
 
 type GridLocation = { row: number; col: number };
 
 type GameBoardViewProps = {
   socket: Socket;
-  roomId: string;
+  roomId: RoomId;
   myPlayerId: PlayerId | null;
 };
 
@@ -59,21 +60,15 @@ const handlePieceClick = (pieceId: PieceId) => {};
 const EMPTY_BOARD: CellData[] = [];
 
 export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardViewProps) {
-  const [pieces, setPieces] = React.useState(initialPieces);
-  const [deepSeaCells, setDeepSeaCells] = React.useState<CellData[]>(EMPTY_BOARD);
-  const [isBoardReady, setIsBoardReady] = React.useState(false);
   const [players, setPlayers] = React.useState<Player[]>([]);
+  const [pieces, setPieces] = React.useState(initialPieces);
+  const [cells, setCells] = React.useState<CellData[]>(EMPTY_BOARD);
+  const [isBoardReady, setIsBoardReady] = React.useState(false);
   const [exploredCells, setExploredCells] = React.useState<GridLocation[]>([]);
 
   // IDから盤面の最大行列数を計算（一次元配列対応）
-  const rows =
-    deepSeaCells.length > 0
-      ? Math.max(...deepSeaCells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || '0', 10))) + 1
-      : 0;
-  const cols =
-    deepSeaCells.length > 0
-      ? Math.max(...deepSeaCells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || '0', 10))) + 1
-      : 0;
+  const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || '0', 10))) + 1 : 0;
+  const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || '0', 10))) + 1 : 0;
 
   const handleBoardClick = (celldata: CellData, loc: GridLocation) => {
     if (!isBoardReady || !socket || !myPlayerId) return;
@@ -111,15 +106,15 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
 
   // ------------------- Socket Effects -------------------
   React.useEffect(() => {
-    const handleInitBoard = (boardData: CellData[]) => {
-      if (boardData && boardData.length > 0) {
-        setDeepSeaCells(boardData);
+    const handleInitBoard = (data: BoardUpdateData) => {
+      if (data.board && data.board.length > 0) {
+        setCells(data.board);
         setIsBoardReady(true);
       }
     };
-    socket.on('game:init-board', handleInitBoard);
+    socket.on('board:update', handleInitBoard);
     return () => {
-      socket.off('game:init-board', handleInitBoard);
+      socket.off('board:update', handleInitBoard);
     };
   }, [socket]);
 
@@ -127,9 +122,9 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
     const handleExploredUpdate = (updatedExploredCells: GridLocation[]) => {
       setExploredCells(updatedExploredCells);
     };
-    socket.on('board-update', handleExploredUpdate);
+    socket.on('cell:update', handleExploredUpdate);
     return () => {
-      socket.off('board-update', handleExploredUpdate);
+      socket.off('cell:update', handleExploredUpdate);
     };
   }, [socket]);
 
@@ -184,7 +179,7 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
         <GridBoard
           rows={rows}
           cols={cols}
-          cellData={deepSeaCells}
+          cellData={cells}
           pieces={pieces}
           changedCells={exploredCells}
           renderCell={MyCustomCellRenderer}
