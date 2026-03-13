@@ -942,20 +942,20 @@ const Cell = ({
   children,
   onDrop,
   onDragOver,
+  highlighted = false,
   changed = false
 }) => {
-  const handleClick = () => {
-    onClick(locationData);
-  };
-  const handleDoubleClick = () => {
-    onDoubleClick(locationData);
-  };
+  const handleClick = () => onClick(locationData);
+  const handleDoubleClick = () => onDoubleClick(locationData);
   const effectiveBackgroundColor = changed ? cellData.changedColor : cellData.backgroundColor;
   const cellStyle = {
     backgroundColor: effectiveBackgroundColor,
-    userSelect: "none"
+    position: "relative",
+    overflow: "hidden",
+    userSelect: "none",
+    cursor: highlighted ? "pointer" : "default"
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
       className: styles$6.cell,
@@ -964,7 +964,23 @@ const Cell = ({
       onDrop,
       onDragOver,
       style: cellStyle,
-      children
+      children: [
+        highlighted && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            style: {
+              position: "absolute",
+              inset: 0,
+              backgroundColor: "rgba(20, 184, 166, 0.15)",
+              border: "2px solid rgba(20, 184, 166, 0.4)",
+              boxShadow: "inset 0 0 12px rgba(20, 184, 166, 0.2)",
+              zIndex: 1,
+              pointerEvents: "none"
+            }
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { position: "relative", zIndex: 2, width: "100%", height: "100%" }, children })
+      ]
     }
   );
 };
@@ -1542,7 +1558,7 @@ function GridBoard({
   cols,
   cellData,
   pieces,
-  highlightendCells,
+  highlightedCells,
   changedCells,
   renderCell,
   onCellClick,
@@ -1554,16 +1570,11 @@ function GridBoard({
   width = 800,
   height = 800
 }) {
-  const handleCellClick = (loc) => {
-    const data = cellData[loc.row][loc.col];
-    onCellClick(data, loc);
+  const handleCellClick = (cell2, loc) => {
+    onCellClick(cell2, loc);
   };
-  const handleCellDoubleClick = (loc) => {
-    const data = cellData[loc.row][loc.col];
-    onCellDoubleClick(data, loc);
-  };
-  const handlePieceDragStart = (e, piece2) => {
-    onPieceDragStart(e, piece2);
+  const handleCellDoubleClick = (cell2, loc) => {
+    onCellDoubleClick(cell2, loc);
   };
   const boardStyle = {
     "--board-rows": rows,
@@ -1577,30 +1588,31 @@ function GridBoard({
     position: "relative"
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [
-    cellData.map((originalCellData) => {
-      const match = originalCellData.id.match(/r(\d+)c(\d+)/);
-      const row = match ? parseInt(match[1], 10) : 0;
-      const col = match ? parseInt(match[2], 10) : 0;
-      const isChanged = changedCells.some((loc2) => loc2.row === row && loc2.col === col);
-      const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
+    cellData.map((cell2) => {
+      const match = cell2.id.match(/r(\d+)c(\d+)/);
+      const r = match ? parseInt(match[1], 10) : 0;
+      const c = match ? parseInt(match[2], 10) : 0;
+      const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
+      const isHighlighted = highlightedCells.some((loc2) => loc2.row === r && loc2.col === c);
       const cellDataForRenderer = {
-        ...originalCellData,
-        content: effectiveContent
+        ...cell2,
+        content: isChanged ? cell2.changedContent : cell2.content
       };
-      const loc = { row, col };
+      const loc = { row: r, col: c };
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
         Cell,
         {
           locationData: loc,
           cellData: cellDataForRenderer,
-          onClick: handleCellClick,
-          onDoubleClick: handleCellDoubleClick,
-          onDrop: (e) => onPieceDrop(e, row, col),
+          onClick: () => handleCellClick(cell2, loc),
+          onDoubleClick: () => handleCellDoubleClick(cell2, loc),
+          onDrop: (e) => onPieceDrop(e, r, c),
           onDragOver: (e) => e.preventDefault(),
+          highlighted: isHighlighted,
           changed: isChanged,
-          children: renderCell(cellDataForRenderer, row, col)
+          children: renderCell(cellDataForRenderer, r, c)
         },
-        originalCellData.id
+        cell2.id
       );
     }),
     pieces.map((piece2) => {
@@ -1631,7 +1643,7 @@ function GridBoard({
           style: pieceStyle,
           onClick: onPieceClick,
           isDraggable: allowPieceDrag,
-          onDragStart: (e) => handlePieceDragStart(e, piece2)
+          onDragStart: (e) => onPieceDragStart(e, piece2)
         },
         piece2.id
       );

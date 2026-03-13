@@ -17,7 +17,7 @@ type GridBoardProps = {
   cols: number;
   cellData: CellData[];
   pieces: PieceData[];
-  highlightendCells: GridLocation[];
+  highlightedCells: GridLocation[];
   changedCells: GridLocation[];
   allowPieceDrag?: boolean;
   renderCell: (cellData: CellData, row: number, col: number) => React.ReactNode;
@@ -53,7 +53,7 @@ export function GridBoard({
   cols,
   cellData,
   pieces,
-  highlightendCells,
+  highlightedCells,
   changedCells,
   renderCell,
   onCellClick,
@@ -65,18 +65,12 @@ export function GridBoard({
   width = 800,
   height = 800,
 }: GridBoardProps) {
-  const handleCellClick = (loc: GridLocation) => {
-    const data = cellData[loc.row][loc.col];
-    onCellClick(data, loc);
+  const handleCellClick = (cell: CellData, loc: GridLocation) => {
+    onCellClick(cell, loc);
   };
 
-  const handleCellDoubleClick = (loc: GridLocation) => {
-    const data = cellData[loc.row][loc.col];
-    onCellDoubleClick(data, loc);
-  };
-
-  const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
-    onPieceDragStart(e, piece);
+  const handleCellDoubleClick = (cell: CellData, loc: GridLocation) => {
+    onCellDoubleClick(cell, loc);
   };
 
   const boardStyle: React.CSSProperties = {
@@ -94,35 +88,34 @@ export function GridBoard({
   return (
     <div className={styles.boardContainer} style={boardStyle}>
       {/* マス目のレンダリング */}
-      {cellData.map((originalCellData) => {
-        // ID (例: "r1c2") から座標を抽出
-        const match = originalCellData.id.match(/r(\d+)c(\d+)/);
-        const row = match ? parseInt(match[1], 10) : 0;
-        const col = match ? parseInt(match[2], 10) : 0;
+      {cellData.map((cell) => {
+        const match = cell.id.match(/r(\d+)c(\d+)/);
+        const r = match ? parseInt(match[1], 10) : 0;
+        const c = match ? parseInt(match[2], 10) : 0;
 
-        const isChanged = changedCells.some((loc) => loc.row === row && loc.col === col);
-
-        const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
+        const isChanged = changedCells.some((loc) => loc.row === r && loc.col === c);
+        const isHighlighted = highlightedCells.some((loc) => loc.row === r && loc.col === c);
 
         const cellDataForRenderer: CellData = {
-          ...originalCellData,
-          content: effectiveContent,
+          ...cell,
+          content: isChanged ? cell.changedContent : cell.content,
         };
 
-        const loc: GridLocation = { row, col };
+        const loc: GridLocation = { row: r, col: c };
 
         return (
           <Cell<GridLocation>
-            key={originalCellData.id}
+            key={cell.id}
             locationData={loc}
             cellData={cellDataForRenderer}
-            onClick={handleCellClick}
-            onDoubleClick={handleCellDoubleClick}
-            onDrop={(e) => onPieceDrop(e, row, col)}
+            onClick={() => handleCellClick(cell, loc)}
+            onDoubleClick={() => handleCellDoubleClick(cell, loc)}
+            onDrop={(e) => onPieceDrop(e, r, c)}
             onDragOver={(e) => e.preventDefault()}
+            highlighted={isHighlighted}
             changed={isChanged}
           >
-            {renderCell(cellDataForRenderer, row, col)}
+            {renderCell(cellDataForRenderer, r, c)}
           </Cell>
         );
       })}
@@ -160,7 +153,7 @@ export function GridBoard({
             style={pieceStyle}
             onClick={onPieceClick}
             isDraggable={allowPieceDrag}
-            onDragStart={(e) => handlePieceDragStart(e, piece)}
+            onDragStart={(e) => onPieceDragStart(e, piece)}
           />
         );
       })}

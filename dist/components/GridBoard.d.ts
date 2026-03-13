@@ -12,7 +12,7 @@ type GridBoardProps = {
     cols: number;
     cellData: CellData[];
     pieces: PieceData[];
-    highlightendCells: GridLocation[];
+    highlightedCells: GridLocation[];
     changedCells: GridLocation[];
     allowPieceDrag?: boolean;
     renderCell: (cellData: CellData, row: number, col: number) => React.ReactNode;
@@ -42,6 +42,6 @@ type GridBoardProps = {
  * @param {number} widht - 横幅
  * @param {number} height - 縦幅
  */
-export declare function GridBoard({ rows, cols, cellData, pieces, highlightendCells, changedCells, renderCell, onCellClick, onCellDoubleClick, onPieceClick, allowPieceDrag, onPieceDragStart, onPieceDrop, width, height, }: GridBoardProps): import("react/jsx-runtime").JSX.Element;
+export declare function GridBoard({ rows, cols, cellData, pieces, highlightedCells, changedCells, renderCell, onCellClick, onCellDoubleClick, onPieceClick, allowPieceDrag, onPieceDragStart, onPieceDrop, width, height, }: GridBoardProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=GridBoard.d.ts.map

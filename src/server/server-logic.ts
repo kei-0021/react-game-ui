@@ -200,6 +200,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           resources: JSON.parse(JSON.stringify(param.initialResources || [])),
           tokens: JSON.parse(JSON.stringify(param.initialTokens || [])),
           position: { row: 0, col: 0 },
+          movableCells: [],
         };
         state.players.push(player);
         server_log('game', param.gameId, roomId, `${player.name} (${player.id})が参加しました`);
@@ -488,9 +489,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           col: parseInt(m![2], 10),
         };
       });
+      player.movableCells = movableLocs;
 
-      // そのプレイヤーにだけ、移動可能範囲を「ハイライト」として送り返す
-      socket.emit('cell:update', movableLocs);
+      roomManager.emitPlayerUpdate();
     });
 
     // ダイス

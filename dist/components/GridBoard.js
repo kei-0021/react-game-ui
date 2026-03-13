@@ -20,17 +20,12 @@ import { Piece } from './Piece.js';
  * @param {number} widht - 横幅
  * @param {number} height - 縦幅
  */
-export function GridBoard({ rows, cols, cellData, pieces, highlightendCells, changedCells, renderCell, onCellClick, onCellDoubleClick, onPieceClick, allowPieceDrag = false, onPieceDragStart, onPieceDrop, width = 800, height = 800, }) {
-    const handleCellClick = (loc) => {
-        const data = cellData[loc.row][loc.col];
-        onCellClick(data, loc);
+export function GridBoard({ rows, cols, cellData, pieces, highlightedCells, changedCells, renderCell, onCellClick, onCellDoubleClick, onPieceClick, allowPieceDrag = false, onPieceDragStart, onPieceDrop, width = 800, height = 800, }) {
+    const handleCellClick = (cell, loc) => {
+        onCellClick(cell, loc);
     };
-    const handleCellDoubleClick = (loc) => {
-        const data = cellData[loc.row][loc.col];
-        onCellDoubleClick(data, loc);
-    };
-    const handlePieceDragStart = (e, piece) => {
-        onPieceDragStart(e, piece);
+    const handleCellDoubleClick = (cell, loc) => {
+        onCellDoubleClick(cell, loc);
     };
     const boardStyle = {
         '--board-rows': rows,
@@ -43,19 +38,18 @@ export function GridBoard({ rows, cols, cellData, pieces, highlightendCells, cha
         height: height,
         position: 'relative',
     };
-    return (_jsxs("div", { className: styles.boardContainer, style: boardStyle, children: [cellData.map((originalCellData) => {
-                // ID (例: "r1c2") から座標を抽出
-                const match = originalCellData.id.match(/r(\d+)c(\d+)/);
-                const row = match ? parseInt(match[1], 10) : 0;
-                const col = match ? parseInt(match[2], 10) : 0;
-                const isChanged = changedCells.some((loc) => loc.row === row && loc.col === col);
-                const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
+    return (_jsxs("div", { className: styles.boardContainer, style: boardStyle, children: [cellData.map((cell) => {
+                const match = cell.id.match(/r(\d+)c(\d+)/);
+                const r = match ? parseInt(match[1], 10) : 0;
+                const c = match ? parseInt(match[2], 10) : 0;
+                const isChanged = changedCells.some((loc) => loc.row === r && loc.col === c);
+                const isHighlighted = highlightedCells.some((loc) => loc.row === r && loc.col === c);
                 const cellDataForRenderer = {
-                    ...originalCellData,
-                    content: effectiveContent,
+                    ...cell,
+                    content: isChanged ? cell.changedContent : cell.content,
                 };
-                const loc = { row, col };
-                return (_jsx(Cell, { locationData: loc, cellData: cellDataForRenderer, onClick: handleCellClick, onDoubleClick: handleCellDoubleClick, onDrop: (e) => onPieceDrop(e, row, col), onDragOver: (e) => e.preventDefault(), changed: isChanged, children: renderCell(cellDataForRenderer, row, col) }, originalCellData.id));
+                const loc = { row: r, col: c };
+                return (_jsx(Cell, { locationData: loc, cellData: cellDataForRenderer, onClick: () => handleCellClick(cell, loc), onDoubleClick: () => handleCellDoubleClick(cell, loc), onDrop: (e) => onPieceDrop(e, r, c), onDragOver: (e) => e.preventDefault(), highlighted: isHighlighted, changed: isChanged, children: renderCell(cellDataForRenderer, r, c) }, cell.id));
             }), pieces.map((piece) => {
                 const sameLocationPieces = pieces.filter((p) => p.location.row === piece.location.row && p.location.col === piece.location.col);
                 const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece.id);
@@ -75,6 +69,6 @@ export function GridBoard({ rows, cols, cellData, pieces, highlightendCells, cha
                     transform: `translate(${offsetX}px, ${offsetY}px)`,
                     transition: 'transform 0.3s ease-in-out',
                 };
-                return (_jsx(Piece, { piece: piece, style: pieceStyle, onClick: onPieceClick, isDraggable: allowPieceDrag, onDragStart: (e) => handlePieceDragStart(e, piece) }, piece.id));
+                return (_jsx(Piece, { piece: piece, style: pieceStyle, onClick: onPieceClick, isDraggable: allowPieceDrag, onDragStart: (e) => onPieceDragStart(e, piece) }, piece.id));
             })] }));
 }

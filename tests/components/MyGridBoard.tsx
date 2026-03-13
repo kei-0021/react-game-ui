@@ -92,8 +92,6 @@ export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoard
 
   const handleBoardClick = (celldata: CellData, loc: GridLocation) => {
     if (!isBoardReady || !socket || !myPlayerId) return;
-    // クリック時にハイライトをクリア（キャンセル動作）
-    setHighlightedCells([]);
 
     socket.emit('game:explore-cell', {
       playerId: myPlayerId,
@@ -112,6 +110,10 @@ export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoard
     e.dataTransfer.setData('pieceId', piece.id);
     e.dataTransfer.effectAllowed = 'move';
     handlePieceClick(piece.id);
+
+    const player = players.find((p) => p.socketId !== myPlayerId);
+    if (!player) return;
+    setHighlightedCells(player.movableCells);
   };
 
   const handleCellDrop = (e: DragEvent<HTMLDivElement>, targetRow: number, targetCol: number) => {
@@ -152,7 +154,7 @@ export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoard
   React.useEffect(() => {
     const handleCellUpdate = (updatedLocs: GridLocation[]) => {
       // サーバーから空配列が来たらハイライト解除、座標が来たら上書き
-      setHighlightedCells(updatedLocs);
+      setExploredCells(updatedLocs);
     };
     socket.on('cell:update', handleCellUpdate);
     return () => {
@@ -216,7 +218,7 @@ export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoard
           cellData={cells}
           pieces={pieces}
           changedCells={exploredCells}
-          highlightendCells={highlightedCells}
+          highlightedCells={highlightedCells}
           renderCell={MyCustomCellRenderer}
           onCellClick={handleBoardClick}
           onCellDoubleClick={handleBoardDoubleClick}

@@ -18,6 +18,7 @@ import type { Token } from './token.js';
  * @property {Resource[]} resources - プレイヤーが所持している資源（リソース）のリスト
  * @property {number} score - 現在の獲得スコア
  * @property {Position} position - ゲームボード上におけるプレイヤーの現在位置
+ * @property {Position} movableCells - ゲームボード上におけるプレイヤーが移動可能なセル
  */
 export type Player = {
   id: PlayerId;
@@ -30,4 +31,5 @@ export type Player = {
   resources: Resource[];
   score: number;
   position: Position;
+  movableCells: any[];
 };
