@@ -928,8 +928,8 @@ function requireJsxRuntime() {
   return jsxRuntime.exports;
 }
 var jsxRuntimeExports = requireJsxRuntime();
-const boardContainer = "_boardContainer_1laip_8";
-const cell = "_cell_1laip_28";
+const boardContainer = "_boardContainer_14tjg_8";
+const cell = "_cell_14tjg_18";
 const styles$6 = {
   boardContainer,
   cell
@@ -1550,7 +1550,9 @@ function GridBoard({
   onPieceClick,
   allowPieceDrag = false,
   onPieceDragStart,
-  onPieceDrop
+  onPieceDrop,
+  width = 800,
+  height = 800
 }) {
   const handleCellClick = (loc) => {
     const data = cellData[loc.row][loc.col];
@@ -1570,8 +1572,8 @@ function GridBoard({
     gridTemplateRows: `repeat(${rows}, 1fr)`,
     gridTemplateColumns: `repeat(${cols}, 1fr)`,
     gap: "4px",
-    width: "600px",
-    height: "600px",
+    width,
+    height,
     position: "relative"
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [

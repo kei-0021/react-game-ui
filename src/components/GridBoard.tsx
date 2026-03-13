@@ -25,6 +25,8 @@ type GridBoardProps = {
   onPieceClick: (pieceId: PieceId) => void;
   onPieceDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
   onPieceDrop: (e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void;
+  width?: number;
+  height?: number;
 };
 
 /**
@@ -41,6 +43,8 @@ type GridBoardProps = {
  * @param {(pieceId: string) => void} onPieceClick - 駒がクリックされた時の処理
  * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} onPieceDragStart - 駒のドラッグが開始された時の処理
  * @param {(e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void} onPieceDrop - セルに駒がドロップされた時の処理
+ * @param {number} widht - 横幅
+ * @param {number} height - 縦幅
  */
 export function GridBoard({
   rows,
@@ -55,6 +59,8 @@ export function GridBoard({
   allowPieceDrag = false,
   onPieceDragStart,
   onPieceDrop,
+  width = 800,
+  height = 800,
 }: GridBoardProps) {
   const handleCellClick = (loc: GridLocation) => {
     const data = cellData[loc.row][loc.col];
@@ -77,8 +83,8 @@ export function GridBoard({
     gridTemplateRows: `repeat(${rows}, 1fr)`,
     gridTemplateColumns: `repeat(${cols}, 1fr)`,
     gap: '4px',
-    width: '600px',
-    height: '600px',
+    width: width,
+    height: height,
     position: 'relative',
   } as React.CSSProperties;
 
