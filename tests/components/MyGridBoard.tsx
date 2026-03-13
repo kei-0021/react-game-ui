@@ -4,16 +4,17 @@ import { DragEvent } from 'react';
 import { Socket } from 'socket.io-client';
 import type { CellData } from '../../src/components/Cell';
 import { GridBoard } from '../../src/components/GridBoard';
-import type { PieceId, PlayerId, RoomId } from '../../src/types/definition';
+import type { BoardId, PieceId, PlayerId, RoomId } from '../../src/types/definition';
 import type { PieceData } from '../../src/types/piece';
 import type { Player } from '../../src/types/player';
 import type { BoardUpdateData } from '../../src/types/socketData';
 
 type GridLocation = { row: number; col: number };
 
-type GameBoardViewProps = {
+type MyGridBoardProps = {
   socket: Socket;
   roomId: RoomId;
+  boardId: BoardId;
   myPlayerId: PlayerId | null;
 };
 
@@ -59,7 +60,14 @@ const handlePieceClick = (pieceId: PieceId) => {};
 
 const EMPTY_BOARD: CellData[] = [];
 
-export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardViewProps) {
+/**
+ * プレイヤー、駒、盤面セルの状態を管理し、GridBoard をレンダリングするメインビューコンポーネント
+ * @param {Socket} socket - サーバーとのリアルタイム通信用ソケットインスタンス
+ * @param {string} roomId - 現在参加しているルームの一意識別子
+ * @param {string} boardId - 描画対象となる盤面の識別子
+ * @param {PlayerId | null} myPlayerId - 操作権限を確認するための自分自身のプレイヤーID
+ */
+export function MyGridBoard({ socket, roomId, boardId, myPlayerId }: MyGridBoardProps) {
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [pieces, setPieces] = React.useState(initialPieces);
   const [cells, setCells] = React.useState<CellData[]>(EMPTY_BOARD);
@@ -97,6 +105,7 @@ export default function GameBoardView({ socket, myPlayerId, roomId }: GameBoardV
     const draggedPieceId = e.dataTransfer.getData('pieceId');
     if (draggedPieceId) {
       socket.emit('game:move-player', {
+        boardId: boardId,
         playerId: draggedPieceId,
         newPosition: { row: targetRow, col: targetCol },
         roomId,

@@ -14,7 +14,7 @@ import { TokenStore } from '../../src/components/TokenStore';
 import { useSocket } from '../../src/hooks/useSocket';
 import type { Player } from '../../src/types/player';
 import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
-import MyBoard from '../components/MyBoard';
+import { MyGridBoard } from '../components/MyGridBoard';
 import Popup from '../components/PopUp';
 import './DeepAbyssRoom.css';
 
@@ -210,7 +210,7 @@ export function DeepAbyssRoom() {
 
       {/* ボードラッパー */}
       <div className="board-wrapper">
-        <MyBoard socket={socket} roomId={roomId} myPlayerId={myPlayerId} />
+        <MyGridBoard socket={socket} roomId={roomId} boardId="deepAbyssBoard" myPlayerId={myPlayerId} />
       </div>
       <SystemMessageWindow socket={socket} roomId={roomId} />
 

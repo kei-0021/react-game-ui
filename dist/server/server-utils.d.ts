@@ -1,6 +1,6 @@
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
-import { CardId, DeckId, GameId, PlayerId, ResourceId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { BoardId, CardId, DeckId, GameId, PlayerId, ResourceId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
@@ -97,14 +97,12 @@ export declare class RoomManager {
     updateCellExploredStatus: (position: Position, shouldMark: boolean) => boolean;
     /**
      * セル効果を発動する
+     * @param boardId - ボードID
      * @param playerId - 効果を発動させたプレイヤーのID
      * @param position - 発動対象となるマスの座標
      * @param cellEffects - 各セル名に対応する効果処理の定義集
-     * @param updatePlayerResource - プレイヤーのリソース（資源）を更新するためのコールバック関数
-     * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
-     * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
      */
-    applyCellEffect: (playerId: PlayerId, position: Position, cellEffects: Record<string, (manager: RoomManager, playerId: PlayerId) => void>) => void;
+    applyCellEffect: (boardId: BoardId, playerId: PlayerId, position: Position, cellEffects: Record<string, (manager: RoomManager, playerId: PlayerId) => void>) => void;
     /**
      * ターンを更新する
      */

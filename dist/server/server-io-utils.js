@@ -88,37 +88,6 @@ const shuffleArray = (array) => {
     }
     return array;
 };
-const createRandomBoard = (initialBoard) => {
-    if (!initialBoard || initialBoard.length === 0 || initialBoard[0].length === 0) {
-        return [];
-    }
-    const rows = initialBoard.length;
-    const cols = initialBoard[0].length;
-    let allCells = [];
-    initialBoard.forEach((rowArr) => {
-        allCells = allCells.concat(rowArr);
-    });
-    shuffleArray(allCells);
-    const newBoard = [];
-    let cellIndex = 0;
-    for (let r = 0; r < rows; r++) {
-        const newRow = [];
-        for (let c = 0; c < cols; c++) {
-            if (cellIndex >= allCells.length)
-                break;
-            const originalCell = allCells[cellIndex];
-            newRow.push({
-                ...originalCell,
-                id: `r${r}c${c}`,
-            });
-            cellIndex++;
-        }
-        if (newRow.length > 0) {
-            newBoard.push(newRow);
-        }
-    }
-    return newBoard;
-};
 /**
  * プリセット準備の関数群
  */
@@ -183,16 +152,43 @@ export class SetupHelper {
         if (isRandom) {
             templates = shuffleArray(templates);
         }
+        // セルを配置して基本データを作る
         const grid = [];
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < effectiveCols; c++) {
                 const template = templates[r * effectiveCols + c];
                 grid.push({
                     ...template,
-                    id: `r${r}c${c}`, // 座標ベースのIDを維持
+                    id: `r${r}c${c}`,
+                    adjacentCellIds: [],
                 });
             }
         }
+        // 隣接セルIDを計算して流し込む
+        grid.forEach((cell) => {
+            const match = cell.id.match(/r(\d+)c(\d+)/);
+            if (!match)
+                return;
+            const r = parseInt(match[1], 10);
+            const c = parseInt(match[2], 10);
+            const adjacents = [];
+            // 上下左右の相対座標
+            const directions = [
+                { dr: -1, dc: 0 }, // 上
+                { dr: 1, dc: 0 }, // 下
+                { dr: 0, dc: -1 }, // 左
+                { dr: 0, dc: 1 }, // 右
+            ];
+            directions.forEach(({ dr, dc }) => {
+                const nr = r + dr;
+                const nc = c + dc;
+                // 盤面内かチェック
+                if (nr >= 0 && nr < rows && nc >= 0 && nc < effectiveCols) {
+                    adjacents.push(`r${nr}c${nc}`);
+                }
+            });
+            cell.adjacentCellIds = adjacents;
+        });
         return grid;
     }
 }

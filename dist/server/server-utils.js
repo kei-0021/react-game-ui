@@ -339,17 +339,15 @@ export class RoomManager {
     };
     /**
      * セル効果を発動する
+     * @param boardId - ボードID
      * @param playerId - 効果を発動させたプレイヤーのID
      * @param position - 発動対象となるマスの座標
      * @param cellEffects - 各セル名に対応する効果処理の定義集
-     * @param updatePlayerResource - プレイヤーのリソース（資源）を更新するためのコールバック関数
-     * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
-     * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
      */
-    applyCellEffect = (playerId, position, cellEffects) => {
+    applyCellEffect = (boardId, playerId, position, cellEffects) => {
         const { row, col } = position;
         // ボード配列を取得
-        const targetBoard = Object.values(this.state.board)[0];
+        const targetBoard = this.state.board[boardId];
         if (!targetBoard) {
             server_log('warn', this.state.gameId, this.state.roomId, 'applyCellEffect: ボードがありません。');
             return;
