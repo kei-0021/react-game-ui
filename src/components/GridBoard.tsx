@@ -1,7 +1,7 @@
 // src/components/GridBoard.tsx
 import { Player } from '@/index.js';
 import { BoardId, PieceId, PlayerId, RoomId } from '@/types/definition.js';
-import { BoardUpdateData } from '@/types/socketData.js';
+import { BaordMovePlayerData, BoardMovableRangeData, BoardUpdateData } from '@/types/socketData.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
@@ -85,12 +85,12 @@ export function GridBoard({
       // ドロップ（移動確定）したら一旦ハイライトを消す
       setHighlightedCells([]);
 
-      socket.emit('game:move-player', {
+      socket.emit('board:move-player', {
+        roomId,
         boardId: boardId,
         playerId: draggedPieceId,
-        newPosition: { row: targetRow, col: targetCol },
-        roomId,
-      });
+        newLocation: { row: targetRow, col: targetCol },
+      } as BaordMovePlayerData);
     }
   };
 
@@ -105,7 +105,7 @@ export function GridBoard({
       roomId,
       boardId,
       playerId: pieceId,
-    });
+    } as BoardMovableRangeData);
   };
 
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {

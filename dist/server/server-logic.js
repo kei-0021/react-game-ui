@@ -363,7 +363,7 @@ export function initGameServer(io, options) {
             }
         });
         // 移動・探索
-        socket.on('game:move-player', ({ boardId, roomId, playerId, newPosition }) => {
+        socket.on('board:move-player', ({ roomId, boardId, playerId, newLocation }) => {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;
@@ -371,10 +371,10 @@ export function initGameServer(io, options) {
             const roomManager = new RoomManager(io, param, state);
             const player = state?.players.find((p) => p.id === playerId);
             if (player && state) {
-                player.position = newPosition;
-                roomManager.applyCellEffect(boardId, playerId, newPosition, param?.cellEffects);
+                player.position = newLocation;
+                roomManager.applyCellEffect(boardId, playerId, newLocation, param?.cellEffects);
                 roomManager.emitPlayerUpdate();
-                if (roomManager.updateCellExploredStatus(newPosition, true))
+                if (roomManager.updateCellExploredStatus(newLocation, true))
                     io.to(roomId).emit('cell:update', state.exploredCells);
             }
         });

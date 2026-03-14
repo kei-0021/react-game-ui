@@ -61,6 +61,17 @@ export type TokenAcquireData = {
 export type TokenStoreUpdateData = {
     tokenStore: Token[];
 };
+export type BoardMovableRangeData = {
+    roomId: RoomId;
+    boardId: BoardId;
+    playerId: PlayerId;
+};
+export type BaordMovePlayerData = {
+    roomId: RoomId;
+    boardId: BoardId;
+    playerId: PlayerId;
+    newLocation: any;
+};
 export type BoardUpdateData = {
     boardId: BoardId;
     board: CellData[];

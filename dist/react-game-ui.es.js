@@ -1590,11 +1590,11 @@ function GridBoard({
     const draggedPieceId = e.dataTransfer.getData("pieceId");
     if (draggedPieceId) {
       setHighlightedCells([]);
-      socket.emit("game:move-player", {
+      socket.emit("board:move-player", {
+        roomId,
         boardId,
         playerId: draggedPieceId,
-        newPosition: { row: targetRow, col: targetCol },
-        roomId
+        newLocation: { row: targetRow, col: targetCol }
       });
     }
   };

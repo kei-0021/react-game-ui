@@ -1,4 +1,4 @@
-// tests/components/MyBoard.tsx
+// tests/components/MyCustomCellRenderer.tsx
 import * as React from 'react';
 import type { CellData } from '../../src/components/Cell';
 

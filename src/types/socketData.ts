@@ -95,6 +95,19 @@ export type TokenStoreUpdateData = {
  * ===========================================
  */
 
+export type BoardMovableRangeData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  playerId: PlayerId;
+};
+
+export type BaordMovePlayerData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  playerId: PlayerId;
+  newLocation: any;
+};
+
 export type BoardUpdateData = {
   boardId: BoardId;
   board: CellData[];

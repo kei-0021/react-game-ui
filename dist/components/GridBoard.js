@@ -47,11 +47,11 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, render
         if (draggedPieceId) {
             // ドロップ（移動確定）したら一旦ハイライトを消す
             setHighlightedCells([]);
-            socket.emit('game:move-player', {
+            socket.emit('board:move-player', {
+                roomId,
                 boardId: boardId,
                 playerId: draggedPieceId,
-                newPosition: { row: targetRow, col: targetCol },
-                roomId,
+                newLocation: { row: targetRow, col: targetCol },
             });
         }
     };

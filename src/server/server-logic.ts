@@ -6,6 +6,8 @@ import { CellData } from '@/components/Cell.js';
 import { BoardId, CardId, DeckId, PlayerId, RoomId, TokenStoreId } from '@/types/definition.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
+  BaordMovePlayerData,
+  BoardMovableRangeData,
   BoardUpdateData,
   CardFlipData,
   CardHoldData,
@@ -436,7 +438,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     });
 
     // 移動・探索
-    socket.on('game:move-player', ({ boardId, roomId, playerId, newPosition }) => {
+    socket.on('board:move-player', ({ roomId, boardId, playerId, newLocation }: BaordMovePlayerData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
@@ -444,10 +446,10 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
       const player = state?.players.find((p) => p.id === playerId);
       if (player && state) {
-        player.position = newPosition;
-        roomManager.applyCellEffect(boardId, playerId, newPosition, param?.cellEffects!);
+        player.position = newLocation;
+        roomManager.applyCellEffect(boardId, playerId, newLocation, param?.cellEffects!);
         roomManager.emitPlayerUpdate();
-        if (roomManager.updateCellExploredStatus(newPosition, true))
+        if (roomManager.updateCellExploredStatus(newLocation, true))
           io.to(roomId).emit('cell:update', state.exploredCells);
       }
     });
@@ -464,7 +466,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     });
 
     // プレイヤーの移動可能範囲リクエストを処理する
-    socket.on('board:movable-range', ({ roomId, boardId, playerId }) => {
+    socket.on('board:movable-range', ({ roomId, boardId, playerId }: BoardMovableRangeData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
