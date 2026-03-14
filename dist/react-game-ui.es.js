@@ -1554,28 +1554,104 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
   );
 }
 function GridBoard({
-  rows,
-  cols,
-  cellData,
-  pieces,
-  highlightedCells,
-  changedCells,
+  socket,
+  roomId,
+  boardId,
+  players,
+  myPlayerId,
   renderCell,
-  onCellClick,
-  onCellDoubleClick,
-  onPieceClick,
   allowPieceDrag = false,
-  onPieceDragStart,
-  onPieceDrop,
   width = 800,
   height = 800
 }) {
-  const handleCellClick = (cell2, loc) => {
-    onCellClick(cell2, loc);
+  const [isBoardReady, setIsBoardReady] = React.useState(false);
+  const [cells, setCells] = React.useState([]);
+  const [changedCells, setChangedCells] = React.useState([]);
+  const [highlightedCells, setHighlightedCells] = React.useState([]);
+  const [pieces, setPieces] = React.useState([]);
+  const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
+  const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
+  const handleCellClick = (celldata, loc) => {
+    if (!isBoardReady || !socket || !myPlayerId) return;
+    socket.emit("game:explore-cell", {
+      playerId: myPlayerId,
+      targetPosition: loc,
+      roomId,
+      shouldExplore: true
+    });
   };
-  const handleCellDoubleClick = (cell2, loc) => {
-    onCellDoubleClick(cell2, loc);
+  const handleCellDoubleClick = (celldata, loc) => {
+    if (!isBoardReady || !socket) return;
+    socket.emit("game:explore-cell", { targetPosition: loc, roomId, shouldExplore: false });
   };
+  const handleCellDrop = (e, targetRow, targetCol) => {
+    e.preventDefault();
+    if (!isBoardReady || !socket) return;
+    const draggedPieceId = e.dataTransfer.getData("pieceId");
+    if (draggedPieceId) {
+      setHighlightedCells([]);
+      socket.emit("game:move-player", {
+        boardId,
+        playerId: draggedPieceId,
+        newPosition: { row: targetRow, col: targetCol },
+        roomId
+      });
+    }
+  };
+  const handlePieceClick = (pieceId) => {
+    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
+    socket.emit("board:movable-range", {
+      roomId,
+      boardId,
+      playerId: pieceId
+    });
+  };
+  const handlePieceDragStart = (e, piece2) => {
+    e.dataTransfer.setData("pieceId", piece2.id);
+    e.dataTransfer.effectAllowed = "move";
+    handlePieceClick(piece2.id);
+    const player = players.find((p) => p.socketId !== myPlayerId);
+    if (!player) return;
+    setHighlightedCells(player.movableCells);
+  };
+  React.useEffect(() => {
+    const handleInitBoard = (data) => {
+      if (data.board && data.board.length > 0) {
+        setCells(data.board);
+        setIsBoardReady(true);
+      }
+    };
+    socket.on("board:update", handleInitBoard);
+    return () => {
+      socket.off("board:update", handleInitBoard);
+    };
+  }, [socket]);
+  React.useEffect(() => {
+    const handleCellUpdate = (updatedLocs) => {
+      setChangedCells(updatedLocs);
+    };
+    socket.on("cell:update", handleCellUpdate);
+    return () => {
+      socket.off("cell:update", handleCellUpdate);
+    };
+  }, [socket]);
+  React.useEffect(() => {
+    setPieces((prevPieces) => {
+      return players.map((p) => {
+        const existingPiece = prevPieces.find((piece2) => piece2.id === p.id);
+        const location = p.position;
+        const playerColor = p.color || existingPiece?.color || "#aaaaaa";
+        const playerName2 = p.name || existingPiece?.name || `P?`;
+        return {
+          ...existingPiece,
+          id: p.id,
+          name: playerName2,
+          color: playerColor,
+          location
+        };
+      });
+    });
+  }, [players]);
   const boardStyle = {
     "--board-rows": rows,
     "--board-cols": cols,
@@ -1587,8 +1663,22 @@ function GridBoard({
     height,
     position: "relative"
   };
+  if (!isBoardReady) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        style: {
+          padding: "40px",
+          textAlign: "center",
+          fontSize: "20px",
+          color: "#e0e0e0"
+        },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "サーバーから盤面データをロード中..." })
+      }
+    );
+  }
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [
-    cellData.map((cell2) => {
+    cells.map((cell2) => {
       const match = cell2.id.match(/r(\d+)c(\d+)/);
       const r = match ? parseInt(match[1], 10) : 0;
       const c = match ? parseInt(match[2], 10) : 0;
@@ -1606,7 +1696,7 @@ function GridBoard({
           cellData: cellDataForRenderer,
           onClick: () => handleCellClick(cell2, loc),
           onDoubleClick: () => handleCellDoubleClick(cell2, loc),
-          onDrop: (e) => onPieceDrop(e, r, c),
+          onDrop: (e) => handleCellDrop(e, r, c),
           onDragOver: (e) => e.preventDefault(),
           highlighted: isHighlighted,
           changed: isChanged,
@@ -1641,9 +1731,9 @@ function GridBoard({
         {
           piece: piece2,
           style: pieceStyle,
-          onClick: onPieceClick,
+          onClick: handlePieceClick,
           isDraggable: allowPieceDrag,
-          onDragStart: (e) => onPieceDragStart(e, piece2)
+          onDragStart: handlePieceDragStart
         },
         piece2.id
       );

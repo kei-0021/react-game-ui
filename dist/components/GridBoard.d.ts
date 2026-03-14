@@ -1,47 +1,31 @@
-import { PieceId } from '@/types/definition.js';
-import type { DragEvent } from 'react';
+import { Player } from '@/index.js';
+import { BoardId, PlayerId, RoomId } from '@/types/definition.js';
 import * as React from 'react';
-import type { PieceData } from '../types/piece.js';
+import { Socket } from 'socket.io-client';
 import { CellData } from './Cell.js';
-type GridLocation = {
-    row: number;
-    col: number;
-};
 type GridBoardProps = {
-    rows: number;
-    cols: number;
-    cellData: CellData[];
-    pieces: PieceData[];
-    highlightedCells: GridLocation[];
-    changedCells: GridLocation[];
+    socket: Socket;
+    roomId: RoomId;
+    boardId: BoardId;
+    players: Player[];
+    myPlayerId: PlayerId | null;
     allowPieceDrag?: boolean;
     renderCell: (cellData: CellData, row: number, col: number) => React.ReactNode;
-    onCellClick: (cellData: CellData, loc: GridLocation) => void;
-    onCellDoubleClick: (cellData: CellData, loc: GridLocation) => void;
-    onPieceClick: (pieceId: PieceId) => void;
-    onPieceDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
-    onPieceDrop: (e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void;
     width?: number;
     height?: number;
 };
 /**
  * 盤面（グリッド）を表示し、セルや駒のインタラクション、ドラッグ＆ドロップを管理する
- * @param {number} rows - 盤面の行数
- * @param {number} cols - 盤面の列数
- * @param {CellData[]} cellData - 各セルの状態を持つ2次元配列
- * @param {PieceData[]} pieces - 盤面上に配置される駒（Piece）のデータ
- * @param {GridLocation[]} highlightendCells - ハイライトを適用する座標のリスト
- * @param {GridLocation[]} changedCells - 状態変化を適用する座標のリスト
+ * @param {Socket} socket - Socket.ioのインスタンス
+ * @param {RoomId} roomId - 現在のルームID
+ * @param {string} boardId - 描画対象となる盤面の識別子
+ * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
+ * @param {PlayerId} myPlayerId - 操作者自身のプレイヤーID
  * @param {boolean} [allowPieceDrag=false] - 駒のドラッグ操作を許可するかどうか
  * @param {(cellData: CellData, row: number, col: number) => React.ReactNode} renderCell - 各マスの内部コンテンツを描画する関数
- * @param {(cellData: CellData, loc: GridLocation) => void} onCellClick - セルがクリックされた時の処理
- * @param {(cellData: CellData, loc: GridLocation) => void} onCellDoubleClick - セルがダブルクリックされた時の処理
- * @param {(pieceId: string) => void} onPieceClick - 駒がクリックされた時の処理
- * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} onPieceDragStart - 駒のドラッグが開始された時の処理
- * @param {(e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void} onPieceDrop - セルに駒がドロップされた時の処理
  * @param {number} widht - 横幅
  * @param {number} height - 縦幅
  */
-export declare function GridBoard({ rows, cols, cellData, pieces, highlightedCells, changedCells, renderCell, onCellClick, onCellDoubleClick, onPieceClick, allowPieceDrag, onPieceDragStart, onPieceDrop, width, height, }: GridBoardProps): import("react/jsx-runtime").JSX.Element;
+export declare function GridBoard({ socket, roomId, boardId, players, myPlayerId, renderCell, allowPieceDrag, width, height, }: GridBoardProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=GridBoard.d.ts.map

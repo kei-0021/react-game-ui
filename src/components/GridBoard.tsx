@@ -1,7 +1,10 @@
 // src/components/GridBoard.tsx
-import { PieceId } from '@/types/definition.js';
+import { Player } from '@/index.js';
+import { BoardId, PieceId, PlayerId, RoomId } from '@/types/definition.js';
+import { BoardUpdateData } from '@/types/socketData.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
+import { Socket } from 'socket.io-client';
 import type { PieceData } from '../types/piece.js';
 import styles from './Board.module.css';
 import { Cell, CellData } from './Cell.js';
@@ -13,65 +16,156 @@ type GridLocation = {
 };
 
 type GridBoardProps = {
-  rows: number;
-  cols: number;
-  cellData: CellData[];
-  pieces: PieceData[];
-  highlightedCells: GridLocation[];
-  changedCells: GridLocation[];
+  socket: Socket;
+  roomId: RoomId;
+  boardId: BoardId;
+  players: Player[];
+  myPlayerId: PlayerId | null;
   allowPieceDrag?: boolean;
   renderCell: (cellData: CellData, row: number, col: number) => React.ReactNode;
-  onCellClick: (cellData: CellData, loc: GridLocation) => void;
-  onCellDoubleClick: (cellData: CellData, loc: GridLocation) => void;
-  onPieceClick: (pieceId: PieceId) => void;
-  onPieceDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
-  onPieceDrop: (e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void;
   width?: number;
   height?: number;
 };
 
 /**
  * 盤面（グリッド）を表示し、セルや駒のインタラクション、ドラッグ＆ドロップを管理する
- * @param {number} rows - 盤面の行数
- * @param {number} cols - 盤面の列数
- * @param {CellData[]} cellData - 各セルの状態を持つ2次元配列
- * @param {PieceData[]} pieces - 盤面上に配置される駒（Piece）のデータ
- * @param {GridLocation[]} highlightendCells - ハイライトを適用する座標のリスト
- * @param {GridLocation[]} changedCells - 状態変化を適用する座標のリスト
+ * @param {Socket} socket - Socket.ioのインスタンス
+ * @param {RoomId} roomId - 現在のルームID
+ * @param {string} boardId - 描画対象となる盤面の識別子
+ * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
+ * @param {PlayerId} myPlayerId - 操作者自身のプレイヤーID
  * @param {boolean} [allowPieceDrag=false] - 駒のドラッグ操作を許可するかどうか
  * @param {(cellData: CellData, row: number, col: number) => React.ReactNode} renderCell - 各マスの内部コンテンツを描画する関数
- * @param {(cellData: CellData, loc: GridLocation) => void} onCellClick - セルがクリックされた時の処理
- * @param {(cellData: CellData, loc: GridLocation) => void} onCellDoubleClick - セルがダブルクリックされた時の処理
- * @param {(pieceId: string) => void} onPieceClick - 駒がクリックされた時の処理
- * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} onPieceDragStart - 駒のドラッグが開始された時の処理
- * @param {(e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void} onPieceDrop - セルに駒がドロップされた時の処理
  * @param {number} widht - 横幅
  * @param {number} height - 縦幅
  */
 export function GridBoard({
-  rows,
-  cols,
-  cellData,
-  pieces,
-  highlightedCells,
-  changedCells,
+  socket,
+  roomId,
+  boardId,
+  players,
+  myPlayerId,
   renderCell,
-  onCellClick,
-  onCellDoubleClick,
-  onPieceClick,
   allowPieceDrag = false,
-  onPieceDragStart,
-  onPieceDrop,
   width = 800,
   height = 800,
 }: GridBoardProps) {
-  const handleCellClick = (cell: CellData, loc: GridLocation) => {
-    onCellClick(cell, loc);
+  const [isBoardReady, setIsBoardReady] = React.useState(false);
+  const [cells, setCells] = React.useState<CellData[]>([]);
+  const [changedCells, setChangedCells] = React.useState<GridLocation[]>([]);
+  const [highlightedCells, setHighlightedCells] = React.useState<GridLocation[]>([]);
+  const [pieces, setPieces] = React.useState<PieceData[]>([]);
+
+  // IDから盤面の最大行列数を計算（一次元配列対応）
+  const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || '0', 10))) + 1 : 0;
+  const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || '0', 10))) + 1 : 0;
+
+  const handleCellClick = (celldata: CellData, loc: GridLocation) => {
+    if (!isBoardReady || !socket || !myPlayerId) return;
+
+    socket.emit('game:explore-cell', {
+      playerId: myPlayerId,
+      targetPosition: loc,
+      roomId,
+      shouldExplore: true,
+    });
   };
 
-  const handleCellDoubleClick = (cell: CellData, loc: GridLocation) => {
-    onCellDoubleClick(cell, loc);
+  const handleCellDoubleClick = (celldata: CellData, loc: GridLocation) => {
+    if (!isBoardReady || !socket) return;
+    socket.emit('game:explore-cell', { targetPosition: loc, roomId, shouldExplore: false });
   };
+
+  const handleCellDrop = (e: DragEvent<HTMLDivElement>, targetRow: number, targetCol: number) => {
+    e.preventDefault();
+    if (!isBoardReady || !socket) return;
+
+    const draggedPieceId = e.dataTransfer.getData('pieceId');
+    if (draggedPieceId) {
+      // ドロップ（移動確定）したら一旦ハイライトを消す
+      setHighlightedCells([]);
+
+      socket.emit('game:move-player', {
+        boardId: boardId,
+        playerId: draggedPieceId,
+        newPosition: { row: targetRow, col: targetCol },
+        roomId,
+      });
+    }
+  };
+
+  /**
+   * 駒クリック時のハンドラ
+   * 移動可能範囲を表示するためにサーバーへリクエストを飛ばす
+   */
+  const handlePieceClick = (pieceId: PieceId) => {
+    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
+
+    socket.emit('board:movable-range', {
+      roomId,
+      boardId,
+      playerId: pieceId,
+    });
+  };
+
+  const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
+    e.dataTransfer.setData('pieceId', piece.id);
+    e.dataTransfer.effectAllowed = 'move';
+    handlePieceClick(piece.id);
+
+    const player = players.find((p) => p.socketId !== myPlayerId);
+    if (!player) return;
+    setHighlightedCells(player.movableCells);
+  };
+
+  // ------------------- Socket Effects -------------------
+
+  // 盤面初期化/更新
+  React.useEffect(() => {
+    const handleInitBoard = (data: BoardUpdateData) => {
+      if (data.board && data.board.length > 0) {
+        setCells(data.board);
+        setIsBoardReady(true);
+      }
+    };
+    socket.on('board:update', handleInitBoard);
+    return () => {
+      socket.off('board:update', handleInitBoard);
+    };
+  }, [socket]);
+
+  // ハイライト（移動範囲など）の更新
+  React.useEffect(() => {
+    const handleCellUpdate = (updatedLocs: GridLocation[]) => {
+      // サーバーから空配列が来たらハイライト解除、座標が来たら上書き
+      setChangedCells(updatedLocs);
+    };
+    socket.on('cell:update', handleCellUpdate);
+    return () => {
+      socket.off('cell:update', handleCellUpdate);
+    };
+  }, [socket]);
+
+  // プレイヤー情報を描画用の駒データに変換
+  React.useEffect(() => {
+    setPieces((prevPieces) => {
+      return players.map((p) => {
+        const existingPiece = prevPieces.find((piece) => piece.id === p.id);
+        const location: GridLocation = p.position;
+
+        const playerColor = p.color || existingPiece?.color || '#aaaaaa';
+        const playerName = p.name || existingPiece?.name || `P?`;
+
+        return {
+          ...existingPiece,
+          id: p.id,
+          name: playerName,
+          color: playerColor,
+          location,
+        } as PieceData;
+      });
+    });
+  }, [players]);
 
   const boardStyle: React.CSSProperties = {
     '--board-rows': rows,
@@ -85,10 +179,25 @@ export function GridBoard({
     position: 'relative',
   } as React.CSSProperties;
 
+  if (!isBoardReady) {
+    return (
+      <div
+        style={{
+          padding: '40px',
+          textAlign: 'center',
+          fontSize: '20px',
+          color: '#e0e0e0',
+        }}
+      >
+        <p>サーバーから盤面データをロード中...</p>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.boardContainer} style={boardStyle}>
       {/* マス目のレンダリング */}
-      {cellData.map((cell) => {
+      {cells.map((cell) => {
         const match = cell.id.match(/r(\d+)c(\d+)/);
         const r = match ? parseInt(match[1], 10) : 0;
         const c = match ? parseInt(match[2], 10) : 0;
@@ -110,7 +219,7 @@ export function GridBoard({
             cellData={cellDataForRenderer}
             onClick={() => handleCellClick(cell, loc)}
             onDoubleClick={() => handleCellDoubleClick(cell, loc)}
-            onDrop={(e) => onPieceDrop(e, r, c)}
+            onDrop={(e) => handleCellDrop(e, r, c)}
             onDragOver={(e) => e.preventDefault()}
             highlighted={isHighlighted}
             changed={isChanged}
@@ -151,9 +260,9 @@ export function GridBoard({
             key={piece.id}
             piece={piece}
             style={pieceStyle}
-            onClick={onPieceClick}
+            onClick={handlePieceClick}
             isDraggable={allowPieceDrag}
-            onDragStart={(e) => onPieceDragStart(e, piece)}
+            onDragStart={handlePieceDragStart}
           />
         );
       })}
