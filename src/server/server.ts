@@ -1,5 +1,5 @@
 // src/server.ts
-import { GameParam } from '@/types/server.js';
+import { GameId, GameParam } from '@/types/server.js';
 import express from 'express';
 import fs from 'fs';
 import { createServer, Server as HttpServer } from 'http';
@@ -21,7 +21,7 @@ export type GameServerOptions = {
   clientDistPath?: string;
   corsOrigins?: string[];
   onServerStart?: (url: string) => void;
-  gameParams: Record<string, GameParam>;
+  gameParams: Record<GameId, GameParam>;
   customEvents?: any;
   initialLogCategories?: Partial<Record<LogCategory, boolean>> | null;
 };

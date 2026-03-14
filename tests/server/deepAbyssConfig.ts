@@ -89,6 +89,7 @@ export const deepAbyssConfig: RoomConfig = {
       ],
       initialHand: { deckId: 'deepAbyssAction', count: 6 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
+      pieceImage: '/hanabishi.svg',
       initialPhase: DeepAbyssPhase.START,
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,

@@ -142,10 +142,11 @@ export function initGameServer(io, options) {
             let player = state.players.find((p) => p.socketId === socket.id);
             // プレイヤークラスの初期化
             if (!player) {
+                const playerId = `${roomId}_p${state.players.length + 1}`;
                 player = {
-                    id: `${roomId}_p${state.players.length + 1}`,
+                    id: playerId,
                     name: playerName?.trim() || `Player ${state.players.length + 1}`,
-                    color: generateColorFromId(`${roomId}_p${state.players.length + 1}`),
+                    color: generateColorFromId(playerId),
                     socketId: socket.id,
                     cards: [],
                     isHolding: false,
@@ -154,6 +155,7 @@ export function initGameServer(io, options) {
                     tokens: JSON.parse(JSON.stringify(param.initialTokens || [])),
                     position: { row: 0, col: 0 },
                     movableCells: [],
+                    pieceImage: param.pieceImage,
                 };
                 state.players.push(player);
                 server_log('game', param.gameId, roomId, `${player.name} (${player.id})が参加しました`);

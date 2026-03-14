@@ -20,6 +20,7 @@ import { TokenStore } from './tokenStore.js';
  * @param initialTokenStores - 共有トークンの保管場所。
  * @param initialTokens - ボード上の初期配置トークン。
  * @param initialBoard - ボードの初期レイアウト。
+ * @param pieceImage - ボード上のプレイヤーコマに使用する画像URL。
  * @param initialPhase - 初期フェーズ。
  * @param cardEffects - カードの特殊効果定義。
  * @param cellEffects - セルの特殊効果定義。
@@ -45,6 +46,7 @@ export type GameParam = {
         count: number;
     };
     initialBoard?: Record<BoardId, CellData[]>;
+    pieceImage?: string;
     initialPhase?: Phase;
     cardEffects?: Record<string, any>;
     cellEffects?: Record<string, (manager: RoomManager, player: PlayerId) => void>;

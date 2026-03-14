@@ -108,16 +108,20 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, render
     // プレイヤー情報を描画用の駒データに変換
     React.useEffect(() => {
         setPieces((prevPieces) => {
+            if (!players)
+                return [];
             return players.map((p) => {
                 const existingPiece = prevPieces.find((piece) => piece.id === p.id);
                 const location = p.position;
                 const playerColor = p.color || existingPiece?.color || '#aaaaaa';
                 const playerName = p.name || existingPiece?.name || `P?`;
+                const playerImage = p.pieceImage || existingPiece?.image;
                 return {
                     ...existingPiece,
                     id: p.id,
                     name: playerName,
                     color: playerColor,
+                    image: playerImage,
                     location,
                 };
             });
@@ -147,8 +151,11 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, render
                 const r = match ? parseInt(match[1], 10) : 0;
                 const c = match ? parseInt(match[2], 10) : 0;
                 const isChanged = changedCells.some((loc) => loc.row === r && loc.col === c);
-                const isHighlighted = players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc) => loc.row === r && loc.col === c) ??
-                    false;
+                const isHighlighted = players
+                    ? (players
+                        .find((p) => p.id === draggingPieceId)
+                        ?.movableCells?.some((loc) => loc.row === r && loc.col === c) ?? false)
+                    : false;
                 const cellDataForRenderer = {
                     ...cell,
                     content: isChanged ? cell.changedContent : cell.content,

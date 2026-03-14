@@ -7,7 +7,7 @@ type GridBoardProps = {
     socket: Socket;
     roomId: RoomId;
     boardId: BoardId;
-    players: Player[];
+    players?: Player[];
     myPlayerId: PlayerId | null;
     allowPieceDrag?: boolean;
     renderCell: (cellData: CellData, row: number, col: number) => React.ReactNode;

@@ -14,8 +14,9 @@ import type { Token } from './token.js';
  * @property {Token[]} tokens - プレイヤーが保有しているトークンのリスト
  * @property {Resource[]} resources - プレイヤーが所持している資源（リソース）のリスト
  * @property {number} score - 現在の獲得スコア
- * @property {Position} position - ゲームボード上におけるプレイヤーの現在位置
- * @property {Position} movableCells - ゲームボード上におけるプレイヤーが移動可能なセル
+ * @property {Position} position - ボード上におけるプレイヤーの現在位置
+ * @property {Position} movableCells - ボード上におけるプレイヤーが移動可能なセル
+ * @property {string} [pieceImage] - ボード上のコマの画像URL
  */
 export type Player = {
     id: PlayerId;
@@ -29,5 +30,6 @@ export type Player = {
     score: number;
     position: Position;
     movableCells: any[];
+    pieceImage?: string;
 };
 //# sourceMappingURL=player.d.ts.map

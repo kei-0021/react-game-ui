@@ -1544,13 +1544,34 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart, onDrag
       className: pieceClasses,
       style: {
         ...style,
-        backgroundColor: piece2.color
+        // 画像がある場合は背景色を透明にするか、画像が丸く切り抜かれるように調整
+        backgroundColor: piece2.image ? "transparent" : piece2.color,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        overflow: "hidden"
+        // 画像がはみ出さないように
       },
       onClick: handleClick,
       draggable: isDraggable,
       onDragStart: handleDragStart,
       onDragEnd: (e) => onDragEnd(e, piece2),
-      children: piece2.name.substring(0, 1)
+      children: piece2.image ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "img",
+        {
+          src: piece2.image,
+          alt: piece2.name,
+          style: {
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            pointerEvents: "none"
+          }
+        }
+      ) : (
+        /* 画像がない場合は従来の文字表示 */
+        piece2.name.substring(0, 1)
+      )
     }
   );
 }
@@ -1642,16 +1663,19 @@ function GridBoard({
   }, [socket]);
   React.useEffect(() => {
     setPieces((prevPieces) => {
+      if (!players) return [];
       return players.map((p) => {
         const existingPiece = prevPieces.find((piece2) => piece2.id === p.id);
         const location = p.position;
         const playerColor = p.color || existingPiece?.color || "#aaaaaa";
         const playerName2 = p.name || existingPiece?.name || `P?`;
+        const playerImage = p.pieceImage || existingPiece?.image;
         return {
           ...existingPiece,
           id: p.id,
           name: playerName2,
           color: playerColor,
+          image: playerImage,
           location
         };
       });
@@ -1688,7 +1712,7 @@ function GridBoard({
       const r = match ? parseInt(match[1], 10) : 0;
       const c = match ? parseInt(match[2], 10) : 0;
       const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
-      const isHighlighted = players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false;
+      const isHighlighted = players ? players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false : false;
       const cellDataForRenderer = {
         ...cell2,
         content: isChanged ? cell2.changedContent : cell2.content

@@ -1,3 +1,4 @@
+// src/components/Piece.tsx
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import type { PieceData } from '../types/piece.js';
@@ -36,15 +37,33 @@ export function Piece({ piece, style, onClick, isDraggable, onDragStart, onDragE
       className={pieceClasses}
       style={{
         ...style,
-        backgroundColor: piece.color,
+        // 画像がある場合は背景色を透明にするか、画像が丸く切り抜かれるように調整
+        backgroundColor: piece.image ? 'transparent' : piece.color,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden', // 画像がはみ出さないように
       }}
       onClick={handleClick}
       draggable={isDraggable}
       onDragStart={handleDragStart}
       onDragEnd={(e) => onDragEnd(e, piece)}
     >
-      {/* コマの中に表示する文字やアイコン */}
-      {piece.name.substring(0, 1)}
+      {piece.image ? (
+        <img
+          src={piece.image}
+          alt={piece.name}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            pointerEvents: 'none',
+          }}
+        />
+      ) : (
+        /* 画像がない場合は従来の文字表示 */
+        piece.name.substring(0, 1)
+      )}
     </div>
   );
 }
