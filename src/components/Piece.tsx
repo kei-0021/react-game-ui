@@ -22,27 +22,41 @@ export function Piece({ piece, style, onClick, isDraggable, onDragStart, onDragE
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
     if (isDraggable) {
       e.stopPropagation();
-
-      e.dataTransfer.setData('text/plain', piece.id);
+      e.dataTransfer.setData('pieceId', piece.id);
       e.dataTransfer.effectAllowed = 'move';
-
       onDragStart(e, piece);
     }
   };
 
   const pieceClasses = [styles.piece, isDraggable ? styles.draggable : styles.clickable].join(' ');
 
+  const imageStyle: React.CSSProperties = piece.image
+    ? {
+        WebkitMaskImage: `url("${piece.image}")`,
+        maskImage: `url("${piece.image}")`,
+        WebkitMaskSize: 'contain',
+        maskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center',
+        maskPosition: 'center',
+        backgroundColor: 'transparent',
+        borderRadius: '0',
+        filter: `drop-shadow(1px 0 0 ${piece.color}) drop-shadow(-1px 0 0 ${piece.color}) drop-shadow(0 1px 0 ${piece.color}) drop-shadow(0 -1px 0 ${piece.color})`,
+      }
+    : {
+        backgroundColor: piece.color,
+      };
+
   return (
     <div
       className={pieceClasses}
       style={{
         ...style,
-        // 画像がある場合は背景色を透明にするか、画像が丸く切り抜かれるように調整
-        backgroundColor: piece.image ? 'transparent' : piece.color,
+        ...imageStyle,
         display: 'flex',
-        justifyContent: 'center',
         alignItems: 'center',
-        overflow: 'hidden', // 画像がはみ出さないように
+        justifyContent: 'center',
       }}
       onClick={handleClick}
       draggable={isDraggable}
@@ -52,16 +66,15 @@ export function Piece({ piece, style, onClick, isDraggable, onDragStart, onDragE
       {piece.image ? (
         <img
           src={piece.image}
-          alt={piece.name}
+          alt=""
           style={{
             width: '100%',
             height: '100%',
-            objectFit: 'cover',
+            objectFit: 'contain',
             pointerEvents: 'none',
           }}
         />
       ) : (
-        /* 画像がない場合は従来の文字表示 */
         piece.name.substring(0, 1)
       )}
     </div>

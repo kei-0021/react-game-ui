@@ -1520,7 +1520,7 @@ function Draggable({
     )
   ] });
 }
-const piece = "_piece_1x956_3";
+const piece = "_piece_138ki_3";
 const styles$4 = {
   piece
 };
@@ -1532,25 +1532,37 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart, onDrag
   const handleDragStart = (e) => {
     if (isDraggable) {
       e.stopPropagation();
-      e.dataTransfer.setData("text/plain", piece2.id);
+      e.dataTransfer.setData("pieceId", piece2.id);
       e.dataTransfer.effectAllowed = "move";
       onDragStart(e, piece2);
     }
   };
   const pieceClasses = [styles$4.piece, isDraggable ? styles$4.draggable : styles$4.clickable].join(" ");
+  const imageStyle = piece2.image ? {
+    WebkitMaskImage: `({})("${piece2.image}")`,
+    maskImage: `({})("${piece2.image}")`,
+    WebkitMaskSize: "contain",
+    maskSize: "contain",
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+    WebkitMaskPosition: "center",
+    maskPosition: "center",
+    backgroundColor: "transparent",
+    borderRadius: "0",
+    filter: `drop-shadow(1px 0 0 ${piece2.color}) drop-shadow(-1px 0 0 ${piece2.color}) drop-shadow(0 1px 0 ${piece2.color}) drop-shadow(0 -1px 0 ${piece2.color})`
+  } : {
+    backgroundColor: piece2.color
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
       className: pieceClasses,
       style: {
         ...style,
-        // 画像がある場合は背景色を透明にするか、画像が丸く切り抜かれるように調整
-        backgroundColor: piece2.image ? "transparent" : piece2.color,
+        ...imageStyle,
         display: "flex",
-        justifyContent: "center",
         alignItems: "center",
-        overflow: "hidden"
-        // 画像がはみ出さないように
+        justifyContent: "center"
       },
       onClick: handleClick,
       draggable: isDraggable,
@@ -1560,18 +1572,15 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart, onDrag
         "img",
         {
           src: piece2.image,
-          alt: piece2.name,
+          alt: "",
           style: {
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit: "contain",
             pointerEvents: "none"
           }
         }
-      ) : (
-        /* 画像がない場合は従来の文字表示 */
-        piece2.name.substring(0, 1)
-      )
+      ) : piece2.name.substring(0, 1)
     }
   );
 }
