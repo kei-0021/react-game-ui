@@ -7,6 +7,7 @@ export type PieceProps = {
     onClick: (pieceId: string) => void;
     isDraggable: boolean;
     onDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
+    onDragEnd: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
 };
-export declare function Piece({ piece, style, onClick, isDraggable, onDragStart }: PieceProps): JSX.Element;
+export declare function Piece({ piece, style, onClick, isDraggable, onDragStart, onDragEnd }: PieceProps): JSX.Element;
 //# sourceMappingURL=Piece.d.ts.map

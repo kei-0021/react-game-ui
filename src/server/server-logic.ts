@@ -466,7 +466,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     });
 
     // プレイヤーの移動可能範囲リクエストを処理する
-    socket.on('board:movable-range', ({ roomId, boardId, playerId }: BoardMovableRangeData) => {
+    socket.on('board:movable-range', ({ roomId, boardId, playerId, moveRange }: BoardMovableRangeData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
@@ -479,8 +479,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const { row, col } = player.position;
       const startCellId = `r${row}c${col}`;
 
-      // 移動範囲を計算（今回は固定で「2」に設定、キャラごとに変えるのもアリ）
-      const moveRange = 2;
+      // 移動範囲を計算
       const movableIds = roomManager.getMovableCellIds(boardId, startCellId, moveRange);
 
       // セルIDをクライアントが解釈できる GridLocation[] 形式に変換

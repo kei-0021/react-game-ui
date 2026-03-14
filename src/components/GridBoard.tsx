@@ -10,6 +10,8 @@ import styles from './Board.module.css';
 import { Cell, CellData } from './Cell.js';
 import { Piece } from './Piece.js';
 
+const moveRange = 2;
+
 type GridLocation = {
   row: number;
   col: number;
@@ -54,6 +56,7 @@ export function GridBoard({
   const [cells, setCells] = React.useState<CellData[]>([]);
   const [changedCells, setChangedCells] = React.useState<GridLocation[]>([]);
   const [highlightedCells, setHighlightedCells] = React.useState<GridLocation[]>([]);
+  const [draggingPieceId, setDraggingPieceId] = React.useState<PieceId | null>(null);
   const [pieces, setPieces] = React.useState<PieceData[]>([]);
 
   // IDから盤面の最大行列数を計算（一次元配列対応）
@@ -82,7 +85,7 @@ export function GridBoard({
 
     const draggedPieceId = e.dataTransfer.getData('pieceId');
     if (draggedPieceId) {
-      // ドロップ（移動確定）したら一旦ハイライトを消す
+      // ドロップ（移動確定）したらハイライトを消す
       setHighlightedCells([]);
 
       socket.emit('board:move-player', {
@@ -105,17 +108,19 @@ export function GridBoard({
       roomId,
       boardId,
       playerId: pieceId,
+      moveRange: moveRange,
     } as BoardMovableRangeData);
   };
 
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
     e.dataTransfer.setData('pieceId', piece.id);
     e.dataTransfer.effectAllowed = 'move';
+    setDraggingPieceId(piece.id);
     handlePieceClick(piece.id);
+  };
 
-    const player = players.find((p) => p.socketId !== myPlayerId);
-    if (!player) return;
-    setHighlightedCells(player.movableCells);
+  const handlePieceDragEnd = () => {
+    setDraggingPieceId(null);
   };
 
   // ------------------- Socket Effects -------------------
@@ -203,7 +208,9 @@ export function GridBoard({
         const c = match ? parseInt(match[2], 10) : 0;
 
         const isChanged = changedCells.some((loc) => loc.row === r && loc.col === c);
-        const isHighlighted = highlightedCells.some((loc) => loc.row === r && loc.col === c);
+        const isHighlighted =
+          players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc) => loc.row === r && loc.col === c) ??
+          false;
 
         const cellDataForRenderer: CellData = {
           ...cell,
@@ -263,6 +270,7 @@ export function GridBoard({
             onClick={handlePieceClick}
             isDraggable={allowPieceDrag}
             onDragStart={handlePieceDragStart}
+            onDragEnd={handlePieceDragEnd}
           />
         );
       })}

@@ -9,9 +9,10 @@ export type PieceProps = {
   onClick: (pieceId: string) => void;
   isDraggable: boolean;
   onDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
+  onDragEnd: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
 };
-// 戻り値の型も明示
-export function Piece({ piece, style, onClick, isDraggable, onDragStart }: PieceProps): JSX.Element {
+
+export function Piece({ piece, style, onClick, isDraggable, onDragStart, onDragEnd }: PieceProps): JSX.Element {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClick(piece.id);
@@ -40,6 +41,7 @@ export function Piece({ piece, style, onClick, isDraggable, onDragStart }: Piece
       onClick={handleClick}
       draggable={isDraggable}
       onDragStart={handleDragStart}
+      onDragEnd={(e) => onDragEnd(e, piece)}
     >
       {/* コマの中に表示する文字やアイコン */}
       {piece.name.substring(0, 1)}

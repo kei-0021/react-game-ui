@@ -1524,7 +1524,7 @@ const piece = "_piece_1x956_3";
 const styles$4 = {
   piece
 };
-function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
+function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart, onDragEnd }) {
   const handleClick = (e) => {
     e.stopPropagation();
     onClick(piece2.id);
@@ -1549,10 +1549,12 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
       onClick: handleClick,
       draggable: isDraggable,
       onDragStart: handleDragStart,
+      onDragEnd: (e) => onDragEnd(e, piece2),
       children: piece2.name.substring(0, 1)
     }
   );
 }
+const moveRange = 2;
 function GridBoard({
   socket,
   roomId,
@@ -1568,6 +1570,7 @@ function GridBoard({
   const [cells, setCells] = React.useState([]);
   const [changedCells, setChangedCells] = React.useState([]);
   const [highlightedCells, setHighlightedCells] = React.useState([]);
+  const [draggingPieceId, setDraggingPieceId] = React.useState(null);
   const [pieces, setPieces] = React.useState([]);
   const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
   const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
@@ -1603,16 +1606,18 @@ function GridBoard({
     socket.emit("board:movable-range", {
       roomId,
       boardId,
-      playerId: pieceId
+      playerId: pieceId,
+      moveRange
     });
   };
   const handlePieceDragStart = (e, piece2) => {
     e.dataTransfer.setData("pieceId", piece2.id);
     e.dataTransfer.effectAllowed = "move";
+    setDraggingPieceId(piece2.id);
     handlePieceClick(piece2.id);
-    const player = players.find((p) => p.socketId !== myPlayerId);
-    if (!player) return;
-    setHighlightedCells(player.movableCells);
+  };
+  const handlePieceDragEnd = () => {
+    setDraggingPieceId(null);
   };
   React.useEffect(() => {
     const handleInitBoard = (data) => {
@@ -1683,7 +1688,7 @@ function GridBoard({
       const r = match ? parseInt(match[1], 10) : 0;
       const c = match ? parseInt(match[2], 10) : 0;
       const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
-      const isHighlighted = highlightedCells.some((loc2) => loc2.row === r && loc2.col === c);
+      const isHighlighted = players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false;
       const cellDataForRenderer = {
         ...cell2,
         content: isChanged ? cell2.changedContent : cell2.content
@@ -1733,7 +1738,8 @@ function GridBoard({
           style: pieceStyle,
           onClick: handlePieceClick,
           isDraggable: allowPieceDrag,
-          onDragStart: handlePieceDragStart
+          onDragStart: handlePieceDragStart,
+          onDragEnd: handlePieceDragEnd
         },
         piece2.id
       );
@@ -2941,7 +2947,7 @@ class RoomManager {
   /**
    * 指定したセルから一定歩数で行けるセルIDをすべて取得する
    */
-  getMovableCellIds = (boardId, startCellId, moveRange) => {
+  getMovableCellIds = (boardId, startCellId, moveRange2) => {
     const targetBoard = this.state.boards[boardId];
     const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
     const reachable = /* @__PURE__ */ new Set();
@@ -2950,7 +2956,7 @@ class RoomManager {
     while (queue.length > 0) {
       const { id, dist } = queue.shift();
       if (dist > 0) reachable.add(id);
-      if (dist >= moveRange) continue;
+      if (dist >= moveRange2) continue;
       const cell2 = boardMap.get(id);
       cell2?.adjacentCellIds.forEach((nextId) => {
         if (!visited.has(nextId)) {

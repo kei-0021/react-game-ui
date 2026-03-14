@@ -99,6 +99,7 @@ export type BoardMovableRangeData = {
   roomId: RoomId;
   boardId: BoardId;
   playerId: PlayerId;
+  moveRange: number;
 };
 
 export type BaordMovePlayerData = {

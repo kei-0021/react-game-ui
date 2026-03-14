@@ -3,6 +3,7 @@ import * as React from 'react';
 import styles from './Board.module.css';
 import { Cell } from './Cell.js';
 import { Piece } from './Piece.js';
+const moveRange = 2;
 /**
  * 盤面（グリッド）を表示し、セルや駒のインタラクション、ドラッグ＆ドロップを管理する
  * @param {Socket} socket - Socket.ioのインスタンス
@@ -20,6 +21,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, render
     const [cells, setCells] = React.useState([]);
     const [changedCells, setChangedCells] = React.useState([]);
     const [highlightedCells, setHighlightedCells] = React.useState([]);
+    const [draggingPieceId, setDraggingPieceId] = React.useState(null);
     const [pieces, setPieces] = React.useState([]);
     // IDから盤面の最大行列数を計算（一次元配列対応）
     const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || '0', 10))) + 1 : 0;
@@ -45,7 +47,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, render
             return;
         const draggedPieceId = e.dataTransfer.getData('pieceId');
         if (draggedPieceId) {
-            // ドロップ（移動確定）したら一旦ハイライトを消す
+            // ドロップ（移動確定）したらハイライトを消す
             setHighlightedCells([]);
             socket.emit('board:move-player', {
                 roomId,
@@ -66,16 +68,17 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, render
             roomId,
             boardId,
             playerId: pieceId,
+            moveRange: moveRange,
         });
     };
     const handlePieceDragStart = (e, piece) => {
         e.dataTransfer.setData('pieceId', piece.id);
         e.dataTransfer.effectAllowed = 'move';
+        setDraggingPieceId(piece.id);
         handlePieceClick(piece.id);
-        const player = players.find((p) => p.socketId !== myPlayerId);
-        if (!player)
-            return;
-        setHighlightedCells(player.movableCells);
+    };
+    const handlePieceDragEnd = () => {
+        setDraggingPieceId(null);
     };
     // ------------------- Socket Effects -------------------
     // 盤面初期化/更新
@@ -144,7 +147,8 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, render
                 const r = match ? parseInt(match[1], 10) : 0;
                 const c = match ? parseInt(match[2], 10) : 0;
                 const isChanged = changedCells.some((loc) => loc.row === r && loc.col === c);
-                const isHighlighted = highlightedCells.some((loc) => loc.row === r && loc.col === c);
+                const isHighlighted = players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc) => loc.row === r && loc.col === c) ??
+                    false;
                 const cellDataForRenderer = {
                     ...cell,
                     content: isChanged ? cell.changedContent : cell.content,
@@ -170,6 +174,6 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, render
                     transform: `translate(${offsetX}px, ${offsetY}px)`,
                     transition: 'transform 0.3s ease-in-out',
                 };
-                return (_jsx(Piece, { piece: piece, style: pieceStyle, onClick: handlePieceClick, isDraggable: allowPieceDrag, onDragStart: handlePieceDragStart }, piece.id));
+                return (_jsx(Piece, { piece: piece, style: pieceStyle, onClick: handlePieceClick, isDraggable: allowPieceDrag, onDragStart: handlePieceDragStart, onDragEnd: handlePieceDragEnd }, piece.id));
             })] }));
 }

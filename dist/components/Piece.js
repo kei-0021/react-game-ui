@@ -1,7 +1,6 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import styles from './Piece.module.css';
-// 戻り値の型も明示
-export function Piece({ piece, style, onClick, isDraggable, onDragStart }) {
+export function Piece({ piece, style, onClick, isDraggable, onDragStart, onDragEnd }) {
     const handleClick = (e) => {
         e.stopPropagation();
         onClick(piece.id);
@@ -18,5 +17,5 @@ export function Piece({ piece, style, onClick, isDraggable, onDragStart }) {
     return (_jsx("div", { className: pieceClasses, style: {
             ...style,
             backgroundColor: piece.color,
-        }, onClick: handleClick, draggable: isDraggable, onDragStart: handleDragStart, children: piece.name.substring(0, 1) }));
+        }, onClick: handleClick, draggable: isDraggable, onDragStart: handleDragStart, onDragEnd: (e) => onDragEnd(e, piece), children: piece.name.substring(0, 1) }));
 }
