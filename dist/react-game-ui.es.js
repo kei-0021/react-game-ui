@@ -1534,6 +1534,9 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart, onDrag
       e.stopPropagation();
       e.dataTransfer.setData("pieceId", piece2.id);
       e.dataTransfer.effectAllowed = "move";
+      if (piece2.image) {
+        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
+      }
       onDragStart(e, piece2);
     }
   };
@@ -1560,9 +1563,10 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart, onDrag
       style: {
         ...style,
         ...imageStyle,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
+        // none や 0 にせず、透明にすることで描画領域を確保し、縁取りを維持する
+        borderColor: piece2.image ? "transparent" : void 0,
+        boxShadow: piece2.image ? "none" : void 0,
+        filter: piece2.image ? `drop-shadow(1px 0 0 ${piece2.color}) drop-shadow(-1px 0 0 ${piece2.color}) drop-shadow(0 1px 0 ${piece2.color}) drop-shadow(0 -1px 0 ${piece2.color})` : void 0
       },
       onClick: handleClick,
       draggable: isDraggable,

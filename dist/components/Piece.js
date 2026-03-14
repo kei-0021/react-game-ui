@@ -10,6 +10,9 @@ export function Piece({ piece, style, onClick, isDraggable, onDragStart, onDragE
             e.stopPropagation();
             e.dataTransfer.setData('pieceId', piece.id);
             e.dataTransfer.effectAllowed = 'move';
+            if (piece.image) {
+                e.dataTransfer.setDragImage(e.currentTarget, 45, 45); // 駒の中心（90pxの半分）を指定
+            }
             onDragStart(e, piece);
         }
     };
@@ -34,9 +37,12 @@ export function Piece({ piece, style, onClick, isDraggable, onDragStart, onDragE
     return (_jsx("div", { className: pieceClasses, style: {
             ...style,
             ...imageStyle,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            // none や 0 にせず、透明にすることで描画領域を確保し、縁取りを維持する
+            borderColor: piece.image ? 'transparent' : undefined,
+            boxShadow: piece.image ? 'none' : undefined,
+            filter: piece.image
+                ? `drop-shadow(1px 0 0 ${piece.color}) drop-shadow(-1px 0 0 ${piece.color}) drop-shadow(0 1px 0 ${piece.color}) drop-shadow(0 -1px 0 ${piece.color})`
+                : undefined,
         }, onClick: handleClick, draggable: isDraggable, onDragStart: handleDragStart, onDragEnd: (e) => onDragEnd(e, piece), children: piece.image ? (_jsx("img", { src: piece.image, alt: "", style: {
                 width: '100%',
                 height: '100%',
