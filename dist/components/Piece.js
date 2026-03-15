@@ -53,17 +53,11 @@ export function Piece({ piece, style, onClick, isDraggable, isFilled = false, on
                         display: 'block',
                     } }), isFilled && (_jsx("div", { style: {
                         position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
+                        inset: '-0.5px',
                         backgroundColor: piece.color,
-                        WebkitMaskImage: `url("${piece.image}")`,
-                        maskImage: `url("${piece.image}")`,
-                        WebkitMaskSize: 'contain',
-                        maskSize: 'contain',
-                        WebkitMaskRepeat: 'no-repeat',
-                        maskPosition: 'center',
+                        WebkitMask: `url("${piece.image}") no-repeat center / contain`,
+                        mask: `url("${piece.image}") no-repeat center / contain`,
                         mixBlendMode: 'multiply',
+                        pointerEvents: 'none',
                     } }))] })) : (piece.name.substring(0, 1)) }));
 }
