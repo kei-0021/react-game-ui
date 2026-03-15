@@ -142,6 +142,48 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
     };
+    /**
+     * メニューアクション：最前面
+     */
+    const onBringToFrontClick = (card) => {
+        if (!card.zIndex)
+            return;
+        // 盤面の全Draggableから最大Zを抜き出す
+        const allDraggables = document.querySelectorAll(`[data-draggable-id]`);
+        const maxZOnBoard = Array.from(allDraggables).reduce((max, el) => {
+            const z = parseInt(window.getComputedStyle(el).zIndex);
+            return isNaN(z) ? max : Math.max(max, z);
+        }, 100);
+        // 自分がすでに最大値なら、これ以上加算せず終了する
+        if (card.zIndex >= maxZOnBoard) {
+            return;
+        }
+        // 最大値+1
+        const requestData = {
+            roomId,
+            deckId: card.deckId || deckId,
+            cardId: card.id,
+            coordinate: card.coordinate,
+            zIndex: Math.max(0, maxZOnBoard + 1),
+        };
+        socket.emit('card:move-on-field', requestData);
+    };
+    /**
+     * メニューアクション：最背面
+     */
+    const onBringToBackClick = (card) => {
+        if (!card.zIndex)
+            return;
+        // 100枚規模の衝突を回避する正規化
+        const requestData = {
+            roomId,
+            deckId: card.deckId || deckId,
+            cardId: card.id,
+            coordinate: card.coordinate,
+            zIndex: 100 + (card.zIndex % 100),
+        };
+        socket.emit('card:move-on-field', requestData);
+    };
     const handleCardBack = (card) => {
         if (!myPlayerId || !card.fieldBackCondition)
             return;
@@ -173,7 +215,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                         const displayX = isDragging && dragPos ? dragPos.x : (card.coordinate?.x ?? 50);
                         const displayY = isDragging && dragPos ? dragPos.y : (card.coordinate?.y ?? 50);
                         // 表示用の最終的な zIndex
-                        const currentZIndex = isDragging ? zIndex + 1000 : (card.zIndex ?? zIndex + 2);
+                        const currentZIndex = isDragging ? 9999 : (card.zIndex ?? zIndex + 2);
                         const freeStyle = layoutMode === 'free'
                             ? {
                                 position: 'absolute',
@@ -206,26 +248,10 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                             left: contextMenu.x,
                             position: 'fixed', // Draggableに合わせてfixed
                         }, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
-                                    const maxZ = Math.max(...playedCards.map((c) => c.zIndex ?? 100), 100);
-                                    const requestData = {
-                                        roomId,
-                                        deckId: contextMenu.card.deckId || deckId,
-                                        cardId: contextMenu.card.id,
-                                        coordinate: contextMenu.card.coordinate,
-                                        zIndex: maxZ + 1,
-                                    };
-                                    socket.emit('card:move-on-field', requestData);
+                                    onBringToFrontClick(contextMenu.card);
                                     setContextMenu(null);
                                 }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u2B06\uFE0F" }), _jsx("span", { children: "\u6700\u524D\u9762\u3078\u79FB\u52D5" })] }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
-                                    const minZ = Math.min(...playedCards.map((c) => c.zIndex ?? 100), 100);
-                                    const requestData = {
-                                        roomId,
-                                        deckId: contextMenu.card.deckId || deckId,
-                                        cardId: contextMenu.card.id,
-                                        coordinate: contextMenu.card.coordinate,
-                                        zIndex: Math.max(0, minZ - 1),
-                                    };
-                                    socket.emit('card:move-on-field', requestData);
+                                    onBringToBackClick(contextMenu.card);
                                     setContextMenu(null);
                                 }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u2B07\uFE0F" }), _jsx("span", { children: "\u6700\u80CC\u9762\u3078\u79FB\u52D5" })] }), _jsx("div", { style: { height: '1px', background: '#444', margin: '4px 0' } }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
                                     socket.emit('card:flip', {

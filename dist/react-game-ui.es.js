@@ -1972,6 +1972,36 @@ function PlayField({
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   };
+  const onBringToFrontClick = (card2) => {
+    if (!card2.zIndex) return;
+    const allDraggables = document.querySelectorAll(`[data-draggable-id]`);
+    const maxZOnBoard = Array.from(allDraggables).reduce((max, el) => {
+      const z = parseInt(window.getComputedStyle(el).zIndex);
+      return isNaN(z) ? max : Math.max(max, z);
+    }, 100);
+    if (card2.zIndex >= maxZOnBoard) {
+      return;
+    }
+    const requestData = {
+      roomId,
+      deckId: card2.deckId || deckId,
+      cardId: card2.id,
+      coordinate: card2.coordinate,
+      zIndex: Math.max(0, maxZOnBoard + 1)
+    };
+    socket.emit("card:move-on-field", requestData);
+  };
+  const onBringToBackClick = (card2) => {
+    if (!card2.zIndex) return;
+    const requestData = {
+      roomId,
+      deckId: card2.deckId || deckId,
+      cardId: card2.id,
+      coordinate: card2.coordinate,
+      zIndex: 100 + card2.zIndex % 100
+    };
+    socket.emit("card:move-on-field", requestData);
+  };
   const handleCardBack = (card2) => {
     if (!myPlayerId || !card2.fieldBackCondition) return;
     const backTo = card2.fieldBackCondition[0] || "discard";
@@ -2017,7 +2047,7 @@ function PlayField({
                 const isActuallyFreeShape = !!(card2.freeShape && card2.frontImage);
                 const displayX = isDragging && dragPos ? dragPos.x : card2.coordinate?.x ?? 50;
                 const displayY = isDragging && dragPos ? dragPos.y : card2.coordinate?.y ?? 50;
-                const currentZIndex = isDragging ? zIndex + 1e3 : card2.zIndex ?? zIndex + 2;
+                const currentZIndex = isDragging ? 9999 : card2.zIndex ?? zIndex + 2;
                 const freeStyle = layoutMode === "free" ? {
                   position: "absolute",
                   left: `${displayX}%`,
@@ -2083,15 +2113,7 @@ function PlayField({
                       {
                         className: playFieldStyles.menuItem,
                         onClick: () => {
-                          const maxZ = Math.max(...playedCards.map((c) => c.zIndex ?? 100), 100);
-                          const requestData = {
-                            roomId,
-                            deckId: contextMenu2.card.deckId || deckId,
-                            cardId: contextMenu2.card.id,
-                            coordinate: contextMenu2.card.coordinate,
-                            zIndex: maxZ + 1
-                          };
-                          socket.emit("card:move-on-field", requestData);
+                          onBringToFrontClick(contextMenu2.card);
                           setContextMenu(null);
                         },
                         children: [
@@ -2105,15 +2127,7 @@ function PlayField({
                       {
                         className: playFieldStyles.menuItem,
                         onClick: () => {
-                          const minZ = Math.min(...playedCards.map((c) => c.zIndex ?? 100), 100);
-                          const requestData = {
-                            roomId,
-                            deckId: contextMenu2.card.deckId || deckId,
-                            cardId: contextMenu2.card.id,
-                            coordinate: contextMenu2.card.coordinate,
-                            zIndex: Math.max(0, minZ - 1)
-                          };
-                          socket.emit("card:move-on-field", requestData);
+                          onBringToBackClick(contextMenu2.card);
                           setContextMenu(null);
                         },
                         children: [

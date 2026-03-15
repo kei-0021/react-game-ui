@@ -1,6 +1,6 @@
 // tests/server/sampleConfig.ts
 
-import type { GameParam } from 'react-game-ui';
+import type { Card, GameParam } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
 
 export const sampleConfig: RoomConfig = {
@@ -10,7 +10,18 @@ export const sampleConfig: RoomConfig = {
   },
   setup: async (loadedData: Record<string, any>): Promise<GameParam> => {
     const helper = new SetupHelper();
-    const numberCards = helper.createUniqueCards(helper.assertCards(loadedData.cards), 1);
+
+    const defaults: Partial<Card> = {
+      location: 'deck',
+      drawCondition: ['field', 'face'],
+      playLocation: 'discard',
+      fieldBackCondition: ['hand', 'face'],
+    };
+
+    const numberCards = helper.createUniqueCards(
+      helper.initializeCards(helper.assertCards(loadedData.cards), defaults),
+      1,
+    );
 
     return {
       gameId: 'sample',

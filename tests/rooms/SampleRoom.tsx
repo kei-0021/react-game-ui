@@ -1,5 +1,7 @@
 // src/rooms/SampleRoom.tsx
+// PlayField上のカードの動作確認
 // ドラッグ可能オブジェクトの動作確認
+
 /// <reference types="vite/client" />
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -156,6 +158,7 @@ export function SampleRoom() {
         title="数字カード"
         myPlayerId={myPlayerId}
         players={players}
+        isDebug={true}
       />
       <Draggable
         socket={socket}

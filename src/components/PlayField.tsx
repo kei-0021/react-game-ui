@@ -210,6 +210,52 @@ export function PlayField({
     e.dataTransfer.dropEffect = 'move';
   };
 
+  /**
+   * メニューアクション：最前面
+   */
+  const onBringToFrontClick = (card: Card) => {
+    if (!card.zIndex) return;
+
+    // 盤面の全Draggableから最大Zを抜き出す
+    const allDraggables = document.querySelectorAll(`[data-draggable-id]`);
+    const maxZOnBoard = Array.from(allDraggables).reduce((max, el) => {
+      const z = parseInt(window.getComputedStyle(el).zIndex);
+      return isNaN(z) ? max : Math.max(max, z);
+    }, 100);
+
+    // 自分がすでに最大値なら、これ以上加算せず終了する
+    if (card.zIndex >= maxZOnBoard) {
+      return;
+    }
+
+    // 最大値+1
+    const requestData: CardMoveOnFieldData = {
+      roomId,
+      deckId: card.deckId || deckId,
+      cardId: card.id,
+      coordinate: card.coordinate,
+      zIndex: Math.max(0, maxZOnBoard + 1),
+    };
+    socket.emit('card:move-on-field', requestData);
+  };
+
+  /**
+   * メニューアクション：最背面
+   */
+  const onBringToBackClick = (card: Card) => {
+    if (!card.zIndex) return;
+
+    // 100枚規模の衝突を回避する正規化
+    const requestData: CardMoveOnFieldData = {
+      roomId,
+      deckId: card.deckId || deckId,
+      cardId: card.id,
+      coordinate: card.coordinate,
+      zIndex: 100 + (card.zIndex % 100),
+    };
+    socket.emit('card:move-on-field', requestData);
+  };
+
   const handleCardBack = (card: Card) => {
     if (!myPlayerId || !card.fieldBackCondition) return;
 
@@ -262,7 +308,7 @@ export function PlayField({
           const displayY = isDragging && dragPos ? dragPos.y : (card.coordinate?.y ?? 50);
 
           // 表示用の最終的な zIndex
-          const currentZIndex = isDragging ? zIndex + 1000 : (card.zIndex ?? zIndex + 2);
+          const currentZIndex = isDragging ? 9999 : (card.zIndex ?? zIndex + 2);
 
           const freeStyle: React.CSSProperties =
             layoutMode === 'free'
@@ -344,15 +390,7 @@ export function PlayField({
             <div
               className={playFieldStyles.menuItem}
               onClick={() => {
-                const maxZ = Math.max(...playedCards.map((c) => c.zIndex ?? 100), 100);
-                const requestData: CardMoveOnFieldData = {
-                  roomId,
-                  deckId: contextMenu.card.deckId || deckId,
-                  cardId: contextMenu.card.id,
-                  coordinate: contextMenu.card.coordinate,
-                  zIndex: maxZ + 1,
-                };
-                socket.emit('card:move-on-field', requestData);
+                onBringToFrontClick(contextMenu.card);
                 setContextMenu(null);
               }}
             >
@@ -363,15 +401,7 @@ export function PlayField({
             <div
               className={playFieldStyles.menuItem}
               onClick={() => {
-                const minZ = Math.min(...playedCards.map((c) => c.zIndex ?? 100), 100);
-                const requestData: CardMoveOnFieldData = {
-                  roomId,
-                  deckId: contextMenu.card.deckId || deckId,
-                  cardId: contextMenu.card.id,
-                  coordinate: contextMenu.card.coordinate,
-                  zIndex: Math.max(0, minZ - 1),
-                };
-                socket.emit('card:move-on-field', requestData);
+                onBringToBackClick(contextMenu.card);
                 setContextMenu(null);
               }}
             >
