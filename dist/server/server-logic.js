@@ -40,6 +40,10 @@ function initializeRoom(roomId, param) {
         playFieldCards[deck.deckId] = [];
         discardPile[deck.deckId] = [];
         server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
+        // 中身をシリアライズして出力（見やすく整形）
+        if (cards.length > 0) {
+            server_log('deck', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(cards[0], null, 2)}`);
+        }
     });
     initialTokenStores.forEach((tokenStore) => {
         const tokens = (tokenStore.tokens || []).map((t, index) => ({

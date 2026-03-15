@@ -29,7 +29,7 @@ export const deepAbyssConfig: RoomConfig = {
       location: 'deck',
       drawCondition: ['field', 'back'],
       playLocation: 'discard',
-      fieldBackCondition: ['hand', 'face'],
+      // fieldBackCondition: ['hand', 'face'],
     };
 
     const deepAbyssSpeciesDeck = helper.createUniqueCards(

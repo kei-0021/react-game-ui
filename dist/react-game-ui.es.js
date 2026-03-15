@@ -1973,7 +1973,7 @@ function PlayField({
     e.dataTransfer.dropEffect = "move";
   };
   const handleCardBack = (card2) => {
-    if (!myPlayerId) return;
+    if (!myPlayerId || !card2.fieldBackCondition) return;
     const backTo = card2.fieldBackCondition[0] || "discard";
     const requestData = {
       roomId,
@@ -2095,7 +2095,7 @@ function PlayField({
                         ]
                       }
                     ),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                    contextMenu2.card.fieldBackCondition && /* @__PURE__ */ jsxRuntimeExports.jsxs(
                       "div",
                       {
                         className: playFieldStyles.menuItem,

@@ -140,7 +140,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         e.dataTransfer.dropEffect = 'move';
     };
     const handleCardBack = (card) => {
-        if (!myPlayerId)
+        if (!myPlayerId || !card.fieldBackCondition)
             return;
         const backTo = card.fieldBackCondition[0] || 'discard';
         const requestData = {
@@ -208,8 +208,8 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                         cardIds: [contextMenu.card.id],
                                     });
                                     setContextMenu(null);
-                                }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\uD83D\uDD04" }), _jsx("span", { children: "\u30AB\u30FC\u30C9\u3092\u88CF\u8FD4\u3059" })] }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
+                                }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\uD83D\uDD04" }), _jsx("span", { children: "\u30AB\u30FC\u30C9\u3092\u88CF\u8FD4\u3059" })] }), contextMenu.card.fieldBackCondition && (_jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
                                     handleCardBack(contextMenu.card);
                                     setContextMenu(null);
-                                }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u270B" }), _jsx("span", { children: "\u624B\u672D/\u6368\u3066\u672D\u3078\u623B\u3059" })] })] }))] })] }));
+                                }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u270B" }), _jsx("span", { children: "\u624B\u672D/\u6368\u3066\u672D\u3078\u623B\u3059" })] }))] }))] })] }));
 }

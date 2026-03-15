@@ -201,7 +201,7 @@ export function PlayField({
   };
 
   const handleCardBack = (card: Card) => {
-    if (!myPlayerId) return;
+    if (!myPlayerId || !card.fieldBackCondition) return;
 
     const backTo = card.fieldBackCondition[0] || 'discard';
     const requestData: CardMoveFromFieldData = {
@@ -341,16 +341,18 @@ export function PlayField({
               <span>カードを裏返す</span>
             </div>
 
-            <div
-              className={playFieldStyles.menuItem}
-              onClick={() => {
-                handleCardBack(contextMenu.card);
-                setContextMenu(null);
-              }}
-            >
-              <span className={playFieldStyles.menuIcon}>✋</span>
-              <span>手札/捨て札へ戻す</span>
-            </div>
+            {contextMenu.card.fieldBackCondition && (
+              <div
+                className={playFieldStyles.menuItem}
+                onClick={() => {
+                  handleCardBack(contextMenu.card);
+                  setContextMenu(null);
+                }}
+              >
+                <span className={playFieldStyles.menuIcon}>✋</span>
+                <span>手札/捨て札へ戻す</span>
+              </div>
+            )}
           </div>
         )}
       </div>

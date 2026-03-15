@@ -15,7 +15,7 @@ import { CardId, DeckId, PlayerId } from './definition.js';
  * @property {CardLocation} location - 現在のカードの配置場所
  * @property {[CardLocation, CardState]} drawCondition - カードを引くための条件 [場所, 状態]
  * @property {CardLocation} playLocation - プレイ時の移動先
- * @property {[CardLocation, CardState]} fieldBackCondition - プレイフィールドから戻る際の条件 [場所, 状態]
+ * @property {[CardLocation, CardState]} [fieldBackCondition] - プレイフィールドから戻る際の条件 [場所, 状態]
  * @property {boolean} isFaceUp - 表向きかどうか
  * @property {string} [frontImage] - 表面の画像URL
  * @property {string} backColor - 裏面のカラーコード
@@ -33,7 +33,7 @@ export type Card = {
   location: CardLocation;
   drawCondition: [CardLocation, CardState];
   playLocation: CardLocation;
-  fieldBackCondition: [CardLocation, CardState];
+  fieldBackCondition?: [CardLocation, CardState];
   isFaceUp: boolean;
   frontImage?: string;
   backColor: string;
