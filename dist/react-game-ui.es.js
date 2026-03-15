@@ -1599,10 +1599,19 @@ function Piece({
               {
                 style: {
                   position: "absolute",
-                  inset: "-0.5px",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
                   backgroundColor: piece2.color,
-                  WebkitMask: `({})("${piece2.image}") no-repeat center / contain`,
-                  mask: `({})("${piece2.image}") no-repeat center / contain`,
+                  WebkitMaskImage: `({})("${piece2.image}")`,
+                  maskImage: `({})("${piece2.image}")`,
+                  WebkitMaskSize: "100% 100%",
+                  maskSize: "100% 100%",
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskPosition: "center",
+                  maskPosition: "center",
                   mixBlendMode: "multiply",
                   pointerEvents: "none"
                 }
