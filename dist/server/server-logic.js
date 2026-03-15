@@ -364,7 +364,7 @@ export function initGameServer(io, options) {
                 roomManager.emitPlayerUpdate();
             }
         });
-        // 移動・探索
+        // 駒の移動
         socket.on('board:move-player', ({ roomId, boardId, playerId, newLocation }) => {
             const state = activeRooms.get(roomId);
             if (!state)

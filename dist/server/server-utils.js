@@ -27,8 +27,12 @@ const ANSI_RESET = '\x1b[0m';
  * @param args - 追加のログ情報
  */
 export function server_log(tag, gameId, roomId, firstArg, ...args) {
-    if (!LOG_CATEGORIES[tag]) {
+    if (!(tag in LOG_CATEGORIES)) {
         throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
+    }
+    // 出力するかどうかをチェック
+    if (!LOG_CATEGORIES[tag]) {
+        return;
     }
     const fullArgs = [firstArg, ...args];
     if (tag === 'warn') {

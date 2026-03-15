@@ -2686,8 +2686,11 @@ let LOG_CATEGORIES = {
 const ANSI_RED = "\x1B[31m";
 const ANSI_RESET = "\x1B[0m";
 function server_log(tag, gameId, roomId, firstArg, ...args) {
-  if (!LOG_CATEGORIES[tag]) {
+  if (!(tag in LOG_CATEGORIES)) {
     throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
+  }
+  if (!LOG_CATEGORIES[tag]) {
+    return;
   }
   const fullArgs = [firstArg, ...args];
   if (tag === "warn") {
