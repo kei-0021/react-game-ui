@@ -228,10 +228,10 @@ export function Draggable({
   };
 
   /**
-   * メニューアクション：最背面
+   * メニューアクション：最背面 (グループ内での重ね順は維持する)
    */
   const onBringToBackClick = () => {
-    const nextZ = 100;
+    const nextZ = 100 + (currentZ % 100);
     setCurrentZ(nextZ);
     emitUpdate(pos, rotation, nextZ);
   };

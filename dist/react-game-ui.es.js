@@ -1379,7 +1379,7 @@ function Draggable({
     emitUpdate(pos, rotation, nextZ);
   };
   const onBringToBackClick = () => {
-    const nextZ = 100;
+    const nextZ = 100 + currentZ % 100;
     setCurrentZ(nextZ);
     emitUpdate(pos, rotation, nextZ);
   };
