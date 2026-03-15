@@ -222,15 +222,30 @@ export function Draggable({
    * メニューアクション：最前面
    */
   const onBringToFrontClick = () => {
-    const nextZ = currentZ + 1000;
+    // 盤面の全Draggableから最大Zを抜き出す
+    const allDraggables = document.querySelectorAll(`[data-draggable-id]`);
+    const maxZOnBoard = Array.from(allDraggables).reduce((max, el) => {
+      const z = parseInt(window.getComputedStyle(el).zIndex);
+      return isNaN(z) ? max : Math.max(max, z);
+    }, 100);
+
+    // 自分がすでに最大値なら、これ以上加算せず終了する
+    if (currentZ >= maxZOnBoard) {
+      return;
+    }
+
+    // 最大値+1
+    const nextZ = maxZOnBoard + 1;
+
     setCurrentZ(nextZ);
     emitUpdate(pos, rotation, nextZ);
   };
 
   /**
-   * メニューアクション：最背面 (グループ内での重ね順は維持する)
+   * メニューアクション：最背面
    */
   const onBringToBackClick = () => {
+    // 100枚規模の衝突を回避する正規化
     const nextZ = 100 + (currentZ % 100);
     setCurrentZ(nextZ);
     emitUpdate(pos, rotation, nextZ);

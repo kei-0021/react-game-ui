@@ -1374,7 +1374,15 @@ function Draggable({
     emitUpdate(pos, nextRot, currentZ);
   };
   const onBringToFrontClick = () => {
-    const nextZ = currentZ + 1e3;
+    const allDraggables = document.querySelectorAll(`[data-draggable-id]`);
+    const maxZOnBoard = Array.from(allDraggables).reduce((max, el) => {
+      const z = parseInt(window.getComputedStyle(el).zIndex);
+      return isNaN(z) ? max : Math.max(max, z);
+    }, 100);
+    if (currentZ >= maxZOnBoard) {
+      return;
+    }
+    const nextZ = maxZOnBoard + 1;
     setCurrentZ(nextZ);
     emitUpdate(pos, rotation, nextZ);
   };
