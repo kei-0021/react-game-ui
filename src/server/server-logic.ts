@@ -449,12 +449,20 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const player = state?.players.find((p) => p.id === playerId);
       if (player && state) {
         player.position = newLocation;
-        roomManager.applyCellEffect(boardId, playerId, newLocation, param?.cellEffects!);
-        roomManager.emitPlayerUpdate();
+
+        // セル効果
+        const cellEffects = param.cellEffects;
+        if (cellEffects) {
+          roomManager.applyCellEffect(boardId, playerId, newLocation, cellEffects);
+        }
+
+        // カスタムフック
         const onPieceMove = param.onPieceMove;
         if (onPieceMove) {
           onPieceMove(state, roomManager, newLocation);
         }
+
+        roomManager.emitPlayerUpdate();
       }
     });
 
