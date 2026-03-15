@@ -12,6 +12,7 @@ import {
   CardFlipData,
   CardHoldData,
   CardMoveFromFieldData,
+  CardMoveOnFieldData,
   CardPlayData,
   DeckDrawData,
   DraggableMovedData,
@@ -392,7 +393,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     });
 
     // カード位置同期
-    socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {
+    socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate, zIndex }: CardMoveOnFieldData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
@@ -401,6 +402,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const card = state?.decks[deckId]?.find((c) => c.id === cardId);
       if (card) {
         card.coordinate = coordinate;
+        if (zIndex) {
+          card.zIndex = zIndex;
+        }
         roomManager.emitDeckUpdate(deckId);
       }
     });

@@ -67,6 +67,14 @@ export type CardFlipData = {
   cardIds: CardId[];
 };
 
+export type CardMoveOnFieldData = {
+  roomId: RoomId;
+  deckId: DeckId;
+  cardId: string;
+  coordinate?: Coordinate;
+  zIndex?: number;
+};
+
 export type CardMoveFromFieldData = {
   roomId: RoomId;
   deckId: DeckId;

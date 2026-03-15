@@ -54,8 +54,9 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         };
     }, [socket, roomId, deckId]);
     // リアルタイム送信ロジック（throttleを30msに短縮して追従性を向上）
-    const emitMove = React.useMemo(() => throttle((cardId, clientX, clientY) => {
-        if (!containerRef.current)
+    // 宛先をその都度書くスタイルにしてクロージャ問題を回避
+    const emitMove = React.useMemo(() => throttle((cardId, clientX, clientY, rId, dId) => {
+        if (!containerRef.current || !rId || !dId)
             return;
         const rect = containerRef.current.getBoundingClientRect();
         // 座標計算 & 0-100% の範囲にクランプ
@@ -64,12 +65,12 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         x = Math.max(0, Math.min(100, x));
         y = Math.max(0, Math.min(100, y));
         socket.emit('card:move-on-field', {
-            roomId,
-            deckId,
+            roomId: rId,
+            deckId: dId,
             cardId,
             coordinate: { x, y },
         });
-    }, 30), [socket, roomId, deckId]);
+    }, 30), [socket]);
     const handlePointerDown = (e, card) => {
         if (layoutMode !== 'free')
             return;
@@ -100,12 +101,14 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
         // 通信とは別に、自分の画面の表示を即座に更新する
         setDragPos({ x, y });
-        emitMove(draggingIdRef.current, e.clientX, e.clientY);
+        // Propsの最新値を引数として渡す
+        emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
     };
     const handlePointerUp = (e) => {
         if (!draggingIdRef.current)
             return;
-        emitMove(draggingIdRef.current, e.clientX, e.clientY);
+        // 終了時も最新のIDを添えて送信
+        emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
         e.currentTarget.releasePointerCapture(e.pointerId);
         draggingIdRef.current = null;
         setActiveDraggingId(null);
@@ -162,7 +165,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                     minHeight: '600px',
                     touchAction: 'none',
                     overflow: 'visible',
-                }, children: [playedCards.map((card, index) => {
+                }, children: [playedCards.map((card) => {
                         const owner = players.find((p) => p.id === card.ownerId);
                         const isDragging = activeDraggingId === card.id;
                         const isActuallyFreeShape = !!(card.freeShape && card.frontImage);
@@ -196,12 +199,35 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                 padding: 0,
                                 display: 'block',
                                 position: layoutMode === 'free' ? 'absolute' : 'relative',
-                            }, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: card.isFaceUp }), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && _jsxs("div", { className: playFieldStyles.debugLabel, children: ["Z:", currentZIndex] }), card.description && !isDragging && card.isFaceUp && (_jsx("span", { className: cardStyles.tooltip, children: card.description }))] }, card.id));
+                                zIndex: currentZIndex,
+                            }, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: card.isFaceUp }), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && (_jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: ["Z:", currentZIndex] })), card.description && !isDragging && card.isFaceUp && (_jsx("span", { className: cardStyles.tooltip, children: card.description }))] }, card.id));
                     }), contextMenu && (_jsxs("div", { className: playFieldStyles.contextMenu, style: {
                             top: contextMenu.y,
                             left: contextMenu.x,
                             position: 'fixed', // Draggableに合わせてfixed
                         }, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
+                                    const maxZ = Math.max(...playedCards.map((c) => c.zIndex ?? 100), 100);
+                                    const requestData = {
+                                        roomId,
+                                        deckId: contextMenu.card.deckId || deckId,
+                                        cardId: contextMenu.card.id,
+                                        coordinate: contextMenu.card.coordinate,
+                                        zIndex: maxZ + 1,
+                                    };
+                                    socket.emit('card:move-on-field', requestData);
+                                    setContextMenu(null);
+                                }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u2B06\uFE0F" }), _jsx("span", { children: "\u6700\u524D\u9762\u3078\u79FB\u52D5" })] }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
+                                    const minZ = Math.min(...playedCards.map((c) => c.zIndex ?? 100), 100);
+                                    const requestData = {
+                                        roomId,
+                                        deckId: contextMenu.card.deckId || deckId,
+                                        cardId: contextMenu.card.id,
+                                        coordinate: contextMenu.card.coordinate,
+                                        zIndex: Math.max(0, minZ - 1),
+                                    };
+                                    socket.emit('card:move-on-field', requestData);
+                                    setContextMenu(null);
+                                }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u2B07\uFE0F" }), _jsx("span", { children: "\u6700\u80CC\u9762\u3078\u79FB\u52D5" })] }), _jsx("div", { style: { height: '1px', background: '#444', margin: '4px 0' } }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
                                     socket.emit('card:flip', {
                                         roomId: roomId,
                                         playerId: myPlayerId,

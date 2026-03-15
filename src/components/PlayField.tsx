@@ -1,7 +1,13 @@
 // src/components/PlayField.tsx
 
 import { Player } from '@/types/player.js';
-import { CardFlipData, CardMoveFromFieldData, CardPlayData, DeckUpdateData } from '@/types/socketData.js';
+import {
+  CardFlipData,
+  CardMoveFromFieldData,
+  CardMoveOnFieldData,
+  CardPlayData,
+  DeckUpdateData,
+} from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
@@ -93,10 +99,12 @@ export function PlayField({
   }, [socket, roomId, deckId]);
 
   // リアルタイム送信ロジック（throttleを30msに短縮して追従性を向上）
+  // 宛先をその都度書くスタイルにしてクロージャ問題を回避
   const emitMove = React.useMemo(
     () =>
-      throttle((cardId: string, clientX: number, clientY: number) => {
-        if (!containerRef.current) return;
+      throttle((cardId: string, clientX: number, clientY: number, rId: RoomId, dId: DeckId) => {
+        if (!containerRef.current || !rId || !dId) return;
+
         const rect = containerRef.current.getBoundingClientRect();
 
         // 座標計算 & 0-100% の範囲にクランプ
@@ -107,13 +115,13 @@ export function PlayField({
         y = Math.max(0, Math.min(100, y));
 
         socket.emit('card:move-on-field', {
-          roomId,
-          deckId,
+          roomId: rId,
+          deckId: dId,
           cardId,
           coordinate: { x, y },
         });
       }, 30),
-    [socket, roomId, deckId],
+    [socket],
   );
 
   const handlePointerDown = (e: React.PointerEvent, card: Card) => {
@@ -154,12 +162,14 @@ export function PlayField({
     // 通信とは別に、自分の画面の表示を即座に更新する
     setDragPos({ x, y });
 
-    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+    // Propsの最新値を引数として渡す
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (!draggingIdRef.current) return;
-    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+    // 終了時も最新のIDを添えて送信
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     draggingIdRef.current = null;
     setActiveDraggingId(null);
@@ -242,7 +252,7 @@ export function PlayField({
           overflow: 'visible',
         }}
       >
-        {playedCards.map((card, index) => {
+        {playedCards.map((card) => {
           const owner = players.find((p) => p.id === card.ownerId);
           const isDragging = activeDraggingId === card.id;
           const isActuallyFreeShape = !!(card.freeShape && card.frontImage);
@@ -292,6 +302,7 @@ export function PlayField({
                   padding: 0,
                   display: 'block',
                   position: layoutMode === 'free' ? 'absolute' : 'relative',
+                  zIndex: currentZIndex,
                 } as React.CSSProperties
               }
             >
@@ -305,7 +316,11 @@ export function PlayField({
               )}
 
               {/* デバッグ用 z-index ラベル */}
-              {isDebug && <div className={playFieldStyles.debugLabel}>Z:{currentZIndex}</div>}
+              {isDebug && (
+                <div className={playFieldStyles.debugLabel} style={{ zIndex: 10001 }}>
+                  Z:{currentZIndex}
+                </div>
+              )}
 
               {/* ツールチップ */}
               {card.description && !isDragging && card.isFaceUp && (
@@ -326,6 +341,46 @@ export function PlayField({
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            <div
+              className={playFieldStyles.menuItem}
+              onClick={() => {
+                const maxZ = Math.max(...playedCards.map((c) => c.zIndex ?? 100), 100);
+                const requestData: CardMoveOnFieldData = {
+                  roomId,
+                  deckId: contextMenu.card.deckId || deckId,
+                  cardId: contextMenu.card.id,
+                  coordinate: contextMenu.card.coordinate,
+                  zIndex: maxZ + 1,
+                };
+                socket.emit('card:move-on-field', requestData);
+                setContextMenu(null);
+              }}
+            >
+              <span className={playFieldStyles.menuIcon}>⬆️</span>
+              <span>最前面へ移動</span>
+            </div>
+
+            <div
+              className={playFieldStyles.menuItem}
+              onClick={() => {
+                const minZ = Math.min(...playedCards.map((c) => c.zIndex ?? 100), 100);
+                const requestData: CardMoveOnFieldData = {
+                  roomId,
+                  deckId: contextMenu.card.deckId || deckId,
+                  cardId: contextMenu.card.id,
+                  coordinate: contextMenu.card.coordinate,
+                  zIndex: Math.max(0, minZ - 1),
+                };
+                socket.emit('card:move-on-field', requestData);
+                setContextMenu(null);
+              }}
+            >
+              <span className={playFieldStyles.menuIcon}>⬇️</span>
+              <span>最背面へ移動</span>
+            </div>
+
+            <div style={{ height: '1px', background: '#444', margin: '4px 0' }} />
+
             <div
               className={playFieldStyles.menuItem}
               onClick={() => {

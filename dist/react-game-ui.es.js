@@ -1899,21 +1899,21 @@ function PlayField({
     };
   }, [socket, roomId, deckId]);
   const emitMove = React.useMemo(
-    () => throttle((cardId, clientX, clientY) => {
-      if (!containerRef.current) return;
+    () => throttle((cardId, clientX, clientY, rId, dId) => {
+      if (!containerRef.current || !rId || !dId) return;
       const rect = containerRef.current.getBoundingClientRect();
       let x = (clientX - rect.left) / rect.width * 100;
       let y = (clientY - rect.top) / rect.height * 100;
       x = Math.max(0, Math.min(100, x));
       y = Math.max(0, Math.min(100, y));
       socket.emit("card:move-on-field", {
-        roomId,
-        deckId,
+        roomId: rId,
+        deckId: dId,
         cardId,
         coordinate: { x, y }
       });
     }, 30),
-    [socket, roomId, deckId]
+    [socket]
   );
   const handlePointerDown = (e, card2) => {
     if (layoutMode !== "free") return;
@@ -1937,11 +1937,11 @@ function PlayField({
     const x = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
     const y = Math.max(0, Math.min(100, (e.clientY - rect.top) / rect.height * 100));
     setDragPos({ x, y });
-    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
   };
   const handlePointerUp = (e) => {
     if (!draggingIdRef.current) return;
-    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
     e.currentTarget.releasePointerCapture(e.pointerId);
     draggingIdRef.current = null;
     setActiveDraggingId(null);
@@ -2011,7 +2011,7 @@ function PlayField({
               overflow: "visible"
             },
             children: [
-              playedCards.map((card2, index) => {
+              playedCards.map((card2) => {
                 const owner = players.find((p) => p.id === card2.ownerId);
                 const isDragging = activeDraggingId === card2.id;
                 const isActuallyFreeShape = !!(card2.freeShape && card2.frontImage);
@@ -2050,12 +2050,13 @@ function PlayField({
                       boxShadow: isActuallyFreeShape && isDragging ? "0 0 15px var(--owner-color)" : "none",
                       padding: 0,
                       display: "block",
-                      position: layoutMode === "free" ? "absolute" : "relative"
+                      position: layoutMode === "free" ? "absolute" : "relative",
+                      zIndex: currentZIndex
                     },
                     children: [
                       /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: card2.isFaceUp }),
                       card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
-                      isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playFieldStyles.debugLabel, children: [
+                      isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: [
                         "Z:",
                         currentZIndex
                       ] }),
@@ -2077,6 +2078,51 @@ function PlayField({
                   },
                   onClick: (e) => e.stopPropagation(),
                   children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "div",
+                      {
+                        className: playFieldStyles.menuItem,
+                        onClick: () => {
+                          const maxZ = Math.max(...playedCards.map((c) => c.zIndex ?? 100), 100);
+                          const requestData = {
+                            roomId,
+                            deckId: contextMenu2.card.deckId || deckId,
+                            cardId: contextMenu2.card.id,
+                            coordinate: contextMenu2.card.coordinate,
+                            zIndex: maxZ + 1
+                          };
+                          socket.emit("card:move-on-field", requestData);
+                          setContextMenu(null);
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "⬆️" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最前面へ移動" })
+                        ]
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "div",
+                      {
+                        className: playFieldStyles.menuItem,
+                        onClick: () => {
+                          const minZ = Math.min(...playedCards.map((c) => c.zIndex ?? 100), 100);
+                          const requestData = {
+                            roomId,
+                            deckId: contextMenu2.card.deckId || deckId,
+                            cardId: contextMenu2.card.id,
+                            coordinate: contextMenu2.card.coordinate,
+                            zIndex: Math.max(0, minZ - 1)
+                          };
+                          socket.emit("card:move-on-field", requestData);
+                          setContextMenu(null);
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "⬇️" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最背面へ移動" })
+                        ]
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { height: "1px", background: "#444", margin: "4px 0" } }),
                     /* @__PURE__ */ jsxRuntimeExports.jsxs(
                       "div",
                       {

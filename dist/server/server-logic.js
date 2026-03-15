@@ -40,7 +40,6 @@ function initializeRoom(roomId, param) {
         playFieldCards[deck.deckId] = [];
         discardPile[deck.deckId] = [];
         server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
-        // 中身をシリアライズして出力（見やすく整形）
         if (cards.length > 0) {
             server_log('deck', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(cards[0], null, 2)}`);
         }
@@ -327,7 +326,7 @@ export function initGameServer(io, options) {
             });
         });
         // カード位置同期
-        socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {
+        socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate, zIndex }) => {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;
@@ -336,6 +335,9 @@ export function initGameServer(io, options) {
             const card = state?.decks[deckId]?.find((c) => c.id === cardId);
             if (card) {
                 card.coordinate = coordinate;
+                if (zIndex) {
+                    card.zIndex = zIndex;
+                }
                 roomManager.emitDeckUpdate(deckId);
             }
         });
