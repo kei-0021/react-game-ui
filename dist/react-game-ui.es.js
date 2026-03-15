@@ -1241,12 +1241,14 @@ function Dice({
     ] })
   ] });
 }
-const draggable = "_draggable_1gt9q_3";
-const contextMenu$1 = "_contextMenu_1gt9q_28";
-const menuItem$1 = "_menuItem_1gt9q_42";
-const separator = "_separator_1gt9q_63";
+const draggable = "_draggable_r31dg_3";
+const debugLabel = "_debugLabel_r31dg_28";
+const contextMenu$1 = "_contextMenu_r31dg_53";
+const menuItem$1 = "_menuItem_r31dg_67";
+const separator = "_separator_r31dg_88";
 const draggableStyles = {
   draggable,
+  debugLabel,
   contextMenu: contextMenu$1,
   menuItem: menuItem$1,
   separator
@@ -1266,6 +1268,7 @@ function Draggable({
   children,
   style = {},
   scale = 1,
+  isDebug = false,
   containerRef
 }) {
   const [pos, setPos] = useState(initialXY);
@@ -1440,6 +1443,23 @@ function Draggable({
             }
           }
         ) : children
+      }
+    ),
+    isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: draggableStyles.debugLabel,
+        style: {
+          left: `${pos.x}px`,
+          top: `${pos.y - height / 2 - 22}px`,
+          transform: "translateX(-50%)"
+        },
+        children: [
+          "ID: ",
+          draggableId,
+          " | Z: ",
+          dynamicZIndex
+        ]
       }
     ),
     contextMenu2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(

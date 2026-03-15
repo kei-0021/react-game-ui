@@ -31,6 +31,7 @@ type DraggableProps = {
   style?: CSSProperties;
   gridBounds?: GridBounds;
   scale?: number;
+  isDebug?: boolean;
   containerRef: React.RefObject<HTMLElement | null>;
 };
 
@@ -52,6 +53,7 @@ type DraggableProps = {
  * @param {Coordinate => void} [onDragEnd] - ドラッグ終了時に確定座標を通知するハンドラ
  * @param {GridBounds} [gridBounds] - スナップ移動を制御するためのグリッド境界情報
  * @param {number} [scale=1] - 親コンテナのズーム倍率（座標計算の補正に使用）
+ * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
  */
 export function Draggable({
@@ -69,6 +71,7 @@ export function Draggable({
   children,
   style = {},
   scale = 1,
+  isDebug = false,
   containerRef,
 }: DraggableProps) {
   // 座標と回転、重なり順を内部状態として管理
@@ -308,6 +311,20 @@ export function Draggable({
           children
         )}
       </div>
+
+      {/* デバッグラベルは Draggable の外に配置 */}
+      {isDebug && (
+        <div
+          className={draggableStyles.debugLabel}
+          style={{
+            left: `${pos.x}px`,
+            top: `${pos.y - height / 2 - 22}px`,
+            transform: 'translateX(-50%)',
+          }}
+        >
+          ID: {draggableId} | Z: {dynamicZIndex}
+        </div>
+      )}
 
       {/* 右クリックメニュー */}
       {contextMenu && (

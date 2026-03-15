@@ -28,6 +28,7 @@ type DraggableProps = {
     style?: CSSProperties;
     gridBounds?: GridBounds;
     scale?: number;
+    isDebug?: boolean;
     containerRef: React.RefObject<HTMLElement | null>;
 };
 /**
@@ -48,8 +49,9 @@ type DraggableProps = {
  * @param {Coordinate => void} [onDragEnd] - ドラッグ終了時に確定座標を通知するハンドラ
  * @param {GridBounds} [gridBounds] - スナップ移動を制御するためのグリッド境界情報
  * @param {number} [scale=1] - 親コンテナのズーム倍率（座標計算の補正に使用）
+ * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
  */
-export declare function Draggable({ socket, roomId, draggableId, initialXY, image, mask, size, color, isTransparent, zIndex, isFrontOnDragging, children, style, scale, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
+export declare function Draggable({ socket, roomId, draggableId, initialXY, image, mask, size, color, isTransparent, zIndex, isFrontOnDragging, children, style, scale, isDebug, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Draggable.d.ts.map

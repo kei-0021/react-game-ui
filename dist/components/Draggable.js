@@ -19,9 +19,10 @@ import draggableStyles from './Draggable.module.css';
  * @param {Coordinate => void} [onDragEnd] - ドラッグ終了時に確定座標を通知するハンドラ
  * @param {GridBounds} [gridBounds] - スナップ移動を制御するためのグリッド境界情報
  * @param {number} [scale=1] - 親コンテナのズーム倍率（座標計算の補正に使用）
+ * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
  */
-export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y: 500 }, image, mask = false, size = 100, color = 'yellow', isTransparent = false, zIndex = 100, isFrontOnDragging = false, children, style = {}, scale = 1, containerRef, }) {
+export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y: 500 }, image, mask = false, size = 100, color = 'yellow', isTransparent = false, zIndex = 100, isFrontOnDragging = false, children, style = {}, scale = 1, isDebug = false, containerRef, }) {
     // 座標と回転、重なり順を内部状態として管理
     const [pos, setPos] = useState(initialXY);
     const [rotation, setRotation] = useState(0);
@@ -206,7 +207,11 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
                         pointerEvents: 'none',
                         userSelect: 'none',
                         mixBlendMode: mask ? 'multiply' : 'normal',
-                    } })) : (children) }), contextMenu && (_jsxs("div", { className: draggableStyles.contextMenu, style: {
+                    } })) : (children) }), isDebug && (_jsxs("div", { className: draggableStyles.debugLabel, style: {
+                    left: `${pos.x}px`,
+                    top: `${pos.y - height / 2 - 22}px`,
+                    transform: 'translateX(-50%)',
+                }, children: ["ID: ", draggableId, " | Z: ", dynamicZIndex] })), contextMenu && (_jsxs("div", { className: draggableStyles.contextMenu, style: {
                     top: contextMenu.y,
                     left: contextMenu.x,
                 }, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {

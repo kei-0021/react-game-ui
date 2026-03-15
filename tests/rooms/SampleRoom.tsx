@@ -168,6 +168,7 @@ export function SampleRoom() {
         containerRef={containerRef}
         color="red"
         size={100}
+        isDebug={true}
       ></Draggable>
 
       {[...Array(10)].map((_, i) => (
@@ -183,6 +184,7 @@ export function SampleRoom() {
           zIndex={Z_INDX_DRAGGABLE + i}
           isFrontOnDragging={true}
           color={`hsl(${200 + i * 5}, 70%, ${50 + i * 3}%)`}
+          isDebug={true}
         >
           <div style={{ color: '#fff', fontWeight: 'bold' }}>Piece {i}</div>
         </Draggable>
