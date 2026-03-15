@@ -18,6 +18,7 @@ import { CardId, DeckId, PlayerId } from './definition.js';
  * @property {string} backColor - 裏面のカラーコード
  * @property {Coordinate} [coordinate] - フィールド上の座標 (0-100%)
  * @property {boolean} [freeShape] - trueの場合、カード標準の枠線や背景を排除し、画像の形状を活かす（透過PNG用）
+ * @property {number} - 重なり順。
  */
 export type Card = {
     id: CardId;
@@ -35,5 +36,6 @@ export type Card = {
     backColor: string;
     coordinate?: Coordinate;
     freeShape?: boolean;
+    zIndex?: number;
 };
 //# sourceMappingURL=card.d.ts.map

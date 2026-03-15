@@ -269,8 +269,8 @@ export function DeepAbyssRoom() {
               myPlayerId={myPlayerId}
               players={players}
               backgroundImage="/gameboard.png"
-              is_logging={true}
-              baseZIndex={Z_INDX_CARD}
+              zIndex={Z_INDX_CARD}
+              isDebug={true}
             />
           </div>
         </div>

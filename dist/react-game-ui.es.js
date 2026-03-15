@@ -1241,17 +1241,17 @@ function Dice({
     ] })
   ] });
 }
-const draggable = "_draggable_r31dg_3";
-const debugLabel = "_debugLabel_r31dg_28";
-const contextMenu$1 = "_contextMenu_r31dg_53";
-const menuItem$1 = "_menuItem_r31dg_67";
-const separator = "_separator_r31dg_88";
+const draggable = "_draggable_1udwl_3";
+const contextMenu$1 = "_contextMenu_1udwl_28";
+const menuItem$1 = "_menuItem_1udwl_42";
+const separator = "_separator_1udwl_63";
+const debugLabel$1 = "_debugLabel_1udwl_85";
 const draggableStyles = {
   draggable,
-  debugLabel,
   contextMenu: contextMenu$1,
   menuItem: menuItem$1,
-  separator
+  separator,
+  debugLabel: debugLabel$1
 };
 function Draggable({
   socket,
@@ -1838,19 +1838,21 @@ function GridBoard({
     })
   ] });
 }
-const rgPlayFieldContainer = "_rgPlayFieldContainer_11ze7_14";
-const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_11ze7_22";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_11ze7_31";
-const contextMenu = "_contextMenu_11ze7_55";
-const menuItem = "_menuItem_11ze7_70";
-const menuIcon = "_menuIcon_11ze7_87";
+const rgPlayFieldContainer = "_rgPlayFieldContainer_16v0u_14";
+const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_16v0u_22";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_16v0u_31";
+const contextMenu = "_contextMenu_16v0u_55";
+const menuItem = "_menuItem_16v0u_70";
+const menuIcon = "_menuIcon_16v0u_87";
+const debugLabel = "_debugLabel_16v0u_123";
 const playFieldStyles = {
   rgPlayFieldContainer,
   rgPlayFieldCardWrapper,
   rgPlayFieldOwnerBadge,
   contextMenu,
   menuItem,
-  menuIcon
+  menuIcon,
+  debugLabel
 };
 function throttle(func, limit) {
   let inThrottle;
@@ -1871,7 +1873,8 @@ function PlayField({
   myPlayerId,
   layoutMode = "free",
   backgroundImage,
-  baseZIndex = 100
+  zIndex = 100,
+  isDebug = false
 }) {
   const [playedCards, setPlayedCards] = React.useState([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState(null);
@@ -1918,6 +1921,10 @@ function PlayField({
     setActiveDraggingId(card2.id);
     setDragPos({ x: card2.coordinate?.x ?? 50, y: card2.coordinate?.y ?? 50 });
     e.currentTarget.setPointerCapture(e.pointerId);
+    const maxZ = Math.max(...playedCards.map((c) => c.zIndex ?? 100), 100);
+    if ((card2.zIndex ?? 0) < maxZ) {
+      card2.zIndex = maxZ + 1;
+    }
   };
   const handleContextMenu = (e, card2) => {
     e.preventDefault();
@@ -2010,7 +2017,7 @@ function PlayField({
                 const isActuallyFreeShape = !!(card2.freeShape && card2.frontImage);
                 const displayX = isDragging && dragPos ? dragPos.x : card2.coordinate?.x ?? 50;
                 const displayY = isDragging && dragPos ? dragPos.y : card2.coordinate?.y ?? 50;
-                const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
+                const currentZIndex = isDragging ? zIndex + 1e3 : card2.zIndex ?? zIndex + 2;
                 const freeStyle = layoutMode === "free" ? {
                   position: "absolute",
                   left: `${displayX}%`,
@@ -2048,6 +2055,10 @@ function PlayField({
                     children: [
                       /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: card2.isFaceUp }),
                       card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
+                      isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playFieldStyles.debugLabel, children: [
+                        "Z:",
+                        currentZIndex
+                      ] }),
                       card2.description && !isDragging && card2.isFaceUp && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description })
                     ]
                   },

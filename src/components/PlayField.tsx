@@ -31,8 +31,8 @@ type PlayFieldProps = {
   myPlayerId: PlayerId | null;
   layoutMode?: 'grid' | 'free';
   backgroundImage?: string;
-  baseZIndex?: number;
-  is_logging?: boolean;
+  zIndex?: number;
+  isDebug?: boolean;
 };
 
 /**
@@ -45,7 +45,8 @@ type PlayFieldProps = {
  * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
- * @param {string} [baseZIndex] - カードの重ね順
+ * @param {string} [zIndex] - カードの重ね順
+ * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  */
 export function PlayField({
   socket,
@@ -56,7 +57,8 @@ export function PlayField({
   myPlayerId,
   layoutMode = 'free',
   backgroundImage,
-  baseZIndex = 100,
+  zIndex = 100,
+  isDebug = false,
 }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(null);
@@ -123,6 +125,14 @@ export function PlayField({
     setDragPos({ x: card.coordinate?.x ?? 50, y: card.coordinate?.y ?? 50 });
 
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+
+    // 全カードの中から最大の zIndex を探す
+    const maxZ = Math.max(...playedCards.map((c) => c.zIndex ?? 100), 100);
+
+    // 自分が最大でなければ、maxZ + 1 を自分に割り当てる
+    if ((card.zIndex ?? 0) < maxZ) {
+      card.zIndex = maxZ + 1;
+    }
   };
 
   // 右クリックハンドラ (Draggableの形式に合わせる)
@@ -241,8 +251,8 @@ export function PlayField({
           const displayX = isDragging && dragPos ? dragPos.x : (card.coordinate?.x ?? 50);
           const displayY = isDragging && dragPos ? dragPos.y : (card.coordinate?.y ?? 50);
 
-          // カード個別の zIndex
-          const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
+          // 表示用の最終的な zIndex
+          const currentZIndex = isDragging ? zIndex + 1000 : (card.zIndex ?? zIndex + 2);
 
           const freeStyle: React.CSSProperties =
             layoutMode === 'free'
@@ -287,13 +297,17 @@ export function PlayField({
             >
               <CardDisplayContent card={card} canSeeFront={card.isFaceUp} />
 
+              {/* オーナーバッジ */}
               {card.ownerId && (
                 <div className={playFieldStyles.rgPlayFieldOwnerBadge} title={`所有者: ${owner?.name || '不明'}`}>
                   {owner?.name?.[0] || '?'}
                 </div>
               )}
 
-              {/* 裏向きの時は説明文（ツールチップ）も隠す */}
+              {/* デバッグ用 z-index ラベル */}
+              {isDebug && <div className={playFieldStyles.debugLabel}>Z:{currentZIndex}</div>}
+
+              {/* ツールチップ */}
               {card.description && !isDragging && card.isFaceUp && (
                 <span className={cardStyles.tooltip}>{card.description}</span>
               )}

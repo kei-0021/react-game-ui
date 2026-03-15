@@ -22,31 +22,6 @@
 
 /*
  * ===========================================
- * デバックラベル
- * ===========================================
- */
-.debugLabel {
-  position: absolute;
-  top: -22px;
-  left: 0;
-  background: rgb(0, 0, 0);
-  backdrop-filter: blur(4px);
-  border: 0.5px solid rgba(255, 255, 255, 0.3);
-  color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 10px;
-  font-weight: 200;
-  letter-spacing: 0.05em;
-  padding: 1px 6px;
-  border-radius: 0;
-  z-index: 10000;
-  white-space: nowrap;
-  pointer-events: none;
-  text-transform: uppercase;
-}
-
-/*
- * ===========================================
  * 右クリックメニュー
  * ===========================================
  */
@@ -100,4 +75,29 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/*
+ * ===========================================
+ * デバックラベル
+ * ===========================================
+ */
+.debugLabel {
+  position: absolute;
+  top: -22px;
+  left: 0;
+  background: rgb(0, 0, 0);
+  backdrop-filter: blur(4px);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 10px;
+  font-weight: 200;
+  letter-spacing: 0.05em;
+  padding: 1px 6px;
+  border-radius: 0;
+  z-index: 10000;
+  white-space: nowrap;
+  pointer-events: none;
+  text-transform: uppercase;
 }

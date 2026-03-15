@@ -24,9 +24,10 @@ function throttle(func, limit) {
  * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
- * @param {string} [baseZIndex] - カードの重ね順
+ * @param {string} [zIndex] - カードの重ね順
+ * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  */
-export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', backgroundImage, baseZIndex = 100, }) {
+export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', backgroundImage, zIndex = 100, isDebug = false, }) {
     const [playedCards, setPlayedCards] = React.useState([]);
     const [activeDraggingId, setActiveDraggingId] = React.useState(null);
     // ドラッグ中のローカルな座標を保持（ラグを消すためのステート）
@@ -77,6 +78,12 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         // 掴んだ瞬間の座標を即座にステートに入れる
         setDragPos({ x: card.coordinate?.x ?? 50, y: card.coordinate?.y ?? 50 });
         e.currentTarget.setPointerCapture(e.pointerId);
+        // 全カードの中から最大の zIndex を探す
+        const maxZ = Math.max(...playedCards.map((c) => c.zIndex ?? 100), 100);
+        // 自分が最大でなければ、maxZ + 1 を自分に割り当てる
+        if ((card.zIndex ?? 0) < maxZ) {
+            card.zIndex = maxZ + 1;
+        }
     };
     // 右クリックハンドラ (Draggableの形式に合わせる)
     const handleContextMenu = (e, card) => {
@@ -162,8 +169,8 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                         // ドラッグ中ならローカルの座標、そうでなければカード情報の座標を使用
                         const displayX = isDragging && dragPos ? dragPos.x : (card.coordinate?.x ?? 50);
                         const displayY = isDragging && dragPos ? dragPos.y : (card.coordinate?.y ?? 50);
-                        // カード個別の zIndex
-                        const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
+                        // 表示用の最終的な zIndex
+                        const currentZIndex = isDragging ? zIndex + 1000 : (card.zIndex ?? zIndex + 2);
                         const freeStyle = layoutMode === 'free'
                             ? {
                                 position: 'absolute',
@@ -189,7 +196,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                 padding: 0,
                                 display: 'block',
                                 position: layoutMode === 'free' ? 'absolute' : 'relative',
-                            }, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: card.isFaceUp }), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), card.description && !isDragging && card.isFaceUp && (_jsx("span", { className: cardStyles.tooltip, children: card.description }))] }, card.id));
+                            }, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: card.isFaceUp }), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && _jsxs("div", { className: playFieldStyles.debugLabel, children: ["Z:", currentZIndex] }), card.description && !isDragging && card.isFaceUp && (_jsx("span", { className: cardStyles.tooltip, children: card.description }))] }, card.id));
                     }), contextMenu && (_jsxs("div", { className: playFieldStyles.contextMenu, style: {
                             top: contextMenu.y,
                             left: contextMenu.x,

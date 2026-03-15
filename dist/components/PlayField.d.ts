@@ -10,8 +10,8 @@ type PlayFieldProps = {
     myPlayerId: PlayerId | null;
     layoutMode?: 'grid' | 'free';
     backgroundImage?: string;
-    baseZIndex?: number;
-    is_logging?: boolean;
+    zIndex?: number;
+    isDebug?: boolean;
 };
 /**
  * カードを自由配置（Free Mode）またはグリッド配置し、移動やドロップ操作を管理する
@@ -23,8 +23,9 @@ type PlayFieldProps = {
  * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
- * @param {string} [baseZIndex] - カードの重ね順
+ * @param {string} [zIndex] - カードの重ね順
+ * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  */
-export declare function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode, backgroundImage, baseZIndex, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
+export declare function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode, backgroundImage, zIndex, isDebug, }: PlayFieldProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=PlayField.d.ts.map
