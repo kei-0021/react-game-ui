@@ -101,15 +101,12 @@ export function Piece({
             <div
               style={{
                 position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
+                inset: 0,
                 backgroundColor: piece.color,
                 WebkitMaskImage: `url("${piece.image}")`,
                 maskImage: `url("${piece.image}")`,
-                WebkitMaskSize: '100% 100%',
-                maskSize: '100% 100%',
+                WebkitMaskSize: 'contain',
+                maskSize: 'contain',
                 WebkitMaskRepeat: 'no-repeat',
                 maskRepeat: 'no-repeat',
                 WebkitMaskPosition: 'center',

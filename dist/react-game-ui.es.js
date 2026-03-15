@@ -1599,15 +1599,12 @@ function Piece({
               {
                 style: {
                   position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
+                  inset: 0,
                   backgroundColor: piece2.color,
                   WebkitMaskImage: `({})("${piece2.image}")`,
                   maskImage: `({})("${piece2.image}")`,
-                  WebkitMaskSize: "100% 100%",
-                  maskSize: "100% 100%",
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
                   WebkitMaskRepeat: "no-repeat",
                   maskRepeat: "no-repeat",
                   WebkitMaskPosition: "center",
