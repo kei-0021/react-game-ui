@@ -328,14 +328,16 @@ export class RoomManager {
         if (shouldMark && !isCurrentlyExplored) {
             this.state.exploredCells.push(position);
             server_log('cell', this.state.gameId, this.state.roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
-            return true;
+            this.io.to(this.state.roomId).emit('cell:update', this.state.exploredCells);
+            return;
         }
         if (!shouldMark && isCurrentlyExplored) {
             this.state.exploredCells = this.state.exploredCells.filter((loc) => !(loc.row === position.row && loc.col === position.col));
             server_log('cell', this.state.gameId, this.state.roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
-            return true;
+            this.io.to(this.state.roomId).emit('cell:update', this.state.exploredCells);
+            return;
         }
-        return false;
+        return;
     };
     /**
      * 指定したセルから一定歩数で行けるセルIDをすべて取得する

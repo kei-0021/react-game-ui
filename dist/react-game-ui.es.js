@@ -1609,17 +1609,11 @@ function GridBoard({
   const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
   const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
   const handleCellClick = (celldata, loc) => {
-    if (!isBoardReady || !socket || !myPlayerId) return;
-    socket.emit("game:explore-cell", {
-      playerId: myPlayerId,
-      targetPosition: loc,
-      roomId,
-      shouldExplore: true
-    });
+    console.log("クリックされました");
   };
   const handleCellDoubleClick = (celldata, loc) => {
     if (!isBoardReady || !socket) return;
-    socket.emit("game:explore-cell", { targetPosition: loc, roomId, shouldExplore: false });
+    console.log("ダブルクリックされました");
   };
   const handleCellDrop = (e, targetRow, targetCol) => {
     e.preventDefault();
@@ -1736,8 +1730,8 @@ function GridBoard({
         {
           locationData: loc,
           cellData: cellDataForRenderer,
-          onClick: () => handleCellClick(cell2, loc),
-          onDoubleClick: () => handleCellDoubleClick(cell2, loc),
+          onClick: () => handleCellClick(),
+          onDoubleClick: () => handleCellDoubleClick(),
           onDrop: (e) => handleCellDrop(e, r, c),
           onDragOver: (e) => e.preventDefault(),
           highlighted: isHighlighted,
@@ -2965,7 +2959,8 @@ class RoomManager {
         this.state.roomId,
         `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`
       );
-      return true;
+      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
+      return;
     }
     if (!shouldMark && isCurrentlyExplored) {
       this.state.exploredCells = this.state.exploredCells.filter(
@@ -2977,9 +2972,10 @@ class RoomManager {
         this.state.roomId,
         `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`
       );
-      return true;
+      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
+      return;
     }
-    return false;
+    return;
   };
   /**
    * 指定したセルから一定歩数で行けるセルIDをすべて取得する

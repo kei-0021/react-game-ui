@@ -64,19 +64,12 @@ export function GridBoard({
   const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || '0', 10))) + 1 : 0;
 
   const handleCellClick = (celldata: CellData, loc: GridLocation) => {
-    if (!isBoardReady || !socket || !myPlayerId) return;
-
-    socket.emit('game:explore-cell', {
-      playerId: myPlayerId,
-      targetPosition: loc,
-      roomId,
-      shouldExplore: true,
-    });
+    console.log('クリックされました');
   };
 
   const handleCellDoubleClick = (celldata: CellData, loc: GridLocation) => {
     if (!isBoardReady || !socket) return;
-    socket.emit('game:explore-cell', { targetPosition: loc, roomId, shouldExplore: false });
+    console.log('ダブルクリックされました');
   };
 
   const handleCellDrop = (e: DragEvent<HTMLDivElement>, targetRow: number, targetCol: number) => {

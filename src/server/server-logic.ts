@@ -439,7 +439,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       }
     });
 
-    // 移動・探索
+    // 駒の移動
     socket.on('board:move-player', ({ roomId, boardId, playerId, newLocation }: BaordMovePlayerData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
@@ -451,19 +451,10 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         player.position = newLocation;
         roomManager.applyCellEffect(boardId, playerId, newLocation, param?.cellEffects!);
         roomManager.emitPlayerUpdate();
-        if (roomManager.updateCellExploredStatus(newLocation, true))
-          io.to(roomId).emit('cell:update', state.exploredCells);
-      }
-    });
-
-    socket.on('game:explore-cell', ({ roomId, targetPosition, shouldExplore }) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-
-      if (state && roomManager.updateCellExploredStatus(targetPosition, shouldExplore)) {
-        io.to(roomId).emit('cell:update', state.exploredCells);
+        const onPieceMove = param.onPieceMove;
+        if (onPieceMove) {
+          onPieceMove(state, roomManager, newLocation);
+        }
       }
     });
 

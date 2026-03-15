@@ -107,6 +107,10 @@ export const deepAbyssConfig: RoomConfig = {
         manager.emitSystemMessage(`${cardNames} を出した！`, 1000, true);
         manager.updatePhase(DeepAbyssPhase.NEXT);
       },
+      onPieceMove: (state: RoomState, manager: RoomManager, newLocation: any) => {
+        // マス目をオープンにする
+        manager.updateCellExploredStatus(newLocation, true);
+      },
       onNextRound: (state: RoomState, manager: RoomManager) => {
         manager.updatePhase(DeepAbyssPhase.NEXT);
         manager.emitSystemMessage(`第 ${state.currentRoundIndex + 1} ラウンド開始！`, 1000, true);

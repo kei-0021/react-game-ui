@@ -94,7 +94,7 @@ export declare class RoomManager {
      * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
      * @returns {boolean} 状態が実際に変化した場合は true
      */
-    updateCellExploredStatus: (position: Position, shouldMark: boolean) => boolean;
+    updateCellExploredStatus: (position: Position, shouldMark: boolean) => void;
     /**
      * 指定したセルから一定歩数で行けるセルIDをすべて取得する
      */

@@ -424,7 +424,7 @@ export class RoomManager {
    * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
    * @returns {boolean} 状態が実際に変化した場合は true
    */
-  updateCellExploredStatus = (position: Position, shouldMark: boolean): boolean => {
+  updateCellExploredStatus = (position: Position, shouldMark: boolean) => {
     const isCurrentlyExplored = isExplored(this.state, position);
 
     if (shouldMark && !isCurrentlyExplored) {
@@ -435,7 +435,8 @@ export class RoomManager {
         this.state.roomId,
         `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`,
       );
-      return true;
+      this.io.to(this.state.roomId).emit('cell:update', this.state.exploredCells);
+      return;
     }
 
     if (!shouldMark && isCurrentlyExplored) {
@@ -448,10 +449,11 @@ export class RoomManager {
         this.state.roomId,
         `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`,
       );
-      return true;
+      this.io.to(this.state.roomId).emit('cell:update', this.state.exploredCells);
+      return;
     }
 
-    return false;
+    return;
   };
 
   /**

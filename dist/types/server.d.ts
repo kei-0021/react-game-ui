@@ -27,6 +27,7 @@ import { TokenStore } from './tokenStore.js';
  * @param onDeckDraw - デッキからカードを引いた時のカスタムフック。
  * @param onCardPlay - カードプレイ時のカスタムフック。
  * @param onAllPlayersCardHold - 全てのプレイヤーがホールドした時のカスタムフック。
+ * @param onPieceMove - 駒を動かした時のカスタムフック。
  * @param onNextRound - 次のラウンドへ進んだ時のカスタムフック。
  * @param checkGameEnd - 終了判定ロジック。
  * @param onGameEnd - リザルト生成ロジック。
@@ -53,6 +54,7 @@ export type GameParam = {
     onDeckDraw?: (state: RoomState, manager: RoomManager, data: DeckDrawData) => void;
     onCardPlay?: (state: RoomState, manager: RoomManager, data: CardPlayData) => void;
     onAllPlayersCardHold?: (state: RoomState, manager: RoomManager) => void;
+    onPieceMove?: (state: RoomState, manager: RoomManager, newLocation: any) => void;
     onNextRound?: (state: RoomState, manager: RoomManager) => void;
     checkGameEnd?: (state: RoomState) => void;
     onGameEnd?: (state: RoomState) => any;

@@ -27,19 +27,12 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, render
     const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || '0', 10))) + 1 : 0;
     const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || '0', 10))) + 1 : 0;
     const handleCellClick = (celldata, loc) => {
-        if (!isBoardReady || !socket || !myPlayerId)
-            return;
-        socket.emit('game:explore-cell', {
-            playerId: myPlayerId,
-            targetPosition: loc,
-            roomId,
-            shouldExplore: true,
-        });
+        console.log('クリックされました');
     };
     const handleCellDoubleClick = (celldata, loc) => {
         if (!isBoardReady || !socket)
             return;
-        socket.emit('game:explore-cell', { targetPosition: loc, roomId, shouldExplore: false });
+        console.log('ダブルクリックされました');
     };
     const handleCellDrop = (e, targetRow, targetCol) => {
         e.preventDefault();
