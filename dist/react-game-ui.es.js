@@ -1549,6 +1549,9 @@ function Piece({
     }
   };
   const pieceClasses = [styles$4.piece, isDraggable ? styles$4.draggable : styles$4.clickable].join(" ");
+  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
+  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
+  const URL_FUNC = ["u", "r", "l"].join("");
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
@@ -1556,15 +1559,12 @@ function Piece({
       style: {
         ...style,
         backgroundColor: piece2.image ? "transparent" : piece2.color,
-        // 縁取り（drop-shadow）を完全に削除
         filter: "none",
         border: "none",
         outline: "none",
-        // 画像なしのベタ塗り時のみ、テキストを中央配置にする
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        // boxShadow を画像なしの時だけ付けるか、完全に消すかはお好みで
         boxShadow: piece2.image ? "none" : "0 2px 4px rgba(0,0,0,0.2)"
       },
       onClick: handleClick,
@@ -1601,8 +1601,8 @@ function Piece({
                   position: "absolute",
                   inset: 0,
                   backgroundColor: piece2.color,
-                  WebkitMaskImage: `({})("${piece2.image}")`,
-                  maskImage: `({})("${piece2.image}")`,
+                  [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
+                  [MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
                   WebkitMaskSize: "contain",
                   maskSize: "contain",
                   WebkitMaskRepeat: "no-repeat",

@@ -28,18 +28,19 @@ export function Piece({ piece, style, onClick, isDraggable, isFilled = false, on
         }
     };
     const pieceClasses = [styles.piece, isDraggable ? styles.draggable : styles.clickable].join(' ');
+    // ビルド時の最適化を回避するためのプロパティ名分解
+    const MASK_IMAGE_PROP = ['mask', 'Image'].join('');
+    const WEBKIT_MASK_IMAGE_PROP = ['Webkit', 'Mask', 'Image'].join('');
+    const URL_FUNC = ['u', 'r', 'l'].join('');
     return (_jsx("div", { className: pieceClasses, style: {
             ...style,
             backgroundColor: piece.image ? 'transparent' : piece.color,
-            // 縁取り（drop-shadow）を完全に削除
             filter: 'none',
             border: 'none',
             outline: 'none',
-            // 画像なしのベタ塗り時のみ、テキストを中央配置にする
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            // boxShadow を画像なしの時だけ付けるか、完全に消すかはお好みで
             boxShadow: piece.image ? 'none' : '0 2px 4px rgba(0,0,0,0.2)',
         }, onClick: handleClick, draggable: isDraggable, onDragStart: handleDragStart, onDragEnd: (e) => onDragEnd(e, piece), children: piece.image ? (_jsxs("div", { style: {
                 width: '100%',
@@ -55,8 +56,8 @@ export function Piece({ piece, style, onClick, isDraggable, isFilled = false, on
                         position: 'absolute',
                         inset: 0,
                         backgroundColor: piece.color,
-                        WebkitMaskImage: `url("${piece.image}")`,
-                        maskImage: `url("${piece.image}")`,
+                        [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${piece.image}")`,
+                        [MASK_IMAGE_PROP]: `${URL_FUNC}("${piece.image}")`,
                         WebkitMaskSize: 'contain',
                         maskSize: 'contain',
                         WebkitMaskRepeat: 'no-repeat',
