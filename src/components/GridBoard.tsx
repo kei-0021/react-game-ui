@@ -267,6 +267,7 @@ export function GridBoard({
             style={pieceStyle}
             onClick={handlePieceClick}
             isDraggable={allowPieceDrag}
+            isFilled={true}
             onDragStart={handlePieceDragStart}
             onDragEnd={handlePieceDragEnd}
           />

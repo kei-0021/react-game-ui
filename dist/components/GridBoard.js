@@ -174,6 +174,6 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, render
                     transform: `translate(${offsetX}px, ${offsetY}px)`,
                     transition: 'transform 0.3s ease-in-out',
                 };
-                return (_jsx(Piece, { piece: piece, style: pieceStyle, onClick: handlePieceClick, isDraggable: allowPieceDrag, onDragStart: handlePieceDragStart, onDragEnd: handlePieceDragEnd }, piece.id));
+                return (_jsx(Piece, { piece: piece, style: pieceStyle, onClick: handlePieceClick, isDraggable: allowPieceDrag, isFilled: true, onDragStart: handlePieceDragStart, onDragEnd: handlePieceDragEnd }, piece.id));
             })] }));
 }

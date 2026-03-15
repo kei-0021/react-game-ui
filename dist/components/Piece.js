@@ -1,6 +1,17 @@
-import { jsx as _jsx } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import styles from './Piece.module.css';
-export function Piece({ piece, style, onClick, isDraggable, onDragStart, onDragEnd }) {
+/**
+ * ゲーム盤上に配置される個々の駒コンポーネント。
+ * @param {PieceData} props.piece - 駒のデータ（ID、名前、画像URL、プレイヤーカラーなど）
+ * @param {React.CSSProperties} props.style - 親コンポーネントから渡される絶対配置などのスタイル
+ * @param {(pieceId: string) => void} props.onClick - 駒がクリックされた時のハンドラ
+ * @param {boolean} props.isDraggable - 駒がドラッグ可能かどうか
+ * @param {boolean} [props.isFilled=false] - マスク（着色）モード。trueの場合、画像の線を生かしたままプレイヤーカラーで塗りつぶす
+ * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} props.onDragStart - ドラッグ開始時のハンドラ
+ * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} props.onDragEnd - ドラッグ終了時のハンドラ
+ * @returns {JSX.Element} 駒のJSX要素
+ */
+export function Piece({ piece, style, onClick, isDraggable, isFilled = false, onDragStart, onDragEnd, }) {
     const handleClick = (e) => {
         e.stopPropagation();
         onClick(piece.id);
@@ -11,42 +22,48 @@ export function Piece({ piece, style, onClick, isDraggable, onDragStart, onDragE
             e.dataTransfer.setData('pieceId', piece.id);
             e.dataTransfer.effectAllowed = 'move';
             if (piece.image) {
-                e.dataTransfer.setDragImage(e.currentTarget, 45, 45); // 駒の中心（90pxの半分）を指定
+                e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
             }
             onDragStart(e, piece);
         }
     };
     const pieceClasses = [styles.piece, isDraggable ? styles.draggable : styles.clickable].join(' ');
-    const imageStyle = piece.image
-        ? {
-            WebkitMaskImage: `url("${piece.image}")`,
-            maskImage: `url("${piece.image}")`,
-            WebkitMaskSize: 'contain',
-            maskSize: 'contain',
-            WebkitMaskRepeat: 'no-repeat',
-            maskRepeat: 'no-repeat',
-            WebkitMaskPosition: 'center',
-            maskPosition: 'center',
-            backgroundColor: 'transparent',
-            borderRadius: '0',
-            filter: `drop-shadow(1px 0 0 ${piece.color}) drop-shadow(-1px 0 0 ${piece.color}) drop-shadow(0 1px 0 ${piece.color}) drop-shadow(0 -1px 0 ${piece.color})`,
-        }
-        : {
-            backgroundColor: piece.color,
-        };
     return (_jsx("div", { className: pieceClasses, style: {
             ...style,
-            ...imageStyle,
-            // none や 0 にせず、透明にすることで描画領域を確保し、縁取りを維持する
-            borderColor: piece.image ? 'transparent' : undefined,
-            boxShadow: piece.image ? 'none' : undefined,
-            filter: piece.image
-                ? `drop-shadow(1px 0 0 ${piece.color}) drop-shadow(-1px 0 0 ${piece.color}) drop-shadow(0 1px 0 ${piece.color}) drop-shadow(0 -1px 0 ${piece.color})`
-                : undefined,
-        }, onClick: handleClick, draggable: isDraggable, onDragStart: handleDragStart, onDragEnd: (e) => onDragEnd(e, piece), children: piece.image ? (_jsx("img", { src: piece.image, alt: "", style: {
+            backgroundColor: piece.image ? 'transparent' : piece.color,
+            // 縁取り（drop-shadow）を完全に削除
+            filter: 'none',
+            border: 'none',
+            outline: 'none',
+            // 画像なしのベタ塗り時のみ、テキストを中央配置にする
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            // boxShadow を画像なしの時だけ付けるか、完全に消すかはお好みで
+            boxShadow: piece.image ? 'none' : '0 2px 4px rgba(0,0,0,0.2)',
+        }, onClick: handleClick, draggable: isDraggable, onDragStart: handleDragStart, onDragEnd: (e) => onDragEnd(e, piece), children: piece.image ? (_jsxs("div", { style: {
                 width: '100%',
                 height: '100%',
-                objectFit: 'contain',
+                position: 'relative',
                 pointerEvents: 'none',
-            } })) : (piece.name.substring(0, 1)) }));
+            }, children: [_jsx("img", { src: piece.image, alt: "", style: {
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        display: 'block',
+                    } }), isFilled && (_jsx("div", { style: {
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: piece.color,
+                        WebkitMaskImage: `url("${piece.image}")`,
+                        maskImage: `url("${piece.image}")`,
+                        WebkitMaskSize: 'contain',
+                        maskSize: 'contain',
+                        WebkitMaskRepeat: 'no-repeat',
+                        maskPosition: 'center',
+                        mixBlendMode: 'multiply',
+                    } }))] })) : (piece.name.substring(0, 1)) }));
 }

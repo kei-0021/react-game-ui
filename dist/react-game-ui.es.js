@@ -1524,7 +1524,15 @@ const piece = "_piece_138ki_3";
 const styles$4 = {
   piece
 };
-function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart, onDragEnd }) {
+function Piece({
+  piece: piece2,
+  style,
+  onClick,
+  isDraggable,
+  isFilled = false,
+  onDragStart,
+  onDragEnd
+}) {
   const handleClick = (e) => {
     e.stopPropagation();
     onClick(piece2.id);
@@ -1541,48 +1549,72 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart, onDrag
     }
   };
   const pieceClasses = [styles$4.piece, isDraggable ? styles$4.draggable : styles$4.clickable].join(" ");
-  const imageStyle = piece2.image ? {
-    WebkitMaskImage: `({})("${piece2.image}")`,
-    maskImage: `({})("${piece2.image}")`,
-    WebkitMaskSize: "contain",
-    maskSize: "contain",
-    WebkitMaskRepeat: "no-repeat",
-    maskRepeat: "no-repeat",
-    WebkitMaskPosition: "center",
-    maskPosition: "center",
-    backgroundColor: "transparent",
-    borderRadius: "0",
-    filter: `drop-shadow(1px 0 0 ${piece2.color}) drop-shadow(-1px 0 0 ${piece2.color}) drop-shadow(0 1px 0 ${piece2.color}) drop-shadow(0 -1px 0 ${piece2.color})`
-  } : {
-    backgroundColor: piece2.color
-  };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
       className: pieceClasses,
       style: {
         ...style,
-        ...imageStyle,
-        // none や 0 にせず、透明にすることで描画領域を確保し、縁取りを維持する
-        borderColor: piece2.image ? "transparent" : void 0,
-        boxShadow: piece2.image ? "none" : void 0,
-        filter: piece2.image ? `drop-shadow(1px 0 0 ${piece2.color}) drop-shadow(-1px 0 0 ${piece2.color}) drop-shadow(0 1px 0 ${piece2.color}) drop-shadow(0 -1px 0 ${piece2.color})` : void 0
+        backgroundColor: piece2.image ? "transparent" : piece2.color,
+        // 縁取り（drop-shadow）を完全に削除
+        filter: "none",
+        border: "none",
+        outline: "none",
+        // 画像なしのベタ塗り時のみ、テキストを中央配置にする
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        // boxShadow を画像なしの時だけ付けるか、完全に消すかはお好みで
+        boxShadow: piece2.image ? "none" : "0 2px 4px rgba(0,0,0,0.2)"
       },
       onClick: handleClick,
       draggable: isDraggable,
       onDragStart: handleDragStart,
       onDragEnd: (e) => onDragEnd(e, piece2),
-      children: piece2.image ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "img",
+      children: piece2.image ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
         {
-          src: piece2.image,
-          alt: "",
           style: {
             width: "100%",
             height: "100%",
-            objectFit: "contain",
+            position: "relative",
             pointerEvents: "none"
-          }
+          },
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "img",
+              {
+                src: piece2.image,
+                alt: "",
+                style: {
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  display: "block"
+                }
+              }
+            ),
+            isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                style: {
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: piece2.color,
+                  WebkitMaskImage: `({})("${piece2.image}")`,
+                  maskImage: `({})("${piece2.image}")`,
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
+                  WebkitMaskRepeat: "no-repeat",
+                  maskPosition: "center",
+                  mixBlendMode: "multiply"
+                }
+              }
+            )
+          ]
         }
       ) : piece2.name.substring(0, 1)
     }
@@ -1769,6 +1801,7 @@ function GridBoard({
           style: pieceStyle,
           onClick: handlePieceClick,
           isDraggable: allowPieceDrag,
+          isFilled: true,
           onDragStart: handlePieceDragStart,
           onDragEnd: handlePieceDragEnd
         },
