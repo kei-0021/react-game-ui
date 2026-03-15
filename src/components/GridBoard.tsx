@@ -1,5 +1,5 @@
 // src/components/GridBoard.tsx
-import { Player } from '@/index.js';
+import { CellData, Player } from '@/index.js';
 import { BoardId, PieceId, PlayerId, RoomId } from '@/types/definition.js';
 import { BaordMovePlayerData, BoardMovableRangeData, BoardUpdateData } from '@/types/socketData.js';
 import type { DragEvent } from 'react';
@@ -7,7 +7,7 @@ import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { PieceData } from '../types/piece.js';
 import styles from './Board.module.css';
-import { Cell, CellData } from './Cell.js';
+import { Cell } from './Cell.js';
 import { Piece } from './Piece.js';
 
 const moveRange = 2;

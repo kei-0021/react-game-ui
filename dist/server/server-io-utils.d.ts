@@ -1,4 +1,4 @@
-import { CellData } from '@/components/Cell.js';
+import { CellData } from '@/index.js';
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/server.js';
 import { Token } from '@/types/token.js';

@@ -1,8 +1,7 @@
-import { Player } from '@/index.js';
+import { CellData, Player } from '@/index.js';
 import { BoardId, PlayerId, RoomId } from '@/types/definition.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
-import { CellData } from './Cell.js';
 type GridBoardProps = {
     socket: Socket;
     roomId: RoomId;

@@ -1,5 +1,4 @@
-import { CellData } from '@/components/Cell.js';
-import { Player } from '@/index.js';
+import { CellData, Player } from '@/index.js';
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';

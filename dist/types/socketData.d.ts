@@ -1,4 +1,4 @@
-import { CellData } from '@/components/Cell.js';
+import { CellData } from '@/index.js';
 import { Card } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';

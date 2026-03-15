@@ -17,6 +17,7 @@ export * from './types/player.js';
 export { type PieceData } from './types/piece.js';
 export { RoomManager } from './server/server-utils.js';
 export { type GameParam, type RoomState } from './types/server.js';
+export { type CellData } from './types/cell.js';
 export { Phase } from './types/phase.js';
 export { type CardPlayData, type DeckDrawData, type GamePhaseUpdateData, type GameTurnUpdateData, type RoomJoinData, type RoomMeta, } from './types/socketData.js';
 //# sourceMappingURL=index.d.ts.map

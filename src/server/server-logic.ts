@@ -2,7 +2,7 @@
 import { Server, Socket } from 'socket.io';
 import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 
-import { CellData } from '@/components/Cell.js';
+import { CellData } from '@/index.js';
 import { BoardId, CardId, DeckId, PlayerId, RoomId, TokenStoreId } from '@/types/definition.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
