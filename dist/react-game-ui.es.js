@@ -1878,6 +1878,7 @@ function PlayField({
 }) {
   const [playedCards, setPlayedCards] = React.useState([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState(null);
+  const [maxZ, setMaxZ] = React.useState(void 0);
   const [dragPos, setDragPos] = React.useState(null);
   const [contextMenu2, setContextMenu] = React.useState(null);
   const containerRef = React.useRef(null);
@@ -1891,13 +1892,24 @@ function PlayField({
   }, [contextMenu2]);
   React.useEffect(() => {
     socket.on(`deck:update:${deckId}`, (data) => {
-      const newCards = data.playFieldCards || [];
-      setPlayedCards(newCards);
+      const incomingCards = data.playFieldCards || [];
+      const synchronizedCards = incomingCards.map((c) => ({
+        ...c,
+        zIndex: c.zIndex !== void 0 ? Number(c.zIndex) : 0
+      }));
+      setPlayedCards(synchronizedCards);
+      if (synchronizedCards.length > 0) {
+        const incomingMax = Math.max(...synchronizedCards.map((c) => c.zIndex));
+        setMaxZ((prev) => Math.max(prev ?? 0, incomingMax));
+      }
     });
     return () => {
       socket.off(`deck:update:${deckId}`);
     };
-  }, [socket, roomId, deckId]);
+  }, [socket, deckId]);
+  React.useEffect(() => {
+    setMaxZ((prev) => prev === void 0 ? zIndex : Math.max(prev, zIndex));
+  }, [zIndex]);
   const emitMove = React.useMemo(
     () => throttle((cardId, clientX, clientY, rId, dId) => {
       if (!containerRef.current || !rId || !dId) return;
@@ -1921,10 +1933,6 @@ function PlayField({
     setActiveDraggingId(card2.id);
     setDragPos({ x: card2.coordinate?.x ?? 50, y: card2.coordinate?.y ?? 50 });
     e.currentTarget.setPointerCapture(e.pointerId);
-    const maxZ = Math.max(...playedCards.map((c) => c.zIndex ?? 100), 100);
-    if ((card2.zIndex ?? 0) < maxZ) {
-      card2.zIndex = maxZ + 1;
-    }
   };
   const handleContextMenu = (e, card2) => {
     e.preventDefault();
@@ -1972,22 +1980,20 @@ function PlayField({
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   };
-  const onBringToFrontClick = (card2) => {
-    if (!card2.zIndex) return;
-    const allDraggables = document.querySelectorAll(`[data-draggable-id]`);
-    const maxZOnBoard = Array.from(allDraggables).reduce((max, el) => {
-      const z = parseInt(window.getComputedStyle(el).zIndex);
-      return isNaN(z) ? max : Math.max(max, z);
-    }, 100);
-    if (card2.zIndex >= maxZOnBoard) {
-      return;
-    }
+  const onBringToFrontClick = async (card2) => {
+    const rawZIndices = playedCards.map((c) => Number(c.zIndex || 0));
+    const currentActualMax = Math.max(...rawZIndices, 100);
+    const targetZ = Number(card2.zIndex || 0);
+    const baseZ = Math.max(currentActualMax, targetZ);
+    const nextZ = baseZ + 1;
+    setMaxZ(nextZ);
+    setPlayedCards((prev) => prev.map((c) => c.id === card2.id ? { ...c, zIndex: nextZ } : c));
     const requestData = {
       roomId,
       deckId: card2.deckId || deckId,
       cardId: card2.id,
       coordinate: card2.coordinate,
-      zIndex: Math.max(0, maxZOnBoard + 1)
+      zIndex: nextZ
     };
     socket.emit("card:move-on-field", requestData);
   };

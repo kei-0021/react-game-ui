@@ -69,6 +69,9 @@ export function PlayField({
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(null);
 
+  // フィールド内での最大zIndexを管理するステート
+  const [maxZ, setMaxZ] = React.useState<number | undefined>(undefined);
+
   // ドラッグ中のローカルな座標を保持（ラグを消すためのステート）
   const [dragPos, setDragPos] = React.useState<{ x: number; y: number } | null>(null);
 
@@ -89,14 +92,31 @@ export function PlayField({
 
   React.useEffect(() => {
     socket.on(`deck:update:${deckId}`, (data: DeckUpdateData) => {
-      const newCards = data.playFieldCards || [];
-      setPlayedCards(newCards);
+      // サーバーから届いた生のカード配列
+      const incomingCards = data.playFieldCards || [];
+
+      // データ構造の不一致を防ぐため、zIndexを確実に数値として保持させる
+      const synchronizedCards = incomingCards.map((c) => ({
+        ...c,
+        zIndex: c.zIndex !== undefined ? Number(c.zIndex) : 0,
+      }));
+
+      setPlayedCards(synchronizedCards);
+
+      if (synchronizedCards.length > 0) {
+        const incomingMax = Math.max(...synchronizedCards.map((c) => c.zIndex));
+        setMaxZ((prev) => Math.max(prev ?? 0, incomingMax));
+      }
     });
 
     return () => {
       socket.off(`deck:update:${deckId}`);
     };
-  }, [socket, roomId, deckId]);
+  }, [socket, deckId]);
+  // propsのzIndexが変わったら同期
+  React.useEffect(() => {
+    setMaxZ((prev) => (prev === undefined ? zIndex : Math.max(prev, zIndex)));
+  }, [zIndex]);
 
   // リアルタイム送信ロジック（throttleを30msに短縮して追従性を向上）
   // 宛先をその都度書くスタイルにしてクロージャ問題を回避
@@ -133,14 +153,6 @@ export function PlayField({
     setDragPos({ x: card.coordinate?.x ?? 50, y: card.coordinate?.y ?? 50 });
 
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-
-    // 全カードの中から最大の zIndex を探す
-    const maxZ = Math.max(...playedCards.map((c) => c.zIndex ?? 100), 100);
-
-    // 自分が最大でなければ、maxZ + 1 を自分に割り当てる
-    if ((card.zIndex ?? 0) < maxZ) {
-      card.zIndex = maxZ + 1;
-    }
   };
 
   // 右クリックハンドラ (Draggableの形式に合わせる)
@@ -213,28 +225,27 @@ export function PlayField({
   /**
    * メニューアクション：最前面
    */
-  const onBringToFrontClick = (card: Card) => {
-    if (!card.zIndex) return;
+  const onBringToFrontClick = async (card: Card) => {
+    // カード配列から生の zIndex を取り出し数値化
+    const rawZIndices = playedCards.map((c) => Number(c.zIndex || 0));
+    const currentActualMax = Math.max(...rawZIndices, 100);
 
-    // 盤面の全Draggableから最大Zを抜き出す
-    const allDraggables = document.querySelectorAll(`[data-draggable-id]`);
-    const maxZOnBoard = Array.from(allDraggables).reduce((max, el) => {
-      const z = parseInt(window.getComputedStyle(el).zIndex);
-      return isNaN(z) ? max : Math.max(max, z);
-    }, 100);
+    // 操作対象の card 自体がすでに持っている値とも比較
+    const targetZ = Number(card.zIndex || 0);
+    const baseZ = Math.max(currentActualMax, targetZ);
 
-    // 自分がすでに最大値なら、これ以上加算せず終了する
-    if (card.zIndex >= maxZOnBoard) {
-      return;
-    }
+    const nextZ = baseZ + 1;
 
-    // 最大値+1
+    // ステート更新と送信
+    setMaxZ(nextZ);
+    setPlayedCards((prev) => prev.map((c) => (c.id === card.id ? { ...c, zIndex: nextZ } : c)));
+
     const requestData: CardMoveOnFieldData = {
       roomId,
       deckId: card.deckId || deckId,
       cardId: card.id,
       coordinate: card.coordinate,
-      zIndex: Math.max(0, maxZOnBoard + 1),
+      zIndex: nextZ,
     };
     socket.emit('card:move-on-field', requestData);
   };
