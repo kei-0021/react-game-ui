@@ -211,16 +211,6 @@ export function Draggable({
     emitUpdate(pos, nextRot, currentZ);
   };
 
-  /**
-   * メニューアクション：最背面
-   */
-  const onBringToBackClick = () => {
-    // 100枚規模の衝突を回避する正規化
-    const nextZ = 100 + (currentZ % 100);
-    setCurrentZ(nextZ);
-    emitUpdate(pos, rotation, nextZ);
-  };
-
   const MASK_PROP = ['mask', 'Image'].join('');
   const WEBKIT_MASK_PROP = ['Webkit', 'Mask', 'Image'].join('');
   const URL_FUNC = ['u', 'r', 'l'].join('');
@@ -348,7 +338,7 @@ export function Draggable({
             className={draggableStyles.menuItem}
             onClick={(e) => {
               e.stopPropagation();
-              onBringToBackClick();
+              socket.emit('object:bring-to-back', { roomId, objectId: [draggableId], type: 'draggable' });
               setContextMenu(null);
             }}
           >

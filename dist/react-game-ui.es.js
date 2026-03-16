@@ -1371,11 +1371,6 @@ function Draggable({
     setRotation(nextRot);
     emitUpdate(pos, nextRot, currentZ);
   };
-  const onBringToBackClick = () => {
-    const nextZ = 100 + currentZ % 100;
-    setCurrentZ(nextZ);
-    emitUpdate(pos, rotation, nextZ);
-  };
   const MASK_PROP = ["mask", "Image"].join("");
   const WEBKIT_MASK_PROP = ["Webkit", "Mask", "Image"].join("");
   const URL_FUNC = ["u", "r", "l"].join("");
@@ -1501,7 +1496,7 @@ function Draggable({
               className: draggableStyles.menuItem,
               onClick: (e) => {
                 e.stopPropagation();
-                onBringToBackClick();
+                socket.emit("object:bring-to-back", { roomId, objectId: [draggableId], type: "draggable" });
                 setContextMenu(null);
               },
               children: [
@@ -1965,17 +1960,6 @@ function PlayField({
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   };
-  const onBringToBackClick = (card2) => {
-    if (!card2.zIndex) return;
-    const requestData = {
-      roomId,
-      deckId: card2.deckId || deckId,
-      cardId: card2.id,
-      coordinate: card2.coordinate,
-      zIndex: 100 + card2.zIndex % 100
-    };
-    socket.emit("card:move-on-field", requestData);
-  };
   const handleCardBack = (card2) => {
     if (!myPlayerId || !card2.fieldBackCondition) return;
     const backTo = card2.fieldBackCondition[0] || "discard";
@@ -2104,7 +2088,11 @@ function PlayField({
                       {
                         className: playFieldStyles.menuItem,
                         onClick: () => {
-                          onBringToBackClick(contextMenu2.card);
+                          socket.emit("object:bring-to-back", {
+                            roomId,
+                            objectId: [contextMenu2.card.deckId, contextMenu2.card.id],
+                            type: "card"
+                          });
                           setContextMenu(null);
                         },
                         children: [

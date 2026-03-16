@@ -101,6 +101,11 @@ export type ObjectBringToFrontData = {
     objectId: [DeckId, CardId] | DraggableId;
     type: string;
 };
+export type ObjectBringToBackData = {
+    roomId: RoomId;
+    objectId: [DeckId, CardId] | DraggableId;
+    type: string;
+};
 export type GamePhaseUpdateData = {
     newPhase: Phase;
 };

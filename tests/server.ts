@@ -40,8 +40,6 @@ async function startServer() {
       lobby: true,
       room: true,
       deck: false,
-      cell: false,
-      draggable: false,
     },
     onServerStart: (url: string) => console.log(`🎮 Demo server running at: ${url}`),
   };

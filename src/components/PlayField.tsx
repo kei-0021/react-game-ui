@@ -1,13 +1,7 @@
 // src/components/PlayField.tsx
 
 import { Player } from '@/types/player.js';
-import {
-  CardFlipData,
-  CardMoveFromFieldData,
-  CardMoveOnFieldData,
-  CardPlayData,
-  DeckUpdateData,
-} from '@/types/socketData.js';
+import { CardFlipData, CardMoveFromFieldData, CardPlayData, DeckUpdateData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
@@ -222,23 +216,6 @@ export function PlayField({
     e.dataTransfer.dropEffect = 'move';
   };
 
-  /**
-   * メニューアクション：最背面
-   */
-  const onBringToBackClick = (card: Card) => {
-    if (!card.zIndex) return;
-
-    // 100枚規模の衝突を回避する正規化
-    const requestData: CardMoveOnFieldData = {
-      roomId,
-      deckId: card.deckId || deckId,
-      cardId: card.id,
-      coordinate: card.coordinate,
-      zIndex: 100 + (card.zIndex % 100),
-    };
-    socket.emit('card:move-on-field', requestData);
-  };
-
   const handleCardBack = (card: Card) => {
     if (!myPlayerId || !card.fieldBackCondition) return;
 
@@ -388,7 +365,11 @@ export function PlayField({
             <div
               className={playFieldStyles.menuItem}
               onClick={() => {
-                onBringToBackClick(contextMenu.card);
+                socket.emit('object:bring-to-back', {
+                  roomId: roomId,
+                  objectId: [contextMenu.card.deckId, contextMenu.card.id],
+                  type: 'card',
+                });
                 setContextMenu(null);
               }}
             >

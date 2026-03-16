@@ -152,6 +152,12 @@ export type ObjectBringToFrontData = {
   type: string;
 };
 
+export type ObjectBringToBackData = {
+  roomId: RoomId;
+  objectId: [DeckId, CardId] | DraggableId;
+  type: string;
+};
+
 /*
  * ===========================================
  * ゲーム進行・フェーズ管理

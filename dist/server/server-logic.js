@@ -505,6 +505,35 @@ export function initGameServer(io, options) {
                 }
             }
         });
+        // コンテキストメニュー：最背面
+        socket.on('object:bring-to-back', ({ roomId, objectId, type }) => {
+            const state = activeRooms.get(roomId);
+            if (!state)
+                return;
+            const param = gameParams[state.gameId];
+            const roomManager = new RoomManager(io, param, state);
+            // type (card | draggable) に応じて該当データを更新
+            if (type === 'card') {
+                server_log('deck', state.gameId, roomId, 'カードのz-indexを調整');
+                const card = state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+                if (!card)
+                    return;
+                if (!card.zIndex)
+                    return;
+                // 100枚規模の衝突を回避する正規化
+                card.zIndex = 100 + (card.zIndex % 100);
+                server_log('draggable', state.gameId, roomId, `新しいz-index: ${card.zIndex}`);
+                roomManager.emitDeckUpdate(objectId[0]);
+            }
+            else {
+                server_log('draggable', state.gameId, roomId, 'ドラッグ可能オブジェクトのz-indexを調整');
+                const draggable = state.draggable[objectId[0]];
+                // 100枚規模の衝突を回避する正規化
+                draggable.zIndex = 100 + (draggable.zIndex % 100);
+                server_log('draggable', state.gameId, roomId, `新しいz-index: ${draggable.zIndex}`);
+                roomManager.emitDraggableUpdate(objectId[0]);
+            }
+        });
         // 次のターン
         socket.on('game:next-turn', ({ roomId }) => {
             const state = activeRooms.get(roomId);

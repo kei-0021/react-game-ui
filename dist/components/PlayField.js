@@ -152,22 +152,6 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
     };
-    /**
-     * メニューアクション：最背面
-     */
-    const onBringToBackClick = (card) => {
-        if (!card.zIndex)
-            return;
-        // 100枚規模の衝突を回避する正規化
-        const requestData = {
-            roomId,
-            deckId: card.deckId || deckId,
-            cardId: card.id,
-            coordinate: card.coordinate,
-            zIndex: 100 + (card.zIndex % 100),
-        };
-        socket.emit('card:move-on-field', requestData);
-    };
     const handleCardBack = (card) => {
         if (!myPlayerId || !card.fieldBackCondition)
             return;
@@ -239,7 +223,11 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                     });
                                     setContextMenu(null);
                                 }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u2B06\uFE0F" }), _jsx("span", { children: "\u6700\u524D\u9762\u3078\u79FB\u52D5" })] }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
-                                    onBringToBackClick(contextMenu.card);
+                                    socket.emit('object:bring-to-back', {
+                                        roomId: roomId,
+                                        objectId: [contextMenu.card.deckId, contextMenu.card.id],
+                                        type: 'card',
+                                    });
                                     setContextMenu(null);
                                 }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u2B07\uFE0F" }), _jsx("span", { children: "\u6700\u80CC\u9762\u3078\u79FB\u52D5" })] }), _jsx("div", { style: { height: '1px', background: '#444', margin: '4px 0' } }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
                                     socket.emit('card:flip', {
