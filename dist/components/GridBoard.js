@@ -3,7 +3,6 @@ import * as React from 'react';
 import styles from './Board.module.css';
 import { Cell } from './Cell.js';
 import { Piece } from './Piece.js';
-const moveRange = 2;
 /**
  * 盤面（グリッド）を表示し、セルや駒のインタラクション、ドラッグ＆ドロップを管理する
  * @param {Socket} socket - Socket.ioのインスタンス
@@ -12,11 +11,12 @@ const moveRange = 2;
  * @param {Player[]} players - ルームに参加しているプレイヤーのリスト。指定するとプレーヤーに対応するコマを生成する
  * @param {PlayerId} myPlayerId - 操作者自身のプレイヤーID
  * @param {boolean} [allowPieceDrag=false] - 駒のドラッグ操作を許可するかどうか
- * @param {(cellData: CellData, row: number, col: number) => React.ReactNode} renderCell - 各マスの内部コンテンツを描画する関数
+ * @param {boolean} [moveRange=2] - 駒が移動できるマス数
  * @param {number} widht - 横幅
  * @param {number} height - 縦幅
+ * @param {(cellData: CellData, row: number, col: number) => React.ReactNode} renderCell - 各マスの内部コンテンツを描画する関数
  */
-export function GridBoard({ socket, roomId, boardId, players, myPlayerId, renderCell, allowPieceDrag = false, width = 800, height = 800, }) {
+export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowPieceDrag = false, moveRange = 2, width = 800, height = 800, renderCell, }) {
     const [isBoardReady, setIsBoardReady] = React.useState(false);
     const [cells, setCells] = React.useState([]);
     const [changedCells, setChangedCells] = React.useState([]);

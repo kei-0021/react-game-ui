@@ -1628,17 +1628,17 @@ function Piece({
     }
   );
 }
-const moveRange = 2;
 function GridBoard({
   socket,
   roomId,
   boardId,
   players,
   myPlayerId,
-  renderCell,
   allowPieceDrag = false,
+  moveRange = 2,
   width = 800,
-  height = 800
+  height = 800,
+  renderCell
 }) {
   const [isBoardReady, setIsBoardReady] = React.useState(false);
   const [cells, setCells] = React.useState([]);
@@ -3093,7 +3093,7 @@ class RoomManager {
   /**
    * 指定したセルから一定歩数で行けるセルIDをすべて取得する
    */
-  getMovableCellIds = (boardId, startCellId, moveRange2) => {
+  getMovableCellIds = (boardId, startCellId, moveRange) => {
     const targetBoard = this.state.boards[boardId];
     const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
     const reachable = /* @__PURE__ */ new Set();
@@ -3102,7 +3102,7 @@ class RoomManager {
     while (queue.length > 0) {
       const { id, dist } = queue.shift();
       if (dist > 0) reachable.add(id);
-      if (dist >= moveRange2) continue;
+      if (dist >= moveRange) continue;
       const cell2 = boardMap.get(id);
       cell2?.adjacentCellIds.forEach((nextId) => {
         if (!visited.has(nextId)) {

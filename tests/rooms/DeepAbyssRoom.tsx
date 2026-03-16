@@ -218,6 +218,7 @@ export function DeepAbyssRoom() {
           players={players}
           myPlayerId={myPlayerId}
           allowPieceDrag={true}
+          moveRange={3}
           renderCell={MyCustomCellRenderer}
         />
       </div>
