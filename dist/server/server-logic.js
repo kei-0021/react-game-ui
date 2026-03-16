@@ -434,9 +434,11 @@ export function initGameServer(io, options) {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;
-            const val = Math.floor(Math.random() * sides) + 1;
-            server_log('dice', state.gameId, roomId, `Dice ${diceId} rolled. Result: ${val}`);
-            io.to(roomId).emit(`dice:rolled:${roomId}:${diceId}`, val);
+            const data = {
+                value: Math.floor(Math.random() * sides) + 1,
+            };
+            server_log('dice', state.gameId, roomId, `Dice ${diceId} rolled. Result: ${data.value}`);
+            io.to(roomId).emit(`dice:update:${diceId}`, data);
         });
         // タイマー・その他同期
         socket.on('timer:start', ({ duration, roomId }) => {

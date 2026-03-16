@@ -1179,23 +1179,14 @@ const defaultDiceImages = {
   5: dice5Image,
   6: dice6Image
 };
-function Dice({
-  sides = 6,
-  socket = null,
-  diceId,
-  roomId,
-  title: title2,
-  onRoll,
-  customFaces,
-  tooltipText
-}) {
+function Dice({ socket = null, diceId, roomId, sides = 6, title: title2, onRoll, customFaces, tooltipText }) {
   const [value, setValue] = useState(1);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef(null);
-  const rollEventName = useMemo(() => `dice:rolled:${roomId}:${diceId}`, [roomId, diceId]);
+  const rollEventName = useMemo(() => `dice:update:${diceId}`, [diceId]);
   useEffect(() => {
     if (!socket || !roomId) return;
-    const handleRoll = (rolledValue) => {
+    const handleRoll = (data) => {
       setRolling(true);
       const rollDuration = 1e3;
       const interval = 50;
@@ -1208,9 +1199,9 @@ function Dice({
         if (count >= times) {
           clearInterval(animRef.current);
           animRef.current = null;
-          setValue(rolledValue);
+          setValue(data.value);
           setRolling(false);
-          onRoll?.(rolledValue);
+          onRoll?.(data.value);
         }
       }, interval);
     };
@@ -1222,7 +1213,8 @@ function Dice({
   }, [socket, sides, diceId, roomId, onRoll, rollEventName]);
   const roll = () => {
     if (!socket || rolling) return;
-    socket.emit("dice:roll", { roomId, diceId, sides });
+    const requestData = { roomId, diceId, sides };
+    socket.emit("dice:roll", requestData);
   };
   const renderDiceFace = () => {
     if (customFaces && customFaces[value - 1]) {

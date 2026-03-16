@@ -16,6 +16,8 @@ import {
   CardMoveOnFieldData,
   CardPlayData,
   DeckDrawData,
+  DiceRollData,
+  DiceUpdateData,
   DraggableMovedData,
   GameNextRoundData,
   GameNextTrunData,
@@ -525,13 +527,15 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     });
 
     // ダイス
-    socket.on('dice:roll', ({ roomId, diceId, sides }) => {
+    socket.on('dice:roll', ({ roomId, diceId, sides }: DiceRollData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
-      const val = Math.floor(Math.random() * sides) + 1;
 
-      server_log('dice', state.gameId, roomId, `Dice ${diceId} rolled. Result: ${val}`);
-      io.to(roomId).emit(`dice:rolled:${roomId}:${diceId}`, val);
+      const data: DiceUpdateData = {
+        value: Math.floor(Math.random() * sides) + 1,
+      };
+      server_log('dice', state.gameId, roomId, `Dice ${diceId} rolled. Result: ${data.value}`);
+      io.to(roomId).emit(`dice:update:${diceId}`, data);
     });
 
     // タイマー・その他同期

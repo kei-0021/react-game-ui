@@ -5,7 +5,18 @@ import { Card } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
-import { BoardId, CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
+import {
+  BoardId,
+  CardId,
+  DeckId,
+  DiceId,
+  DraggableId,
+  GameId,
+  PlayerId,
+  RoomId,
+  TokenId,
+  TokenStoreId,
+} from './definition.js';
 import { Phase } from './phase.js';
 import { Token } from './token.js';
 
@@ -139,6 +150,21 @@ export type DraggableUpdateData = {
   coordinate: Coordinate;
   rotation: number;
   zIndex: number;
+};
+
+/*
+ * ===========================================
+ * ダイス
+ * ===========================================
+ */
+export type DiceRollData = {
+  roomId: RoomId;
+  diceId: DiceId;
+  sides: number;
+};
+
+export type DiceUpdateData = {
+  value: number;
 };
 
 /*

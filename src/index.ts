@@ -3,7 +3,7 @@
 // コンポーネントは JS 実体に .js をつける
 export { Cell } from './components/Cell.js';
 export { Deck } from './components/Deck.js';
-export { default as Dice } from './components/Dice.js';
+export { Dice } from './components/Dice.js';
 export { Draggable } from './components/Draggable.js';
 export { GridBoard } from './components/GridBoard.js';
 export { PlayField } from './components/PlayField.js';
