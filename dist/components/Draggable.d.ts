@@ -20,7 +20,6 @@ type DraggableProps = {
     };
     color?: string;
     isTransparent?: boolean;
-    zIndex?: number;
     isFrontOnDragging?: boolean;
     children?: ReactNode;
     style?: CSSProperties;
@@ -39,7 +38,6 @@ type DraggableProps = {
  * @param {number | {width: number, height: number}} [size=100] - 要素のサイズ（数値なら正方形、オブジェクトなら長方形）
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
- * @param {number} [zIndex=90] - 重なり順。デフォルトは100
  * @param {number} [isFrontOnDragging=false] - ドラッグ中に一時的に zIndex を跳ね上げるためのフラグ
  * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
  * @param {CSSProperties} [style] - 外側から適用する追加のスタイル
@@ -49,6 +47,6 @@ type DraggableProps = {
  * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
  */
-export declare function Draggable({ socket, roomId, draggableId, image, mask, size, color, isTransparent, zIndex, isFrontOnDragging, children, style, scale, isDebug, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
+export declare function Draggable({ socket, roomId, draggableId, image, mask, size, color, isTransparent, isFrontOnDragging, children, style, scale, isDebug, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Draggable.d.ts.map

@@ -59,6 +59,7 @@ function initializeRoom(roomId, param) {
         server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
         server_log('draggable', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(Object.values(draggables)[0], null, 2)}`);
     }
+    const initialMaxZIndex = Object.values(draggables).reduce((max, d) => Math.max(max, d.zIndex || 0), 0);
     const state = {
         roomId: roomId,
         gameId: param.gameId || '不明なゲーム',
@@ -75,7 +76,7 @@ function initializeRoom(roomId, param) {
         boards: Cells,
         exploredCells: [],
         tokenStores: tokenStores,
-        maxZIndex: 0,
+        maxZIndex: initialMaxZIndex,
         draggable: draggables,
         systemMessageHistory: [],
     };
@@ -478,22 +479,30 @@ export function initGameServer(io, options) {
                 return;
             const param = gameParams[state.gameId];
             const roomManager = new RoomManager(io, param, state);
-            state.maxZIndex++;
-            const nextZ = state.maxZIndex;
             // type (card | draggable) に応じて該当データを更新
             if (type === 'card') {
                 server_log('deck', state.gameId, roomId, 'カードのz-indexを調整');
                 const card = state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
                 if (!card)
                     return;
-                card.zIndex = nextZ;
-                roomManager.emitDeckUpdate(objectId[0]);
+                if (!card.zIndex)
+                    return;
+                if (card.zIndex < state.maxZIndex) {
+                    state.maxZIndex++;
+                    card.zIndex = state.maxZIndex;
+                    server_log('draggable', state.gameId, roomId, `新しいz-index: ${state.maxZIndex}`);
+                    roomManager.emitDeckUpdate(objectId[0]);
+                }
             }
             else {
                 server_log('draggable', state.gameId, roomId, 'ドラッグ可能オブジェクトのz-indexを調整');
                 const draggable = state.draggable[objectId[0]];
-                draggable.zIndex = nextZ;
-                roomManager.emitDraggableUpdate(objectId[0]);
+                if (draggable.zIndex < state.maxZIndex) {
+                    state.maxZIndex++;
+                    draggable.zIndex = state.maxZIndex;
+                    server_log('draggable', state.gameId, roomId, `新しいz-index: ${state.maxZIndex}`);
+                    roomManager.emitDraggableUpdate(objectId[0]);
+                }
             }
         });
         // 次のターン

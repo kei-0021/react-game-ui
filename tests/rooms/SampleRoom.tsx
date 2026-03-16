@@ -162,9 +162,9 @@ export function SampleRoom() {
       <Draggable
         socket={socket}
         roomId={roomId}
+        draggableId="piece"
         image={DRAGGABLE_IMAGE_PATH}
         mask={true}
-        draggableId="piece"
         containerRef={containerRef}
         color="red"
         size={100}

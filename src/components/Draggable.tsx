@@ -24,7 +24,6 @@ type DraggableProps = {
   size?: number | { width: number; height: number };
   color?: string;
   isTransparent?: boolean;
-  zIndex?: number;
   isFrontOnDragging?: boolean;
   children?: ReactNode;
   style?: CSSProperties;
@@ -44,7 +43,6 @@ type DraggableProps = {
  * @param {number | {width: number, height: number}} [size=100] - 要素のサイズ（数値なら正方形、オブジェクトなら長方形）
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
- * @param {number} [zIndex=90] - 重なり順。デフォルトは100
  * @param {number} [isFrontOnDragging=false] - ドラッグ中に一時的に zIndex を跳ね上げるためのフラグ
  * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
  * @param {CSSProperties} [style] - 外側から適用する追加のスタイル
@@ -63,7 +61,6 @@ export function Draggable({
   size = 100,
   color = 'yellow',
   isTransparent = false,
-  zIndex = 100,
   isFrontOnDragging = false,
   children,
   style = {},
@@ -74,7 +71,7 @@ export function Draggable({
   // 座標と回転、重なり順を内部状態として管理
   const [pos, setPos] = useState({ x: 500, y: 500 });
   const [rotation, setRotation] = useState(0);
-  const [currentZ, setCurrentZ] = useState(zIndex);
+  const [currentZ, setCurrentZ] = useState(100);
 
   // 右クリックメニューの表示状態
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -103,10 +100,6 @@ export function Draggable({
   useEffect(() => {
     posRef.current = pos;
   }, [pos]);
-
-  useEffect(() => {
-    setCurrentZ(zIndex);
-  }, [zIndex]);
 
   // メニュー外クリックで閉じる処理
   useEffect(() => {

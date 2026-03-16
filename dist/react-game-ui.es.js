@@ -1262,7 +1262,6 @@ function Draggable({
   size = 100,
   color = "yellow",
   isTransparent = false,
-  zIndex = 100,
   isFrontOnDragging = false,
   children,
   style = {},
@@ -1272,7 +1271,7 @@ function Draggable({
 }) {
   const [pos, setPos] = useState({ x: 500, y: 500 });
   const [rotation, setRotation] = useState(0);
-  const [currentZ, setCurrentZ] = useState(zIndex);
+  const [currentZ, setCurrentZ] = useState(100);
   const [contextMenu2, setContextMenu] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const posRef = useRef(pos);
@@ -1294,9 +1293,6 @@ function Draggable({
   useEffect(() => {
     posRef.current = pos;
   }, [pos]);
-  useEffect(() => {
-    setCurrentZ(zIndex);
-  }, [zIndex]);
   useEffect(() => {
     const closeMenu = () => setContextMenu(null);
     if (contextMenu2) {

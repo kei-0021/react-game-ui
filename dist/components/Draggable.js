@@ -11,7 +11,6 @@ import draggableStyles from './Draggable.module.css';
  * @param {number | {width: number, height: number}} [size=100] - 要素のサイズ（数値なら正方形、オブジェクトなら長方形）
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
- * @param {number} [zIndex=90] - 重なり順。デフォルトは100
  * @param {number} [isFrontOnDragging=false] - ドラッグ中に一時的に zIndex を跳ね上げるためのフラグ
  * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
  * @param {CSSProperties} [style] - 外側から適用する追加のスタイル
@@ -21,11 +20,11 @@ import draggableStyles from './Draggable.module.css';
  * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
  */
-export function Draggable({ socket, roomId, draggableId, image, mask = false, size = 100, color = 'yellow', isTransparent = false, zIndex = 100, isFrontOnDragging = false, children, style = {}, scale = 1, isDebug = false, containerRef, }) {
+export function Draggable({ socket, roomId, draggableId, image, mask = false, size = 100, color = 'yellow', isTransparent = false, isFrontOnDragging = false, children, style = {}, scale = 1, isDebug = false, containerRef, }) {
     // 座標と回転、重なり順を内部状態として管理
     const [pos, setPos] = useState({ x: 500, y: 500 });
     const [rotation, setRotation] = useState(0);
-    const [currentZ, setCurrentZ] = useState(zIndex);
+    const [currentZ, setCurrentZ] = useState(100);
     // 右クリックメニューの表示状態
     const [contextMenu, setContextMenu] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -47,9 +46,6 @@ export function Draggable({ socket, roomId, draggableId, image, mask = false, si
     useEffect(() => {
         posRef.current = pos;
     }, [pos]);
-    useEffect(() => {
-        setCurrentZ(zIndex);
-    }, [zIndex]);
     // メニュー外クリックで閉じる処理
     useEffect(() => {
         const closeMenu = () => setContextMenu(null);
