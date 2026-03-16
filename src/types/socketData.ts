@@ -144,6 +144,17 @@ export type DraggableUpdateData = {
 
 /*
  * ===========================================
+ * オブジェクト重ね順
+ * ===========================================
+ */
+export type ObjectBringToFrontData = {
+  roomId: RoomId;
+  objectId: [DeckId, CardId] | DraggableId;
+  type: string;
+};
+
+/*
+ * ===========================================
  * ゲーム進行・フェーズ管理
  * ===========================================
  */

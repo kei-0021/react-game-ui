@@ -1,6 +1,7 @@
 // src/server/server-io-utils.ts
 
-import { CellData } from '@/index.js';
+import { CellData, DraggableData } from '@/index.js';
+import { Coordinate } from '@/types/coodinate.js';
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/server.js';
 import { Token } from '@/types/token.js';
@@ -241,5 +242,17 @@ export class SetupHelper {
     });
 
     return grid;
+  }
+
+  /**
+   * ドラッグ可能オブジェクトの生成
+   */
+  createDraggable(
+    id: string,
+    coordinate: Coordinate = { x: 500, y: 500 },
+    zIndex: number = 0,
+    rotation: number = 0,
+  ): DraggableData {
+    return { id, coordinate, zIndex, rotation };
   }
 }

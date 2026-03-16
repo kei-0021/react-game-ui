@@ -1309,9 +1309,15 @@ function Draggable({
     if (!socket || !draggableId) return;
     const handleRemoteMove = (data) => {
       if (data.draggableId === draggableId && !isDraggingRef.current) {
-        setPos({ x: data.coordinate.x, y: data.coordinate.y });
-        if (data.rotation !== void 0) setRotation(data.rotation);
-        if (data.zIndex !== void 0) setCurrentZ(data.zIndex);
+        if (data.coordinate) {
+          setPos({ x: data.coordinate.x, y: data.coordinate.y });
+        }
+        if (data.rotation !== void 0) {
+          setRotation(data.rotation);
+        }
+        if (data.zIndex !== void 0) {
+          setCurrentZ(data.zIndex);
+        }
       }
     };
     socket.on("draggable:update", handleRemoteMove);
@@ -1325,10 +1331,7 @@ function Draggable({
     isDraggingRef.current = true;
     setIsDragging(true);
     const fixedContainer = containerRef?.current;
-    if (!fixedContainer) {
-      console.error("containerRef がセットされていません！");
-      return;
-    }
+    if (!fixedContainer) return;
     const fixedContainerRect = fixedContainer.getBoundingClientRect();
     const clientX_relative = (e.clientX - fixedContainerRect.left) / scale;
     const clientY_relative = (e.clientY - fixedContainerRect.top) / scale;
@@ -1372,19 +1375,6 @@ function Draggable({
     const nextRot = rotation + 90;
     setRotation(nextRot);
     emitUpdate(pos, nextRot, currentZ);
-  };
-  const onBringToFrontClick = () => {
-    const allDraggables = document.querySelectorAll(`[data-draggable-id]`);
-    const maxZOnBoard = Array.from(allDraggables).reduce((max, el) => {
-      const z = parseInt(window.getComputedStyle(el).zIndex);
-      return isNaN(z) ? max : Math.max(max, z);
-    }, 100);
-    if (currentZ >= maxZOnBoard) {
-      return;
-    }
-    const nextZ = maxZOnBoard + 1;
-    setCurrentZ(nextZ);
-    emitUpdate(pos, rotation, nextZ);
   };
   const onBringToBackClick = () => {
     const nextZ = 100 + currentZ % 100;
@@ -1501,7 +1491,7 @@ function Draggable({
               className: draggableStyles.menuItem,
               onClick: (e) => {
                 e.stopPropagation();
-                onBringToFrontClick();
+                socket.emit("object:bring-to-front", { roomId, objectId: [draggableId], type: "draggable" });
                 setContextMenu(null);
               },
               children: [
@@ -1980,23 +1970,6 @@ function PlayField({
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   };
-  const onBringToFrontClick = async (card2) => {
-    const rawZIndices = playedCards.map((c) => Number(c.zIndex || 0));
-    const currentActualMax = Math.max(...rawZIndices, 100);
-    const targetZ = Number(card2.zIndex || 0);
-    const baseZ = Math.max(currentActualMax, targetZ);
-    const nextZ = baseZ + 1;
-    setMaxZ(nextZ);
-    setPlayedCards((prev) => prev.map((c) => c.id === card2.id ? { ...c, zIndex: nextZ } : c));
-    const requestData = {
-      roomId,
-      deckId: card2.deckId || deckId,
-      cardId: card2.id,
-      coordinate: card2.coordinate,
-      zIndex: nextZ
-    };
-    socket.emit("card:move-on-field", requestData);
-  };
   const onBringToBackClick = (card2) => {
     if (!card2.zIndex) return;
     const requestData = {
@@ -2110,7 +2083,6 @@ function PlayField({
                     top: contextMenu2.y,
                     left: contextMenu2.x,
                     position: "fixed"
-                    // Draggableに合わせてfixed
                   },
                   onClick: (e) => e.stopPropagation(),
                   children: [
@@ -2119,7 +2091,11 @@ function PlayField({
                       {
                         className: playFieldStyles.menuItem,
                         onClick: () => {
-                          onBringToFrontClick(contextMenu2.card);
+                          socket.emit("object:bring-to-front", {
+                            roomId,
+                            objectId: [contextMenu2.card.deckId, contextMenu2.card.id],
+                            type: "card"
+                          });
                           setContextMenu(null);
                         },
                         children: [
@@ -2816,6 +2792,7 @@ let LOG_CATEGORIES = {
   addScore: true,
   resource: true,
   token: true,
+  draggable: true,
   warn: true,
   popup: true,
   custom_event: true,

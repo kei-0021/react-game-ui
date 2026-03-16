@@ -1,6 +1,6 @@
 // src/server/deepAbyssConfig.ts
 
-import type { Card, GameParam, Player, RoomState } from 'react-game-ui';
+import { type Card, type GameParam, type Player, type RoomState } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
 import { RoomManager } from 'react-game-ui/server-utils';
 import { CardPlayData } from '../../src/types/socketData.js';

@@ -97,6 +97,11 @@ export type DraggableUpdateData = {
     rotation: number;
     zIndex: number;
 };
+export type ObjectBringToFrontData = {
+    roomId: RoomId;
+    objectId: [DeckId, CardId] | DraggableId;
+    type: string;
+};
 export type GamePhaseUpdateData = {
     newPhase: Phase;
 };

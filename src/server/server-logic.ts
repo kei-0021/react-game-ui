@@ -3,7 +3,8 @@ import { Server, Socket } from 'socket.io';
 import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 
 import { CellData } from '@/index.js';
-import { BoardId, CardId, DeckId, PlayerId, RoomId, TokenStoreId } from '@/types/definition.js';
+import { BoardId, CardId, DeckId, DraggableId, PlayerId, RoomId, TokenStoreId } from '@/types/definition.js';
+import { DraggableData } from '@/types/draggable.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
   BaordMovePlayerData,
@@ -19,6 +20,7 @@ import {
   GameNextRoundData,
   GameNextTrunData,
   GameTurnUpdateData,
+  ObjectBringToFrontData,
   RoomJoinData,
   RoomMeta,
   TokenAcquireData,
@@ -91,6 +93,9 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
   });
 
+  let draggable: Record<DraggableId, DraggableData> = {};
+  if (param.draggable) draggable = param.draggable;
+
   const state: RoomState = {
     roomId: roomId,
     gameId: param.gameId || '不明なゲーム',
@@ -108,6 +113,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     exploredCells: [],
     tokenStores: tokenStores,
     maxZIndex: 0,
+    draggable: draggable,
     systemMessageHistory: [],
   };
 
@@ -541,6 +547,39 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     socket.on('draggable:moved', (data: DraggableMovedData) => {
       const { roomId, ...move } = data;
       socket.to(roomId).emit('draggable:update', move);
+    });
+
+    // コンテキストメニュー：最前面
+    socket.on('object:bring-to-front', ({ roomId, objectId, type }: ObjectBringToFrontData) => {
+      const state = activeRooms.get(roomId);
+      if (!state) return;
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
+
+      state.maxZIndex++;
+      const nextZ = state.maxZIndex;
+
+      // type (card | draggable) に応じて該当データを更新
+      if (type === 'card') {
+        server_log('deck', state.gameId, roomId, 'カードのz-indexを調整');
+        const card = state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+        if (!card) return;
+        card.zIndex = nextZ;
+        roomManager.emitDeckUpdate(objectId[0]);
+      } else {
+        server_log('draggable', state.gameId, roomId, 'ドラッグ可能オブジェクトのz-indexを調整');
+        const draggable = state.draggable[objectId[0]];
+        draggable.zIndex = nextZ;
+        io.to(roomId).emit('draggable:update', {
+          draggableId: draggable.id,
+          coordinate: draggable.coordinate,
+          rotation: draggable.rotation,
+          zIndex: draggable.zIndex,
+        });
+      }
+
+      // 全員に通知（既存の update イベントをそれぞれ飛ばす）
+      io.to(roomId).emit(`${type}:update`, { id: objectId, zIndex: nextZ });
     });
 
     // 次のターン

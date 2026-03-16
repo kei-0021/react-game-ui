@@ -6,7 +6,7 @@ import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import { CardPlayData } from '@/types/socketData.js';
 import { Server } from 'socket.io';
-export type LogCategory = 'connection' | 'lobby' | 'game' | 'room' | 'deck' | 'card' | 'cell' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'warn' | 'popup' | 'custom_event' | 'disconnect';
+export type LogCategory = 'connection' | 'lobby' | 'game' | 'room' | 'deck' | 'card' | 'cell' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'draggable' | 'warn' | 'popup' | 'custom_event' | 'disconnect';
 export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
 /**
  * サーバーの実行ログを出力する

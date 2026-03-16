@@ -11,6 +11,7 @@ export let LOG_CATEGORIES = {
     addScore: true,
     resource: true,
     token: true,
+    draggable: true,
     warn: true,
     popup: true,
     custom_event: true,

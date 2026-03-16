@@ -191,4 +191,10 @@ export class SetupHelper {
         });
         return grid;
     }
+    /**
+     * ドラッグ可能オブジェクトの生成
+     */
+    createDraggable(id, coordinate = { x: 500, y: 500 }, zIndex = 0, rotation = 0) {
+        return { id, coordinate, zIndex, rotation };
+    }
 }

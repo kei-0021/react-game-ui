@@ -39,6 +39,7 @@ export type LogCategory =
   | 'addScore'
   | 'resource'
   | 'token'
+  | 'draggable'
   | 'warn'
   | 'popup'
   | 'custom_event'
@@ -57,6 +58,7 @@ export let LOG_CATEGORIES: Record<LogCategory, boolean> = {
   addScore: true,
   resource: true,
   token: true,
+  draggable: true,
   warn: true,
   popup: true,
   custom_event: true,

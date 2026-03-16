@@ -65,12 +65,15 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
         const handleRemoteMove = (data) => {
             // 自分がドラッグ中の時は、サーバーからの座標更新を無視する
             if (data.draggableId === draggableId && !isDraggingRef.current) {
-                setPos({ x: data.coordinate.x, y: data.coordinate.y });
-                // 他人からの回転と重なり順の更新を反映
-                if (data.rotation !== undefined)
+                if (data.coordinate) {
+                    setPos({ x: data.coordinate.x, y: data.coordinate.y });
+                }
+                if (data.rotation !== undefined) {
                     setRotation(data.rotation);
-                if (data.zIndex !== undefined)
+                }
+                if (data.zIndex !== undefined) {
                     setCurrentZ(data.zIndex);
+                }
             }
         };
         socket.on('draggable:update', handleRemoteMove);
@@ -87,10 +90,8 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
         isDraggingRef.current = true;
         setIsDragging(true);
         const fixedContainer = containerRef?.current;
-        if (!fixedContainer) {
-            console.error('containerRef がセットされていません！');
+        if (!fixedContainer)
             return;
-        }
         const fixedContainerRect = fixedContainer.getBoundingClientRect();
         const clientX_relative = (e.clientX - fixedContainerRect.left) / scale;
         const clientY_relative = (e.clientY - fixedContainerRect.top) / scale;
@@ -143,25 +144,6 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
         const nextRot = rotation + 90;
         setRotation(nextRot);
         emitUpdate(pos, nextRot, currentZ);
-    };
-    /**
-     * メニューアクション：最前面
-     */
-    const onBringToFrontClick = () => {
-        // 盤面の全Draggableから最大Zを抜き出す
-        const allDraggables = document.querySelectorAll(`[data-draggable-id]`);
-        const maxZOnBoard = Array.from(allDraggables).reduce((max, el) => {
-            const z = parseInt(window.getComputedStyle(el).zIndex);
-            return isNaN(z) ? max : Math.max(max, z);
-        }, 100);
-        // 自分がすでに最大値なら、これ以上加算せず終了する
-        if (currentZ >= maxZOnBoard) {
-            return;
-        }
-        // 最大値+1
-        const nextZ = maxZOnBoard + 1;
-        setCurrentZ(nextZ);
-        emitUpdate(pos, rotation, nextZ);
     };
     /**
      * メニューアクション：最背面
@@ -232,7 +214,7 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
                             setContextMenu(null);
                         }, children: [_jsx("span", { className: draggableStyles.menuIcon, children: "\uD83D\uDD04" }), _jsx("span", { children: "90\u5EA6\u56DE\u8EE2" })] }), _jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {
                             e.stopPropagation();
-                            onBringToFrontClick();
+                            socket.emit('object:bring-to-front', { roomId, objectId: [draggableId], type: 'draggable' });
                             setContextMenu(null);
                         }, children: [_jsx("span", { className: draggableStyles.menuIcon, children: "\u2B06\uFE0F" }), _jsx("span", { children: "\u6700\u524D\u9762\u306B\u79FB\u52D5" })] }), _jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {
                             e.stopPropagation();

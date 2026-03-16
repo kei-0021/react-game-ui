@@ -15,6 +15,7 @@ export * from './types/cardLocation.js';
 export * from './types/definition.js';
 export * from './types/player.js';
 export { type PieceData } from './types/piece.js';
+export { type DraggableData } from './types/draggable.js';
 export { RoomManager } from './server/server-utils.js';
 export { type GameParam, type RoomState } from './types/server.js';
 export { type CellData } from './types/cell.js';

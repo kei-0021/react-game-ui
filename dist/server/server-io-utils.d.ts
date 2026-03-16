@@ -1,4 +1,5 @@
-import { CellData } from '@/index.js';
+import { CellData, DraggableData } from '@/index.js';
+import { Coordinate } from '@/types/coodinate.js';
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/server.js';
 import { Token } from '@/types/token.js';
@@ -47,5 +48,9 @@ export declare class SetupHelper {
      * グリッド状ボードレイアウトの生成
      */
     createGridBoardLayout(base: any[], counts: Record<string, number>, rows: number, cols?: number, isRandom?: boolean): CellData[];
+    /**
+     * ドラッグ可能オブジェクトの生成
+     */
+    createDraggable(id: string, coordinate?: Coordinate, zIndex?: number, rotation?: number): DraggableData;
 }
 //# sourceMappingURL=server-io-utils.d.ts.map

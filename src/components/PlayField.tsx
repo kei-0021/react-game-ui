@@ -223,34 +223,6 @@ export function PlayField({
   };
 
   /**
-   * メニューアクション：最前面
-   */
-  const onBringToFrontClick = async (card: Card) => {
-    // カード配列から生の zIndex を取り出し数値化
-    const rawZIndices = playedCards.map((c) => Number(c.zIndex || 0));
-    const currentActualMax = Math.max(...rawZIndices, 100);
-
-    // 操作対象の card 自体がすでに持っている値とも比較
-    const targetZ = Number(card.zIndex || 0);
-    const baseZ = Math.max(currentActualMax, targetZ);
-
-    const nextZ = baseZ + 1;
-
-    // ステート更新と送信
-    setMaxZ(nextZ);
-    setPlayedCards((prev) => prev.map((c) => (c.id === card.id ? { ...c, zIndex: nextZ } : c)));
-
-    const requestData: CardMoveOnFieldData = {
-      roomId,
-      deckId: card.deckId || deckId,
-      cardId: card.id,
-      coordinate: card.coordinate,
-      zIndex: nextZ,
-    };
-    socket.emit('card:move-on-field', requestData);
-  };
-
-  /**
    * メニューアクション：最背面
    */
   const onBringToBackClick = (card: Card) => {
@@ -394,14 +366,18 @@ export function PlayField({
             style={{
               top: contextMenu.y,
               left: contextMenu.x,
-              position: 'fixed', // Draggableに合わせてfixed
+              position: 'fixed',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div
               className={playFieldStyles.menuItem}
               onClick={() => {
-                onBringToFrontClick(contextMenu.card);
+                socket.emit('object:bring-to-front', {
+                  roomId: roomId,
+                  objectId: [contextMenu.card.deckId, contextMenu.card.id],
+                  type: 'card',
+                });
                 setContextMenu(null);
               }}
             >

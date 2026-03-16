@@ -3,7 +3,8 @@ import { CellData, Player } from '@/index.js';
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
-import { BoardId, CardId, DeckId, GameId, PlayerId, RoomId, TokenId } from './definition.js';
+import { BoardId, CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
+import { DraggableData } from './draggable.js';
 import { Phase } from './phase.js';
 import { Position } from './position.js';
 import { Resource } from './resource.js';
@@ -22,6 +23,7 @@ import { TokenStore } from './tokenStore.js';
  * @param initialTokens - ボード上の初期配置トークン。
  * @param initialBoard - ボードの初期レイアウト。
  * @param pieceImage - ボード上のプレイヤーコマに使用する画像URL。
+ * @param draggable - ドラッグ可能オブジェクト。
  * @param initialPhase - 初期フェーズ。
  * @param cardEffects - カードの特殊効果定義。
  * @param cellEffects - セルの特殊効果定義。
@@ -49,6 +51,7 @@ export type GameParam = {
   };
   initialBoard?: Record<BoardId, CellData[]>;
   pieceImage?: string;
+  draggable?: Record<DraggableId, DraggableData>;
   initialPhase?: Phase;
   cardEffects?: Record<string, any>;
   cellEffects?: Record<string, (manager: RoomManager, player: PlayerId) => void>;
@@ -77,6 +80,7 @@ export type GameParam = {
  * @param boards - ボード上のセルデータ。
  * @param exploredCells - すでに探索・公開されたセルの座標リスト。
  * @param tokenStores - 共有トークンの現在のストック状況。
+ * @param draggable - ドラッグ可能オブジェクト。
  * @param maxZIndex - フィールド上の全オブジェクト（カード、ピース等）で共有する 重ね順のグローバル・カウンタ
  * @param systemMessageHistory - 過去のシステムメッセージの履歴。
  */
@@ -95,7 +99,8 @@ export interface RoomState {
   holdCards: Record<PlayerId, Record<DeckId, CardId[]>>;
   boards: Record<BoardId, CellData[]>;
   exploredCells: Position[];
-  tokenStores: Record<TokenId, Token[]>;
+  tokenStores: Record<TokenStoreId, Token[]>;
+  draggable: Record<DraggableId, DraggableData>;
   maxZIndex: number;
   systemMessageHistory: string[];
 }

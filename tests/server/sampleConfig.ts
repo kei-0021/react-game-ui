@@ -23,6 +23,8 @@ export const sampleConfig: RoomConfig = {
       1,
     );
 
+    const draggable = helper.createDraggable('piece', { x: 1000, y: 500 });
+
     return {
       gameId: 'sample',
       initialDecks: [
@@ -33,6 +35,7 @@ export const sampleConfig: RoomConfig = {
           backColor: '#000000',
         },
       ],
+      draggable: { piece: draggable },
       maxPlayers: 1,
     };
   },
