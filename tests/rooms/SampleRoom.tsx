@@ -38,7 +38,7 @@ export function SampleRoom() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number>(1);
 
-  const GAME_PRESET_ID = 'sample';
+  const GAME_ID = 'sample';
 
   const handleJoinRoom = useCallback(() => {
     if (!socket || !roomId || userName.trim() === '' || isJoining) return;
@@ -46,7 +46,7 @@ export function SampleRoom() {
     setIsJoining(true);
     socket.emit('room:join', {
       roomId,
-      gameId: GAME_PRESET_ID,
+      gameId: GAME_ID,
       playerName: userName.trim(),
     } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);

@@ -107,6 +107,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     boards: Cells,
     exploredCells: [],
     tokenStores: tokenStores,
+    maxZIndex: 0,
     systemMessageHistory: [],
   };
 

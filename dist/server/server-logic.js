@@ -69,6 +69,7 @@ function initializeRoom(roomId, param) {
         boards: Cells,
         exploredCells: [],
         tokenStores: tokenStores,
+        maxZIndex: 0,
         systemMessageHistory: [],
     };
     activeRooms.set(roomId, state);
