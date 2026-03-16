@@ -485,9 +485,7 @@ export function initGameServer(io, options) {
                 const card = state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
                 if (!card)
                     return;
-                if (!card.zIndex)
-                    return;
-                if (card.zIndex < state.maxZIndex) {
+                if (!card.zIndex || card.zIndex < state.maxZIndex) {
                     state.maxZIndex++;
                     card.zIndex = state.maxZIndex;
                     server_log('draggable', state.gameId, roomId, `新しいz-index: ${state.maxZIndex}`);
@@ -519,7 +517,7 @@ export function initGameServer(io, options) {
                 if (!card)
                     return;
                 if (!card.zIndex)
-                    return;
+                    card.zIndex = 100;
                 // 100枚規模の衝突を回避する正規化
                 card.zIndex = 100 + (card.zIndex % 100);
                 server_log('draggable', state.gameId, roomId, `新しいz-index: ${card.zIndex}`);
