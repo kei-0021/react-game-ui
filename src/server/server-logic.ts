@@ -96,7 +96,8 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
 
   let draggables: Record<DraggableId, DraggableData> = {};
   if (param.draggable) {
-    draggables = param.draggable;
+    draggables = structuredClone(param.draggable);
+
     server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
     server_log(
       'draggable',

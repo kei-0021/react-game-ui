@@ -55,7 +55,7 @@ function initializeRoom(roomId, param) {
     });
     let draggables = {};
     if (param.draggable) {
-        draggables = param.draggable;
+        draggables = structuredClone(param.draggable);
         server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
         server_log('draggable', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(Object.values(draggables)[0], null, 2)}`);
     }
