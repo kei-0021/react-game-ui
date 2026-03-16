@@ -100,6 +100,18 @@ export class RoomManager {
         this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
     };
     /**
+     * ドラッグ可能オブジェクトの更新を通知する
+     */
+    emitDraggableUpdate = (draggableId) => {
+        const updateData = {
+            draggableId: draggableId,
+            coordinate: this.state.draggable[draggableId].coordinate,
+            rotation: this.state.draggable[draggableId].rotation,
+            zIndex: this.state.draggable[draggableId].zIndex,
+        };
+        this.io.to(this.state.roomId).emit('draggable:update', updateData);
+    };
+    /**
      * SystemMessageWindowコンポーネントにシステムメッセージを出力する
      * @param message - メッセージ内容
      * @param ms=0 - メッセージ表示時間 (ms)

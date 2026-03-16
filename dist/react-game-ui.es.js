@@ -1257,7 +1257,6 @@ function Draggable({
   socket,
   roomId,
   draggableId,
-  initialXY = { x: 500, y: 500 },
   image: image2,
   mask = false,
   size = 100,
@@ -1271,7 +1270,7 @@ function Draggable({
   isDebug = false,
   containerRef
 }) {
-  const [pos, setPos] = useState(initialXY);
+  const [pos, setPos] = useState({ x: 500, y: 500 });
   const [rotation, setRotation] = useState(0);
   const [currentZ, setCurrentZ] = useState(zIndex);
   const [contextMenu2, setContextMenu] = useState(null);
@@ -1397,7 +1396,7 @@ function Draggable({
   } : {};
   const width = typeof size === "number" ? size : size.width;
   const height = typeof size === "number" ? size : size.height;
-  const dynamicZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
+  const currentZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
   const dynamicStyle = {
     position: "absolute",
     cursor: isDragging ? "grabbing" : "grab",
@@ -1412,7 +1411,7 @@ function Draggable({
     top: `${pos.y}px`,
     width: `${width}px`,
     height: `${height}px`,
-    zIndex: dynamicZIndex,
+    zIndex: currentZIndex,
     background: mask && image2 ? void 0 : isTransparent ? "transparent" : color,
     // マスク関連（これも特殊な計算結果なので最後に上書き）
     ...maskStyle
@@ -1456,7 +1455,7 @@ function Draggable({
           "ID: ",
           draggableId,
           " | Z: ",
-          dynamicZIndex
+          currentZIndex
         ]
       }
     ),
@@ -2852,6 +2851,18 @@ class RoomManager {
   emitTokenStoreUpdate = (tokenStoreId) => {
     const updateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
     this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
+  };
+  /**
+   * ドラッグ可能オブジェクトの更新を通知する
+   */
+  emitDraggableUpdate = (draggableId) => {
+    const updateData = {
+      draggableId,
+      coordinate: this.state.draggable[draggableId].coordinate,
+      rotation: this.state.draggable[draggableId].rotation,
+      zIndex: this.state.draggable[draggableId].zIndex
+    };
+    this.io.to(this.state.roomId).emit("draggable:update", updateData);
   };
   /**
    * SystemMessageWindowコンポーネントにシステムメッセージを出力する

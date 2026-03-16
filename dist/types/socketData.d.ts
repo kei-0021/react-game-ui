@@ -89,7 +89,6 @@ export type DraggableMovedData = {
     draggableId: DraggableId;
     coordinate: Coordinate;
     rotation: number;
-    zIndex: number;
 };
 export type DraggableUpdateData = {
     draggableId: DraggableId;

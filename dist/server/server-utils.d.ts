@@ -1,6 +1,6 @@
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
-import { BoardId, CardId, CellId, DeckId, GameId, PlayerId, ResourceId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { BoardId, CardId, CellId, DeckId, DraggableId, GameId, PlayerId, ResourceId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
@@ -44,6 +44,10 @@ export declare class RoomManager {
      * トークン置き場更新を通知する
      */
     emitTokenStoreUpdate: (tokenStoreId: TokenStoreId) => void;
+    /**
+     * ドラッグ可能オブジェクトの更新を通知する
+     */
+    emitDraggableUpdate: (draggableId: DraggableId) => void;
     /**
      * SystemMessageWindowコンポーネントにシステムメッセージを出力する
      * @param message - メッセージ内容

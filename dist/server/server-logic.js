@@ -53,9 +53,12 @@ function initializeRoom(roomId, param) {
         tokenStores[tokenStore.tokenStoreId] = tokens;
         server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
     });
-    let draggable = {};
-    if (param.draggable)
-        draggable = param.draggable;
+    let draggables = {};
+    if (param.draggable) {
+        draggables = param.draggable;
+        server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
+        server_log('draggable', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(Object.values(draggables)[0], null, 2)}`);
+    }
     const state = {
         roomId: roomId,
         gameId: param.gameId || '不明なゲーム',
@@ -73,7 +76,7 @@ function initializeRoom(roomId, param) {
         exploredCells: [],
         tokenStores: tokenStores,
         maxZIndex: 0,
-        draggable: draggable,
+        draggable: draggables,
         systemMessageHistory: [],
     };
     activeRooms.set(roomId, state);
@@ -202,7 +205,7 @@ export function initGameServer(io, options) {
             const lastMessage = state.systemMessageHistory.at(-1);
             if (lastMessage)
                 roomManager.emitSystemMessage(lastMessage, 0, true);
-            // プレイヤー, デッキ, トークン置き場, ボード の初期状態を配信
+            // プレイヤー, デッキ, トークン置き場, ボード, ドラッグ可能オブジェクト の初期状態を配信
             roomManager.emitPlayerUpdate();
             Object.keys(state.decks).forEach((id) => roomManager.emitDeckUpdate(id));
             Object.keys(state.tokenStores).forEach((id) => roomManager.emitTokenStoreUpdate(id));
@@ -211,6 +214,7 @@ export function initGameServer(io, options) {
             Object.entries(state.boards).forEach(([boardId, board]) => {
                 socket.emit('board:update', { boardId, board });
             });
+            Object.keys(state.draggable).forEach((id) => roomManager.emitDraggableUpdate(id));
             // 初回の一人のみターンを更新する
             if (state.players.length == 1) {
                 roomManager.updateRound();
@@ -456,9 +460,16 @@ export function initGameServer(io, options) {
         socket.on('cursor:move', ({ roomId, x, y }) => {
             socket.to(roomId).emit('cursor:update', { playerId: socket.id, x, y });
         });
-        socket.on('draggable:moved', (data) => {
-            const { roomId, ...move } = data;
-            socket.to(roomId).emit('draggable:update', move);
+        socket.on('draggable:moved', ({ roomId, draggableId, coordinate, rotation }) => {
+            const state = activeRooms.get(roomId);
+            if (!state)
+                return;
+            const param = gameParams[state.gameId];
+            const roomManager = new RoomManager(io, param, state);
+            const draggable = state.draggable[draggableId];
+            draggable.coordinate = coordinate;
+            draggable.rotation = rotation;
+            roomManager.emitDraggableUpdate(draggableId);
         });
         // コンテキストメニュー：最前面
         socket.on('object:bring-to-front', ({ roomId, objectId, type }) => {
@@ -482,15 +493,8 @@ export function initGameServer(io, options) {
                 server_log('draggable', state.gameId, roomId, 'ドラッグ可能オブジェクトのz-indexを調整');
                 const draggable = state.draggable[objectId[0]];
                 draggable.zIndex = nextZ;
-                io.to(roomId).emit('draggable:update', {
-                    draggableId: draggable.id,
-                    coordinate: draggable.coordinate,
-                    rotation: draggable.rotation,
-                    zIndex: draggable.zIndex,
-                });
+                roomManager.emitDraggableUpdate(objectId[0]);
             }
-            // 全員に通知（既存の update イベントをそれぞれ飛ばす）
-            io.to(roomId).emit(`${type}:update`, { id: objectId, zIndex: nextZ });
         });
         // 次のターン
         socket.on('game:next-turn', ({ roomId }) => {

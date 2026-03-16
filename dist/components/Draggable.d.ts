@@ -1,4 +1,3 @@
-import { Coordinate } from '@/types/coodinate.js';
 import { DraggableId, RoomId } from '@/types/definition.js';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Socket } from 'socket.io-client';
@@ -15,7 +14,6 @@ type DraggableProps = {
     draggableId: DraggableId;
     image?: string;
     mask?: boolean;
-    initialXY?: Coordinate;
     size?: number | {
         width: number;
         height: number;
@@ -38,7 +36,6 @@ type DraggableProps = {
  * @param {DraggableId} [draggableId] - この要素を一意に識別するためのID
  * @param {string} [image] - 表示する画像URL
  * @param {boolean} [mask=false] - 画像を背景色(color)でマスク（切り抜き）表示するかどうか
- * @param {Coordinate} [initialXY={x:500, y:500}] - 初期配置のXY座標
  * @param {number | {width: number, height: number}} [size=100] - 要素のサイズ（数値なら正方形、オブジェクトなら長方形）
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
@@ -52,6 +49,6 @@ type DraggableProps = {
  * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
  */
-export declare function Draggable({ socket, roomId, draggableId, initialXY, image, mask, size, color, isTransparent, zIndex, isFrontOnDragging, children, style, scale, isDebug, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
+export declare function Draggable({ socket, roomId, draggableId, image, mask, size, color, isTransparent, zIndex, isFrontOnDragging, children, style, scale, isDebug, containerRef, }: DraggableProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Draggable.d.ts.map

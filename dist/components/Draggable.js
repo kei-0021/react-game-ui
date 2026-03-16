@@ -8,7 +8,6 @@ import draggableStyles from './Draggable.module.css';
  * @param {DraggableId} [draggableId] - この要素を一意に識別するためのID
  * @param {string} [image] - 表示する画像URL
  * @param {boolean} [mask=false] - 画像を背景色(color)でマスク（切り抜き）表示するかどうか
- * @param {Coordinate} [initialXY={x:500, y:500}] - 初期配置のXY座標
  * @param {number | {width: number, height: number}} [size=100] - 要素のサイズ（数値なら正方形、オブジェクトなら長方形）
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
@@ -22,9 +21,9 @@ import draggableStyles from './Draggable.module.css';
  * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
  */
-export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y: 500 }, image, mask = false, size = 100, color = 'yellow', isTransparent = false, zIndex = 100, isFrontOnDragging = false, children, style = {}, scale = 1, isDebug = false, containerRef, }) {
+export function Draggable({ socket, roomId, draggableId, image, mask = false, size = 100, color = 'yellow', isTransparent = false, zIndex = 100, isFrontOnDragging = false, children, style = {}, scale = 1, isDebug = false, containerRef, }) {
     // 座標と回転、重なり順を内部状態として管理
-    const [pos, setPos] = useState(initialXY);
+    const [pos, setPos] = useState({ x: 500, y: 500 });
     const [rotation, setRotation] = useState(0);
     const [currentZ, setCurrentZ] = useState(zIndex);
     // 右クリックメニューの表示状態
@@ -174,7 +173,7 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
     const width = typeof size === 'number' ? size : size.width;
     const height = typeof size === 'number' ? size : size.height;
     // ドラッグ中は一時的に 9999、それ以外は currentZ を使用
-    const dynamicZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
+    const currentZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
     const dynamicStyle = {
         position: 'absolute',
         cursor: isDragging ? 'grabbing' : 'grab',
@@ -189,7 +188,7 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
         top: `${pos.y}px`,
         width: `${width}px`,
         height: `${height}px`,
-        zIndex: dynamicZIndex,
+        zIndex: currentZIndex,
         background: mask && image ? undefined : isTransparent ? 'transparent' : color,
         // マスク関連（これも特殊な計算結果なので最後に上書き）
         ...maskStyle,
@@ -205,7 +204,7 @@ export function Draggable({ socket, roomId, draggableId, initialXY = { x: 500, y
                     left: `${pos.x}px`,
                     top: `${pos.y - height / 2 - 22}px`,
                     transform: 'translateX(-50%)',
-                }, children: ["ID: ", draggableId, " | Z: ", dynamicZIndex] })), contextMenu && (_jsxs("div", { className: draggableStyles.contextMenu, style: {
+                }, children: ["ID: ", draggableId, " | Z: ", currentZIndex] })), contextMenu && (_jsxs("div", { className: draggableStyles.contextMenu, style: {
                     top: contextMenu.y,
                     left: contextMenu.x,
                 }, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {

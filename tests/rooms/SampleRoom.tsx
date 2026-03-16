@@ -20,8 +20,6 @@ import './SampleRoom.css';
 const SERVER_URL = 'http://127.0.0.1:4000';
 const DRAGGABLE_IMAGE_PATH = '/hanabishi.svg';
 
-const Z_INDX_DRAGGABLE = 201;
-
 export function SampleRoom() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
@@ -160,31 +158,25 @@ export function SampleRoom() {
         players={players}
         isDebug={true}
       />
+
       <Draggable
         socket={socket}
         roomId={roomId}
         image={DRAGGABLE_IMAGE_PATH}
         mask={true}
-        initialXY={{ x: 1000, y: 500 }}
-        key={`piece`}
-        draggableId={`piece`}
+        draggableId="piece"
         containerRef={containerRef}
         color="red"
         size={100}
         isDebug={true}
-      ></Draggable>
-
+      />
       {[...Array(10)].map((_, i) => (
         <Draggable
           socket={socket}
           roomId={roomId}
-          // 少しずつずらして重なりを見やすくする
-          initialXY={{ x: 1350 + i * 20, y: 700 + i * 20 }}
-          key={`piece-${i}`}
           draggableId={`piece-${i}`}
           size={{ width: 200, height: 100 }}
           containerRef={containerRef}
-          zIndex={Z_INDX_DRAGGABLE + i}
           isFrontOnDragging={true}
           color={`hsl(${200 + i * 5}, 70%, ${50 + i * 3}%)`}
           isDebug={true}

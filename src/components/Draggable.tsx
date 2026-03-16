@@ -21,7 +21,6 @@ type DraggableProps = {
   draggableId: DraggableId;
   image?: string;
   mask?: boolean;
-  initialXY?: Coordinate;
   size?: number | { width: number; height: number };
   color?: string;
   isTransparent?: boolean;
@@ -42,7 +41,6 @@ type DraggableProps = {
  * @param {DraggableId} [draggableId] - この要素を一意に識別するためのID
  * @param {string} [image] - 表示する画像URL
  * @param {boolean} [mask=false] - 画像を背景色(color)でマスク（切り抜き）表示するかどうか
- * @param {Coordinate} [initialXY={x:500, y:500}] - 初期配置のXY座標
  * @param {number | {width: number, height: number}} [size=100] - 要素のサイズ（数値なら正方形、オブジェクトなら長方形）
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
@@ -60,7 +58,6 @@ export function Draggable({
   socket,
   roomId,
   draggableId,
-  initialXY = { x: 500, y: 500 },
   image,
   mask = false,
   size = 100,
@@ -75,7 +72,7 @@ export function Draggable({
   containerRef,
 }: DraggableProps) {
   // 座標と回転、重なり順を内部状態として管理
-  const [pos, setPos] = useState(initialXY);
+  const [pos, setPos] = useState({ x: 500, y: 500 });
   const [rotation, setRotation] = useState(0);
   const [currentZ, setCurrentZ] = useState(zIndex);
 
@@ -255,7 +252,7 @@ export function Draggable({
   const height = typeof size === 'number' ? size : size.height;
 
   // ドラッグ中は一時的に 9999、それ以外は currentZ を使用
-  const dynamicZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
+  const currentZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
 
   const dynamicStyle: CSSProperties = {
     position: 'absolute',
@@ -273,7 +270,7 @@ export function Draggable({
     top: `${pos.y}px`,
     width: `${width}px`,
     height: `${height}px`,
-    zIndex: dynamicZIndex,
+    zIndex: currentZIndex,
     background: mask && image ? undefined : isTransparent ? 'transparent' : color,
 
     // マスク関連（これも特殊な計算結果なので最後に上書き）
@@ -317,7 +314,7 @@ export function Draggable({
             transform: 'translateX(-50%)',
           }}
         >
-          ID: {draggableId} | Z: {dynamicZIndex}
+          ID: {draggableId} | Z: {currentZIndex}
         </div>
       )}
 

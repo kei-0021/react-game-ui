@@ -1,7 +1,9 @@
 // tests/server/sampleConfig.ts
 
-import type { Card, GameParam } from 'react-game-ui';
+import type { Card, DraggableData, DraggableId, GameParam } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
+
+const Z_INDX_DRAGGABLE = 201;
 
 export const sampleConfig: RoomConfig = {
   gameId: 'sample',
@@ -23,7 +25,12 @@ export const sampleConfig: RoomConfig = {
       1,
     );
 
-    const draggable = helper.createDraggable('piece', { x: 1000, y: 500 });
+    const draggables: Record<DraggableId, DraggableData> = {};
+    draggables['piece'] = helper.createDraggable('piece', { x: 500, y: 500 }, 100);
+    for (let i = 0; i < 10; i++) {
+      const id = `piece-${i}`;
+      draggables[id] = helper.createDraggable(id, { x: 1000 + i * 20, y: 500 + i * 20 }, Z_INDX_DRAGGABLE + i);
+    }
 
     return {
       gameId: 'sample',
@@ -35,7 +42,7 @@ export const sampleConfig: RoomConfig = {
           backColor: '#000000',
         },
       ],
-      draggable: { piece: draggable },
+      draggable: draggables,
       maxPlayers: 1,
     };
   },

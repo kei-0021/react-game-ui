@@ -37,10 +37,11 @@ async function startServer() {
     customEvents,
     initialLogCategories: {
       connection: true,
-      deck: true,
-      room: true,
       lobby: true,
+      room: true,
+      deck: false,
       cell: false,
+      draggable: false,
     },
     onServerStart: (url: string) => console.log(`🎮 Demo server running at: ${url}`),
   };

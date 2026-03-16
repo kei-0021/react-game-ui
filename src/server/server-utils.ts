@@ -6,6 +6,7 @@ import {
   CardId,
   CellId,
   DeckId,
+  DraggableId,
   GameId,
   PlayerId,
   ResourceId,
@@ -19,6 +20,7 @@ import { GameParam, RoomState } from '@/types/server.js';
 import {
   CardPlayData,
   DeckUpdateData,
+  DraggableUpdateData,
   GamePhaseUpdateData,
   GameTurnUpdateData,
   SystemMessageData,
@@ -153,6 +155,19 @@ export class RoomManager {
   emitTokenStoreUpdate = (tokenStoreId: TokenStoreId) => {
     const updateData: TokenStoreUpdateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
     this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
+  };
+
+  /**
+   * ドラッグ可能オブジェクトの更新を通知する
+   */
+  emitDraggableUpdate = (draggableId: DraggableId) => {
+    const updateData: DraggableUpdateData = {
+      draggableId: draggableId,
+      coordinate: this.state.draggable[draggableId].coordinate,
+      rotation: this.state.draggable[draggableId].rotation,
+      zIndex: this.state.draggable[draggableId].zIndex,
+    };
+    this.io.to(this.state.roomId).emit('draggable:update', updateData);
   };
 
   /**
