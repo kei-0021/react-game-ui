@@ -172,16 +172,11 @@ export type DiceUpdateData = {
  * オブジェクト重ね順
  * ===========================================
  */
-export type ObjectBringToFrontData = {
+export type ObjectBringToData = {
   roomId: RoomId;
   objectId: [DeckId, CardId] | DraggableId;
-  type: string;
-};
-
-export type ObjectBringToBackData = {
-  roomId: RoomId;
-  objectId: [DeckId, CardId] | DraggableId;
-  type: string;
+  type: 'card' | 'draggable';
+  isFront: boolean;
 };
 
 /*

@@ -200,11 +200,23 @@ export function Draggable({ socket, roomId, draggableId, image, mask = false, si
                             setContextMenu(null);
                         }, children: [_jsx("span", { className: draggableStyles.menuIcon, children: "\uD83D\uDD04" }), _jsx("span", { children: "90\u5EA6\u56DE\u8EE2" })] }), _jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {
                             e.stopPropagation();
-                            socket.emit('object:bring-to-front', { roomId, objectId: [draggableId], type: 'draggable' });
+                            const requestData = {
+                                roomId,
+                                objectId: draggableId,
+                                type: 'draggable',
+                                isFront: true,
+                            };
+                            socket.emit('object:bring-to', requestData);
                             setContextMenu(null);
                         }, children: [_jsx("span", { className: draggableStyles.menuIcon, children: "\u2B06\uFE0F" }), _jsx("span", { children: "\u6700\u524D\u9762\u306B\u79FB\u52D5" })] }), _jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {
                             e.stopPropagation();
-                            socket.emit('object:bring-to-back', { roomId, objectId: [draggableId], type: 'draggable' });
+                            const requestData = {
+                                roomId,
+                                objectId: draggableId,
+                                type: 'draggable',
+                                isFront: false,
+                            };
+                            socket.emit('object:bring-to', requestData);
                             setContextMenu(null);
                         }, children: [_jsx("span", { className: draggableStyles.menuIcon, children: "\u2B07\uFE0F" }), _jsx("span", { children: "\u6700\u80CC\u9762\u306B\u79FB\u52D5" })] }), _jsx("div", { className: draggableStyles.separator }), _jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {
                             e.stopPropagation();

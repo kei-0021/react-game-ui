@@ -1,7 +1,7 @@
 // src/components/Draggable.tsx
 import { Coordinate } from '@/types/coodinate.js';
 import { DraggableId, RoomId } from '@/types/definition.js';
-import { DraggableMovedData, DraggableUpdateData } from '@/types/socketData.js';
+import { DraggableMovedData, DraggableUpdateData, ObjectBringToData } from '@/types/socketData.js';
 import type { CSSProperties, ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Socket } from 'socket.io-client';
@@ -326,7 +326,13 @@ export function Draggable({
             className={draggableStyles.menuItem}
             onClick={(e) => {
               e.stopPropagation();
-              socket.emit('object:bring-to-front', { roomId, objectId: [draggableId], type: 'draggable' });
+              const requestData: ObjectBringToData = {
+                roomId,
+                objectId: draggableId,
+                type: 'draggable',
+                isFront: true,
+              };
+              socket.emit('object:bring-to', requestData);
               setContextMenu(null);
             }}
           >
@@ -338,7 +344,13 @@ export function Draggable({
             className={draggableStyles.menuItem}
             onClick={(e) => {
               e.stopPropagation();
-              socket.emit('object:bring-to-back', { roomId, objectId: [draggableId], type: 'draggable' });
+              const requestData: ObjectBringToData = {
+                roomId,
+                objectId: draggableId,
+                type: 'draggable',
+                isFront: false,
+              };
+              socket.emit('object:bring-to', requestData);
               setContextMenu(null);
             }}
           >

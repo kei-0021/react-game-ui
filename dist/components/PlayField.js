@@ -216,18 +216,22 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                             left: contextMenu.x,
                             position: 'fixed',
                         }, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
-                                    socket.emit('object:bring-to-front', {
-                                        roomId: roomId,
+                                    const requestData = {
+                                        roomId,
                                         objectId: [contextMenu.card.deckId, contextMenu.card.id],
                                         type: 'card',
-                                    });
+                                        isFront: true,
+                                    };
+                                    socket.emit('object:bring-to', requestData);
                                     setContextMenu(null);
                                 }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u2B06\uFE0F" }), _jsx("span", { children: "\u6700\u524D\u9762\u3078\u79FB\u52D5" })] }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
-                                    socket.emit('object:bring-to-back', {
-                                        roomId: roomId,
+                                    const requestData = {
+                                        roomId,
                                         objectId: [contextMenu.card.deckId, contextMenu.card.id],
                                         type: 'card',
-                                    });
+                                        isFront: false,
+                                    };
+                                    socket.emit('object:bring-to', requestData);
                                     setContextMenu(null);
                                 }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u2B07\uFE0F" }), _jsx("span", { children: "\u6700\u80CC\u9762\u3078\u79FB\u52D5" })] }), _jsx("div", { style: { height: '1px', background: '#444', margin: '4px 0' } }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
                                     socket.emit('card:flip', {

@@ -1,7 +1,13 @@
 // src/components/PlayField.tsx
 
 import { Player } from '@/types/player.js';
-import { CardFlipData, CardMoveFromFieldData, CardPlayData, DeckUpdateData } from '@/types/socketData.js';
+import {
+  CardFlipData,
+  CardMoveFromFieldData,
+  CardPlayData,
+  DeckUpdateData,
+  ObjectBringToData,
+} from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
@@ -350,11 +356,13 @@ export function PlayField({
             <div
               className={playFieldStyles.menuItem}
               onClick={() => {
-                socket.emit('object:bring-to-front', {
-                  roomId: roomId,
+                const requestData: ObjectBringToData = {
+                  roomId,
                   objectId: [contextMenu.card.deckId, contextMenu.card.id],
                   type: 'card',
-                });
+                  isFront: true,
+                };
+                socket.emit('object:bring-to', requestData);
                 setContextMenu(null);
               }}
             >
@@ -365,11 +373,13 @@ export function PlayField({
             <div
               className={playFieldStyles.menuItem}
               onClick={() => {
-                socket.emit('object:bring-to-back', {
-                  roomId: roomId,
+                const requestData: ObjectBringToData = {
+                  roomId,
                   objectId: [contextMenu.card.deckId, contextMenu.card.id],
                   type: 'card',
-                });
+                  isFront: false,
+                };
+                socket.emit('object:bring-to', requestData);
                 setContextMenu(null);
               }}
             >

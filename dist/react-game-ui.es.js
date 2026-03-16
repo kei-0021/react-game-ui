@@ -1473,7 +1473,13 @@ function Draggable({
               className: draggableStyles.menuItem,
               onClick: (e) => {
                 e.stopPropagation();
-                socket.emit("object:bring-to-front", { roomId, objectId: [draggableId], type: "draggable" });
+                const requestData = {
+                  roomId,
+                  objectId: draggableId,
+                  type: "draggable",
+                  isFront: true
+                };
+                socket.emit("object:bring-to", requestData);
                 setContextMenu(null);
               },
               children: [
@@ -1488,7 +1494,13 @@ function Draggable({
               className: draggableStyles.menuItem,
               onClick: (e) => {
                 e.stopPropagation();
-                socket.emit("object:bring-to-back", { roomId, objectId: [draggableId], type: "draggable" });
+                const requestData = {
+                  roomId,
+                  objectId: draggableId,
+                  type: "draggable",
+                  isFront: false
+                };
+                socket.emit("object:bring-to", requestData);
                 setContextMenu(null);
               },
               children: [
@@ -2062,11 +2074,13 @@ function PlayField({
                       {
                         className: playFieldStyles.menuItem,
                         onClick: () => {
-                          socket.emit("object:bring-to-front", {
+                          const requestData = {
                             roomId,
                             objectId: [contextMenu2.card.deckId, contextMenu2.card.id],
-                            type: "card"
-                          });
+                            type: "card",
+                            isFront: true
+                          };
+                          socket.emit("object:bring-to", requestData);
                           setContextMenu(null);
                         },
                         children: [
@@ -2080,11 +2094,13 @@ function PlayField({
                       {
                         className: playFieldStyles.menuItem,
                         onClick: () => {
-                          socket.emit("object:bring-to-back", {
+                          const requestData = {
                             roomId,
                             objectId: [contextMenu2.card.deckId, contextMenu2.card.id],
-                            type: "card"
-                          });
+                            type: "card",
+                            isFront: false
+                          };
+                          socket.emit("object:bring-to", requestData);
                           setContextMenu(null);
                         },
                         children: [
@@ -2924,6 +2940,7 @@ class RoomManager {
       } else {
         this.state.playFieldCards[deckId].push(card2);
       }
+      this.updateZIndex("card", [deckId, card2.id], true);
       server_log("card", this.state.gameId, this.state.roomId, `"${card2.name}" をプレイした`);
       const effect = this.param.cardEffects?.[card2.name];
       if (effect) {
@@ -3148,6 +3165,61 @@ class RoomManager {
       server_log("cell", this.state.gameId, this.state.roomId, `マス効果なし: (${row}, ${col}) ${cell2.name}`);
     }
   };
+  /**
+   * 重ね順を更新する
+   */
+  updateZIndex(type, objectId, isToFront) {
+    if (isToFront == true) {
+      if (type === "card") {
+        if (!Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
+        }
+        server_log("deck", this.state.gameId, this.state.roomId, "カードのz-indexを最全面に移動");
+        const card2 = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+        if (!card2) return;
+        if (!card2.zIndex || card2.zIndex < this.state.maxZIndex) {
+          this.state.maxZIndex++;
+          card2.zIndex = this.state.maxZIndex;
+          server_log("draggable", this.state.gameId, this.state.roomId, `新しいz-index: ${this.state.maxZIndex}`);
+          this.emitDeckUpdate(objectId[0]);
+        }
+      } else {
+        if (Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
+        }
+        server_log("draggable", this.state.gameId, this.state.roomId, "ドラッグ可能オブジェクトを最前面に移動");
+        const draggable2 = this.state.draggable[objectId];
+        if (draggable2.zIndex < this.state.maxZIndex) {
+          this.state.maxZIndex++;
+          draggable2.zIndex = this.state.maxZIndex;
+          server_log("draggable", this.state.gameId, this.state.roomId, `新しいz-index: ${this.state.maxZIndex}`);
+          this.emitDraggableUpdate(objectId);
+        }
+      }
+    } else {
+      if (type === "card") {
+        if (!Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
+        }
+        server_log("deck", this.state.gameId, this.state.roomId, "カードのを最背面に移動");
+        const card2 = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+        if (!card2) return;
+        if (!card2.zIndex) card2.zIndex = 100;
+        card2.zIndex = 100 + card2.zIndex % 100;
+        server_log("draggable", this.state.gameId, this.state.roomId, `新しいz-index: ${card2.zIndex}`);
+        this.emitDeckUpdate(objectId[0]);
+      } else {
+        if (Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
+        }
+        server_log("draggable", this.state.gameId, this.state.roomId, "ドラッグ可能オブジェクトを最背面に移動");
+        const draggable2 = this.state.draggable[objectId];
+        draggable2.zIndex = 100 + draggable2.zIndex % 100;
+        server_log("draggable", this.state.gameId, this.state.roomId, `新しいz-index: ${draggable2.zIndex}`);
+        this.emitDraggableUpdate(objectId);
+      }
+    }
+  }
   /**
    * ターンを更新する
    */

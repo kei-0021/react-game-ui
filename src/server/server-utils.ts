@@ -277,6 +277,9 @@ export class RoomManager {
         this.state.playFieldCards[deckId].push(card);
       }
 
+      // 最前面に移動
+      this.updateZIndex('card', [deckId, card.id], true);
+
       server_log('card', this.state.gameId, this.state.roomId, `"${card.name}" をプレイした`);
 
       // カード効果
@@ -563,6 +566,64 @@ export class RoomManager {
       server_log('cell', this.state.gameId, this.state.roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
     }
   };
+
+  /**
+   * 重ね順を更新する
+   */
+  updateZIndex(type: 'card' | 'draggable', objectId: [DeckId, CardId] | DraggableId, isToFront: boolean): void {
+    if (isToFront == true) {
+      if (type === 'card') {
+        if (!Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
+        }
+        server_log('deck', this.state.gameId, this.state.roomId, 'カードのz-indexを最全面に移動');
+        const card = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+        if (!card) return;
+        if (!card.zIndex || card.zIndex < this.state.maxZIndex) {
+          this.state.maxZIndex++;
+          card.zIndex = this.state.maxZIndex;
+          server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${this.state.maxZIndex}`);
+          this.emitDeckUpdate(objectId[0]);
+        }
+      } else {
+        if (Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
+        }
+        server_log('draggable', this.state.gameId, this.state.roomId, 'ドラッグ可能オブジェクトを最前面に移動');
+        const draggable = this.state.draggable[objectId];
+        if (draggable.zIndex < this.state.maxZIndex) {
+          this.state.maxZIndex++;
+          draggable.zIndex = this.state.maxZIndex;
+          server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${this.state.maxZIndex}`);
+          this.emitDraggableUpdate(objectId);
+        }
+      }
+    } else {
+      if (type === 'card') {
+        if (!Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
+        }
+        server_log('deck', this.state.gameId, this.state.roomId, 'カードのを最背面に移動');
+        const card = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+        if (!card) return;
+        if (!card.zIndex) card.zIndex = 100;
+        // 100枚規模の衝突を回避する正規化
+        card.zIndex = 100 + (card.zIndex % 100);
+        server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${card.zIndex}`);
+        this.emitDeckUpdate(objectId[0]);
+      } else {
+        if (Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
+        }
+        server_log('draggable', this.state.gameId, this.state.roomId, 'ドラッグ可能オブジェクトを最背面に移動');
+        const draggable = this.state.draggable[objectId];
+        // 100枚規模の衝突を回避する正規化
+        draggable.zIndex = 100 + (draggable.zIndex % 100);
+        server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${draggable.zIndex}`);
+        this.emitDraggableUpdate(objectId);
+      }
+    }
+  }
 
   /**
    * ターンを更新する
