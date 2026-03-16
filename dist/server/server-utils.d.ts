@@ -101,8 +101,9 @@ export declare class RoomManager {
     updateCellExploredStatus: (position: Position, shouldMark: boolean) => void;
     /**
      * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+     * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
      */
-    getMovableCellIds: (boardId: BoardId, startCellId: CellId, moveRange: number) => CellId[];
+    getMovableCellIds: (boardId: BoardId, startCellId: CellId, moveRange: number, isExact: boolean) => CellId[];
     /**
      * セル効果を発動する
      * @param boardId - ボードID

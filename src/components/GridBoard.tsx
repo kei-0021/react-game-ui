@@ -23,6 +23,7 @@ type GridBoardProps = {
   myPlayerId: PlayerId | null;
   allowPieceDrag?: boolean;
   moveRange?: number;
+  isExact?: boolean;
   width?: number;
   height?: number;
   renderCell: (cellData: CellData, row: number, col: number) => React.ReactNode;
@@ -37,6 +38,7 @@ type GridBoardProps = {
  * @param {PlayerId} myPlayerId - 操作者自身のプレイヤーID
  * @param {boolean} [allowPieceDrag=false] - 駒のドラッグ操作を許可するかどうか
  * @param {boolean} [moveRange=2] - 駒が移動できるマス数
+ * @param {boolean} [isExact=true] - 駒が移動できるマス数がピッタリであるべきかのフラグ
  * @param {number} widht - 横幅
  * @param {number} height - 縦幅
  * @param {(cellData: CellData, row: number, col: number) => React.ReactNode} renderCell - 各マスの内部コンテンツを描画する関数
@@ -49,6 +51,7 @@ export function GridBoard({
   myPlayerId,
   allowPieceDrag = false,
   moveRange = 2,
+  isExact = true,
   width = 800,
   height = 800,
   renderCell,
@@ -98,12 +101,15 @@ export function GridBoard({
   const handlePieceClick = (pieceId: PieceId) => {
     if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
 
-    socket.emit('board:movable-range', {
+    const requestData: BoardMovableRangeData = {
       roomId,
       boardId,
       playerId: pieceId,
       moveRange: moveRange,
-    } as BoardMovableRangeData);
+      isExact: isExact,
+    };
+
+    socket.emit('board:movable-range', requestData);
   };
 
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {

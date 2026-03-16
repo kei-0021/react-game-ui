@@ -360,8 +360,9 @@ export class RoomManager {
     };
     /**
      * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+     * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
      */
-    getMovableCellIds = (boardId, startCellId, moveRange) => {
+    getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
         const targetBoard = this.state.boards[boardId];
         const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
         const reachable = new Set();
@@ -369,8 +370,19 @@ export class RoomManager {
         const visited = new Set([startCellId]);
         while (queue.length > 0) {
             const { id, dist } = queue.shift();
-            if (dist > 0)
-                reachable.add(id); // スタート地点以外を登録
+            // 登録条件の判定
+            if (dist > 0) {
+                if (isExact) {
+                    // isExactフラグがtrueなら、指定歩数と同じ場合のみ登録
+                    if (dist === moveRange)
+                        reachable.add(id);
+                }
+                else {
+                    // 通常時は今まで通り移動範囲内すべて
+                    reachable.add(id);
+                }
+            }
+            // 探索継続の判定（移動範囲を超えたら隣接は探さない）
             if (dist >= moveRange)
                 continue;
             const cell = boardMap.get(id);

@@ -1640,6 +1640,7 @@ function GridBoard({
   myPlayerId,
   allowPieceDrag = false,
   moveRange = 2,
+  isExact = true,
   width = 800,
   height = 800,
   renderCell
@@ -1675,12 +1676,14 @@ function GridBoard({
   };
   const handlePieceClick = (pieceId) => {
     if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
-    socket.emit("board:movable-range", {
+    const requestData = {
       roomId,
       boardId,
       playerId: pieceId,
-      moveRange
-    });
+      moveRange,
+      isExact
+    };
+    socket.emit("board:movable-range", requestData);
   };
   const handlePieceDragStart = (e, piece2) => {
     e.dataTransfer.setData("pieceId", piece2.id);
@@ -3101,8 +3104,9 @@ class RoomManager {
   };
   /**
    * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+   * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
    */
-  getMovableCellIds = (boardId, startCellId, moveRange) => {
+  getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
     const targetBoard = this.state.boards[boardId];
     const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
     const reachable = /* @__PURE__ */ new Set();
@@ -3110,7 +3114,13 @@ class RoomManager {
     const visited = /* @__PURE__ */ new Set([startCellId]);
     while (queue.length > 0) {
       const { id, dist } = queue.shift();
-      if (dist > 0) reachable.add(id);
+      if (dist > 0) {
+        if (isExact) {
+          if (dist === moveRange) reachable.add(id);
+        } else {
+          reachable.add(id);
+        }
+      }
       if (dist >= moveRange) continue;
       const cell2 = boardMap.get(id);
       cell2?.adjacentCellIds.forEach((nextId) => {

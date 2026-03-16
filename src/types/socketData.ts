@@ -119,6 +119,7 @@ export type BoardMovableRangeData = {
   boardId: BoardId;
   playerId: PlayerId;
   moveRange: number;
+  isExact: boolean;
 };
 
 export type BaordMovePlayerData = {
