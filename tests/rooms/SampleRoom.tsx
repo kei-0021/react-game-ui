@@ -1,6 +1,7 @@
 // src/rooms/SampleRoom.tsx
 // PlayField上のカードの動作確認
 // ドラッグ可能オブジェクトの動作確認
+// ダイスの動作確認
 
 /// <reference types="vite/client" />
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -32,6 +33,8 @@ export function SampleRoom() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
+
+  const [currentValue, setCurrentValue] = useState<number>(1);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number>(1);
@@ -113,6 +116,7 @@ export function SampleRoom() {
     <div className="game-container" ref={containerRef}>
       <h1>Room ID: {roomId}</h1>
       <div className="round-display">ROUND: {currentRound}</div>
+      <div>現在のダイスの目: {currentValue}</div>
       <ScoreBoard
         socket={socket}
         roomId={roomId}
@@ -137,7 +141,7 @@ export function SampleRoom() {
           ]}
           tooltipText="快晴・曇り・風・雨"
         />
-        <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" />
+        <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" onRoll={setCurrentValue} />
       </div>
 
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>

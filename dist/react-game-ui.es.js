@@ -1145,15 +1145,15 @@ function Deck({
     ] })
   ] });
 }
-const diceWrapper = "_diceWrapper_1yy8i_1";
-const diceTitle = "_diceTitle_1yy8i_9";
-const dice = "_dice_1yy8i_1";
-const tooltip$1 = "_tooltip_1yy8i_41";
-const diceRolling = "_diceRolling_1yy8i_69";
-const diceNotRolling = "_diceNotRolling_1yy8i_74";
-const faceImage = "_faceImage_1yy8i_78";
-const faceContainer = "_faceContainer_1yy8i_85";
-const defaultText = "_defaultText_1yy8i_93";
+const diceWrapper = "_diceWrapper_1gmf4_1";
+const diceTitle = "_diceTitle_1gmf4_9";
+const dice = "_dice_1gmf4_1";
+const tooltip$1 = "_tooltip_1gmf4_41";
+const diceRolling = "_diceRolling_1gmf4_69";
+const diceNotRolling = "_diceNotRolling_1gmf4_75";
+const faceImage = "_faceImage_1gmf4_79";
+const faceContainer = "_faceContainer_1gmf4_86";
+const defaultText = "_defaultText_1gmf4_94";
 const styles$5 = {
   diceWrapper,
   diceTitle,
@@ -1179,7 +1179,7 @@ const defaultDiceImages = {
   5: dice5Image,
   6: dice6Image
 };
-function Dice({ socket = null, diceId, roomId, sides = 6, title: title2, onRoll, customFaces, tooltipText }) {
+function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll, customFaces, tooltipText }) {
   const [value, setValue] = useState(1);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef(null);
