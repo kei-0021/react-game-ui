@@ -29,7 +29,7 @@ import { TokenStore } from '@/types/tokenStore.js';
 import { Server, Socket } from 'socket.io';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
-import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log, shuffleArray } from './server-utils.js';
+import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 import type { GameServerOptions } from './server.js';
 
 const activeRooms = new Map<string, RoomState>();
@@ -52,9 +52,12 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   boardEntries.forEach(([boardId, boardData]) => {
     Cells[boardId] = boardData;
 
-    if (param.randomBoard?.includes(boardId)) {
-      server_log('cell', param.gameId, roomId, `ボード "${boardId}" のセルを並び替えました`);
-      Cells[boardId] = shuffleArray(Cells[boardId]);
+    // カスタムの再配置・接続関数があるか確認
+    const shuffleAndReconnector = param.shuffleAndReconnectBoard?.[boardId];
+
+    if (typeof shuffleAndReconnector === 'function') {
+      server_log('cell', param.gameId, roomId, `ボード "${boardId}" をカスタム戦略で再配置・接続します`);
+      Cells[boardId] = shuffleAndReconnector(boardData);
     }
 
     server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);

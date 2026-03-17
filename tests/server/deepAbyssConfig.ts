@@ -5,6 +5,7 @@ import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
 import { RoomManager } from 'react-game-ui/server-utils';
 import { CardPlayData } from '../../src/types/socketData.js';
 import { DeepAbyssPhase } from '../types/phase.js';
+import { cellShuffleAndReconnector } from './cellShuffleAndReConnecter.js';
 
 export const CELL_COUNTS = {
   RELIC_1: 5,
@@ -89,7 +90,7 @@ export const deepAbyssConfig: RoomConfig = {
       ],
       initialHand: { deckId: 'deepAbyssAction', count: 6 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
-      randomBoard: ['deepAbyssBoard'],
+      shuffleAndReconnectBoard: { deepAbyssBoard: cellShuffleAndReconnector },
       pieceImage: '/hanabishi.svg',
       initialPhase: DeepAbyssPhase.START,
       cardEffects: activeCardEffects,
