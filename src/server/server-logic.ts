@@ -1,7 +1,4 @@
 // src/server/server.ts
-import { Server, Socket } from 'socket.io';
-import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
-
 import { CellData } from '@/index.js';
 import { BoardId, CardId, DeckId, DraggableId, PlayerId, RoomId, TokenStoreId } from '@/types/definition.js';
 import { DraggableData } from '@/types/draggable.js';
@@ -29,8 +26,10 @@ import {
 } from '@/types/socketData.js';
 import { Token } from '@/types/token.js';
 import { TokenStore } from '@/types/tokenStore.js';
+import { Server, Socket } from 'socket.io';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
+import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 import type { GameServerOptions } from './server.js';
 
 const activeRooms = new Map<string, RoomState>();
@@ -38,10 +37,6 @@ const roomTimers = new Map<string, NodeJS.Timeout>();
 
 /**
  * 新しいゲームルームの状態を初期化し、実行中のルーム管理（activeRooms）に追加する。
- *
- * 1. 設定（settings）に基づいたボードのランダム生成
- * 2. 各デッキ内のカードに対して固有の `instanceId` を付与し、初期位置を設定
- * 3. 最終的な `RoomState` オブジェクトの構築とメモリへの保存
  * @param roomId - ルームID
  * @param param - ゲーム開始時に必要な初期パラメータ
  * @returns 初期化が完了した {@link RoomState} オブジェクト
@@ -55,6 +50,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   const boardEntries = Object.entries(initialBoard);
 
   boardEntries.forEach(([boardId, boardData]) => {
+    // セルをランダムに並び替えるブラグがONならばここで設定を与える
     Cells[boardId] = boardData;
     server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
   });
@@ -126,8 +122,8 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     boards: Cells,
     exploredCells: [],
     tokenStores: tokenStores,
-    maxZIndex: initialMaxZIndex,
     draggable: draggables,
+    maxZIndex: initialMaxZIndex,
     systemMessageHistory: [],
   };
 
@@ -141,7 +137,17 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
   if (options.initialLogCategories) {
     Object.assign(LOG_CATEGORIES, options.initialLogCategories);
-    console.log('[log] ログカテゴリをオプションで初期化しました。', LOG_CATEGORIES);
+
+    const green = '\x1b[32m';
+    const red = '\x1b[31m';
+    const reset = '\x1b[0m';
+
+    console.log(`[log] ログカテゴリをオプションで初期化しました。`);
+
+    Object.entries(LOG_CATEGORIES).forEach(([key, value]) => {
+      const color = value ? green : red;
+      console.log(`${key}: ${color}${value}${reset}`);
+    });
   }
 
   // --- プリセットごとの中身をスキャンしてログに出す ---

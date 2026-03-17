@@ -3,10 +3,6 @@ const activeRooms = new Map();
 const roomTimers = new Map();
 /**
  * 新しいゲームルームの状態を初期化し、実行中のルーム管理（activeRooms）に追加する。
- *
- * 1. 設定（settings）に基づいたボードのランダム生成
- * 2. 各デッキ内のカードに対して固有の `instanceId` を付与し、初期位置を設定
- * 3. 最終的な `RoomState` オブジェクトの構築とメモリへの保存
  * @param roomId - ルームID
  * @param param - ゲーム開始時に必要な初期パラメータ
  * @returns 初期化が完了した {@link RoomState} オブジェクト
@@ -18,6 +14,7 @@ function initializeRoom(roomId, param) {
     let Cells = {};
     const boardEntries = Object.entries(initialBoard);
     boardEntries.forEach(([boardId, boardData]) => {
+        // セルをランダムに並び替えるブラグがONならばここで設定を与える
         Cells[boardId] = boardData;
         server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
     });
@@ -76,8 +73,8 @@ function initializeRoom(roomId, param) {
         boards: Cells,
         exploredCells: [],
         tokenStores: tokenStores,
-        maxZIndex: initialMaxZIndex,
         draggable: draggables,
+        maxZIndex: initialMaxZIndex,
         systemMessageHistory: [],
     };
     activeRooms.set(roomId, state);
@@ -88,7 +85,14 @@ export function initGameServer(io, options) {
     const gameParams = options.gameParams || {};
     if (options.initialLogCategories) {
         Object.assign(LOG_CATEGORIES, options.initialLogCategories);
-        console.log('[log] ログカテゴリをオプションで初期化しました。', LOG_CATEGORIES);
+        const green = '\x1b[32m';
+        const red = '\x1b[31m';
+        const reset = '\x1b[0m';
+        console.log(`[log] ログカテゴリをオプションで初期化しました。`);
+        Object.entries(LOG_CATEGORIES).forEach(([key, value]) => {
+            const color = value ? green : red;
+            console.log(`${key}: ${color}${value}${reset}`);
+        });
     }
     // --- プリセットごとの中身をスキャンしてログに出す ---
     Object.entries(gameParams).forEach(([gameId, preset]) => {
