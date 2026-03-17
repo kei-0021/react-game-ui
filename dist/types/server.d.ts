@@ -20,6 +20,7 @@ import { TokenStore } from './tokenStore.js';
  * @param initialTokenStores - 共有トークンの保管場所。
  * @param initialTokens - ボード上の初期配置トークン。
  * @param initialBoard - ボードの初期レイアウト。
+ * @param randomBoard - ランダム配置を利用するボード
  * @param pieceImage - ボード上のプレイヤーコマに使用する画像URL。
  * @param draggable - ドラッグ可能オブジェクト。
  * @param initialPhase - 初期フェーズ。
@@ -48,6 +49,7 @@ export type GameParam = {
         count: number;
     };
     initialBoard?: Record<BoardId, CellData[]>;
+    randomBoard?: BoardId[];
     pieceImage?: string;
     draggable?: Record<DraggableId, DraggableData>;
     initialPhase?: Phase;

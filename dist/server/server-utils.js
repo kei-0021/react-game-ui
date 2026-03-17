@@ -58,6 +58,13 @@ export const generateColorFromId = (id) => {
     const finalHue = Math.floor(hue * 360);
     return `hsl(${finalHue}, 70%, 50%)`;
 };
+export const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+};
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
  */

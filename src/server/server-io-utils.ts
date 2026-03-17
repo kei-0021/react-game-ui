@@ -115,14 +115,6 @@ const generateFromTemplates = <T extends { templateId: string }>(
   });
 };
 
-const shuffleArray = <T>(array: T[]): T[] => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-};
-
 /**
  * プリセット準備の関数群
  */
@@ -178,13 +170,7 @@ export class SetupHelper {
   /**
    * グリッド状ボードレイアウトの生成
    */
-  createGridBoardLayout(
-    base: any[],
-    counts: Record<string, number>,
-    rows: number,
-    cols?: number,
-    isRandom: boolean = false,
-  ): CellData[] {
+  createGridBoardLayout(base: any[], counts: Record<string, number>, rows: number, cols?: number): CellData[] {
     const effectiveCols = cols ?? rows;
     const expectedTotal = rows * effectiveCols;
     const actualTotal = Object.values(counts).reduce((sum, count) => sum + count, 0);
@@ -194,11 +180,6 @@ export class SetupHelper {
     }
 
     let templates = generateFromTemplates(base, counts);
-
-    // ランダム配置が有効な場合はシャッフル
-    if (isRandom) {
-      templates = shuffleArray(templates);
-    }
 
     // セルを配置して基本データを作る
     const grid: CellData[] = [];

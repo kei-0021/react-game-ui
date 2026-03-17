@@ -29,7 +29,7 @@ import { TokenStore } from '@/types/tokenStore.js';
 import { Server, Socket } from 'socket.io';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
-import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
+import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log, shuffleArray } from './server-utils.js';
 import type { GameServerOptions } from './server.js';
 
 const activeRooms = new Map<string, RoomState>();
@@ -50,8 +50,13 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   const boardEntries = Object.entries(initialBoard);
 
   boardEntries.forEach(([boardId, boardData]) => {
-    // セルをランダムに並び替えるブラグがONならばここで設定を与える
     Cells[boardId] = boardData;
+
+    if (param.randomBoard?.includes(boardId)) {
+      server_log('cell', param.gameId, roomId, `ボード "${boardId}" のセルを並び替えました`);
+      Cells[boardId] = shuffleArray(Cells[boardId]);
+    }
+
     server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
   });
 

@@ -37,7 +37,7 @@ export const deepAbyssConfig: RoomConfig = {
       1,
     );
     const deepAbyssActionDeck = helper.createUniqueCards(helper.assertCards(loadedData.deepAbyssActionCards), 3);
-    const deepAbyssBoard = helper.createGridBoardLayout(loadedData.deepAbyssCells, CELL_COUNTS, 8, 8, true);
+    const deepAbyssBoard = helper.createGridBoardLayout(loadedData.deepAbyssCells, CELL_COUNTS, 8, 8);
 
     // エフェクトデータの動的ロード
     const [cardEffectsModule, cellEffectsModule] = await Promise.all([
@@ -89,6 +89,7 @@ export const deepAbyssConfig: RoomConfig = {
       ],
       initialHand: { deckId: 'deepAbyssAction', count: 6 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
+      randomBoard: ['deepAbyssBoard'],
       pieceImage: '/hanabishi.svg',
       initialPhase: DeepAbyssPhase.START,
       cardEffects: activeCardEffects,

@@ -81,13 +81,6 @@ const generateFromTemplates = (templates, counts) => {
         }));
     });
 };
-const shuffleArray = (array) => {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-};
 /**
  * プリセット準備の関数群
  */
@@ -140,7 +133,7 @@ export class SetupHelper {
     /**
      * グリッド状ボードレイアウトの生成
      */
-    createGridBoardLayout(base, counts, rows, cols, isRandom = false) {
+    createGridBoardLayout(base, counts, rows, cols) {
         const effectiveCols = cols ?? rows;
         const expectedTotal = rows * effectiveCols;
         const actualTotal = Object.values(counts).reduce((sum, count) => sum + count, 0);
@@ -148,10 +141,6 @@ export class SetupHelper {
             throw new Error(`[Grid Error] Size:${rows}x${effectiveCols}(${expectedTotal}) != Total:${actualTotal}`);
         }
         let templates = generateFromTemplates(base, counts);
-        // ランダム配置が有効な場合はシャッフル
-        if (isRandom) {
-            templates = shuffleArray(templates);
-        }
         // セルを配置して基本データを作る
         const grid = [];
         for (let r = 0; r < rows; r++) {

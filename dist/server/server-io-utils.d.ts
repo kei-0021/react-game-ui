@@ -47,7 +47,7 @@ export declare class SetupHelper {
     /**
      * グリッド状ボードレイアウトの生成
      */
-    createGridBoardLayout(base: any[], counts: Record<string, number>, rows: number, cols?: number, isRandom?: boolean): CellData[];
+    createGridBoardLayout(base: any[], counts: Record<string, number>, rows: number, cols?: number): CellData[];
     /**
      * ドラッグ可能オブジェクトの生成
      */
