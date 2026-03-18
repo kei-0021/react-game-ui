@@ -41,11 +41,11 @@ async function startServer() {
       room: true,
       deck: false,
     },
-    onServerStart: (url: string) => console.log(`🎮 Demo server running at: ${url}`),
+    onServerStart: (url: string) => console.log(`🎮 GameServer running at: ${url}`),
   };
 
-  const demoServer = new GameServer(options);
-  demoServer.start();
+  const gameServer = new GameServer(options);
+  gameServer.start();
 }
 
 startServer().catch((err) => {

@@ -11,20 +11,20 @@ npm install github:kei-0021/react-game-ui
 - server.jsの`GameServer`を取り込んで、必要な設定をしてください。
 
 ```tsx
-const demoServer = new GameServer({
+const gameServer = new GameServer({
   port: 4000,
   clientDistPath: path.resolve('./tests'),
   libDistPath: path.resolve('../dist'),
   corsOrigins: ['http://localhost:5173', 'http://localhost:4000'],
   onServerStart: (url) => {
-    console.log(`🎮 Demo server running at: ${url}`);
+    console.log(`🎮 Gameserver running at: ${url}`);
   },
   initialDecks,
   cardEffects,
 });
 
 // サーバー起動
-demoServer.start();
+gameServer.start();
 ```
 
 - package.jsonに事前に以下の記載をしておいてください。
@@ -115,7 +115,7 @@ const initialDecks = [
   },
 ];
 
-const demoServer = new GameServer({
+const gameServer = new GameServer({
   ...initialDecks,
   cardEffects,
 });
