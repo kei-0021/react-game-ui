@@ -26,11 +26,18 @@ import {
 } from '@/types/socketData.js';
 import { Token } from '@/types/token.js';
 import { TokenStore } from '@/types/tokenStore.js';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Server, Socket } from 'socket.io';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
 import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 import type { GameServerOptions } from './server.js';
+
+// ESM環境で __dirname を再現する
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const activeRooms = new Map<string, RoomState>();
 const roomTimers = new Map<string, NodeJS.Timeout>();
@@ -195,6 +202,32 @@ export function initGameServer(io: Server, options: GameServerOptions) {
   };
 
   io.on('connection', (socket: Socket) => {
+    // GUIからConfigファイルを直接書き換える
+    socket.on('game-param:update', async (data: { gameId: string; newParam: any }) => {
+      try {
+        // パスを動的に生成（tests/server/ 直下のファイル）
+        const targetPath = path.join(process.cwd(), 'tests', 'server', `${data.gameId}Config.ts`);
+
+        // ファイルの中身を生成（ハードコードで上書きする）
+        const content = `import type { RoomConfig } from 'react-game-ui/server-io-utils';
+
+        export const ${data.gameId}Config: RoomConfig = {
+          gameId: '${data.gameId}',
+          dataFiles: [],
+          setup: async () => (${JSON.stringify(data.newParam, null, 2)}),
+        };
+        `;
+
+        await fs.promises.writeFile(targetPath, content, 'utf8');
+
+        console.log(`[Admin] GUI経由で ${data.gameId} のソースコードを直接書き換えました`);
+        // この後、Watcherが自動で検知して反映する
+      } catch (err) {
+        console.error('[Admin] 書き換え失敗:', err);
+        socket.emit('error', 'ファイルの保存に失敗');
+      }
+    });
+
     // ロビー
     socket.on('lobby:get-rooms', () => {
       const roomList: RoomMeta[] = [];
