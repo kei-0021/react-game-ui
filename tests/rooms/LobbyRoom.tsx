@@ -133,7 +133,7 @@ export function LobbyRoom() {
       </div>
 
       <div className={`control-panel-wrapper ${isPanelOpen ? 'open' : ''}`}>
-        {socket && <ControlPanel socket={socket} gameId={'sample'} />}
+        {socket && <ControlPanel socket={socket} gameIds={['sample', 'deepabyss']} />}
       </div>
     </div>
   );

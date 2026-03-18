@@ -3,11 +3,19 @@ import { useEffect, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import styles from './ControlPanel.module.css';
 
-export const ControlPanel = ({ socket, gameId }: { socket: Socket; gameId: string }) => {
+export const ControlPanel = ({ socket, gameIds }: { socket: Socket; gameIds: string[] }) => {
+  const [selectedGameId, setSelectedGameId] = useState(gameIds[0] || '');
+
   const [maxPlayers, setMaxPlayers] = useState(1);
+  const [handDeckId, setHandDeckId] = useState('main');
+  const [handCount, setHandCount] = useState(0);
+
+  const [isMaxPlayersDirty, setIsMaxPlayersDirty] = useState(false);
+  const [isHandDirty, setIsHandDirty] = useState(false);
+
   const [isOpen, setIsOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false); // 保存中状態
-  const [showSuccess, setShowSuccess] = useState(false); // 完了表示用
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     // サーバーからの「更新完了」通知をリッスン
@@ -15,6 +23,9 @@ export const ControlPanel = ({ socket, gameId }: { socket: Socket; gameId: strin
       if (data.success) {
         setIsSaving(false);
         setShowSuccess(true);
+        // 保存できたらフラグをリセット
+        setIsMaxPlayersDirty(false);
+        setIsHandDirty(false);
         setTimeout(() => setShowSuccess(false), 2000);
       }
     };
@@ -27,15 +38,32 @@ export const ControlPanel = ({ socket, gameId }: { socket: Socket; gameId: strin
   }, [socket]);
 
   const handleSave = () => {
-    if (!socket.connected) {
-      alert('サーバーと繋がってない');
+    if (!socket.connected || !selectedGameId) return;
+
+    // 本当に変更があったものだけを詰める
+    const newParam: any = {};
+
+    if (isMaxPlayersDirty) {
+      newParam.maxPlayers = maxPlayers;
+    }
+
+    if (isHandDirty) {
+      newParam.initialHand = {
+        deckId: handDeckId,
+        count: handCount,
+      };
+    }
+
+    // 何も変えていないなら送らない
+    if (Object.keys(newParam).length === 0) {
+      alert('変更箇所がありません');
       return;
     }
 
     setIsSaving(true);
     socket.emit('game-param:save', {
-      gameId,
-      newParam: { maxPlayers },
+      gameId: selectedGameId,
+      newParam,
     });
   };
 
@@ -49,11 +77,31 @@ export const ControlPanel = ({ socket, gameId }: { socket: Socket; gameId: strin
       {/* 外枠（isOpen によって styles.open を付与） */}
       <div className={`${styles.wrapper} ${isOpen ? styles.open : ''}`}>
         <div className={styles.container}>
-          <h3 className={styles.title}>コントロールパネル ({gameId})</h3>
+          <h3 className={styles.title}>コントロールパネル</h3>
+
+          <div className={styles.field}>
+            <div className={styles.label}>対象ゲームを選択:</div>
+            <select
+              className={styles.select}
+              value={selectedGameId}
+              onChange={(e) => {
+                setSelectedGameId(e.target.value);
+                // ゲームを切り替えたら一旦フラグを落とす（誤爆防止）
+                setIsMaxPlayersDirty(false);
+                setIsHandDirty(false);
+              }}
+            >
+              {gameIds.map((id) => (
+                <option key={id} value={id}>
+                  {id}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className={styles.field}>
             <div className={styles.label}>
-              <span>最大プレイヤー数:</span>
+              <span>最大プレイヤー数: {isMaxPlayersDirty && <small>(変更あり)</small>}</span>
               <strong>{maxPlayers}</strong>
             </div>
             <input
@@ -62,12 +110,50 @@ export const ControlPanel = ({ socket, gameId }: { socket: Socket; gameId: strin
               max="10"
               className={styles.slider}
               value={maxPlayers}
-              onChange={(e) => setMaxPlayers(Number(e.target.value))}
+              onChange={(e) => {
+                setMaxPlayers(Number(e.target.value));
+                setIsMaxPlayersDirty(true); // 触ったらフラグON
+              }}
             />
           </div>
 
-          <button className={styles.saveButton} onClick={handleSave} disabled={!socket.connected || isSaving}>
-            {isSaving ? '保存中...' : showSuccess ? '更新完了！' : 'コードに上書き反映'}
+          {/* 初期手札設定 */}
+          <div className={styles.field}>
+            <div className={styles.label}>
+              <span>初期手札: {isHandDirty && <small>(変更あり)</small>}</span>
+            </div>
+            <input
+              type="text"
+              className={styles.input}
+              value={handDeckId}
+              onChange={(e) => {
+                setHandDeckId(e.target.value);
+                setIsHandDirty(true);
+              }}
+            />
+            <div className={styles.label}>
+              <span>枚数:</span>
+              <strong>{handCount}</strong>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="10"
+              className={styles.slider}
+              value={handCount}
+              onChange={(e) => {
+                setHandCount(Number(e.target.value));
+                setIsHandDirty(true);
+              }}
+            />
+          </div>
+
+          <button
+            className={styles.saveButton}
+            onClick={handleSave}
+            disabled={!socket.connected || isSaving || (!isMaxPlayersDirty && !isHandDirty)}
+          >
+            {isSaving ? '保存中...' : showSuccess ? '完了' : '変更箇所のみ反映'}
           </button>
         </div>
       </div>
