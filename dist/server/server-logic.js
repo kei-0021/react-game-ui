@@ -139,7 +139,8 @@ export function initGameServer(io, options) {
         state.decks[deckId] = currentDeck.concat(otherCards);
     };
     io.on('connection', (socket) => {
-        socket.on('game-param:update', async (data) => {
+        // GUIからConfigファイルを直接書き換える
+        socket.on('game-param:save', async (data) => {
             try {
                 const targetPath = path.join(process.cwd(), 'tests', 'server', `${data.gameId}Config.ts`);
                 // 現在のメモリ上の設定を取得
@@ -165,6 +166,7 @@ export const ${data.gameId}Config: RoomConfig = {
 `;
                 await fs.promises.writeFile(targetPath, content, 'utf8');
                 console.log(`[Admin] ${data.gameId}Config.ts を更新（マージ完了）`);
+                socket.emit('game-param:updated', { success: true });
             }
             catch (err) {
                 console.error('[Admin] 書き換え失敗:', err);

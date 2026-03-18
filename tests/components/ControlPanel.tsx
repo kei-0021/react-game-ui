@@ -1,11 +1,30 @@
 // tests/components/ControlPanel.tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import styles from './ControlPanel.module.css';
 
 export const ControlPanel = ({ socket, gameId }: { socket: Socket; gameId: string }) => {
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false); // 保存中状態
+  const [showSuccess, setShowSuccess] = useState(false); // 完了表示用
+
+  useEffect(() => {
+    // サーバーからの「更新完了」通知をリッスン
+    const onUpdated = (data: { success: boolean }) => {
+      if (data.success) {
+        setIsSaving(false);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 2000);
+      }
+    };
+
+    socket.on('game-param:updated', onUpdated);
+
+    return () => {
+      socket.off('game-param:updated', onUpdated);
+    };
+  }, [socket]);
 
   const handleSave = () => {
     if (!socket.connected) {
@@ -13,12 +32,10 @@ export const ControlPanel = ({ socket, gameId }: { socket: Socket; gameId: strin
       return;
     }
 
-    socket.emit('game-param:update', {
-      gameId: gameId,
-      newParam: {
-        gameId,
-        maxPlayers,
-      },
+    setIsSaving(true);
+    socket.emit('game-param:save', {
+      gameId,
+      newParam: { maxPlayers },
     });
   };
 
@@ -49,8 +66,8 @@ export const ControlPanel = ({ socket, gameId }: { socket: Socket; gameId: strin
             />
           </div>
 
-          <button className={styles.saveButton} onClick={handleSave} disabled={!socket.connected}>
-            コードに上書き反映
+          <button className={styles.saveButton} onClick={handleSave} disabled={!socket.connected || isSaving}>
+            {isSaving ? '保存中...' : showSuccess ? '更新完了！' : 'コードに上書き反映'}
           </button>
         </div>
       </div>
