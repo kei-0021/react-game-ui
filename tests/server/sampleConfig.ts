@@ -1,7 +1,8 @@
 // tests/server/sampleConfig.ts
 
-import type { Card, DraggableData, DraggableId, GameParam } from 'react-game-ui';
-import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
+import { DraggableData, DraggableId } from '../../dist/index.js';
+import { Card, GameParam } from '../../src/index.js';
+import { RoomConfig, SetupHelper } from '../../src/server/server-io-utils.js';
 
 const Z_INDX_DRAGGABLE = 201;
 

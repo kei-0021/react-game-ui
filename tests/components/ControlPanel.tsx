@@ -18,8 +18,6 @@ export const ControlPanel = ({ socket, gameId }: { socket: Socket; gameId: strin
       newParam: {
         gameId,
         maxPlayers,
-        initialDecks: [],
-        draggable: {},
       },
     });
   };

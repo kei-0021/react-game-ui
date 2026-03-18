@@ -139,23 +139,32 @@ export function initGameServer(io, options) {
         state.decks[deckId] = currentDeck.concat(otherCards);
     };
     io.on('connection', (socket) => {
-        // GUIからConfigファイルを直接書き換える
         socket.on('game-param:update', async (data) => {
             try {
-                // パスを動的に生成（tests/server/ 直下のファイル）
                 const targetPath = path.join(process.cwd(), 'tests', 'server', `${data.gameId}Config.ts`);
-                // ファイルの中身を生成（ハードコードで上書きする）
-                const content = `import type { RoomConfig } from 'react-game-ui/server-io-utils';
+                // 現在のメモリ上の設定を取得
+                const currentParam = gameParams[data.gameId] || {};
+                // 届いた newParam で既存の設定をマージ
+                const mergedParam = {
+                    ...currentParam,
+                    ...data.newParam,
+                };
+                // インデントを揃えた文字列に変換
+                const setupContent = JSON.stringify(mergedParam, null, 2)
+                    .split('\n')
+                    .map((line) => `    ${line}`)
+                    .join('\n')
+                    .trimStart();
+                const content = `import { RoomConfig } from '../../src/server/server-io-utils.js';
 
-        export const ${data.gameId}Config: RoomConfig = {
-          gameId: '${data.gameId}',
-          dataFiles: [],
-          setup: async () => (${JSON.stringify(data.newParam, null, 2)}),
-        };
-        `;
+export const ${data.gameId}Config: RoomConfig = {
+  gameId: '${data.gameId}',
+  dataFiles: [],
+  setup: async () => (${setupContent}),
+};
+`;
                 await fs.promises.writeFile(targetPath, content, 'utf8');
-                console.log(`[Admin] GUI経由で ${data.gameId} のソースコードを直接書き換えました`);
-                // この後、Watcherが自動で検知して反映する
+                console.log(`[Admin] ${data.gameId}Config.ts を更新（マージ完了）`);
             }
             catch (err) {
                 console.error('[Admin] 書き換え失敗:', err);
