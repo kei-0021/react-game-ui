@@ -41,7 +41,6 @@ async function startServer() {
       room: true,
       deck: false,
     },
-    onServerStart: (url: string) => console.log(`🎮 GameServer running at: ${url}`),
   };
 
   const gameServer = new GameServer(options);
