@@ -239,7 +239,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           .join('\n')
           .trimStart();
 
-        const content = `import { RoomConfig } from '../../src/server/server-io-utils.js';
+        const content = `import { type RoomConfig } from "react-game-ui/server-io-utils";
 
 export const ${data.gameId}Config: RoomConfig = {
   gameId: '${data.gameId}',
