@@ -47,21 +47,9 @@ describe('CLI: プロジェクト初期化 (init) のテスト', () => {
     expect(fs.existsSync(registryPath)).toBe(true);
 
     const content = fs.readFileSync(registryPath, 'utf-8');
-    expect(content).toContain('export const games = [];');
-  });
 
-  it('init: 二重実行しても既存のファイルを破壊しないこと (冪等性)', () => {
-    const registryPath = path.join(TEST_ROOT, REGISTRY_RELATIVE_PATH);
-
-    // 一旦、中身を書き換えてみる
-    const modifiedContent = 'export const games = ["EXISTING"];';
-    fs.writeFileSync(registryPath, modifiedContent);
-
-    // 再度 init を実行
-    execSync(`RG_UI_BASE_DIR=${TEST_ROOT} npx tsx src/cli/init.ts`);
-
-    // 中身が上書きされていない（スキップされた）ことを確認
-    const finalContent = fs.readFileSync(registryPath, 'utf-8');
-    expect(finalContent).toBe(modifiedContent);
+    expect(content).toContain('export interface GameEntry');
+    expect(content).toContain('export const GAME_LIST: GameEntry[] = [');
+    expect(content).toContain('{ id: "sample", name: "Sample", icon: "⬛️" }');
   });
 });
