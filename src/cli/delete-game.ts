@@ -1,6 +1,6 @@
 // src/cli/delete-game.ts
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const rawName = process.argv[2];
 
@@ -14,11 +14,14 @@ const gameName = rawName.replace(/[^\w]/g, '');
 const lowerName = gameName.toLowerCase();
 const pascalName = gameName.charAt(0).toUpperCase() + gameName.slice(1);
 
+// 環境変数があればそれをベースにし、なければ通常の 'src' を起点にする
+const baseDir = process.env.RG_UI_BASE_DIR || path.join(process.cwd(), 'src');
+
 const paths = {
-  config: path.join(process.cwd(), 'src/server', `${pascalName}Config.ts`),
-  room: path.join(process.cwd(), 'src/rooms', `${gameName}Room.tsx`),
-  style: path.join(process.cwd(), 'src/rooms', `${gameName}Room.module.css`),
-  registry: path.join(process.cwd(), 'src/constants/games.ts'),
+  config: path.join(baseDir, 'server', `${pascalName}Config.ts`),
+  room: path.join(baseDir, 'rooms', `${gameName}Room.tsx`),
+  style: path.join(baseDir, 'rooms', `${gameName}Room.module.css`),
+  registry: path.join(baseDir, 'constants/games.ts'),
 };
 
 // ファイルの削除
@@ -35,6 +38,8 @@ const paths = {
 if (fs.existsSync(paths.registry)) {
   const content = fs.readFileSync(paths.registry, 'utf-8');
   const lines = content.split('\n');
+
+  // 指定したIDを含む行を除外
   const filteredLines = lines.filter((line) => !line.includes(`id: "${lowerName}"`));
 
   if (lines.length !== filteredLines.length) {

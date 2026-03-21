@@ -46,7 +46,8 @@
     "express": "^5.1.0",
     "react-router-dom": "^7.9.4",
     "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "vitest": "^4.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
