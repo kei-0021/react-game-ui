@@ -2166,16 +2166,7 @@ const styles$3 = {
   label
 };
 const RemoteCursor = React__default.memo(
-  ({
-    socket,
-    roomId,
-    myPlayerId,
-    players,
-    scale,
-    fixedContainerRef,
-    visible,
-    isRelative = true
-  }) => {
+  ({ socket, roomId, myPlayerId, players, scale, fixedContainerRef, visible, isRelative = true }) => {
     const [remoteCursors, setRemoteCursors] = useState({});
     useEffect(() => {
       if (!socket) return;
@@ -2192,8 +2183,7 @@ const RemoteCursor = React__default.memo(
       };
     }, [socket, myPlayerId]);
     useEffect(() => {
-      if (!socket || !roomId || !myPlayerId || !fixedContainerRef.current)
-        return;
+      if (!socket || !roomId || !myPlayerId || !fixedContainerRef.current) return;
       const THROTTLE = 50;
       let lastTime = 0;
       const handleMove = (e) => {
@@ -2220,18 +2210,10 @@ const RemoteCursor = React__default.memo(
       const color = player?.color || "#000000";
       const left = isRelative ? `${coords.x * 100}%` : coords.x;
       const top = isRelative ? `${coords.y * 100}%` : coords.y;
-      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          className: styles$3.cursorWrapper,
-          style: { left, top },
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.icon, style: { color }, children: "👆" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.label, style: { backgroundColor: color }, children: name })
-          ]
-        },
-        id
-      );
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$3.cursorWrapper, style: { left, top }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.icon, style: { color }, children: "👆" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.label, style: { backgroundColor: color }, children: name })
+      ] }, id);
     }) });
   }
 );

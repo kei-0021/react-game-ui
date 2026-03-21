@@ -1,4 +1,4 @@
-import { Socket } from "socket.io-client";
+import { Socket } from 'socket.io-client';
 type TimerProps = {
     socket?: Socket | null;
     initialDuration: number;
