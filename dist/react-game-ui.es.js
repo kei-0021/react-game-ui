@@ -1,39 +1,49 @@
 import * as React from "react";
 import React__default, { useState, useRef, useEffect, useMemo, useCallback } from "react";
-var jsxDevRuntime = { exports: {} };
-var reactJsxDevRuntime_production_min = {};
+var jsxRuntime = { exports: {} };
+var reactJsxRuntime_production_min = {};
 /**
  * @license React
- * react-jsx-dev-runtime.production.min.js
+ * react-jsx-runtime.production.min.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-var hasRequiredReactJsxDevRuntime_production_min;
-function requireReactJsxDevRuntime_production_min() {
-  if (hasRequiredReactJsxDevRuntime_production_min) return reactJsxDevRuntime_production_min;
-  hasRequiredReactJsxDevRuntime_production_min = 1;
-  var a = Symbol.for("react.fragment");
-  reactJsxDevRuntime_production_min.Fragment = a;
-  reactJsxDevRuntime_production_min.jsxDEV = void 0;
-  return reactJsxDevRuntime_production_min;
+var hasRequiredReactJsxRuntime_production_min;
+function requireReactJsxRuntime_production_min() {
+  if (hasRequiredReactJsxRuntime_production_min) return reactJsxRuntime_production_min;
+  hasRequiredReactJsxRuntime_production_min = 1;
+  var f = React__default, k = Symbol.for("react.element"), l = Symbol.for("react.fragment"), m = Object.prototype.hasOwnProperty, n = f.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner, p = { key: true, ref: true, __self: true, __source: true };
+  function q(c, a, g) {
+    var b, d = {}, e = null, h = null;
+    void 0 !== g && (e = "" + g);
+    void 0 !== a.key && (e = "" + a.key);
+    void 0 !== a.ref && (h = a.ref);
+    for (b in a) m.call(a, b) && !p.hasOwnProperty(b) && (d[b] = a[b]);
+    if (c && c.defaultProps) for (b in a = c.defaultProps, a) void 0 === d[b] && (d[b] = a[b]);
+    return { $$typeof: k, type: c, key: e, ref: h, props: d, _owner: n.current };
+  }
+  reactJsxRuntime_production_min.Fragment = l;
+  reactJsxRuntime_production_min.jsx = q;
+  reactJsxRuntime_production_min.jsxs = q;
+  return reactJsxRuntime_production_min;
 }
-var reactJsxDevRuntime_development = {};
+var reactJsxRuntime_development = {};
 /**
  * @license React
- * react-jsx-dev-runtime.development.js
+ * react-jsx-runtime.development.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-var hasRequiredReactJsxDevRuntime_development;
-function requireReactJsxDevRuntime_development() {
-  if (hasRequiredReactJsxDevRuntime_development) return reactJsxDevRuntime_development;
-  hasRequiredReactJsxDevRuntime_development = 1;
+var hasRequiredReactJsxRuntime_development;
+function requireReactJsxRuntime_development() {
+  if (hasRequiredReactJsxRuntime_development) return reactJsxRuntime_development;
+  hasRequiredReactJsxRuntime_development = 1;
   if (process.env.NODE_ENV !== "production") {
     (function() {
       var React2 = React__default;
@@ -520,10 +530,6 @@ function requireReactJsxDevRuntime_development() {
       };
       var specialPropKeyWarningShown;
       var specialPropRefWarningShown;
-      var didWarnAboutStringRefs;
-      {
-        didWarnAboutStringRefs = {};
-      }
       function hasValidRef(config) {
         {
           if (hasOwnProperty.call(config, "ref")) {
@@ -548,13 +554,7 @@ function requireReactJsxDevRuntime_development() {
       }
       function warnIfStringRefCannotBeAutoConverted(config, self) {
         {
-          if (typeof config.ref === "string" && ReactCurrentOwner.current && self && ReactCurrentOwner.current.stateNode !== self) {
-            var componentName = getComponentNameFromType(ReactCurrentOwner.current.type);
-            if (!didWarnAboutStringRefs[componentName]) {
-              error('Component "%s" contains the string ref "%s". Support for string refs will be removed in a future major release. This case cannot be automatically converted to an arrow function. We ask you to manually fix this case by using useRef() or createRef() instead. Learn more about using refs safely here: https://reactjs.org/link/strict-mode-string-ref', getComponentNameFromType(ReactCurrentOwner.current.type), config.ref);
-              didWarnAboutStringRefs[componentName] = true;
-            }
-          }
+          if (typeof config.ref === "string" && ReactCurrentOwner.current && self) ;
         }
       }
       function defineKeyPropWarningGetter(props, displayName) {
@@ -708,11 +708,6 @@ function requireReactJsxDevRuntime_development() {
       }
       function getSourceInfoErrorAddendum(source) {
         {
-          if (source !== void 0) {
-            var fileName = source.fileName.replace(/^.*[\\\/]/, "");
-            var lineNumber = source.lineNumber;
-            return "\n\nCheck your code at " + fileName + ":" + lineNumber + ".";
-          }
           return "";
         }
       }
@@ -838,7 +833,7 @@ function requireReactJsxDevRuntime_development() {
             if (type === void 0 || typeof type === "object" && type !== null && Object.keys(type).length === 0) {
               info += " You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.";
             }
-            var sourceInfo = getSourceInfoErrorAddendum(source);
+            var sourceInfo = getSourceInfoErrorAddendum();
             if (sourceInfo) {
               info += sourceInfo;
             } else {
@@ -902,25 +897,37 @@ function requireReactJsxDevRuntime_development() {
           return element;
         }
       }
-      var jsxDEV$1 = jsxWithValidation;
-      reactJsxDevRuntime_development.Fragment = REACT_FRAGMENT_TYPE;
-      reactJsxDevRuntime_development.jsxDEV = jsxDEV$1;
+      function jsxWithValidationStatic(type, props, key) {
+        {
+          return jsxWithValidation(type, props, key, true);
+        }
+      }
+      function jsxWithValidationDynamic(type, props, key) {
+        {
+          return jsxWithValidation(type, props, key, false);
+        }
+      }
+      var jsx = jsxWithValidationDynamic;
+      var jsxs = jsxWithValidationStatic;
+      reactJsxRuntime_development.Fragment = REACT_FRAGMENT_TYPE;
+      reactJsxRuntime_development.jsx = jsx;
+      reactJsxRuntime_development.jsxs = jsxs;
     })();
   }
-  return reactJsxDevRuntime_development;
+  return reactJsxRuntime_development;
 }
-var hasRequiredJsxDevRuntime;
-function requireJsxDevRuntime() {
-  if (hasRequiredJsxDevRuntime) return jsxDevRuntime.exports;
-  hasRequiredJsxDevRuntime = 1;
+var hasRequiredJsxRuntime;
+function requireJsxRuntime() {
+  if (hasRequiredJsxRuntime) return jsxRuntime.exports;
+  hasRequiredJsxRuntime = 1;
   if (process.env.NODE_ENV === "production") {
-    jsxDevRuntime.exports = requireReactJsxDevRuntime_production_min();
+    jsxRuntime.exports = requireReactJsxRuntime_production_min();
   } else {
-    jsxDevRuntime.exports = requireReactJsxDevRuntime_development();
+    jsxRuntime.exports = requireReactJsxRuntime_development();
   }
-  return jsxDevRuntime.exports;
+  return jsxRuntime.exports;
 }
-var jsxDevRuntimeExports = requireJsxDevRuntime();
+var jsxRuntimeExports = requireJsxRuntime();
 const boardContainer = "_boardContainer_14tjg_8";
 const cell = "_cell_14tjg_18";
 const styles$6 = {
@@ -948,7 +955,7 @@ const Cell = ({
     userSelect: "none",
     cursor: highlighted ? "pointer" : "default"
   };
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
       className: styles$6.cell,
@@ -958,7 +965,7 @@ const Cell = ({
       onDragOver,
       style: cellStyle,
       children: [
-        highlighted && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+        highlighted && /* @__PURE__ */ jsxRuntimeExports.jsx(
           "div",
           {
             style: {
@@ -970,31 +977,11 @@ const Cell = ({
               zIndex: 1,
               pointerEvents: "none"
             }
-          },
-          void 0,
-          false,
-          {
-            fileName: "/workspaces/react-game-ui/src/components/Cell.tsx",
-            lineNumber: 65,
-            columnNumber: 9
-          },
-          void 0
+          }
         ),
-        /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { style: { position: "relative", zIndex: 2, width: "100%", height: "100%" }, children }, void 0, false, {
-          fileName: "/workspaces/react-game-ui/src/components/Cell.tsx",
-          lineNumber: 77,
-          columnNumber: 7
-        }, void 0)
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { position: "relative", zIndex: 2, width: "100%", height: "100%" }, children })
       ]
-    },
-    void 0,
-    true,
-    {
-      fileName: "/workspaces/react-game-ui/src/components/Cell.tsx",
-      lineNumber: 56,
-      columnNumber: 5
-    },
-    void 0
+    }
   );
 };
 const card = "_card_zuj83_4";
@@ -1029,28 +1016,12 @@ const cardStyles = {
 };
 const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
   if (!canSeeFront) {
-    return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: cardStyles.deckCard, style: { backgroundColor: card2.backColor || "#333" } }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/Card.tsx",
-      lineNumber: 9,
-      columnNumber: 12
-    }, void 0);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card2.backColor || "#333" } });
   }
   if (card2.frontImage) {
-    return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("img", { src: card2.frontImage, alt: card2.name, className: cardStyles.cardImage }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/Card.tsx",
-      lineNumber: 14,
-      columnNumber: 12
-    }, void 0);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: cardStyles.cardImage });
   }
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("strong", { className: cardStyles.cardNameText, children: card2.name }, void 0, false, {
-    fileName: "/workspaces/react-game-ui/src/components/Card.tsx",
-    lineNumber: 20,
-    columnNumber: 7
-  }, void 0) }, void 0, false, {
-    fileName: "/workspaces/react-game-ui/src/components/Card.tsx",
-    lineNumber: 19,
-    columnNumber: 5
-  }, void 0);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
 });
 const CardPreview = ({ card: card2, children }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -1070,39 +1041,15 @@ const CardPreview = ({ card: card2, children }) => {
     setIsHovered(false);
   };
   if (!hasPreview) {
-    return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(jsxDevRuntimeExports.Fragment, { children }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/CardPreview.tsx",
-      lineNumber: 35,
-      columnNumber: 12
-    }, void 0);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
   }
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: cardStyles.previewTrigger, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewTrigger, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, children: [
     children,
-    isHovered && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: cardStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: cardStyles.previewContent, children: [
-      /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(CardDisplayContent, { card: card2, canSeeFront: true }, void 0, false, {
-        fileName: "/workspaces/react-game-ui/src/components/CardPreview.tsx",
-        lineNumber: 44,
-        columnNumber: 13
-      }, void 0),
-      card2.description && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("p", { className: cardStyles.previewDescription, children: card2.description }, void 0, false, {
-        fileName: "/workspaces/react-game-ui/src/components/CardPreview.tsx",
-        lineNumber: 45,
-        columnNumber: 34
-      }, void 0)
-    ] }, void 0, true, {
-      fileName: "/workspaces/react-game-ui/src/components/CardPreview.tsx",
-      lineNumber: 43,
-      columnNumber: 11
-    }, void 0) }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/CardPreview.tsx",
-      lineNumber: 42,
-      columnNumber: 9
-    }, void 0)
-  ] }, void 0, true, {
-    fileName: "/workspaces/react-game-ui/src/components/CardPreview.tsx",
-    lineNumber: 39,
-    columnNumber: 5
-  }, void 0);
+    isHovered && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewContent, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
+      card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardStyles.previewDescription, children: card2.description })
+    ] }) })
+  ] });
 };
 const deckSection = "_deckSection_190vd_3";
 const deckTitle = "_deckTitle_190vd_13";
@@ -1158,35 +1105,19 @@ function Deck({
   };
   const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("section", { className: deckStyles.deckSection, children: [
-    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("h3", { className: deckStyles.deckTitle, children: title2 }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-      lineNumber: 92,
-      columnNumber: 7
-    }, this),
-    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: deckStyles.deckControls, children: [
-      /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("button", { onClick: shuffle, disabled: !enabled, children: "シャッフル" }, void 0, false, {
-        fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-        lineNumber: 95,
-        columnNumber: 9
-      }, this),
-      /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("button", { onClick: resetDeck, disabled: !enabled, children: "山札に戻す" }, void 0, false, {
-        fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-        lineNumber: 98,
-        columnNumber: 9
-      }, this)
-    ] }, void 0, true, {
-      fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-      lineNumber: 94,
-      columnNumber: 7
-    }, this),
-    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: deckStyles.deckWrapperFlex, children: [
-      /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: deckStyles.deckSection, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: deckStyles.deckTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.deckControls, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, disabled: !enabled, children: "シャッフル" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, disabled: !enabled, children: "山札に戻す" })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.deckWrapperFlex, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
           className: `${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ""}`,
           onClick: () => enabled && draw(),
-          children: deckCards.map((c, i) => /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+          children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
               className: cardStyles.deckCard,
@@ -1196,26 +1127,11 @@ function Deck({
                 backgroundColor: c.backColor
               }
             },
-            c.id,
-            false,
-            {
-              fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-              lineNumber: 110,
-              columnNumber: 13
-            },
-            this
+            c.id
           ))
-        },
-        void 0,
-        false,
-        {
-          fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-          lineNumber: 105,
-          columnNumber: 9
-        },
-        this
+        }
       ),
-      /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(CardPreview, { card: c, children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: c, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
           className: cardStyles.deckCardFront,
@@ -1223,39 +1139,11 @@ function Deck({
             zIndex: i + 1,
             transform: `translate(${i * -0.3}px, ${i * -0.3}px)`
           },
-          children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(CardDisplayContent, { card: c, canSeeFront: true }, void 0, false, {
-            fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-            lineNumber: 133,
-            columnNumber: 17
-          }, this)
-        },
-        void 0,
-        false,
-        {
-          fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-          lineNumber: 126,
-          columnNumber: 15
-        },
-        this
-      ) }, c.id, false, {
-        fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-        lineNumber: 125,
-        columnNumber: 13
-      }, this)) }, void 0, false, {
-        fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-        lineNumber: 123,
-        columnNumber: 9
-      }, this)
-    ] }, void 0, true, {
-      fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-      lineNumber: 103,
-      columnNumber: 7
-    }, this)
-  ] }, void 0, true, {
-    fileName: "/workspaces/react-game-ui/src/components/Deck.tsx",
-    lineNumber: 91,
-    columnNumber: 5
-  }, this);
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true })
+        }
+      ) }, c.id)) })
+    ] })
+  ] });
 }
 const diceWrapper = "_diceWrapper_1gmf4_1";
 const diceTitle = "_diceTitle_1gmf4_9";
@@ -1330,48 +1218,20 @@ function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll,
   };
   const renderDiceFace = () => {
     if (customFaces && customFaces[value - 1]) {
-      return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$5.faceContainer, children: customFaces[value - 1] }, void 0, false, {
-        fileName: "/workspaces/react-game-ui/src/components/Dice.tsx",
-        lineNumber: 94,
-        columnNumber: 14
-      }, this);
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.faceContainer, children: customFaces[value - 1] });
     }
     if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
-      return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$5.faceImage }, void 0, false, {
-        fileName: "/workspaces/react-game-ui/src/components/Dice.tsx",
-        lineNumber: 98,
-        columnNumber: 14
-      }, this);
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$5.faceImage });
     }
-    return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: styles$5.defaultText, children: value }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/Dice.tsx",
-      lineNumber: 101,
-      columnNumber: 12
-    }, this);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$5.defaultText, children: value });
   };
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$5.diceWrapper, children: [
-    title2 && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$5.diceTitle, children: title2 }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/Dice.tsx",
-      lineNumber: 106,
-      columnNumber: 17
-    }, this),
-    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: `${styles$5.dice} ${rolling ? styles$5.diceRolling : styles$5.diceNotRolling}`, onClick: roll, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.diceWrapper, children: [
+    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.diceTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$5.dice} ${rolling ? styles$5.diceRolling : styles$5.diceNotRolling}`, onClick: roll, children: [
       renderDiceFace(),
-      tooltipText && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$5.tooltip, children: tooltipText }, void 0, false, {
-        fileName: "/workspaces/react-game-ui/src/components/Dice.tsx",
-        lineNumber: 109,
-        columnNumber: 25
-      }, this)
-    ] }, void 0, true, {
-      fileName: "/workspaces/react-game-ui/src/components/Dice.tsx",
-      lineNumber: 107,
-      columnNumber: 7
-    }, this)
-  ] }, void 0, true, {
-    fileName: "/workspaces/react-game-ui/src/components/Dice.tsx",
-    lineNumber: 105,
-    columnNumber: 5
-  }, this);
+      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.tooltip, children: tooltipText })
+    ] })
+  ] });
 }
 const draggable = "_draggable_1udwl_3";
 const contextMenu$1 = "_contextMenu_1udwl_28";
@@ -1539,8 +1399,8 @@ function Draggable({
     // マスク関連（これも特殊な計算結果なので最後に上書き）
     ...maskStyle
   };
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(jsxDevRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
         onMouseDown: handleMouseDown,
@@ -1548,7 +1408,7 @@ function Draggable({
         className: draggableStyles.draggable,
         style: dynamicStyle,
         "data-draggable-id": draggableId,
-        children: image2 ? /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+        children: image2 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
           "img",
           {
             src: image2,
@@ -1561,27 +1421,11 @@ function Draggable({
               userSelect: "none",
               mixBlendMode: mask ? "multiply" : "normal"
             }
-          },
-          void 0,
-          false,
-          {
-            fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-            lineNumber: 273,
-            columnNumber: 11
-          },
-          this
+          }
         ) : children
-      },
-      void 0,
-      false,
-      {
-        fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-        lineNumber: 265,
-        columnNumber: 7
-      },
-      this
+      }
     ),
-    isDebug && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+    isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
         className: draggableStyles.debugLabel,
@@ -1596,17 +1440,9 @@ function Draggable({
           " | Z: ",
           currentZIndex
         ]
-      },
-      void 0,
-      true,
-      {
-        fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-        lineNumber: 292,
-        columnNumber: 9
-      },
-      this
+      }
     ),
-    contextMenu2 && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+    contextMenu2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
         className: draggableStyles.contextMenu,
@@ -1616,7 +1452,7 @@ function Draggable({
         },
         onClick: (e) => e.stopPropagation(),
         children: [
-          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "div",
             {
               className: draggableStyles.menuItem,
@@ -1626,28 +1462,12 @@ function Draggable({
                 setContextMenu(null);
               },
               children: [
-                /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: draggableStyles.menuIcon, children: "🔄" }, void 0, false, {
-                  fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-                  lineNumber: 322,
-                  columnNumber: 13
-                }, this),
-                /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { children: "90度回転" }, void 0, false, {
-                  fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-                  lineNumber: 323,
-                  columnNumber: 13
-                }, this)
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "🔄" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "90度回転" })
               ]
-            },
-            void 0,
-            true,
-            {
-              fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-              lineNumber: 314,
-              columnNumber: 11
-            },
-            this
+            }
           ),
-          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "div",
             {
               className: draggableStyles.menuItem,
@@ -1663,28 +1483,12 @@ function Draggable({
                 setContextMenu(null);
               },
               children: [
-                /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: draggableStyles.menuIcon, children: "⬆️" }, void 0, false, {
-                  fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-                  lineNumber: 339,
-                  columnNumber: 13
-                }, this),
-                /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { children: "最前面に移動" }, void 0, false, {
-                  fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-                  lineNumber: 340,
-                  columnNumber: 13
-                }, this)
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "⬆️" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最前面に移動" })
               ]
-            },
-            void 0,
-            true,
-            {
-              fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-              lineNumber: 325,
-              columnNumber: 11
-            },
-            this
+            }
           ),
-          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "div",
             {
               className: draggableStyles.menuItem,
@@ -1700,33 +1504,13 @@ function Draggable({
                 setContextMenu(null);
               },
               children: [
-                /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: draggableStyles.menuIcon, children: "⬇️" }, void 0, false, {
-                  fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-                  lineNumber: 357,
-                  columnNumber: 13
-                }, this),
-                /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { children: "最背面に移動" }, void 0, false, {
-                  fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-                  lineNumber: 358,
-                  columnNumber: 13
-                }, this)
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "⬇️" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最背面に移動" })
               ]
-            },
-            void 0,
-            true,
-            {
-              fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-              lineNumber: 343,
-              columnNumber: 11
-            },
-            this
+            }
           ),
-          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: draggableStyles.separator }, void 0, false, {
-            fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-            lineNumber: 361,
-            columnNumber: 11
-          }, this),
-          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: draggableStyles.separator }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "div",
             {
               className: draggableStyles.menuItem,
@@ -1738,43 +1522,15 @@ function Draggable({
                 setContextMenu(null);
               },
               children: [
-                /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: draggableStyles.menuIcon, children: "🧹" }, void 0, false, {
-                  fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-                  lineNumber: 373,
-                  columnNumber: 13
-                }, this),
-                /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { children: "角度をリセット" }, void 0, false, {
-                  fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-                  lineNumber: 374,
-                  columnNumber: 13
-                }, this)
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "🧹" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "角度をリセット" })
               ]
-            },
-            void 0,
-            true,
-            {
-              fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-              lineNumber: 363,
-              columnNumber: 11
-            },
-            this
+            }
           )
         ]
-      },
-      void 0,
-      true,
-      {
-        fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-        lineNumber: 306,
-        columnNumber: 9
-      },
-      this
+      }
     )
-  ] }, void 0, true, {
-    fileName: "/workspaces/react-game-ui/src/components/Draggable.tsx",
-    lineNumber: 264,
-    columnNumber: 5
-  }, this);
+  ] });
 }
 const piece = "_piece_138ki_3";
 const styles$4 = {
@@ -1808,7 +1564,7 @@ function Piece({
   const MASK_IMAGE_PROP = ["mask", "Image"].join("");
   const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
   const URL_FUNC = ["u", "r", "l"].join("");
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
       className: pieceClasses,
@@ -1827,7 +1583,7 @@ function Piece({
       draggable: isDraggable,
       onDragStart: handleDragStart,
       onDragEnd: (e) => onDragEnd(e, piece2),
-      children: piece2.image ? /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+      children: piece2.image ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {
           style: {
@@ -1837,7 +1593,7 @@ function Piece({
             pointerEvents: "none"
           },
           children: [
-            /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
               "img",
               {
                 src: piece2.image,
@@ -1848,17 +1604,9 @@ function Piece({
                   objectFit: "contain",
                   display: "block"
                 }
-              },
-              void 0,
-              false,
-              {
-                fileName: "/workspaces/react-game-ui/src/components/Piece.tsx",
-                lineNumber: 90,
-                columnNumber: 11
-              },
-              this
+              }
             ),
-            isFilled && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+            isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
               "div",
               {
                 style: {
@@ -1876,36 +1624,12 @@ function Piece({
                   mixBlendMode: "multiply",
                   pointerEvents: "none"
                 }
-              },
-              void 0,
-              false,
-              {
-                fileName: "/workspaces/react-game-ui/src/components/Piece.tsx",
-                lineNumber: 102,
-                columnNumber: 13
-              },
-              this
+              }
             )
           ]
-        },
-        void 0,
-        true,
-        {
-          fileName: "/workspaces/react-game-ui/src/components/Piece.tsx",
-          lineNumber: 82,
-          columnNumber: 9
-        },
-        this
+        }
       ) : piece2.name.substring(0, 1)
-    },
-    void 0,
-    false,
-    {
-      fileName: "/workspaces/react-game-ui/src/components/Piece.tsx",
-      lineNumber: 63,
-      columnNumber: 5
-    },
-    this
+    }
   );
 }
 function GridBoard({
@@ -2023,7 +1747,7 @@ function GridBoard({
     position: "relative"
   };
   if (!isBoardReady) {
-    return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
         style: {
@@ -2032,23 +1756,11 @@ function GridBoard({
           fontSize: "20px",
           color: "#e0e0e0"
         },
-        children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("p", { children: "サーバーから盤面データをロード中..." }, void 0, false, {
-          fileName: "/workspaces/react-game-ui/src/components/GridBoard.tsx",
-          lineNumber: 200,
-          columnNumber: 9
-        }, this)
-      },
-      void 0,
-      false,
-      {
-        fileName: "/workspaces/react-game-ui/src/components/GridBoard.tsx",
-        lineNumber: 192,
-        columnNumber: 7
-      },
-      this
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "サーバーから盤面データをロード中..." })
+      }
     );
   }
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$6.boardContainer, style: boardStyle, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [
     cells.map((cell2) => {
       const match = cell2.id.match(/r(\d+)c(\d+)/);
       const r = match ? parseInt(match[1], 10) : 0;
@@ -2060,7 +1772,7 @@ function GridBoard({
         content: isChanged ? cell2.changedContent : cell2.content
       };
       const loc = { row: r, col: c };
-      return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
         Cell,
         {
           locationData: loc,
@@ -2073,14 +1785,7 @@ function GridBoard({
           changed: isChanged,
           children: renderCell(cellDataForRenderer, r, c)
         },
-        cell2.id,
-        false,
-        {
-          fileName: "/workspaces/react-game-ui/src/components/GridBoard.tsx",
-          lineNumber: 228,
-          columnNumber: 11
-        },
-        this
+        cell2.id
       );
     }),
     pieces.map((piece2) => {
@@ -2104,7 +1809,7 @@ function GridBoard({
         transform: `translate(${offsetX}px, ${offsetY}px)`,
         transition: "transform 0.3s ease-in-out"
       };
-      return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
         Piece,
         {
           piece: piece2,
@@ -2115,21 +1820,10 @@ function GridBoard({
           onDragStart: handlePieceDragStart,
           onDragEnd: handlePieceDragEnd
         },
-        piece2.id,
-        false,
-        {
-          fileName: "/workspaces/react-game-ui/src/components/GridBoard.tsx",
-          lineNumber: 271,
-          columnNumber: 11
-        },
-        this
+        piece2.id
       );
     })
-  ] }, void 0, true, {
-    fileName: "/workspaces/react-game-ui/src/components/GridBoard.tsx",
-    lineNumber: 206,
-    columnNumber: 5
-  }, this);
+  ] });
 }
 const rgPlayFieldContainer = "_rgPlayFieldContainer_16v0u_14";
 const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_16v0u_22";
@@ -2286,7 +1980,7 @@ function PlayField({
     }
     socket.emit("card:move-from-field", requestData);
   };
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "section",
     {
       className: `rg-playfield mode-${layoutMode}`,
@@ -2296,12 +1990,8 @@ function PlayField({
         position: "relative"
       },
       children: [
-        /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title2 !== void 0 && title2 !== null ? title2 : `プレイフィールド (deckId=${deckId})` }, void 0, false, {
-          fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-          lineNumber: 251,
-          columnNumber: 7
-        }, this),
-        /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title2 !== void 0 && title2 !== null ? title2 : `プレイフィールド (deckId=${deckId})` }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
           "div",
           {
             ref: containerRef,
@@ -2333,7 +2023,7 @@ function PlayField({
                   // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                   transition: isDragging ? "none" : "left 0.2s ease, top 0.2s ease"
                 } : {};
-                return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+                return /* @__PURE__ */ jsxRuntimeExports.jsxs(
                   "div",
                   {
                     draggable: false,
@@ -2359,42 +2049,19 @@ function PlayField({
                       zIndex: currentZIndex
                     },
                     children: [
-                      /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(CardDisplayContent, { card: card2, canSeeFront: card2.isFaceUp }, void 0, false, {
-                        fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                        lineNumber: 321,
-                        columnNumber: 15
-                      }, this),
-                      card2.ownerId && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }, void 0, false, {
-                        fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                        lineNumber: 325,
-                        columnNumber: 17
-                      }, this),
-                      isDebug && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: card2.isFaceUp }),
+                      card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
+                      isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: [
                         "Z:",
                         currentZIndex
-                      ] }, void 0, true, {
-                        fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                        lineNumber: 332,
-                        columnNumber: 17
-                      }, this),
-                      card2.description && !isDragging && card2.isFaceUp && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: cardStyles.tooltip, children: card2.description }, void 0, false, {
-                        fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                        lineNumber: 339,
-                        columnNumber: 17
-                      }, this)
+                      ] }),
+                      card2.description && !isDragging && card2.isFaceUp && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description })
                     ]
                   },
-                  card2.id,
-                  true,
-                  {
-                    fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                    lineNumber: 294,
-                    columnNumber: 13
-                  },
-                  this
+                  card2.id
                 );
               }),
-              contextMenu2 && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+              contextMenu2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(
                 "div",
                 {
                   className: playFieldStyles.contextMenu,
@@ -2405,7 +2072,7 @@ function PlayField({
                   },
                   onClick: (e) => e.stopPropagation(),
                   children: [
-                    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
                       "div",
                       {
                         className: playFieldStyles.menuItem,
@@ -2420,28 +2087,12 @@ function PlayField({
                           setContextMenu(null);
                         },
                         children: [
-                          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: playFieldStyles.menuIcon, children: "⬆️" }, void 0, false, {
-                            fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                            lineNumber: 369,
-                            columnNumber: 15
-                          }, this),
-                          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { children: "最前面へ移動" }, void 0, false, {
-                            fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                            lineNumber: 370,
-                            columnNumber: 15
-                          }, this)
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "⬆️" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最前面へ移動" })
                         ]
-                      },
-                      void 0,
-                      true,
-                      {
-                        fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                        lineNumber: 356,
-                        columnNumber: 13
-                      },
-                      this
+                      }
                     ),
-                    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
                       "div",
                       {
                         className: playFieldStyles.menuItem,
@@ -2456,33 +2107,13 @@ function PlayField({
                           setContextMenu(null);
                         },
                         children: [
-                          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: playFieldStyles.menuIcon, children: "⬇️" }, void 0, false, {
-                            fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                            lineNumber: 386,
-                            columnNumber: 15
-                          }, this),
-                          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { children: "最背面へ移動" }, void 0, false, {
-                            fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                            lineNumber: 387,
-                            columnNumber: 15
-                          }, this)
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "⬇️" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最背面へ移動" })
                         ]
-                      },
-                      void 0,
-                      true,
-                      {
-                        fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                        lineNumber: 373,
-                        columnNumber: 13
-                      },
-                      this
+                      }
                     ),
-                    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { style: { height: "1px", background: "#444", margin: "4px 0" } }, void 0, false, {
-                      fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                      lineNumber: 390,
-                      columnNumber: 13
-                    }, this),
-                    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { height: "1px", background: "#444", margin: "4px 0" } }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
                       "div",
                       {
                         className: playFieldStyles.menuItem,
@@ -2495,28 +2126,12 @@ function PlayField({
                           setContextMenu(null);
                         },
                         children: [
-                          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: playFieldStyles.menuIcon, children: "🔄" }, void 0, false, {
-                            fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                            lineNumber: 403,
-                            columnNumber: 15
-                          }, this),
-                          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { children: "カードを裏返す" }, void 0, false, {
-                            fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                            lineNumber: 404,
-                            columnNumber: 15
-                          }, this)
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "🔄" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "カードを裏返す" })
                         ]
-                      },
-                      void 0,
-                      true,
-                      {
-                        fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                        lineNumber: 392,
-                        columnNumber: 13
-                      },
-                      this
+                      }
                     ),
-                    contextMenu2.card.fieldBackCondition && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+                    contextMenu2.card.fieldBackCondition && /* @__PURE__ */ jsxRuntimeExports.jsxs(
                       "div",
                       {
                         className: playFieldStyles.menuItem,
@@ -2525,59 +2140,19 @@ function PlayField({
                           setContextMenu(null);
                         },
                         children: [
-                          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: playFieldStyles.menuIcon, children: "✋" }, void 0, false, {
-                            fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                            lineNumber: 415,
-                            columnNumber: 17
-                          }, this),
-                          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { children: "手札/捨て札へ戻す" }, void 0, false, {
-                            fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                            lineNumber: 416,
-                            columnNumber: 17
-                          }, this)
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "✋" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "手札/捨て札へ戻す" })
                         ]
-                      },
-                      void 0,
-                      true,
-                      {
-                        fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                        lineNumber: 408,
-                        columnNumber: 15
-                      },
-                      this
+                      }
                     )
                   ]
-                },
-                void 0,
-                true,
-                {
-                  fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-                  lineNumber: 347,
-                  columnNumber: 11
-                },
-                this
+                }
               )
             ]
-          },
-          void 0,
-          true,
-          {
-            fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-            lineNumber: 254,
-            columnNumber: 7
-          },
-          this
+          }
         )
       ]
-    },
-    void 0,
-    true,
-    {
-      fileName: "/workspaces/react-game-ui/src/components/PlayField.tsx",
-      lineNumber: 243,
-      columnNumber: 5
-    },
-    this
+    }
   );
 }
 const container$1 = "_container_17uio_2";
@@ -2639,44 +2214,25 @@ const RemoteCursor = React__default.memo(
       return () => window.removeEventListener("mousemove", handleMove);
     }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
     if (!visible) return null;
-    return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$3.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
       const player = players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
       const name = player ? player.name : "接続中...";
       const color = player?.color || "#000000";
       const left = isRelative ? `${coords.x * 100}%` : coords.x;
       const top = isRelative ? `${coords.y * 100}%` : coords.y;
-      return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {
           className: styles$3.cursorWrapper,
           style: { left, top },
           children: [
-            /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$3.icon, style: { color }, children: "👆" }, void 0, false, {
-              fileName: "/workspaces/react-game-ui/src/components/RemoteCursor.tsx",
-              lineNumber: 110,
-              columnNumber: 15
-            }, void 0),
-            /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$3.label, style: { backgroundColor: color }, children: name }, void 0, false, {
-              fileName: "/workspaces/react-game-ui/src/components/RemoteCursor.tsx",
-              lineNumber: 113,
-              columnNumber: 15
-            }, void 0)
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.icon, style: { color }, children: "👆" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.label, style: { backgroundColor: color }, children: name })
           ]
         },
-        id,
-        true,
-        {
-          fileName: "/workspaces/react-game-ui/src/components/RemoteCursor.tsx",
-          lineNumber: 105,
-          columnNumber: 13
-        },
-        void 0
+        id
       );
-    }) }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/RemoteCursor.tsx",
-      lineNumber: 92,
-      columnNumber: 7
-    }, void 0);
+    }) });
   }
 );
 const container = "_container_k18kw_7";
@@ -2747,29 +2303,9 @@ const styles$2 = {
 };
 const TokenDisplayContent = React__default.memo(({ token }) => {
   if (token.imageSrc) {
-    return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$2.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("img", { src: token.imageSrc, alt: token.name, className: styles$2.image }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/Token.tsx",
-      lineNumber: 11,
-      columnNumber: 9
-    }, void 0) }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/Token.tsx",
-      lineNumber: 10,
-      columnNumber: 7
-    }, void 0);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$2.image }) });
   }
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$2.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$2.textWrapper, children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("strong", { className: styles$2.text, children: token.name }, void 0, false, {
-    fileName: "/workspaces/react-game-ui/src/components/Token.tsx",
-    lineNumber: 20,
-    columnNumber: 9
-  }, void 0) }, void 0, false, {
-    fileName: "/workspaces/react-game-ui/src/components/Token.tsx",
-    lineNumber: 19,
-    columnNumber: 7
-  }, void 0) }, void 0, false, {
-    fileName: "/workspaces/react-game-ui/src/components/Token.tsx",
-    lineNumber: 18,
-    columnNumber: 5
-  }, void 0);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$2.text, children: token.name }) }) });
 });
 const PlayerListItem = React.memo(
   ({
@@ -2818,33 +2354,25 @@ const PlayerListItem = React.memo(
       "--player-color-bg": playerColor.replace("hsl", "hsla").replace(")", ", 0.3)"),
       "--player-color-glow": playerColor.replace("hsl", "hsla").replace(")", ", 0.5)")
     };
-    return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "li",
       {
         className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ""}`,
         style: customStyles,
         children: [
-          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.playerHeader, children: [
-            /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: scoreBoardStyles.playerName, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.playerHeader, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerName, children: [
               isActive && "ᐅ ",
               isOwner && "★ ME ",
               player.name
-            ] }, void 0, true, {
-              fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-              lineNumber: 92,
-              columnNumber: 11
-            }, void 0),
-            /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.scoreArea, children: [
-              /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.scoreWrapper, style: { position: "relative", display: "inline-block" }, children: [
-                /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: scoreBoardStyles.playerScore, children: [
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreArea, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreWrapper, style: { position: "relative", display: "inline-block" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerScore, children: [
                   "スコア: ",
                   player.score
-                ] }, void 0, true, {
-                  fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-                  lineNumber: 99,
-                  columnNumber: 15
-                }, void 0),
-                scoreDiff !== null && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+                ] }),
+                scoreDiff !== null && /* @__PURE__ */ jsxRuntimeExports.jsx(
                   "span",
                   {
                     className: `
@@ -2852,48 +2380,16 @@ const PlayerListItem = React.memo(
       ${scoreDiff > 0 ? scoreBoardStyles.plus : scoreBoardStyles.minus}
     `,
                     children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff
-                  },
-                  void 0,
-                  false,
-                  {
-                    fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-                    lineNumber: 103,
-                    columnNumber: 17
-                  },
-                  void 0
+                  }
                 )
-              ] }, void 0, true, {
-                fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-                lineNumber: 98,
-                columnNumber: 13
-              }, void 0),
-              isDebug && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.debugScoreButtons, children: [
-                /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }, void 0, false, {
-                  fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-                  lineNumber: 115,
-                  columnNumber: 17
-                }, void 0),
-                /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "+" }, void 0, false, {
-                  fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-                  lineNumber: 118,
-                  columnNumber: 17
-                }, void 0)
-              ] }, void 0, true, {
-                fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-                lineNumber: 114,
-                columnNumber: 15
-              }, void 0)
-            ] }, void 0, true, {
-              fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-              lineNumber: 97,
-              columnNumber: 11
-            }, void 0)
-          ] }, void 0, true, {
-            fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-            lineNumber: 91,
-            columnNumber: 9
-          }, void 0),
-          player.resources?.length > 0 && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.resourceSection, children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: scoreBoardStyles.resourceBadge, children: [
+              ] }),
+              isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "+" })
+              ] })
+            ] })
+          ] }),
+          player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.resourceSection, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [
             resource.icon,
             " ",
             resource.name,
@@ -2901,20 +2397,8 @@ const PlayerListItem = React.memo(
             resource.currentValue,
             " / ",
             resource.maxValue
-          ] }, resource.resourceId, true, {
-            fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-            lineNumber: 130,
-            columnNumber: 17
-          }, void 0)) }, void 0, false, {
-            fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-            lineNumber: 128,
-            columnNumber: 13
-          }, void 0) }, void 0, false, {
-            fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-            lineNumber: 127,
-            columnNumber: 11
-          }, void 0),
-          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.tokenList, children: player.tokens.map((token) => /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+          ] }, resource.resourceId)) }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: player.tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
               onClick: () => {
@@ -2924,35 +2408,16 @@ const PlayerListItem = React.memo(
                   tokenId: token.id
                 });
               },
-              children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(TokenDisplayContent, { token }, void 0, false, {
-                fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-                lineNumber: 150,
-                columnNumber: 15
-              }, void 0)
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token })
             },
-            token.id,
-            false,
-            {
-              fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-              lineNumber: 140,
-              columnNumber: 13
-            },
-            void 0
-          )) }, void 0, false, {
-            fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-            lineNumber: 138,
-            columnNumber: 9
-          }, void 0),
-          player.isHolding && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("p", { className: scoreBoardStyles.isHoldMessage, children: "カードをホールドしています" }, void 0, false, {
-            fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-            lineNumber: 155,
-            columnNumber: 30
-          }, void 0),
-          /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card2) => {
+            token.id
+          )) }),
+          player.isHolding && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: scoreBoardStyles.isHoldMessage, children: "カードをホールドしています" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card2) => {
             const isSelected = selectedCards.includes(card2.id);
             const isHeld = heldCards.includes(card2.id);
             const canSeeFront = !!card2.isFaceUp || isOwner;
-            return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
                 draggable: isOwner && !isHeld && enabled,
@@ -2981,47 +2446,16 @@ const PlayerListItem = React.memo(
                 },
                 onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner),
                 children: [
-                  /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(CardDisplayContent, { card: card2, canSeeFront }, void 0, false, {
-                    fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-                    lineNumber: 196,
-                    columnNumber: 17
-                  }, void 0),
-                  isHeld && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.cardIsHeld, children: "🔐" }, void 0, false, {
-                    fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-                    lineNumber: 199,
-                    columnNumber: 28
-                  }, void 0),
-                  canSeeFront && card2.description && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("span", { className: scoreBoardStyles.tooltip, children: card2.description }, void 0, false, {
-                    fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-                    lineNumber: 203,
-                    columnNumber: 19
-                  }, void 0)
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
+                  isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardIsHeld, children: "🔐" }),
+                  canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: scoreBoardStyles.tooltip, children: card2.description })
                 ]
               },
-              card2.id,
-              true,
-              {
-                fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-                lineNumber: 163,
-                columnNumber: 15
-              },
-              void 0
+              card2.id
             );
-          }) }, void 0, false, {
-            fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-            lineNumber: 156,
-            columnNumber: 9
-          }, void 0)
+          }) })
         ]
-      },
-      void 0,
-      true,
-      {
-        fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-        lineNumber: 87,
-        columnNumber: 7
-      },
-      void 0
+      }
     );
   }
 );
@@ -3109,13 +2543,9 @@ function ScoreBoard({
   const isTurnSkipDisabled = canTurnSkip !== void 0 ? !canTurnSkip : !enabled;
   const isRoundSkipDisabled = canRoundSkip !== void 0 ? !canRoundSkip : !enabled;
   const isOverLimit = playCardLimit !== void 0 && selectedCards.length > playCardLimit;
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.container, children: [
-    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("h2", { className: scoreBoardStyles.title, children: "ゲームスコアボード" }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-      lineNumber: 352,
-      columnNumber: 7
-    }, this),
-    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.container, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: scoreBoardStyles.title, children: "ゲームスコアボード" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       PlayerListItem,
       {
         socket,
@@ -3130,92 +2560,37 @@ function ScoreBoard({
         isDebug,
         enabled
       },
-      player.id,
-      false,
-      {
-        fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-        lineNumber: 355,
-        columnNumber: 11
-      },
-      this
-    )) }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-      lineNumber: 353,
-      columnNumber: 7
-    }, this),
-    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.buttonArea, children: [
-      isOverLimit && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("p", { className: scoreBoardStyles.limitMessage, children: [
+      player.id
+    )) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonArea, children: [
+      isOverLimit && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: scoreBoardStyles.limitMessage, children: [
         "一度に出せるカードは ",
         playCardLimit,
         " 枚までです"
-      ] }, void 0, true, {
-        fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-        lineNumber: 374,
-        columnNumber: 11
-      }, this),
-      /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: scoreBoardStyles.buttonGroup, children: [
-        showPlay && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("button", { onClick: () => playSelectedCards(), disabled: isPlayDisabled || isOverLimit, children: "選択カードを出す" }, void 0, false, {
-          fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-          lineNumber: 379,
-          columnNumber: 13
-        }, this),
-        showHold && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isHoldDisabled || isOverLimit, children: "選択カードをホールドする" }, void 0, false, {
-          fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-          lineNumber: 384,
-          columnNumber: 13
-        }, this),
-        showFlip && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("button", { onClick: flipSelectedCards, disabled: isFlipDisabled, children: "選択カードをひっくり返す" }, void 0, false, {
-          fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-          lineNumber: 389,
-          columnNumber: 13
-        }, this),
-        showTurnSkip && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [
+        showPlay && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isPlayDisabled || isOverLimit, children: "選択カードを出す" }),
+        showHold && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isHoldDisabled || isOverLimit, children: "選択カードをホールドする" }),
+        showFlip && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: flipSelectedCards, disabled: isFlipDisabled, children: "選択カードをひっくり返す" }),
+        showTurnSkip && /* @__PURE__ */ jsxRuntimeExports.jsx(
           "button",
           {
             onClick: () => socket.emit("game:next-turn", { roomId }),
             disabled: isTurnSkipDisabled,
             children: "ターンをスキップ"
-          },
-          void 0,
-          false,
-          {
-            fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-            lineNumber: 394,
-            columnNumber: 13
-          },
-          this
+          }
         ),
-        showRoundSkip && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+        showRoundSkip && /* @__PURE__ */ jsxRuntimeExports.jsx(
           "button",
           {
             onClick: () => socket.emit("game:next-round", { roomId }),
             disabled: isRoundSkipDisabled,
             children: "ラウンドをスキップ"
-          },
-          void 0,
-          false,
-          {
-            fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-            lineNumber: 402,
-            columnNumber: 13
-          },
-          this
+          }
         )
-      ] }, void 0, true, {
-        fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-        lineNumber: 377,
-        columnNumber: 9
-      }, this)
-    ] }, void 0, true, {
-      fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-      lineNumber: 372,
-      columnNumber: 7
-    }, this)
-  ] }, void 0, true, {
-    fileName: "/workspaces/react-game-ui/src/components/ScoreBoard.tsx",
-    lineNumber: 351,
-    columnNumber: 5
-  }, this);
+      ] })
+    ] })
+  ] });
 }
 const messageContainer = "_messageContainer_1akhg_3";
 const messageList = "_messageList_1akhg_29";
@@ -3266,19 +2641,7 @@ const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
       clearTimeout(timer);
     };
   }, [isProcessing, currentData, displayDuration]);
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("section", { className: styles$1.messageContainer, children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$1.messageList, children: displayMessage && /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles$1.messageItemActive, children: displayMessage }, msgKey, false, {
-    fileName: "/workspaces/react-game-ui/src/components/systemMessageWindow.tsx",
-    lineNumber: 73,
-    columnNumber: 11
-  }, void 0) }, void 0, false, {
-    fileName: "/workspaces/react-game-ui/src/components/systemMessageWindow.tsx",
-    lineNumber: 71,
-    columnNumber: 7
-  }, void 0) }, void 0, false, {
-    fileName: "/workspaces/react-game-ui/src/components/systemMessageWindow.tsx",
-    lineNumber: 70,
-    columnNumber: 5
-  }, void 0);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$1.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageItemActive, children: displayMessage }, msgKey) }) });
 };
 function Timer({ socket = null, initialDuration, onFinish, roomId }) {
   const [timeLeft, setTimeLeft] = useState(initialDuration);
@@ -3311,7 +2674,7 @@ function Timer({ socket = null, initialDuration, onFinish, roomId }) {
     setTimeLeft(initialDuration);
     socket.emit("timer:start", { duration: initialDuration, roomId });
   };
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
       style: {
@@ -3329,7 +2692,7 @@ function Timer({ socket = null, initialDuration, onFinish, roomId }) {
         fontFamily: "sans-serif"
       },
       children: [
-        /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
           "div",
           {
             style: {
@@ -3343,39 +2706,15 @@ function Timer({ socket = null, initialDuration, onFinish, roomId }) {
               timeLeft,
               "s"
             ]
-          },
-          void 0,
-          true,
-          {
-            fileName: "/workspaces/react-game-ui/src/components/Timer.tsx",
-            lineNumber: 74,
-            columnNumber: 7
-          },
-          this
+          }
         ),
-        /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { style: { marginTop: "6px" }, children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("button", { onClick: start, style: { marginRight: "4px" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "6px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { onClick: start, style: { marginRight: "4px" }, children: [
           "タイマー開始 (",
           initialDuration,
           "s)"
-        ] }, void 0, true, {
-          fileName: "/workspaces/react-game-ui/src/components/Timer.tsx",
-          lineNumber: 91,
-          columnNumber: 9
-        }, this) }, void 0, false, {
-          fileName: "/workspaces/react-game-ui/src/components/Timer.tsx",
-          lineNumber: 90,
-          columnNumber: 7
-        }, this)
+        ] }) })
       ]
-    },
-    void 0,
-    true,
-    {
-      fileName: "/workspaces/react-game-ui/src/components/Timer.tsx",
-      lineNumber: 58,
-      columnNumber: 5
-    },
-    this
+    }
   );
 }
 const section = "_section_5m8u8_2";
@@ -3409,17 +2748,13 @@ function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
     const data = { roomId, tokenStoreId, tokenId };
     socket.emit("token:aquire", data);
   };
-  return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("section", { className: styles.section, children: [
-    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("h3", { className: styles.title, children: name }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/TokenStore.tsx",
-      lineNumber: 59,
-      columnNumber: 7
-    }, this),
-    /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV("div", { className: styles.list, children: tokenStoreTokens.map((t, i) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles.section, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.list, children: tokenStoreTokens.map((t, i) => {
       const offsetX = i % 5 * 40 - 80;
       const offsetY = i * 3 % 4 * 10 - 20;
       const rotation = i * 13 % 30 - 15;
-      return /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
           style: {
@@ -3431,31 +2766,12 @@ function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
           },
           onClick: () => handleClick(t.id),
           onDoubleClick: () => handleDoubleClick(t.id),
-          children: /* @__PURE__ */ jsxDevRuntimeExports.jsxDEV(TokenDisplayContent, { token: t }, void 0, false, {
-            fileName: "/workspaces/react-game-ui/src/components/TokenStore.tsx",
-            lineNumber: 80,
-            columnNumber: 15
-          }, this)
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t })
         },
-        t.id,
-        false,
-        {
-          fileName: "/workspaces/react-game-ui/src/components/TokenStore.tsx",
-          lineNumber: 68,
-          columnNumber: 13
-        },
-        this
+        t.id
       );
-    }) }, void 0, false, {
-      fileName: "/workspaces/react-game-ui/src/components/TokenStore.tsx",
-      lineNumber: 60,
-      columnNumber: 7
-    }, this)
-  ] }, void 0, true, {
-    fileName: "/workspaces/react-game-ui/src/components/TokenStore.tsx",
-    lineNumber: 58,
-    columnNumber: 5
-  }, this);
+    }) })
+  ] });
 }
 let LOG_CATEGORIES = {
   connection: true,

@@ -31,12 +31,10 @@
   ],
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && vite build && cp -r src/assets/. dist/assets/ && tsc --project tsconfig.app.json",
-    "preview": "vite preview",
+    "build": "npm run clean && NODE_ENV=production vite build && cp -r src/assets/. dist/assets/ && tsc --project tsconfig.app.json",
     "server": "node --import tsx tests/server.ts",
     "dev:multi": "concurrently \"npm run server\" \"vite\"",
-    "test": "vitest",
-    "test:run": "vitest run"
+    "test": "vitest"
   },
   "peerDependencies": {
     "react": "^18.3.1",
