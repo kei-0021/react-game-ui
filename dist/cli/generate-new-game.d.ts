@@ -1,3 +1,3 @@
 #!/usr/bin/env node
-export {};
+export declare const generate: (gameName: string, gameIcon?: string) => void;
 //# sourceMappingURL=generate-new-game.d.ts.map

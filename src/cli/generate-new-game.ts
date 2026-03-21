@@ -2,23 +2,22 @@
 // src/cli/generate-new-game.ts
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const gameName = process.argv[2];
-const gameIcon = process.argv[3] || '🎲';
+export const generate = (gameName: string, gameIcon: string = '🎲') => {
+  if (!gameName) {
+    console.error('ゲーム名を指定してください（例: npx tsx src/cli/generate-new-game.ts Poker）');
+    process.exit(1);
+  }
 
-if (!gameName) {
-  console.error('ゲーム名を指定してください（例: npx tsx src/cli/generate-new-game.ts Poker）');
-  process.exit(1);
-}
+  const lowerName = gameName.toLowerCase();
+  const pascalName = gameName.charAt(0).toUpperCase() + gameName.slice(1);
 
-const lowerName = gameName.toLowerCase();
-const pascalName = gameName.charAt(0).toUpperCase() + gameName.slice(1);
+  // 注入されたベースパスを優先し、なければプロジェクトルートの 'src' 固定
+  const baseDir = process.env.RG_UI_BASE_DIR || path.join(process.cwd(), 'src');
 
-// 注入されたベースパスを優先し、なければプロジェクトルートの 'src' 固定
-const baseDir = process.env.RG_UI_BASE_DIR || path.join(process.cwd(), 'src');
-
-// --- CSS Module Template ---
-const cssModuleTemplate = `/* src/rooms/${gameName}Room.module.css */
+  // --- CSS Module Template ---
+  const cssModuleTemplate = `/* src/rooms/${gameName}Room.module.css */
 .gameContainer {
   width: 100vw;
   height: 100vh;
@@ -74,8 +73,8 @@ const cssModuleTemplate = `/* src/rooms/${gameName}Room.module.css */
 }
 `;
 
-// --- Server Config Template ---
-const configTemplate = `import type { GameParam } from "react-game-ui";
+  // --- Server Config Template ---
+  const configTemplate = `import type { GameParam } from "react-game-ui";
 import { type RoomConfig } from "react-game-ui/server-io-utils";
 
 export const ${pascalName}Config: RoomConfig = {
@@ -103,8 +102,8 @@ export const ${pascalName}Config: RoomConfig = {
 };
 `;
 
-// --- Room Component Template ---
-const roomTemplate = `import { useCallback, useEffect, useRef, useState } from "react";
+  // --- Room Component Template ---
+  const roomTemplate = `import { useCallback, useEffect, useRef, useState } from "react";
 import type { GameTurnUpdateData, Player, RoomJoinData } from "react-game-ui";
 import {
   Deck,
@@ -128,7 +127,7 @@ const SERVER_URL =
 const BASE_WIDTH = 1600;
 const BASE_HEIGHT = 900;
 
-export default function ${lowerName}Room() {
+export function ${pascalName}Room() {
   const { roomId } = useParams<{ roomId: string }>();
   const socket = useSocket(SERVER_URL);
   const navigate = useNavigate();
@@ -256,31 +255,39 @@ export default function ${lowerName}Room() {
 }
 `;
 
-const paths = {
-  config: path.join(baseDir, 'server', `${pascalName}Config.ts`),
-  room: path.join(baseDir, 'rooms', `${gameName}Room.tsx`),
-  css: path.join(baseDir, 'rooms', `${gameName}Room.module.css`),
-  registry: path.join(baseDir, 'constants/games.ts'),
+  const paths = {
+    config: path.join(baseDir, 'server', `${pascalName}Config.ts`),
+    room: path.join(baseDir, 'rooms', `${gameName}Room.tsx`),
+    css: path.join(baseDir, 'rooms', `${gameName}Room.module.css`),
+    registry: path.join(baseDir, 'constants/games.ts'),
+  };
+
+  [path.dirname(paths.config), path.dirname(paths.room), path.dirname(paths.registry)].forEach((dir) => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  });
+
+  fs.writeFileSync(paths.config, configTemplate);
+  fs.writeFileSync(paths.room, roomTemplate);
+  fs.writeFileSync(paths.css, cssModuleTemplate);
+
+  // Registryの更新
+  if (fs.existsSync(paths.registry)) {
+    let content = fs.readFileSync(paths.registry, 'utf-8');
+    if (!content.includes(`id: "${lowerName}"`)) {
+      const newEntry = `  { id: "${lowerName}", name: "${gameName}", icon: "${gameIcon}" },\n];`;
+      content = content.replace(/\];\s*$/, newEntry);
+      fs.writeFileSync(paths.registry, content);
+    }
+  }
+
+  console.log(`✅ 生成完了: ${gameName} at ${baseDir}`);
 };
 
-// 必要なディレクトリの作成
-[path.dirname(paths.config), path.dirname(paths.room), path.dirname(paths.registry)].forEach((dir) => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-});
-
-// 各ファイル書き出し
-fs.writeFileSync(paths.config, configTemplate);
-fs.writeFileSync(paths.room, roomTemplate);
-fs.writeFileSync(paths.css, cssModuleTemplate);
-
-// Registryの更新
-if (fs.existsSync(paths.registry)) {
-  let content = fs.readFileSync(paths.registry, 'utf-8');
-  if (!content.includes(`id: "${lowerName}"`)) {
-    const newEntry = `  { id: "${lowerName}", name: "${gameName}", icon: "${gameIcon}" },\n];`;
-    content = content.replace(/\];\s*$/, newEntry);
-    fs.writeFileSync(paths.registry, content);
-  }
+// 直接実行時の処理
+const __filename = fileURLToPath(import.meta.url);
+if (
+  process.argv[1] &&
+  (process.argv[1].endsWith('generate-new-game.js') || process.argv[1].endsWith('generate-new-game.ts'))
+) {
+  generate(process.argv[2], process.argv[3]);
 }
-
-console.log(`✅ 生成完了: ${gameName} at ${baseDir}`);
