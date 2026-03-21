@@ -24,3 +24,5 @@ export * from './types/player.js';
 export { RoomManager } from './server/server-utils.js';
 /* @ts-ignore */
 export { Phase } from './types/phase.js';
+/* @ts-ignore */
+export { ControlPanel } from './components/ControlPanel.js';

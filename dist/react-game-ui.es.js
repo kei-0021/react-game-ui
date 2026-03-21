@@ -930,7 +930,7 @@ function requireJsxRuntime() {
 var jsxRuntimeExports = requireJsxRuntime();
 const boardContainer = "_boardContainer_14tjg_8";
 const cell = "_cell_14tjg_18";
-const styles$6 = {
+const styles$7 = {
   boardContainer,
   cell
 };
@@ -958,7 +958,7 @@ const Cell = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
-      className: styles$6.cell,
+      className: styles$7.cell,
       onClick: handleClick,
       onDoubleClick: handleDoubleClick,
       onDrop,
@@ -1154,7 +1154,7 @@ const diceNotRolling = "_diceNotRolling_1gmf4_75";
 const faceImage = "_faceImage_1gmf4_79";
 const faceContainer = "_faceContainer_1gmf4_86";
 const defaultText = "_defaultText_1gmf4_94";
-const styles$5 = {
+const styles$6 = {
   diceWrapper,
   diceTitle,
   dice,
@@ -1218,18 +1218,18 @@ function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll,
   };
   const renderDiceFace = () => {
     if (customFaces && customFaces[value - 1]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.faceContainer, children: customFaces[value - 1] });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.faceContainer, children: customFaces[value - 1] });
     }
     if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$5.faceImage });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$6.faceImage });
     }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$5.defaultText, children: value });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$6.defaultText, children: value });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.diceWrapper, children: [
-    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.diceTitle, children: title2 }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$5.dice} ${rolling ? styles$5.diceRolling : styles$5.diceNotRolling}`, onClick: roll, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.diceWrapper, children: [
+    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.diceTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$6.dice} ${rolling ? styles$6.diceRolling : styles$6.diceNotRolling}`, onClick: roll, children: [
       renderDiceFace(),
-      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.tooltip, children: tooltipText })
+      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.tooltip, children: tooltipText })
     ] })
   ] });
 }
@@ -1533,7 +1533,7 @@ function Draggable({
   ] });
 }
 const piece = "_piece_138ki_3";
-const styles$4 = {
+const styles$5 = {
   piece
 };
 function Piece({
@@ -1560,7 +1560,7 @@ function Piece({
       onDragStart(e, piece2);
     }
   };
-  const pieceClasses = [styles$4.piece, isDraggable ? styles$4.draggable : styles$4.clickable].join(" ");
+  const pieceClasses = [styles$5.piece, isDraggable ? styles$5.draggable : styles$5.clickable].join(" ");
   const MASK_IMAGE_PROP = ["mask", "Image"].join("");
   const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
   const URL_FUNC = ["u", "r", "l"].join("");
@@ -1760,7 +1760,7 @@ function GridBoard({
       }
     );
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$7.boardContainer, style: boardStyle, children: [
     cells.map((cell2) => {
       const match = cell2.id.match(/r(\d+)c(\d+)/);
       const r = match ? parseInt(match[1], 10) : 0;
@@ -2155,15 +2155,15 @@ function PlayField({
     }
   );
 }
-const container$1 = "_container_17uio_2";
+const container$2 = "_container_17uio_2";
 const cursorWrapper = "_cursorWrapper_17uio_13";
 const icon = "_icon_17uio_21";
-const label = "_label_17uio_29";
-const styles$3 = {
-  container: container$1,
+const label$1 = "_label_17uio_29";
+const styles$4 = {
+  container: container$2,
   cursorWrapper,
   icon,
-  label
+  label: label$1
 };
 const RemoteCursor = React__default.memo(
   ({ socket, roomId, myPlayerId, players, scale, fixedContainerRef, visible, isRelative = true }) => {
@@ -2204,21 +2204,21 @@ const RemoteCursor = React__default.memo(
       return () => window.removeEventListener("mousemove", handleMove);
     }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
     if (!visible) return null;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
       const player = players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
       const name = player ? player.name : "接続中...";
       const color = player?.color || "#000000";
       const left = isRelative ? `${coords.x * 100}%` : coords.x;
       const top = isRelative ? `${coords.y * 100}%` : coords.y;
-      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$3.cursorWrapper, style: { left, top }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.icon, style: { color }, children: "👆" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.label, style: { backgroundColor: color }, children: name })
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.cursorWrapper, style: { left, top }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.icon, style: { color }, children: "👆" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.label, style: { backgroundColor: color }, children: name })
       ] }, id);
     }) });
   }
 );
-const container = "_container_k18kw_7";
-const title$1 = "_title_k18kw_19";
+const container$1 = "_container_k18kw_7";
+const title$2 = "_title_k18kw_19";
 const playerList = "_playerList_k18kw_28";
 const playerItem = "_playerItem_k18kw_38";
 const activePlayer = "_activePlayer_k18kw_51";
@@ -2245,8 +2245,8 @@ const buttonArea = "_buttonArea_k18kw_312";
 const limitMessage = "_limitMessage_k18kw_319";
 const buttonGroup = "_buttonGroup_k18kw_326";
 const scoreBoardStyles = {
-  container,
-  title: title$1,
+  container: container$1,
+  title: title$2,
   playerList,
   playerItem,
   activePlayer,
@@ -2277,7 +2277,7 @@ const image = "_image_965of_2";
 const textWrapper = "_textWrapper_965of_10";
 const text = "_text_965of_10";
 const contentWrapper = "_contentWrapper_965of_26";
-const styles$2 = {
+const styles$3 = {
   image,
   textWrapper,
   text,
@@ -2285,9 +2285,9 @@ const styles$2 = {
 };
 const TokenDisplayContent = React__default.memo(({ token }) => {
   if (token.imageSrc) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$2.image }) });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$3.image }) });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$2.text, children: token.name }) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$3.text, children: token.name }) }) });
 });
 const PlayerListItem = React.memo(
   ({
@@ -2577,7 +2577,7 @@ function ScoreBoard({
 const messageContainer = "_messageContainer_1akhg_3";
 const messageList = "_messageList_1akhg_29";
 const messageItemActive = "_messageItemActive_1akhg_38";
-const styles$1 = {
+const styles$2 = {
   messageContainer,
   messageList,
   messageItemActive
@@ -2623,7 +2623,7 @@ const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
       clearTimeout(timer);
     };
   }, [isProcessing, currentData, displayDuration]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$1.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageItemActive, children: displayMessage }, msgKey) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$2.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageItemActive, children: displayMessage }, msgKey) }) });
 };
 function Timer({ socket = null, initialDuration, onFinish, roomId }) {
   const [timeLeft, setTimeLeft] = useState(initialDuration);
@@ -2700,11 +2700,11 @@ function Timer({ socket = null, initialDuration, onFinish, roomId }) {
   );
 }
 const section = "_section_5m8u8_2";
-const title = "_title_5m8u8_12";
+const title$1 = "_title_5m8u8_12";
 const list = "_list_5m8u8_17";
-const styles = {
+const styles$1 = {
   section,
-  title,
+  title: title$1,
   list
 };
 function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
@@ -2730,9 +2730,9 @@ function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
     const data = { roomId, tokenStoreId, tokenId };
     socket.emit("token:aquire", data);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles.section, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.list, children: tokenStoreTokens.map((t, i) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$1.section, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles$1.title, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.list, children: tokenStoreTokens.map((t, i) => {
       const offsetX = i % 5 * 40 - 80;
       const offsetY = i * 3 % 4 * 10 - 20;
       const rotation = i * 13 % 30 - 15;
@@ -3296,8 +3296,172 @@ class Phase {
     return this.name;
   }
 }
+const wrapper = "_wrapper_7p4au_3";
+const open = "_open_7p4au_18";
+const container = "_container_7p4au_22";
+const title = "_title_7p4au_31";
+const field = "_field_7p4au_39";
+const label = "_label_7p4au_45";
+const slider = "_slider_7p4au_52";
+const hamburger = "_hamburger_7p4au_58";
+const saveButton = "_saveButton_7p4au_77";
+const input = "_input_7p4au_89";
+const styles = {
+  wrapper,
+  open,
+  container,
+  title,
+  field,
+  label,
+  slider,
+  hamburger,
+  saveButton,
+  input
+};
+const ControlPanel = ({ socket, gameIds }) => {
+  const [initialValues, setInitialValues] = useState({
+    maxPlayers: 1,
+    handDeckId: "main",
+    handCount: 0
+  });
+  const [selectedGameId, setSelectedGameId] = useState(gameIds[0] || "");
+  const [maxPlayers, setMaxPlayers] = useState(1);
+  const [handDeckId, setHandDeckId] = useState("main");
+  const [handCount, setHandCount] = useState(0);
+  const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
+  const isHandDirty = handDeckId !== initialValues.handDeckId || handCount !== initialValues.handCount;
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  useEffect(() => {
+    const onUpdated = (data) => {
+      if (data.success) {
+        setIsSaving(false);
+        setShowSuccess(true);
+        setInitialValues({
+          maxPlayers,
+          handDeckId,
+          handCount
+        });
+        setTimeout(() => setShowSuccess(false), 2e3);
+      }
+    };
+    socket.on("game-param:updated", onUpdated);
+    return () => {
+      socket.off("game-param:updated", onUpdated);
+    };
+  }, [socket, maxPlayers, handDeckId, handCount]);
+  const handleSave = () => {
+    if (!socket.connected || !selectedGameId) return;
+    const newParam = {};
+    if (isMaxPlayersDirty) {
+      newParam.maxPlayers = maxPlayers;
+    }
+    if (isHandDirty) {
+      newParam.initialHand = {
+        deckId: handDeckId,
+        count: handCount
+      };
+    }
+    if (Object.keys(newParam).length === 0) {
+      alert("変更箇所がありません");
+      return;
+    }
+    setIsSaving(true);
+    socket.emit("game-param:save", {
+      gameId: selectedGameId,
+      newParam
+    });
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.hamburger, onClick: () => setIsOpen(!isOpen), children: isOpen ? "✕" : "☰" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ""}`, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.container, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: "コントロールパネル" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "対象ゲームを選択:" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "select",
+          {
+            className: styles.select,
+            value: selectedGameId,
+            onChange: (e) => {
+              setSelectedGameId(e.target.value);
+            },
+            children: gameIds.map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: id, children: id }, id))
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            "最大プレイヤー数: ",
+            isMaxPlayersDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: maxPlayers })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "range",
+            min: "1",
+            max: "10",
+            className: styles.slider,
+            value: maxPlayers,
+            onChange: (e) => {
+              setMaxPlayers(Number(e.target.value));
+            }
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+          "初期手札: ",
+          isHandDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "text",
+            className: styles.input,
+            value: handDeckId,
+            onChange: (e) => {
+              setHandDeckId(e.target.value);
+            }
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "枚数:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: handCount })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "range",
+            min: "0",
+            max: "10",
+            className: styles.slider,
+            value: handCount,
+            onChange: (e) => {
+              setHandCount(Number(e.target.value));
+            }
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          className: styles.saveButton,
+          onClick: handleSave,
+          disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty,
+          children: isSaving ? "保存中..." : showSuccess ? "完了" : "変更箇所のみ反映"
+        }
+      )
+    ] }) })
+  ] });
+};
 export {
   Cell,
+  ControlPanel,
   Deck,
   Dice,
   Draggable,

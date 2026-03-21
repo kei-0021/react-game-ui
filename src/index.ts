@@ -37,6 +37,8 @@ export { type CellData } from './types/cell.js';
 /* @ts-ignore */
 export { Phase } from './types/phase.js';
 /* @ts-ignore */
+export { ControlPanel } from './components/ControlPanel.js';
+/* @ts-ignore */
 export {
   type CardPlayData,
   type DeckDrawData,
