@@ -142,7 +142,20 @@ export function initGameServer(io, options) {
         // GUIからConfigファイルを直接書き換える
         socket.on('game-param:save', async (data) => {
             try {
-                const targetPath = path.join(process.cwd(), 'tests', 'server', `${data.gameId}Config.ts`);
+                // ベースとなるルートディレクトリを確定させる
+                const root = process.cwd();
+                // src が存在するかチェックして、書き込み先ディレクトリを決定する
+                const getTargetDir = () => {
+                    const srcPath = path.join(root, 'src', 'server');
+                    const testsPath = path.join(root, 'tests', 'server');
+                    // tests/server が存在すればそこを優先
+                    if (fs.existsSync(testsPath)) {
+                        return testsPath;
+                    }
+                    return srcPath;
+                };
+                const targetDir = getTargetDir();
+                const targetPath = path.join(targetDir, `${data.gameId}Config.ts`);
                 // 現在のメモリ上の設定を取得
                 const currentParam = gameParams[data.gameId] || {};
                 // 届いた newParam で既存の設定をマージ
