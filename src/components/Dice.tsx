@@ -1,5 +1,7 @@
+// src/components/Dice.tsx
 /// <reference types="vite/client" />
 import { DiceId, RoomId } from '@/types/definition.js';
+import { DiceRollData, DiceUpdateData } from '@/types/socketData.js';
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import styles from './Dice.module.css';
@@ -31,26 +33,28 @@ type DiceProps = {
   tooltipText?: string;
 };
 
-export default function Dice({
-  sides = 6,
-  socket = null,
-  diceId,
-  roomId,
-  title,
-  onRoll,
-  customFaces,
-  tooltipText,
-}: DiceProps) {
+/**
+ * ダイス（サイコロ）の振出、アニメーション、およびリアルタイム同期を管理するコンポーネント
+ * @param {Socket | null} [socket=null] - サーバーと同期するためのSocket.ioインスタンス
+ * @param {string} diceId - ダイスを一意に識別するためのID（同期に使用）
+ * @param {RoomId} roomId - 現在のルームID
+ * @param {string} [title] - ダイス付近に表示するラベルやタイトル
+ * @param {number} [sides=6] - ダイスの面の数。デフォルトは6面
+ * @param {(value: number) => void} [onRoll] - ダイスが確定した際に実行されるコールバック関数
+ * @param {ReactNode[]} [customFaces] - 数値の代わりに表示するカスタム要素（画像やアイコンなど）の配列
+ * @param {string} [tooltipText] - ホバー時に表示する説明テキスト
+ */
+export function Dice({ socket = null, diceId, roomId, title, sides = 6, onRoll, customFaces, tooltipText }: DiceProps) {
   const [value, setValue] = useState<number>(1);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef<NodeJS.Timeout | null>(null);
 
-  const rollEventName = useMemo(() => `dice:rolled:${roomId}:${diceId}`, [roomId, diceId]);
+  const rollEventName = useMemo(() => `dice:update:${diceId}`, [diceId]);
 
   useEffect(() => {
     if (!socket || !roomId) return;
 
-    const handleRoll = (rolledValue: number) => {
+    const handleRoll = (data: DiceUpdateData) => {
       setRolling(true);
       const rollDuration = 1000;
       const interval = 50;
@@ -64,9 +68,9 @@ export default function Dice({
         if (count >= times) {
           clearInterval(animRef.current!);
           animRef.current = null;
-          setValue(rolledValue);
+          setValue(data.value);
           setRolling(false);
-          onRoll?.(rolledValue);
+          onRoll?.(data.value);
         }
       }, interval);
     };
@@ -81,7 +85,8 @@ export default function Dice({
 
   const roll = () => {
     if (!socket || rolling) return;
-    socket.emit('dice:roll', { roomId, diceId, sides });
+    const requestData: DiceRollData = { roomId, diceId, sides };
+    socket.emit('dice:roll', requestData);
   };
 
   const renderDiceFace = () => {

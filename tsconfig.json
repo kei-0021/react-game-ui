@@ -27,17 +27,9 @@
     },
 
     /* 型定義の参照 */
-    "typeRoots": ["./node_modules/@types", "./node_modules"],
+    "typeRoots": ["./node_modules/@types"],
     "types": ["node", "react", "react-dom"]
   },
-  "include": [
-    "src/index.ts",
-    "src/global.d.ts",
-    "src/components/**/*",
-    "src/hooks/**/*",
-    "src/types/**/*",
-    "src/utils/**/*",
-    "src/server/**/*"
-  ],
-  "exclude": ["node_modules", "src/__mocks__", "src/setupTests.ts", "src/components/__tests__", "tests/data"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "exclude": ["node_modules", "dist", "tests/data", "**/*.test.ts", "**/*.spec.ts"]
 }

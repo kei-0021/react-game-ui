@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TokenDisplayContent } from './Token.js';
 import styles from './TokenStore.module.css';
 /**
@@ -13,31 +13,42 @@ import styles from './TokenStore.module.css';
  * @param {(token: Token) => void} [onSelect] - トークンが選択された際に呼び出されるオプションのコールバック関数
  */
 export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
-    const [tokens, setTokens] = useState([]);
-    const handleUpdateTokens = useCallback((data) => {
-        setTokens(data.tokenStore || []);
-    }, []);
+    const [tokenStoreTokens, setTokenStoreTokens] = useState([]);
     useEffect(() => {
-        if (!socket)
-            return;
-        socket.on(`token-store:update`, handleUpdateTokens);
+        socket.on(`token-store:update:${tokenStoreId}`, (data) => {
+            const newTokens = data.tokenStore || [];
+            setTokenStoreTokens(newTokens);
+        });
         return () => {
-            socket.off(`token-store:update`, handleUpdateTokens);
+            socket.off(`token-store:update:${tokenStoreId}`);
         };
-    }, [socket, handleUpdateTokens]);
-    const getTokenById = useMemo(() => (id) => tokens.find((t) => t.id === id), [tokens]);
+    }, [socket]);
+    const getTokenById = useMemo(() => (id) => tokenStoreTokens.find((t) => t.id === id), [tokenStoreTokens]);
     const handleClick = (id) => {
         const token = getTokenById(id);
         if (!token)
             return;
         onSelect?.(token);
     };
-    const handleDoubleClick = (id) => {
-        const token = getTokenById(id);
+    // トークン獲得
+    const handleDoubleClick = (tokenId) => {
+        const token = getTokenById(tokenId);
         if (!token)
             return;
-        const data = { roomId, tokenStoreId, tokenId: id };
+        const data = { roomId, tokenStoreId, tokenId };
         socket.emit('token:aquire', data);
     };
-    return (_jsxs("section", { className: styles.section, children: [_jsx("h3", { className: styles.title, children: name }), _jsx("div", { className: styles.list, children: tokens.map((t) => (_jsx("div", { onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: _jsx(TokenDisplayContent, { token: t }) }, t.id))) })] }));
+    return (_jsxs("section", { className: styles.section, children: [_jsx("h3", { className: styles.title, children: name }), _jsx("div", { className: styles.list, children: tokenStoreTokens.map((t, i) => {
+                    // インデックスを利用して擬似的に散らばった位置を計算
+                    const offsetX = (i % 5) * 40 - 80;
+                    const offsetY = ((i * 3) % 4) * 10 - 20;
+                    const rotation = ((i * 13) % 30) - 15;
+                    return (_jsx("div", { style: {
+                            position: 'absolute',
+                            left: `calc(40% + ${offsetX}px)`,
+                            top: `calc(50% + ${offsetY}px)`,
+                            transform: `rotate(${rotation}deg)`,
+                            zIndex: i,
+                        }, onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: _jsx(TokenDisplayContent, { token: t }) }, t.id));
+                }) })] }));
 }

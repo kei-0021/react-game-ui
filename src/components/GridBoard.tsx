@@ -1,144 +1,262 @@
 // src/components/GridBoard.tsx
-
+import { CellData, Player } from '@/index.js';
+import { BoardId, PieceId, PlayerId, RoomId } from '@/types/definition.js';
+import { BaordMovePlayerData, BoardMovableRangeData, BoardUpdateData } from '@/types/socketData.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
+import { Socket } from 'socket.io-client';
 import type { PieceData } from '../types/piece.js';
-
 import styles from './Board.module.css';
-import { Cell, CellData } from './Cell.js';
-import Piece from './Piece.js';
+import { Cell } from './Cell.js';
+import { Piece } from './Piece.js';
 
-// 💡 修正点 1: グリッドの位置情報型を定義（Locationの代わりにGridLocationを使用）
 type GridLocation = {
   row: number;
   col: number;
-}
-
-// 💡 修正点 2: GridBoardPropsのイベントハンドラの引数を GridLocation に統一
-type GridBoardProps = {
-  rows: number;
-  cols: number;
-  boardData: CellData[][];
-  pieces: PieceData[]; 
-  changedCells: GridLocation[];
-  
-  allowPieceDrag?: boolean;
-  
-  renderCell: (cellData: CellData, row: number, col: number) => React.ReactNode;
-  
-  // イベントハンドラの引数を cellData と Location オブジェクトに統一
-  onCellClick: (cellData: CellData, loc: GridLocation) => void;
-  onCellDoubleClick: (cellData: CellData, loc: GridLocation) => void; 
-
-  onPieceClick: (pieceId: string) => void;
-
-  onPieceDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
-  // onCellDrop は row/col を個別で受け取る方が外部ライブラリとの連携で便利なため維持
-  onCellDrop: (e: React.DragEvent<HTMLDivElement>, row: number, col: number) => void; 
 };
 
-export default function GridBoard({ 
-    rows, 
-    cols, 
-    boardData, 
-    pieces, 
-    changedCells, 
-    renderCell, 
-    onCellClick,
-    onCellDoubleClick, 
-    onPieceClick, 
-    allowPieceDrag = false, 
-    onPieceDragStart,
-    onCellDrop
+type GridBoardProps = {
+  socket: Socket;
+  roomId: RoomId;
+  boardId: BoardId;
+  players?: Player[];
+  myPlayerId: PlayerId | null;
+  allowPieceDrag?: boolean;
+  moveRange?: number;
+  isExact?: boolean;
+  width?: number;
+  height?: number;
+  renderCell: (cellData: CellData, row: number, col: number) => React.ReactNode;
+};
+
+/**
+ * 盤面（グリッド）を表示し、セルや駒のインタラクション、ドラッグ＆ドロップを管理する
+ * @param {Socket} socket - Socket.ioのインスタンス
+ * @param {RoomId} roomId - 現在のルームID
+ * @param {string} boardId - 描画対象となる盤面の識別子
+ * @param {Player[]} players - ルームに参加しているプレイヤーのリスト。指定するとプレーヤーに対応するコマを生成する
+ * @param {PlayerId} myPlayerId - 操作者自身のプレイヤーID
+ * @param {boolean} [allowPieceDrag=false] - 駒のドラッグ操作を許可するかどうか
+ * @param {boolean} [moveRange=2] - 駒が移動できるマス数
+ * @param {boolean} [isExact=true] - 駒が移動できるマス数がピッタリであるべきかのフラグ
+ * @param {number} widht - 横幅
+ * @param {number} height - 縦幅
+ * @param {(cellData: CellData, row: number, col: number) => React.ReactNode} renderCell - 各マスの内部コンテンツを描画する関数
+ */
+export function GridBoard({
+  socket,
+  roomId,
+  boardId,
+  players,
+  myPlayerId,
+  allowPieceDrag = false,
+  moveRange = 2,
+  isExact = true,
+  width = 800,
+  height = 800,
+  renderCell,
 }: GridBoardProps) {
-  
-  // 💡 修正点 3: イベントハンドラを GridLocation オブジェクトで受け取るように変更
-  const handleCellClick = (loc: GridLocation) => {
-    const data = boardData[loc.row][loc.col];
-    onCellClick(data, loc);
+  const [isBoardReady, setIsBoardReady] = React.useState(false);
+  const [cells, setCells] = React.useState<CellData[]>([]);
+  const [changedCells, setChangedCells] = React.useState<GridLocation[]>([]);
+  const [highlightedCells, setHighlightedCells] = React.useState<GridLocation[]>([]);
+  const [draggingPieceId, setDraggingPieceId] = React.useState<PieceId | null>(null);
+  const [pieces, setPieces] = React.useState<PieceData[]>([]);
+
+  // IDから盤面の最大行列数を計算（一次元配列対応）
+  const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || '0', 10))) + 1 : 0;
+  const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || '0', 10))) + 1 : 0;
+
+  const handleCellClick = (celldata: CellData, loc: GridLocation) => {
+    console.log('クリックされました');
   };
-  
-  const handleCellDoubleClick = (loc: GridLocation) => {
-    const data = boardData[loc.row][loc.col];
-    onCellDoubleClick(data, loc);
+
+  const handleCellDoubleClick = (celldata: CellData, loc: GridLocation) => {
+    if (!isBoardReady || !socket) return;
+    console.log('ダブルクリックされました');
   };
-  
+
+  const handleCellDrop = (e: DragEvent<HTMLDivElement>, targetRow: number, targetCol: number) => {
+    e.preventDefault();
+    if (!isBoardReady || !socket) return;
+
+    const draggedPieceId = e.dataTransfer.getData('pieceId');
+    if (draggedPieceId) {
+      // ドロップ（移動確定）したらハイライトを消す
+      setHighlightedCells([]);
+
+      socket.emit('board:move-player', {
+        roomId,
+        boardId: boardId,
+        playerId: draggedPieceId,
+        newLocation: { row: targetRow, col: targetCol },
+      } as BaordMovePlayerData);
+    }
+  };
+
+  /**
+   * 駒クリック時のハンドラ
+   * 移動可能範囲を表示するためにサーバーへリクエストを飛ばす
+   */
+  const handlePieceClick = (pieceId: PieceId) => {
+    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
+
+    const requestData: BoardMovableRangeData = {
+      roomId,
+      boardId,
+      playerId: pieceId,
+      moveRange: moveRange,
+      isExact: isExact,
+    };
+
+    socket.emit('board:movable-range', requestData);
+  };
+
   const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
-      onPieceDragStart(e, piece);
+    e.dataTransfer.setData('pieceId', piece.id);
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggingPieceId(piece.id);
+    handlePieceClick(piece.id);
   };
+
+  const handlePieceDragEnd = () => {
+    setDraggingPieceId(null);
+  };
+
+  // ------------------- Socket Effects -------------------
+
+  // 盤面初期化/更新
+  React.useEffect(() => {
+    const handleInitBoard = (data: BoardUpdateData) => {
+      if (data.board && data.board.length > 0) {
+        setCells(data.board);
+        setIsBoardReady(true);
+      }
+    };
+    socket.on('board:update', handleInitBoard);
+    return () => {
+      socket.off('board:update', handleInitBoard);
+    };
+  }, [socket]);
+
+  // ハイライト（移動範囲など）の更新
+  React.useEffect(() => {
+    const handleCellUpdate = (updatedLocs: GridLocation[]) => {
+      // サーバーから空配列が来たらハイライト解除、座標が来たら上書き
+      setChangedCells(updatedLocs);
+    };
+    socket.on('cell:update', handleCellUpdate);
+    return () => {
+      socket.off('cell:update', handleCellUpdate);
+    };
+  }, [socket]);
+
+  // プレイヤー情報を描画用の駒データに変換
+  React.useEffect(() => {
+    setPieces((prevPieces) => {
+      if (!players) return [];
+      return players.map((p) => {
+        const existingPiece = prevPieces.find((piece) => piece.id === p.id);
+        const location: GridLocation = p.position;
+
+        const playerColor = p.color || existingPiece?.color || '#aaaaaa';
+        const playerName = p.name || existingPiece?.name || `P?`;
+        const playerImage = p.pieceImage || existingPiece?.image;
+
+        return {
+          ...existingPiece,
+          id: p.id,
+          name: playerName,
+          color: playerColor,
+          image: playerImage,
+          location,
+        } as PieceData;
+      });
+    });
+  }, [players]);
 
   const boardStyle: React.CSSProperties = {
     '--board-rows': rows,
     '--board-cols': cols,
     display: 'grid',
-    gridTemplateRows: `repeat(${rows}, 1fr)`, 
+    gridTemplateRows: `repeat(${rows}, 1fr)`,
     gridTemplateColumns: `repeat(${cols}, 1fr)`,
     gap: '4px',
-    width: '600px', 
-    height: '600px', 
+    width: width,
+    height: height,
     position: 'relative',
   } as React.CSSProperties;
 
+  if (!isBoardReady) {
+    return (
+      <div
+        style={{
+          padding: '40px',
+          textAlign: 'center',
+          fontSize: '20px',
+          color: '#e0e0e0',
+        }}
+      >
+        <p>サーバーから盤面データをロード中...</p>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.boardContainer} style={boardStyle}>
-      {/* 1. マス目のレンダリング */}
-      {boardData.map((rowArr, row) => (
-        rowArr.map((originalCellData, col) => {
-          
-          const isChanged = changedCells.some(
-            loc => loc.row === row && loc.col === col
-          );
-          
-          const effectiveContent = isChanged 
-            ? originalCellData.changedContent
-            : originalCellData.content;
-            
-          const cellDataForRenderer: CellData = { 
-            ...originalCellData, 
-            content: effectiveContent 
-          };
-          
-          // 💡 修正点 4: Location オブジェクトを生成
-          const loc: GridLocation = { row, col };
+      {/* マス目のレンダリング */}
+      {cells.map((cell) => {
+        const match = cell.id.match(/r(\d+)c(\d+)/);
+        const r = match ? parseInt(match[1], 10) : 0;
+        const c = match ? parseInt(match[2], 10) : 0;
 
-          return (
-            // 💡 修正点 5: Cell にジェネリクス型 (GridLocation) を適用
-            <Cell<GridLocation> 
-              key={originalCellData.id}
-              // 💡 修正点 6: Props名を 'locationData' に変更し、loc オブジェクトを渡す
-              locationData={loc} 
-              cellData={cellDataForRenderer} 
-              // 💡 修正点 7: イベントハンドラは関数そのものを渡す (Cell側でlocを引数に実行される)
-              onClick={handleCellClick} 
-              onDoubleClick={handleCellDoubleClick}
-              
-              onDrop={(e) => onCellDrop(e, row, col)}
-              onDragOver={(e) => e.preventDefault()}
-              changed={isChanged}
-            >
-              {renderCell(cellDataForRenderer, row, col)}
-            </Cell>
-          );
-        })
-      ))}
+        const isChanged = changedCells.some((loc) => loc.row === r && loc.col === c);
+        const isHighlighted = players
+          ? (players
+              .find((p) => p.id === draggingPieceId)
+              ?.movableCells?.some((loc) => loc.row === r && loc.col === c) ?? false)
+          : false;
 
-      {/* 2. コマのレンダリング (変更なし) */}
-      {pieces.map(piece => {
-        // ... (コマのロジックは変更なし)
-        const sameLocationPieces = pieces.filter(
-            p => p.location.row === piece.location.row && p.location.col === piece.location.col
+        const cellDataForRenderer: CellData = {
+          ...cell,
+          content: isChanged ? cell.changedContent : cell.content,
+        };
+
+        const loc: GridLocation = { row: r, col: c };
+
+        return (
+          <Cell<GridLocation>
+            key={cell.id}
+            locationData={loc}
+            cellData={cellDataForRenderer}
+            onClick={() => handleCellClick(cell, loc)}
+            onDoubleClick={() => handleCellDoubleClick(cell, loc)}
+            onDrop={(e) => handleCellDrop(e, r, c)}
+            onDragOver={(e) => e.preventDefault()}
+            highlighted={isHighlighted}
+            changed={isChanged}
+          >
+            {renderCell(cellDataForRenderer, r, c)}
+          </Cell>
         );
-        const groupIndex = sameLocationPieces.findIndex(p => p.id === piece.id);
+      })}
+
+      {/* コマのレンダリング */}
+      {pieces.map((piece) => {
+        const sameLocationPieces = pieces.filter(
+          (p) => p.location.row === piece.location.row && p.location.col === piece.location.col,
+        );
+        const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece.id);
         const groupCount = sameLocationPieces.length;
 
         let offsetX = 0;
         let offsetY = 0;
-        
+
         if (groupCount > 1) {
-            const radius = 18; 
-            const angle = (2 * Math.PI / groupCount) * groupIndex;
-            offsetX = radius * Math.cos(angle);
-            offsetY = radius * Math.sin(angle);
+          const radius = 18;
+          const angle = ((2 * Math.PI) / groupCount) * groupIndex;
+          offsetX = radius * Math.cos(angle);
+          offsetY = radius * Math.sin(angle);
         }
 
         const pieceStyle: React.CSSProperties = {
@@ -148,15 +266,17 @@ export default function GridBoard({
           transform: `translate(${offsetX}px, ${offsetY}px)`,
           transition: 'transform 0.3s ease-in-out',
         };
-        
+
         return (
-          <Piece 
+          <Piece
             key={piece.id}
             piece={piece}
             style={pieceStyle}
-            onClick={onPieceClick}
+            onClick={handlePieceClick}
             isDraggable={allowPieceDrag}
-            onDragStart={(e) => handlePieceDragStart(e, piece)}
+            isFilled={true}
+            onDragStart={handlePieceDragStart}
+            onDragEnd={handlePieceDragEnd}
           />
         );
       })}

@@ -1,7 +1,13 @@
 // src/components/PlayField.tsx
 
 import { Player } from '@/types/player.js';
-import { CardMoveFromFieldData, CardPlayData, DeckUpdateData } from '@/types/socketData.js';
+import {
+  CardFlipData,
+  CardMoveFromFieldData,
+  CardPlayData,
+  DeckUpdateData,
+  ObjectBringToData,
+} from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
@@ -31,8 +37,8 @@ type PlayFieldProps = {
   myPlayerId: PlayerId | null;
   layoutMode?: 'grid' | 'free';
   backgroundImage?: string;
-  baseZIndex?: number;
-  is_logging?: boolean;
+  zIndex?: number;
+  isDebug?: boolean;
 };
 
 /**
@@ -45,8 +51,8 @@ type PlayFieldProps = {
  * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
- * @param {string} [baseZIndex] - カードの重ね順
- * @param {boolean} [is_logging=false] - デバッグログを出力するかどうか
+ * @param {string} [zIndex] - カードの重ね順
+ * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  */
 export function PlayField({
   socket,
@@ -56,41 +62,68 @@ export function PlayField({
   players,
   myPlayerId,
   layoutMode = 'free',
-  is_logging = false,
   backgroundImage,
-  baseZIndex = 100,
+  zIndex = 100,
+  isDebug = false,
 }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(null);
+
+  // フィールド内での最大zIndexを管理するステート
+  const [maxZ, setMaxZ] = React.useState<number | undefined>(undefined);
+
+  // ドラッグ中のローカルな座標を保持（ラグを消すためのステート）
+  const [dragPos, setDragPos] = React.useState<{ x: number; y: number } | null>(null);
+
+  // 右クリックメニュー用のステート (Draggableの仕様に合わせる)
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; card: Card } | null>(null);
+
   const containerRef = React.useRef<HTMLDivElement>(null);
   const draggingIdRef = React.useRef<string | null>(null);
 
+  // メニュー外クリックで閉じる (Draggableと同様の処理)
   React.useEffect(() => {
-    socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
-      const newCards = data.playFieldCards || [];
-      if (is_logging) {
-        // console.table(
-        //   newCards.map((c: Card) => ({
-        //     id: c.id,
-        //     name: c.name,
-        //     faceUp: c.isFaceUp,
-        //     owner: c.ownerId,
-        //   })),
-        // );
+    const closeMenu = () => setContextMenu(null);
+    if (contextMenu) {
+      window.addEventListener('click', closeMenu);
+    }
+    return () => window.removeEventListener('click', closeMenu);
+  }, [contextMenu]);
+
+  React.useEffect(() => {
+    socket.on(`deck:update:${deckId}`, (data: DeckUpdateData) => {
+      // サーバーから届いた生のカード配列
+      const incomingCards = data.playFieldCards || [];
+
+      // データ構造の不一致を防ぐため、zIndexを確実に数値として保持させる
+      const synchronizedCards = incomingCards.map((c) => ({
+        ...c,
+        zIndex: c.zIndex !== undefined ? Number(c.zIndex) : 0,
+      }));
+
+      setPlayedCards(synchronizedCards);
+
+      if (synchronizedCards.length > 0) {
+        const incomingMax = Math.max(...synchronizedCards.map((c) => c.zIndex));
+        setMaxZ((prev) => Math.max(prev ?? 0, incomingMax));
       }
-      setPlayedCards(newCards);
     });
 
     return () => {
-      socket.off(`deck:update:${roomId}:${deckId}`);
+      socket.off(`deck:update:${deckId}`);
     };
-  }, [socket, roomId, deckId, is_logging]);
+  }, [socket, deckId]);
+  // propsのzIndexが変わったら同期
+  React.useEffect(() => {
+    setMaxZ((prev) => (prev === undefined ? zIndex : Math.max(prev, zIndex)));
+  }, [zIndex]);
 
-  // リアルタイム送信ロジック（境界制限付き）
+  // リアルタイム送信ロジック（throttleを30msに短縮して追従性を向上）
+  // 宛先をその都度書くスタイルにしてクロージャ問題を回避
   const emitMove = React.useMemo(
     () =>
-      throttle((cardId: string, clientX: number, clientY: number) => {
-        if (!containerRef.current) return;
+      throttle((cardId: string, clientX: number, clientY: number, rId: RoomId, dId: DeckId) => {
+        if (!containerRef.current || !rId || !dId) return;
 
         const rect = containerRef.current.getBoundingClientRect();
 
@@ -102,33 +135,57 @@ export function PlayField({
         y = Math.max(0, Math.min(100, y));
 
         socket.emit('card:move-on-field', {
-          roomId,
-          deckId,
+          roomId: rId,
+          deckId: dId,
           cardId,
           coordinate: { x, y },
         });
-      }, 50),
-    [socket, roomId, deckId],
+      }, 30),
+    [socket],
   );
 
   const handlePointerDown = (e: React.PointerEvent, card: Card) => {
     if (layoutMode !== 'free') return;
     draggingIdRef.current = card.id;
     setActiveDraggingId(card.id);
+
+    // 掴んだ瞬間の座標を即座にステートに入れる
+    setDragPos({ x: card.coordinate?.x ?? 50, y: card.coordinate?.y ?? 50 });
+
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
+  // 右クリックハンドラ (Draggableの形式に合わせる)
+  const handleContextMenu = (e: React.MouseEvent, card: Card) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, card });
+  };
+
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!draggingIdRef.current) return;
-    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+    if (!draggingIdRef.current || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+
+    // 画面更新用のローカル座標を計算
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+
+    // 通信とは別に、自分の画面の表示を即座に更新する
+    setDragPos({ x, y });
+
+    // Propsの最新値を引数として渡す
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (!draggingIdRef.current) return;
-    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+    // 終了時も最新のIDを添えて送信
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     draggingIdRef.current = null;
     setActiveDraggingId(null);
+    setDragPos(null);
   };
 
   // --- 手札（ScoreBoard）からの新規ドロップ受け入れ ---
@@ -166,7 +223,7 @@ export function PlayField({
   };
 
   const handleCardBack = (card: Card) => {
-    if (!myPlayerId) return;
+    if (!myPlayerId || !card.fieldBackCondition) return;
 
     const backTo = card.fieldBackCondition[0] || 'discard';
     const requestData: CardMoveFromFieldData = {
@@ -207,31 +264,28 @@ export function PlayField({
           overflow: 'visible',
         }}
       >
-        {playedCards.map((card, index) => {
+        {playedCards.map((card) => {
           const owner = players.find((p) => p.id === card.ownerId);
           const isDragging = activeDraggingId === card.id;
           const isActuallyFreeShape = !!(card.freeShape && card.frontImage);
 
-          const isOverlapping = playedCards
-            .slice(0, index)
-            .some(
-              (other) =>
-                Math.abs((other.coordinate?.x ?? 50) - (card.coordinate?.x ?? 50)) < 1 &&
-                Math.abs((other.coordinate?.y ?? 50) - (card.coordinate?.y ?? 50)) < 1,
-            );
-          const visualOffset = isOverlapping ? index * 12 : 0;
+          // ドラッグ中ならローカルの座標、そうでなければカード情報の座標を使用
+          const displayX = isDragging && dragPos ? dragPos.x : (card.coordinate?.x ?? 50);
+          const displayY = isDragging && dragPos ? dragPos.y : (card.coordinate?.y ?? 50);
 
-          // カード個別の zIndex
-          const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
+          // 表示用の最終的な zIndex
+          const currentZIndex = isDragging ? 9999 : (card.zIndex ?? zIndex + 2);
 
           const freeStyle: React.CSSProperties =
             layoutMode === 'free'
               ? {
                   position: 'absolute',
-                  left: `${card.coordinate?.x ?? 50}%`,
-                  top: `${card.coordinate?.y ?? 50}%`,
-                  transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
+                  left: `${displayX}%`,
+                  top: `${displayY}%`,
                   zIndex: currentZIndex,
+                  // マウスの先端ではなく、カードの中心を掴むように補正
+                  transform: 'translate(-50%, -50%)',
+                  // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                   transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                 }
               : {};
@@ -243,6 +297,7 @@ export function PlayField({
               onDragStart={(e) => e.preventDefault()}
               onPointerDown={(e) => handlePointerDown(e, card)}
               onPointerUp={handlePointerUp}
+              onContextMenu={(e) => handleContextMenu(e, card)}
               onPointerCancel={handlePointerUp}
               className={`${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`}
               style={
@@ -253,31 +308,116 @@ export function PlayField({
                   cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
                   width: '80px',
                   height: '112px',
-                  // freeShape 時の設定
-                  ...(isActuallyFreeShape
-                    ? {
-                        background: 'transparent',
-                        border: 'none',
-                        boxShadow: isDragging ? '0 0 15px var(--owner-color)' : 'none',
-                        padding: 0,
-                      }
-                    : {}),
+                  background: 'transparent',
+                  border: isActuallyFreeShape ? 'none' : undefined,
+                  boxShadow: isActuallyFreeShape && isDragging ? '0 0 15px var(--owner-color)' : 'none',
+                  padding: 0,
+                  display: 'block',
+                  position: layoutMode === 'free' ? 'absolute' : 'relative',
+                  zIndex: currentZIndex,
                 } as React.CSSProperties
               }
-              onDoubleClick={() => handleCardBack(card)}
             >
-              <CardDisplayContent card={card} canSeeFront={true} />
+              <CardDisplayContent card={card} canSeeFront={card.isFaceUp} />
 
+              {/* オーナーバッジ */}
               {card.ownerId && (
                 <div className={playFieldStyles.rgPlayFieldOwnerBadge} title={`所有者: ${owner?.name || '不明'}`}>
                   {owner?.name?.[0] || '?'}
                 </div>
               )}
 
-              {card.description && !isDragging && <span className={cardStyles.tooltip}>{card.description}</span>}
+              {/* デバッグ用 z-index ラベル */}
+              {isDebug && (
+                <div className={playFieldStyles.debugLabel} style={{ zIndex: 10001 }}>
+                  Z:{currentZIndex}
+                </div>
+              )}
+
+              {/* ツールチップ */}
+              {card.description && !isDragging && card.isFaceUp && (
+                <span className={cardStyles.tooltip}>{card.description}</span>
+              )}
             </div>
           );
         })}
+
+        {/* DraggableのCSSクラス名に合わせた右クリックメニュー */}
+        {contextMenu && (
+          <div
+            className={playFieldStyles.contextMenu}
+            style={{
+              top: contextMenu.y,
+              left: contextMenu.x,
+              position: 'fixed',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className={playFieldStyles.menuItem}
+              onClick={() => {
+                const requestData: ObjectBringToData = {
+                  roomId,
+                  objectId: [contextMenu.card.deckId, contextMenu.card.id],
+                  type: 'card',
+                  isFront: true,
+                };
+                socket.emit('object:bring-to', requestData);
+                setContextMenu(null);
+              }}
+            >
+              <span className={playFieldStyles.menuIcon}>⬆️</span>
+              <span>最前面へ移動</span>
+            </div>
+
+            <div
+              className={playFieldStyles.menuItem}
+              onClick={() => {
+                const requestData: ObjectBringToData = {
+                  roomId,
+                  objectId: [contextMenu.card.deckId, contextMenu.card.id],
+                  type: 'card',
+                  isFront: false,
+                };
+                socket.emit('object:bring-to', requestData);
+                setContextMenu(null);
+              }}
+            >
+              <span className={playFieldStyles.menuIcon}>⬇️</span>
+              <span>最背面へ移動</span>
+            </div>
+
+            <div style={{ height: '1px', background: '#444', margin: '4px 0' }} />
+
+            <div
+              className={playFieldStyles.menuItem}
+              onClick={() => {
+                socket.emit('card:flip', {
+                  roomId: roomId,
+                  playerId: myPlayerId,
+                  cardIds: [contextMenu.card.id],
+                } as CardFlipData);
+                setContextMenu(null);
+              }}
+            >
+              <span className={playFieldStyles.menuIcon}>🔄</span>
+              <span>カードを裏返す</span>
+            </div>
+
+            {contextMenu.card.fieldBackCondition && (
+              <div
+                className={playFieldStyles.menuItem}
+                onClick={() => {
+                  handleCardBack(contextMenu.card);
+                  setContextMenu(null);
+                }}
+              >
+                <span className={playFieldStyles.menuIcon}>✋</span>
+                <span>手札/捨て札へ戻す</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -1,45 +1,50 @@
 // src/server/server.ts
-import { Server, Socket } from 'socket.io';
-import {
-  createRandomBoard,
-  generateColorFromId,
-  LOG_CATEGORIES,
-  markCellAsExplored,
-  RoomManager,
-  server_log,
-  unmarkCellAsExplored,
-} from './server-utils.js';
-
-import { CardId, DeckId, PlayerId, ResourceId, RoomId, TokenId } from '@/types/definition.js';
+import { CellData } from '@/index.js';
+import { BoardId, CardId, DeckId, DraggableId, PlayerId, RoomId, TokenStoreId } from '@/types/definition.js';
+import { DraggableData } from '@/types/draggable.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
+  BaordMovePlayerData,
+  BoardMovableRangeData,
+  BoardUpdateData,
+  CardFlipData,
   CardHoldData,
   CardMoveFromFieldData,
+  CardMoveOnFieldData,
   CardPlayData,
   DeckDrawData,
+  DiceRollData,
+  DiceUpdateData,
   DraggableMovedData,
   GameNextRoundData,
   GameNextTrunData,
   GameTurnUpdateData,
+  LobbyRoomsList,
+  ObjectBringToData,
   RoomJoinData,
   RoomMeta,
   TokenAcquireData,
 } from '@/types/socketData.js';
 import { Token } from '@/types/token.js';
 import { TokenStore } from '@/types/tokenStore.js';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { Server, Socket } from 'socket.io';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
+import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 import type { GameServerOptions } from './server.js';
+
+// ESM環境で __dirname を再現する
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const activeRooms = new Map<string, RoomState>();
 const roomTimers = new Map<string, NodeJS.Timeout>();
 
 /**
  * 新しいゲームルームの状態を初期化し、実行中のルーム管理（activeRooms）に追加する。
- *
- * 1. 設定（settings）に基づいたボードのランダム生成
- * 2. 各デッキ内のカードに対して固有の `instanceId` を付与し、初期位置を設定
- * 3. 最終的な `RoomState` オブジェクトの構築とメモリへの保存
  * @param roomId - ルームID
  * @param param - ゲーム開始時に必要な初期パラメータ
  * @returns 初期化が完了した {@link RoomState} オブジェクト
@@ -49,20 +54,29 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   const initialTokenStores = param.initialTokenStores || [];
   const initialBoard = param.initialBoard || {};
 
-  let Cells: Record<string, any> = {};
+  let Cells: Record<BoardId, CellData[]> = {};
   const boardEntries = Object.entries(initialBoard);
 
   boardEntries.forEach(([boardId, boardData]) => {
-    Cells[boardId] = createRandomBoard(boardData as any[][]);
+    Cells[boardId] = boardData;
+
+    // カスタムの再配置・接続関数があるか確認
+    const shuffleAndReconnector = param.shuffleAndReconnectBoard?.[boardId];
+
+    if (typeof shuffleAndReconnector === 'function') {
+      server_log('cell', param.gameId, roomId, `ボード "${boardId}" をカスタム戦略で再配置・接続します`);
+      Cells[boardId] = shuffleAndReconnector(boardData);
+    }
+
     server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
   });
 
   const decks: Record<DeckId, Card[]> = {};
   const playFieldCards: Record<DeckId, Card[]> = {};
   const discardPile: Record<DeckId, Card[]> = {};
-  const holdCards: Record<PlayerId, CardId[]> = {};
+  const holdCards: Record<PlayerId, Record<DeckId, CardId[]>> = {};
 
-  const tokenStores: Record<string, Token[]> = {};
+  const tokenStores: Record<TokenStoreId, Token[]> = {};
 
   initialDecks.forEach((deck: Deck) => {
     const cards: Card[] = (deck.cards || []).map((c, index) => ({
@@ -78,16 +92,35 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     playFieldCards[deck.deckId] = [];
     discardPile[deck.deckId] = [];
     server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
+    if (cards.length > 0) {
+      server_log('deck', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(cards[0], null, 2)}`);
+    }
   });
 
-  initialTokenStores.forEach((store: TokenStore) => {
-    const tokens: Token[] = (store.tokens || []).map((t, index) => ({
+  initialTokenStores.forEach((tokenStore: TokenStore) => {
+    const tokens: Token[] = (tokenStore.tokens || []).map((t, index) => ({
       ...t,
-      tokenStoreId: store.tokenStoreId,
+      tokenStoreId: tokenStore.tokenStoreId,
+      instanceId: `${roomId}_${tokenStore.tokenStoreId}_${index}`,
     }));
-    tokenStores[store.tokenStoreId] = tokens;
-    server_log('token', param.gameId, roomId, `トークン "${store}" を初期化完了`);
+    tokenStores[tokenStore.tokenStoreId] = tokens;
+    server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
   });
+
+  let draggables: Record<DraggableId, DraggableData> = {};
+  if (param.draggable) {
+    draggables = structuredClone(param.draggable);
+
+    server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
+    server_log(
+      'draggable',
+      param.gameId,
+      roomId,
+      `サンプル (0番目): ${JSON.stringify(Object.values(draggables)[0], null, 2)}`,
+    );
+  }
+
+  const initialMaxZIndex = Object.values(draggables).reduce((max, d) => Math.max(max, d.zIndex || 0), 0);
 
   const state: RoomState = {
     roomId: roomId,
@@ -102,9 +135,11 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     playFieldCards: playFieldCards,
     discardPile: discardPile,
     holdCards: holdCards,
-    board: Cells,
+    boards: Cells,
     exploredCells: [],
     tokenStores: tokenStores,
+    draggable: draggables,
+    maxZIndex: initialMaxZIndex,
     systemMessageHistory: [],
   };
 
@@ -118,7 +153,17 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
   if (options.initialLogCategories) {
     Object.assign(LOG_CATEGORIES, options.initialLogCategories);
-    console.log('[log] ログカテゴリをオプションで初期化しました。', LOG_CATEGORIES);
+
+    const green = '\x1b[32m';
+    const red = '\x1b[31m';
+    const reset = '\x1b[0m';
+
+    console.log(`[log] ログカテゴリをオプションで初期化しました。`);
+
+    Object.entries(LOG_CATEGORIES).forEach(([key, value]) => {
+      const color = value ? green : red;
+      console.log(`${key}: ${color}${value}${reset}`);
+    });
   }
 
   // --- プリセットごとの中身をスキャンしてログに出す ---
@@ -134,44 +179,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
   });
 
   // --- ヘルパー関数 ---
-  const updatePlayerResource = (roomId: RoomId, playerId: PlayerId, resourceId: ResourceId, amount: number) => {
-    const state = activeRooms.get(roomId);
-    if (!state) return;
-
-    const player = state?.players.find((p) => p.id === playerId);
-    const resource = player?.resources?.find((r) => r.resourceId === resourceId);
-
-    const param = gameParams[state.gameId];
-    const roomManager = new RoomManager(io, param, state);
-
-    if (resource) {
-      resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
-      server_log('resource', state!.gameId, roomId, `${player!.name}: ${resource.name} 更新`);
-      roomManager.emitPlayerUpdate();
-      return true;
-    }
-    return false;
-  };
-
-  const updatePlayerToken = (roomId: RoomId, playerId: PlayerId, tokenId: TokenId, amount: number) => {
-    const state = activeRooms.get(roomId);
-    if (!state) return;
-
-    const player = state?.players.find((p) => p.id === playerId);
-    const token = player?.tokens?.find((t) => t.id === tokenId);
-
-    const param = gameParams[state.gameId];
-    const roomManager = new RoomManager(io, param, state);
-
-    if (token) {
-      token.count = Math.max(0, (token.count || 0) + amount);
-      server_log('token', state!.gameId, roomId, `${player!.name}: ${tokenId} 更新`);
-      roomManager.emitPlayerUpdate();
-      return true;
-    }
-    return false;
-  };
-
   const stopTimer = (roomId: RoomId, gameId: string) => {
     const timer = roomTimers.get(roomId);
     if (timer) {
@@ -196,6 +203,61 @@ export function initGameServer(io: Server, options: GameServerOptions) {
   };
 
   io.on('connection', (socket: Socket) => {
+    // GUIからConfigファイルを直接書き換える
+    socket.on('game-param:save', async (data: { gameId: string; newParam: any }) => {
+      try {
+        // ベースとなるルートディレクトリを確定させる
+        const root = process.cwd();
+
+        // src が存在するかチェックして、書き込み先ディレクトリを決定する
+        const getTargetDir = () => {
+          const srcPath = path.join(root, 'src', 'server');
+          const testsPath = path.join(root, 'tests', 'server');
+
+          // tests/server が存在すればそこを優先
+          if (fs.existsSync(testsPath)) {
+            return testsPath;
+          }
+          return srcPath;
+        };
+
+        const targetDir = getTargetDir();
+        const targetPath = path.join(targetDir, `${data.gameId}Config.ts`);
+
+        // 現在のメモリ上の設定を取得
+        const currentParam = gameParams[data.gameId] || {};
+
+        // 届いた newParam で既存の設定をマージ
+        const mergedParam = {
+          ...currentParam,
+          ...data.newParam,
+        };
+
+        // インデントを揃えた文字列に変換
+        const setupContent = JSON.stringify(mergedParam, null, 2)
+          .split('\n')
+          .map((line) => `    ${line}`)
+          .join('\n')
+          .trimStart();
+
+        const content = `import { type RoomConfig } from "react-game-ui/server-io-utils";
+
+export const ${data.gameId}Config: RoomConfig = {
+  gameId: '${data.gameId}',
+  dataFiles: [],
+  setup: async () => (${setupContent}),
+};
+`;
+
+        await fs.promises.writeFile(targetPath, content, 'utf8');
+        console.log(`[Admin] ${data.gameId}Config.ts を更新（マージ完了）`);
+        socket.emit('game-param:updated', { success: true });
+      } catch (err) {
+        console.error('[Admin] 書き換え失敗:', err);
+        socket.emit('error', 'ファイルの保存に失敗');
+      }
+    });
+
     // ロビー
     socket.on('lobby:get-rooms', () => {
       const roomList: RoomMeta[] = [];
@@ -210,7 +272,13 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         });
       }
 
-      socket.emit('lobby:rooms-list', roomList);
+      const availableGameIds = Object.keys(gameParams);
+
+      // 現在稼働中のルームとゲーム一覧を合わせて送る
+      socket.emit('lobby:rooms-list', {
+        rooms: roomList,
+        availableGameIds: availableGameIds,
+      } as LobbyRoomsList);
     });
 
     // ルーム参加
@@ -231,10 +299,11 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
       // プレイヤークラスの初期化
       if (!player) {
+        const playerId = `${roomId}_p${state.players.length + 1}`;
         player = {
-          id: `${roomId}_p${state.players.length + 1}`,
+          id: playerId,
           name: playerName?.trim() || `Player ${state.players.length + 1}`,
-          color: generateColorFromId(`${roomId}_p${state.players.length + 1}`),
+          color: generateColorFromId(playerId),
           socketId: socket.id,
           cards: [],
           isHolding: false,
@@ -242,6 +311,8 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           resources: JSON.parse(JSON.stringify(param.initialResources || [])),
           tokens: JSON.parse(JSON.stringify(param.initialTokens || [])),
           position: { row: 0, col: 0 },
+          movableCells: [],
+          pieceImage: param.pieceImage,
         };
         state.players.push(player);
         server_log('game', param.gameId, roomId, `${player.name} (${player.id})が参加しました`);
@@ -281,14 +352,17 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
       // 全ての初期同期をここで実行
       const lastMessage = state.systemMessageHistory.at(-1);
-      if (lastMessage) roomManager.emitSystemMessage(lastMessage, true);
+      if (lastMessage) roomManager.emitSystemMessage(lastMessage, 0, true);
 
-      // プレイヤー, デッキ, トークン置き場, ボード の初期状態を配信
+      // プレイヤー, デッキ, トークン置き場, ボード, ドラッグ可能オブジェクト の初期状態を配信
       roomManager.emitPlayerUpdate();
       Object.keys(state.decks).forEach((id) => roomManager.emitDeckUpdate(id));
       Object.keys(state.tokenStores).forEach((id) => roomManager.emitTokenStoreUpdate(id));
-      if (state.exploredCells.length > 0) socket.emit('board-update', state.exploredCells);
-      Object.values(state.board).forEach((board) => socket.emit('game:init-board', board));
+      if (state.exploredCells.length > 0) socket.emit('cell:update', state.exploredCells);
+      Object.entries(state.boards).forEach(([boardId, board]) => {
+        socket.emit('board:update', { boardId, board } as BoardUpdateData);
+      });
+      Object.keys(state.draggable).forEach((id) => roomManager.emitDraggableUpdate(id));
 
       // 初回の一人のみターンを更新する
       if (state.players.length == 1) {
@@ -299,45 +373,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           currentRoundIndex: state.currentRoundIndex,
           currentTurnIndex: state.currentTurnIndex,
         } as GameTurnUpdateData);
-      }
-    });
-
-    // 移動・探索
-    socket.on('game:move-player', ({ roomId, playerId, newPosition }) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-
-      const roomManager = new RoomManager(io, param, state);
-      const player = state?.players.find((p) => p.id === playerId);
-      if (player && state) {
-        player.position = newPosition;
-        const updated = markCellAsExplored(state, state.gameId, roomId, newPosition);
-
-        roomManager.applyCellEffect(
-          playerId,
-          newPosition,
-          param?.cellEffects,
-          (pId, rId, amt) => updatePlayerResource(roomId, pId, rId, amt),
-          (pId, tId, amt) => updatePlayerToken(roomId, pId, tId, amt),
-          ({ message, color }) => io.to(roomId).emit('client:show-popup', { message, color, timestamp: Date.now() }),
-        );
-        roomManager.emitPlayerUpdate();
-        if (updated) io.to(roomId).emit('board-update', state.exploredCells);
-      }
-    });
-
-    socket.on('game:explore-cell', ({ roomId, targetPosition }) => {
-      const state = activeRooms.get(roomId);
-      if (state && markCellAsExplored(state, state.gameId, roomId, targetPosition)) {
-        io.to(roomId).emit('board-update', state.exploredCells);
-      }
-    });
-
-    socket.on('game:unexplore-cell', ({ roomId, targetPosition }) => {
-      const state = activeRooms.get(roomId);
-      if (state && unmarkCellAsExplored(state, state.gameId, roomId, targetPosition)) {
-        io.to(roomId).emit('board-update', state.exploredCells);
       }
     });
 
@@ -399,94 +434,41 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
     // カードプレイ
     socket.on('card:play', (data: CardPlayData) => {
-      const { roomId, deckId, cardIds, playerId, playLocation = 'field', coordinate } = data;
-
-      const state = activeRooms.get(roomId);
+      const state = activeRooms.get(data.roomId);
       if (!state) return;
-
       const param = gameParams[state.gameId];
       const roomManager = new RoomManager(io, param, state);
-      const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
-
-      if (state.holdCards[playerId]) {
-        server_log(
-          'card',
-          state.gameId,
-          state.roomId,
-          `${playerId} はカードをホールドしているので、カードをプレイできません`,
-        );
-        return;
-      }
-
-      ids.forEach((id) => {
-        const card = state.decks[deckId]?.find((c) => c.id === id);
-        if (!card) return;
-
-        if (playerId) {
-          const p = state.players.find((p) => p.id === playerId);
-          if (p) p.cards = p.cards.filter((c) => c.id !== id);
-        }
-
-        card.location = playLocation as any;
-        if (coordinate?.x != null && coordinate?.y != null) {
-          card.coordinate = coordinate;
-        }
-        card.isFaceUp = true;
-
-        state.playFieldCards[deckId] = state.playFieldCards[deckId].filter((c) => c.id !== id);
-        state.discardPile[deckId] = state.discardPile[deckId].filter((c) => c.id !== id);
-
-        if (playLocation === 'discard') {
-          state.discardPile[deckId].push(card);
-        } else {
-          state.playFieldCards[deckId].push(card);
-        }
-
-        server_log('card', state.gameId, roomId, `"${card.name}" をプレイした`);
-
-        // カード効果
-        const effect = param?.cardEffects?.[card.name];
-        if (effect) {
-          server_log('card', state.gameId, roomId, `カード効果発揮: ${card.name} by ${playerId}`);
-          effect({
-            playerId,
-            updateResource: (resourceId: string, amount: number) =>
-              updatePlayerResource(roomId, playerId, resourceId, amount),
-            updateToken: (tokenId: string, amount: number) => updatePlayerToken(roomId, playerId, tokenId, amount),
-          });
-        }
-      });
-
-      // カスタムフック処理
-      const onCardPlay = param?.onCardPlay;
-      if (onCardPlay) {
-        onCardPlay(state, roomManager, data);
-      }
-
-      // 更新通知
-      roomManager.emitDeckUpdate(deckId);
-      roomManager.emitPlayerUpdate();
+      roomManager.playCard(data);
     });
 
     // カードホールド
-    socket.on('card:hold', ({ roomId, playerId, cardIds }: CardHoldData) => {
+    socket.on('card:hold', ({ roomId, playerId, cardIdsbyDeck }: CardHoldData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
       const roomManager = new RoomManager(io, param, state);
 
-      const p = state?.players.find((p) => p.id === playerId);
-      if (p) {
-        const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
-        state.holdCards[p.id] = ids;
-        p.isHolding = true;
+      const player = state.players.find((p) => p.id === playerId);
+      if (player) {
+        state.holdCards[player.id] = state.holdCards[player.id] || {};
+        Object.entries(cardIdsbyDeck).forEach(([deckId, cardIds]) => {
+          const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+          state.holdCards[player.id][deckId] = ids;
+          server_log('card', state.gameId, state.roomId, `${playerId} がカード [${cardIds}] をホールドしました`);
+        });
+        player.isHolding = true;
       }
-      server_log('card', state.gameId, state.roomId, `${playerId} がカード [${cardIds}] をホールドしました`);
       roomManager.emitPlayerUpdate();
+
+      // カスタムフック
+      const onAllPlayersCardHold = param.onAllPlayersCardHold;
+      if (onAllPlayersCardHold && state.players.every((p) => p.isHolding)) {
+        onAllPlayersCardHold(state, roomManager);
+      }
     });
 
-    // カード公開
-    socket.on('card:reveal', ({ roomId, playerId, cardIds }) => {
+    // カードをひっくり返す
+    socket.on('card:flip', ({ roomId, playerId, cardIds }: CardFlipData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
@@ -496,14 +478,27 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       if (p) {
         const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
         p.cards.forEach((c) => {
-          if (ids.includes(c.id)) c.isFaceUp = true;
+          if (ids.includes(c.id)) {
+            c.isFaceUp = !c.isFaceUp;
+            server_log('card', state.gameId, state.roomId, `${playerId} がカード ${c.id} をひっくり返しました`);
+          }
         });
         roomManager.emitPlayerUpdate();
       }
+
+      Object.entries(state.playFieldCards).forEach(([deckId, cards]) => {
+        cards.forEach((c) => {
+          if (cardIds.includes(c.id)) {
+            c.isFaceUp = !c.isFaceUp;
+            server_log('card', state.gameId, state.roomId, `${playerId} がカード ${c.id} をひっくり返しました`);
+          }
+        });
+        roomManager.emitDeckUpdate(deckId);
+      });
     });
 
     // カード位置同期
-    socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate }) => {
+    socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate, zIndex }: CardMoveOnFieldData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];
@@ -512,6 +507,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const card = state?.decks[deckId]?.find((c) => c.id === cardId);
       if (card) {
         card.coordinate = coordinate;
+        if (zIndex) {
+          card.zIndex = zIndex;
+        }
         roomManager.emitDeckUpdate(deckId);
       }
     });
@@ -553,14 +551,73 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       }
     });
 
-    // ダイス
-    socket.on('dice:roll', ({ roomId, diceId, sides }) => {
+    // 駒の移動
+    socket.on('board:move-player', ({ roomId, boardId, playerId, newLocation }: BaordMovePlayerData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
-      const val = Math.floor(Math.random() * sides) + 1;
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
 
-      server_log('dice', state.gameId, roomId, `Dice ${diceId} rolled. Result: ${val}`);
-      io.to(roomId).emit(`dice:rolled:${roomId}:${diceId}`, val);
+      const player = state?.players.find((p) => p.id === playerId);
+      if (player && state) {
+        player.position = newLocation;
+
+        // セル効果
+        const cellEffects = param.cellEffects;
+        if (cellEffects) {
+          roomManager.applyCellEffect(boardId, playerId, newLocation, cellEffects);
+        }
+
+        // カスタムフック
+        const onPieceMove = param.onPieceMove;
+        if (onPieceMove) {
+          onPieceMove(state, roomManager, newLocation);
+        }
+
+        roomManager.emitPlayerUpdate();
+      }
+    });
+
+    // プレイヤーの移動可能範囲リクエストを処理する
+    socket.on('board:movable-range', ({ roomId, boardId, playerId, moveRange, isExact }: BoardMovableRangeData) => {
+      const state = activeRooms.get(roomId);
+      if (!state) return;
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
+
+      // プレイヤーの現在位置を取得
+      const player = state.players.find((p) => p.id === playerId);
+      if (!player) return;
+
+      const { row, col } = player.position;
+      const startCellId = `r${row}c${col}`;
+
+      // 移動範囲を計算
+      const movableIds = roomManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
+
+      // セルIDをクライアントが解釈できる GridLocation[] 形式に変換
+      const movableLocs = movableIds.map((id) => {
+        const m = id.match(/r(\d+)c(\d+)/);
+        return {
+          row: parseInt(m![1], 10),
+          col: parseInt(m![2], 10),
+        };
+      });
+      player.movableCells = movableLocs;
+
+      roomManager.emitPlayerUpdate();
+    });
+
+    // ダイス
+    socket.on('dice:roll', ({ roomId, diceId, sides }: DiceRollData) => {
+      const state = activeRooms.get(roomId);
+      if (!state) return;
+
+      const data: DiceUpdateData = {
+        value: Math.floor(Math.random() * sides) + 1,
+      };
+      server_log('dice', state.gameId, roomId, `Dice ${diceId} rolled. Result: ${data.value}`);
+      io.to(roomId).emit(`dice:update:${diceId}`, data);
     });
 
     // タイマー・その他同期
@@ -587,9 +644,27 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       socket.to(roomId).emit('cursor:update', { playerId: socket.id, x, y });
     });
 
-    socket.on('draggable:moved', (data: DraggableMovedData) => {
-      const { roomId, ...move } = data;
-      socket.to(roomId).emit('draggable:update', move);
+    socket.on('draggable:moved', ({ roomId, draggableId, coordinate, rotation }: DraggableMovedData) => {
+      const state = activeRooms.get(roomId);
+      if (!state) return;
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
+
+      const draggable = state.draggable[draggableId];
+      draggable.coordinate = coordinate;
+      draggable.rotation = rotation;
+
+      roomManager.emitDraggableUpdate(draggableId);
+    });
+
+    // 重ね順更新
+    socket.on('object:bring-to', ({ roomId, objectId, type, isFront }: ObjectBringToData) => {
+      const state = activeRooms.get(roomId);
+      if (!state) return;
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
+
+      roomManager.updateZIndex(type, objectId, isFront);
     });
 
     // 次のターン
@@ -623,8 +698,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     socket.on('room:player:update-resource', ({ roomId, playerId, resourceId, amount }) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
-
-      updatePlayerResource(roomId, playerId, resourceId, amount);
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
+      roomManager.acquireResource(playerId, resourceId, amount);
     });
 
     // --- カスタムイベント ---

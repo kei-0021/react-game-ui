@@ -1,9 +1,13 @@
 // src/rooms/SampleRoom.tsx
+// PlayField上のカードの動作確認
+// ドラッグ可能オブジェクトの動作確認
+// ダイスの動作確認
+
 /// <reference types="vite/client" />
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Deck } from '../../src/components/Deck';
-import Dice from '../../src/components/Dice';
+import { Dice } from '../../src/components/Dice';
 import { Draggable } from '../../src/components/Draggable';
 import { PlayField } from '../../src/components/PlayField';
 import { RemoteCursor } from '../../src/components/RemoteCursor';
@@ -30,10 +34,12 @@ export function SampleRoom() {
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
 
+  const [currentValue, setCurrentValue] = useState<number>(1);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number>(1);
 
-  const GAME_PRESET_ID = 'sample';
+  const GAME_ID = 'sample';
 
   const handleJoinRoom = useCallback(() => {
     if (!socket || !roomId || userName.trim() === '' || isJoining) return;
@@ -41,7 +47,7 @@ export function SampleRoom() {
     setIsJoining(true);
     socket.emit('room:join', {
       roomId,
-      gameId: GAME_PRESET_ID,
+      gameId: GAME_ID,
       playerName: userName.trim(),
     } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);
@@ -110,13 +116,14 @@ export function SampleRoom() {
     <div className="game-container" ref={containerRef}>
       <h1>Room ID: {roomId}</h1>
       <div className="round-display">ROUND: {currentRound}</div>
+      <div>現在のダイスの目: {currentValue}</div>
       <ScoreBoard
         socket={socket}
         roomId={roomId}
         players={players}
         currentPlayerId={currentPlayerId}
         myPlayerId={myPlayerId}
-        turnSkipButton={true}
+        turnSkipButton={[true, true]}
       />
 
       <div style={{ display: 'flex', gap: '16px' }}>
@@ -134,7 +141,7 @@ export function SampleRoom() {
           ]}
           tooltipText="快晴・曇り・風・雨"
         />
-        <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" />
+        <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" onRoll={setCurrentValue} />
       </div>
 
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>
@@ -153,19 +160,35 @@ export function SampleRoom() {
         title="数字カード"
         myPlayerId={myPlayerId}
         players={players}
+        isDebug={true}
       />
+
       <Draggable
         socket={socket}
         roomId={roomId}
+        draggableId="piece"
         image={DRAGGABLE_IMAGE_PATH}
         mask={true}
-        initialXY={{ x: 1000, y: 500 }}
-        key={`piece`}
-        draggableId={`piece`}
         containerRef={containerRef}
         color="red"
         size={100}
-      ></Draggable>
+        isDebug={true}
+      />
+      {[...Array(10)].map((_, i) => (
+        <Draggable
+          socket={socket}
+          roomId={roomId}
+          draggableId={`piece-${i}`}
+          size={{ width: 200, height: 100 }}
+          containerRef={containerRef}
+          isFrontOnDragging={true}
+          color={`hsl(${200 + i * 5}, 70%, ${50 + i * 3}%)`}
+          isDebug={true}
+        >
+          <div style={{ color: '#fff', fontWeight: 'bold' }}>Piece {i}</div>
+        </Draggable>
+      ))}
+
       <RemoteCursor
         socket={socket!}
         roomId={roomId}

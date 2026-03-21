@@ -1,8 +1,9 @@
-import { Player } from '@/index.js';
+import { CellData, Player } from '@/index.js';
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
-import { BoardId, CardId, DeckId, GameId, PlayerId, RoomId, TokenId } from './definition.js';
+import { BoardId, CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
+import { DraggableData } from './draggable.js';
 import { Phase } from './phase.js';
 import { Position } from './position.js';
 import { Resource } from './resource.js';
@@ -19,11 +20,16 @@ import { TokenStore } from './tokenStore.js';
  * @param initialTokenStores - 共有トークンの保管場所。
  * @param initialTokens - ボード上の初期配置トークン。
  * @param initialBoard - ボードの初期レイアウト。
+ * @param shuffleAndReconnectBoard - シャッフルと再接続を利用するボードとその戦略関数。
+ * @param pieceImage - ボード上のプレイヤーコマに使用する画像URL。
+ * @param draggable - ドラッグ可能オブジェクト。
  * @param initialPhase - 初期フェーズ。
  * @param cardEffects - カードの特殊効果定義。
  * @param cellEffects - セルの特殊効果定義。
  * @param onDeckDraw - デッキからカードを引いた時のカスタムフック。
  * @param onCardPlay - カードプレイ時のカスタムフック。
+ * @param onAllPlayersCardHold - 全てのプレイヤーがホールドした時のカスタムフック。
+ * @param onPieceMove - 駒を動かした時のカスタムフック。
  * @param onNextRound - 次のラウンドへ進んだ時のカスタムフック。
  * @param checkGameEnd - 終了判定ロジック。
  * @param onGameEnd - リザルト生成ロジック。
@@ -42,12 +48,17 @@ export type GameParam = {
         tokenId: TokenId;
         count: number;
     };
-    initialBoard?: Record<BoardId, any>;
+    initialBoard?: Record<BoardId, CellData[]>;
+    shuffleAndReconnectBoard?: Record<BoardId, (cells: CellData[]) => CellData[]>;
+    pieceImage?: string;
+    draggable?: Record<DraggableId, DraggableData>;
     initialPhase?: Phase;
     cardEffects?: Record<string, any>;
-    cellEffects?: any;
+    cellEffects?: Record<string, (manager: RoomManager, player: PlayerId) => void>;
     onDeckDraw?: (state: RoomState, manager: RoomManager, data: DeckDrawData) => void;
     onCardPlay?: (state: RoomState, manager: RoomManager, data: CardPlayData) => void;
+    onAllPlayersCardHold?: (state: RoomState, manager: RoomManager) => void;
+    onPieceMove?: (state: RoomState, manager: RoomManager, newLocation: any) => void;
     onNextRound?: (state: RoomState, manager: RoomManager) => void;
     checkGameEnd?: (state: RoomState) => void;
     onGameEnd?: (state: RoomState) => any;
@@ -65,9 +76,11 @@ export type GameParam = {
  * @param decks - 各デッキIDごとの残りカードリスト。
  * @param playFieldCards - プレイフィールド上のカード（キーは "firework" 等の場所名）。
  * @param discardPile - 捨て札置き場のカードリスト。
- * @param board - ボード上の2次元グリッドデータ。
+ * @param boards - ボード上のセルデータ。
  * @param exploredCells - すでに探索・公開されたセルの座標リスト。
  * @param tokenStores - 共有トークンの現在のストック状況。
+ * @param draggable - ドラッグ可能オブジェクト。
+ * @param maxZIndex - フィールド上の全オブジェクト（カード、ピース等）で共有する 重ね順のグローバル・カウンタ
  * @param systemMessageHistory - 過去のシステムメッセージの履歴。
  */
 export interface RoomState {
@@ -81,11 +94,13 @@ export interface RoomState {
     players: Player[];
     decks: Record<DeckId, Card[]>;
     playFieldCards: Record<DeckId, Card[]>;
-    discardPile: Record<DeckId, Card[]>;
-    holdCards: Record<PlayerId, CardId[]>;
-    board: Record<BoardId, any[][]>;
+    discardPile: Record<PlayerId, Card[]>;
+    holdCards: Record<PlayerId, Record<DeckId, CardId[]>>;
+    boards: Record<BoardId, CellData[]>;
     exploredCells: Position[];
-    tokenStores: Record<TokenId, Token[]>;
+    tokenStores: Record<TokenStoreId, Token[]>;
+    draggable: Record<DraggableId, DraggableData>;
+    maxZIndex: number;
     systemMessageHistory: string[];
 }
 export { GameId };

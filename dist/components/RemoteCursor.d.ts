@@ -1,6 +1,6 @@
-import React from "react";
-import type { Socket } from "socket.io-client";
-import type { PlayerId, RoomId } from "../types/definition.js";
+import React from 'react';
+import type { Socket } from 'socket.io-client';
+import type { PlayerId, RoomId } from '../types/definition.js';
 interface Props {
     socket: Socket | null;
     roomId: RoomId | undefined;
@@ -15,6 +15,6 @@ interface Props {
     visible: boolean;
     isRelative?: boolean;
 }
-export declare const RemoteCursor: React.MemoExoticComponent<({ socket, roomId, myPlayerId, players, scale, fixedContainerRef, visible, isRelative, }: Props) => import("react/jsx-runtime").JSX.Element | null>;
+export declare const RemoteCursor: React.MemoExoticComponent<({ socket, roomId, myPlayerId, players, scale, fixedContainerRef, visible, isRelative }: Props) => import("react/jsx-runtime").JSX.Element | null>;
 export {};
 //# sourceMappingURL=RemoteCursor.d.ts.map

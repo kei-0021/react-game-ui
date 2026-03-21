@@ -1,8 +1,8 @@
 export { Cell } from './components/Cell.js';
 export { Deck } from './components/Deck.js';
-export { default as Dice } from './components/Dice.js';
+export { Dice } from './components/Dice.js';
 export { Draggable } from './components/Draggable.js';
-export { default as GridBoard } from './components/GridBoard.js';
+export { GridBoard } from './components/GridBoard.js';
 export { PlayField } from './components/PlayField.js';
 export { RemoteCursor } from './components/RemoteCursor.js';
 export { ScoreBoard } from './components/ScoreBoard.js';
@@ -12,12 +12,14 @@ export { TokenStore } from './components/TokenStore.js';
 export * from './types/card.js';
 export { type CardEffectParams } from './types/cardEffectParams.js';
 export * from './types/cardLocation.js';
-export { type CellEffectParams } from './types/cellEffectParams.js';
 export * from './types/definition.js';
 export * from './types/player.js';
 export { type PieceData } from './types/piece.js';
+export { type DraggableData } from './types/draggable.js';
 export { RoomManager } from './server/server-utils.js';
 export { type GameParam, type RoomState } from './types/server.js';
+export { type CellData } from './types/cell.js';
 export { Phase } from './types/phase.js';
-export { type CardPlayData, type DeckDrawData, type GamePhaseUpdateData, type GameTurnUpdateData, type RoomJoinData, type RoomMeta, } from './types/socketData.js';
+export { ControlPanel } from './components/ControlPanel.js';
+export { type CardPlayData, type DeckDrawData, type GamePhaseUpdateData, type GameTurnUpdateData, type LobbyRoomsList, type RoomJoinData, type RoomMeta, } from './types/socketData.js';
 //# sourceMappingURL=index.d.ts.map

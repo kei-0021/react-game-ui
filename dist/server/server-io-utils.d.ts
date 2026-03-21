@@ -1,7 +1,15 @@
+import { CellData, DraggableData } from '@/index.js';
+import { Coordinate } from '@/types/coodinate.js';
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/server.js';
+import { Token } from '@/types/token.js';
 import { Card } from '../types/card.js';
 import { Resource } from '../types/resource.js';
+export type RoomConfig = {
+    gameId: GameId;
+    dataFiles: Record<string, any>;
+    setup: (loadedData: Record<string, any>) => Promise<GameParam>;
+};
 export declare const Validators: {
     isCardArray: (data: Card[]) => data is Card[];
     isResourceArray: (data: any) => data is Resource[];
@@ -11,11 +19,6 @@ export declare const Validators: {
  * 内部でバリデーションまで完結させる JSON ローダー
  */
 export declare function loadJsonAssert<T>(relativePath: string, validator: (data: any) => data is T): T;
-export type RoomConfig = {
-    gameId: GameId;
-    dataFiles: Record<string, any>;
-    setup: (loadedData: Record<string, any>) => Promise<GameParam>;
-};
 /**
  * プリセット準備の関数群
  */
@@ -33,12 +36,21 @@ export declare class SetupHelper {
      */
     createUniqueCards(cards: Card[], numSets: number): Card[];
     /**
-     * ボードレイアウトの生成
+     * トークンストアの生成。共通情報の初期化も可能。
+     * @param tokens - 入力トークンデータ
+     * @param count - トークン置き場に置くトークンの数
+     * @param imageSrc - トークンの画像URL（省略可能）
+     * @param color - トークンの背景用のカラーコード（省略可能）
+     * @returns トークン置き場
      */
-    createBoardLayout(base: any[], counts: Record<string, number>, cols: number): any[][];
+    createTokenStore(tokens: Token[], count: number, imageSrc?: string, color?: string): Token[];
     /**
-     * トークンストアの生成
+     * グリッド状ボードレイアウトの生成
      */
-    createTokenStore(_id: string, _name: string, templates: any[], count: number): any[];
+    createGridBoardLayout(base: any[], counts: Record<string, number>, rows: number, cols?: number): CellData[];
+    /**
+     * ドラッグ可能オブジェクトの生成
+     */
+    createDraggable(id: string, coordinate?: Coordinate, zIndex?: number, rotation?: number): DraggableData;
 }
 //# sourceMappingURL=server-io-utils.d.ts.map

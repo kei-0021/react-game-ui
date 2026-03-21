@@ -1,3 +1,9 @@
+/* src/Components/ScoreBord.module.css */
+/*
+ * ===========================================
+ * 全般
+ * ===========================================
+ */
 .container {
   padding: 16px;
   padding-left: 40px;
@@ -24,6 +30,11 @@
   padding: 0;
 }
 
+/*
+ * ===========================================
+ * PlayerListItem
+ * ===========================================
+ */
 .playerItem {
   list-style: none;
   margin-bottom: 12px;
@@ -59,6 +70,14 @@
   gap: 8px;
 }
 
+/* --- スコア関連 --- */
+
+.scoreArea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .playerScore {
   color: #ffffff;
   font-weight: bold;
@@ -67,6 +86,109 @@
   border-radius: 4px;
   font-size: 0.9em;
 }
+
+/* スコア表示の箱（ここは変形させない） */
+.scoreArea {
+  position: relative;
+}
+
+/* スコアの数字自体がバウンドする演出（外枠には干渉しない） */
+.scoreUpdate {
+  display: inline-block;
+  animation: staticShock 0.3s ease-out;
+}
+
+/* プラスの時の色（青系） */
+.plus {
+  color: #002fff;
+}
+
+/* マイナスの時の色（赤系） */
+.minus {
+  color: #ff0000;
+}
+
+/* スコア本体：サイズは一切変えず、色と光だけで「跳ね」を表現 */
+@keyframes staticShock {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    color: #fff;
+    text-shadow:
+      0 0 15px #fff,
+      0 0 30px #fff;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 爆発する数字（完全に浮いているので箱は動かない） */
+.scoreChange {
+  font-size: 6rem;
+  position: absolute;
+  /* スコア表示の真ん中に重ねる */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 900;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 100;
+  animation: staticBurst 0.6s cubic-bezier(0.12, 0, 0.39, 0) forwards;
+}
+
+@keyframes staticBurst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+.debugScoreButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.debugBtn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.debugBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.debugBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* --- 資源関連 --- */
 
 .resourceSection {
   margin: 8px 0;
@@ -96,32 +218,14 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.tokenBadge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #a1561499;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  font-size: 0.75em;
-  font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  flex-shrink: 0;
-  color: #000;
-}
-
-.tokenBadgeOwner {
-  cursor: pointer;
-  opacity: 1;
-}
-
-.tokenBadgeGuest {
-  cursor: default;
-  opacity: 0.7;
-}
-
 /* --- カード関連 --- */
+.isHoldMessage {
+  color: #000000;
+  font-size: 0.9em;
+  font-weight: bold;
+  margin: 0;
+}
+
 .cardList {
   display: flex;
   gap: 8px;
@@ -168,6 +272,18 @@
   transform: translateY(-5px);
 }
 
+.cardIsHeld {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.2);
+  font-size: 1.5rem;
+  pointer-events: none;
+  z-index: 10;
+}
+
 .tooltip {
   display: none;
   position: absolute;
@@ -188,13 +304,18 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
-/* --- 操作エリア --- */
+/*
+ * ===========================================
+ * 操作エリア
+ * ===========================================
+ */
 .buttonArea {
   margin-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
+
 .limitMessage {
   color: #d32f2f;
   font-size: 0.85em;
@@ -202,48 +323,7 @@
   margin: 0;
 }
 
-.buttonArea {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .buttonGroup {
   display: flex;
   gap: 6px;
-}
-
-.scoreArea {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.debugScoreButtons {
-  display: flex;
-  gap: 4px;
-}
-
-.debugBtn {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    border-color 0.2s;
-}
-
-.debugBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.4);
 }

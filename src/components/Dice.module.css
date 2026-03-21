@@ -67,8 +67,9 @@
 }
 
 .diceRolling {
-  cursor: not-allowed;
+  cursor: default;
   border-radius: 0px;
+  pointer-events: none;
 }
 
 .diceNotRolling {

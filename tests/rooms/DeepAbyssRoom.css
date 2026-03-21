@@ -165,13 +165,11 @@
 }
 .field-column {
   display: flex;
-  flex-direction: column;
   gap: 20px;
-  flex: 0 0 320px;
+  flex: 0 0 640px;
 }
 .scoreboard-column {
-  flex: 1 1 auto;
-  min-width: 300px;
+  flex: 0 1 800px;
 }
 
 .debug-control-panel {

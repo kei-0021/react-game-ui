@@ -1,4 +1,4 @@
-import { Card } from "./card.js";
+import { Card } from './card.js';
 export interface Deck {
     deckId: string;
     name: string;

@@ -1,11 +1,13 @@
 // src/components/Deck.tsx
 import { DeckDrawData, DeckUpdateData } from '@/types/socketData.js';
 import * as React from 'react';
+import { useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import type { Card } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
+import { CardPreview } from './CardPreview.js';
 import deckStyles from './Deck.module.css';
 
 type DeckProps = {
@@ -16,6 +18,7 @@ type DeckProps = {
   currentPlayerId: PlayerId | null;
   myPlayerId: PlayerId | null;
   alwaysDraw?: boolean;
+  enabled?: boolean;
 };
 
 /**
@@ -27,20 +30,30 @@ type DeckProps = {
  * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
  * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
+ * @param enabled=true - 各種操作が有効かどうかのフラグ。
  */
-export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerId, alwaysDraw = false }: DeckProps) {
+export function Deck({
+  socket,
+  roomId,
+  deckId,
+  title,
+  currentPlayerId,
+  myPlayerId,
+  alwaysDraw = false,
+  enabled = true,
+}: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
   const [discardPile, setDiscardPile] = React.useState<Card[]>([]);
   const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
 
-  React.useEffect(() => {
-    socket.on(`deck:update:${roomId}:${deckId}`, (data: DeckUpdateData) => {
+  useEffect(() => {
+    socket.on(`deck:update:${deckId}`, (data: DeckUpdateData) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
       setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
     });
 
     return () => {
-      socket.off(`deck:update:${roomId}:${deckId}`);
+      socket.off(`deck:update:${deckId}`);
     };
   }, [socket, roomId, deckId]);
 
@@ -75,17 +88,24 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
   const resetDeck = () => socket.emit('deck:reset', { roomId, deckId });
 
   return (
-    <section className={cardStyles.deckSection}>
+    <section className={deckStyles.deckSection}>
       <h3 className={deckStyles.deckTitle}>{title}</h3>
 
-      <div className={cardStyles.deckControls}>
-        <button onClick={shuffle}>シャッフル</button>
-        <button onClick={resetDeck}>山札に戻す</button>
+      <div className={deckStyles.deckControls}>
+        <button onClick={shuffle} disabled={!enabled}>
+          シャッフル
+        </button>
+        <button onClick={resetDeck} disabled={!enabled}>
+          山札に戻す
+        </button>
       </div>
 
-      <div className={`${cardStyles.deckWrapper} ${deckStyles.deckWrapperFlex}`}>
+      <div className={deckStyles.deckWrapperFlex}>
         {/* 山札 */}
-        <div className={cardStyles.deckContainer} onClick={draw}>
+        <div
+          className={`${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ''}`}
+          onClick={() => enabled && draw()}
+        >
           {deckCards.map((c, i) => (
             <div
               key={c.id}
@@ -102,31 +122,17 @@ export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerI
         {/* 捨て札 */}
         <div className={`${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`}>
           {discardPile.map((c, i) => (
-            <div
-              key={c.id}
-              className={cardStyles.deckCardFront}
-              style={{
-                zIndex: i + 1,
-                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                pointerEvents: i === discardPile.length - 1 ? 'auto' : 'none',
-              }}
-              onMouseEnter={() => i === discardPile.length - 1 && setIsDiscardHovered(true)}
-              onMouseLeave={() => i === discardPile.length - 1 && setIsDiscardHovered(false)}
-            >
-              <CardDisplayContent card={c} canSeeFront={true} />
-
-              {i === discardPile.length - 1 && c.description && (
-                <span
-                  className={`${cardStyles.tooltip} ${deckStyles.tooltipBase}`}
-                  style={{
-                    visibility: isDiscardHovered ? 'visible' : 'hidden',
-                    opacity: isDiscardHovered ? 1 : 0,
-                  }}
-                >
-                  {c.description}
-                </span>
-              )}
-            </div>
+            <CardPreview key={c.id} card={c}>
+              <div
+                className={cardStyles.deckCardFront}
+                style={{
+                  zIndex: i + 1,
+                  transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+                }}
+              >
+                <CardDisplayContent card={c} canSeeFront={true} />
+              </div>
+            </CardPreview>
           ))}
         </div>
       </div>

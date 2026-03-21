@@ -1,0 +1,57 @@
+[
+  {
+    "templateId": "RELIC_1",
+    "name": "Relic Site 1",
+    "shapeType": "square",
+    "backgroundColor": "#1c2a38",
+    "content": "",
+    "changedContent": "💎",
+    "changedColor": "#4aaebbff"
+  },
+  {
+    "templateId": "RELIC_2",
+    "name": "Relic Site 2",
+    "shapeType": "square",
+    "backgroundColor": "#0d1721",
+    "content": "",
+    "changedContent": "⚙️",
+    "changedColor": "#c0c0c0"
+  },
+  {
+    "templateId": "ENERGY",
+    "name": "Energy Vein",
+    "shapeType": "square",
+    "backgroundColor": "#1c2a38",
+    "content": "",
+    "changedContent": "🫧",
+    "changedColor": "#3cb371"
+  },
+  {
+    "templateId": "DANGER",
+    "name": "Dangerous Zone",
+    "shapeType": "custom",
+    "backgroundColor": "#1c2a38",
+    "content": "",
+    "changedContent": "🌋",
+    "customClip": "polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)",
+    "changedColor": "#ff4500"
+  },
+  {
+    "templateId": "EMPTY",
+    "name": "Empty Deep Sea",
+    "shapeType": "square",
+    "backgroundColor": "#0d1721",
+    "content": "",
+    "changedContent": "",
+    "changedColor": "#407398"
+  },
+  {
+    "templateId": "ABYSS",
+    "name": "Abyss Landmark",
+    "shapeType": "square",
+    "backgroundColor": "#0d1721",
+    "content": "",
+    "changedContent": "💰",
+    "changedColor": "#D4AF37"
+  }
+]

@@ -1,13 +1,30 @@
 // src/types/socketData.ts
 
+import { CellData } from '@/index.js';
 import { Card } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
-import { CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
+import {
+  BoardId,
+  CardId,
+  DeckId,
+  DiceId,
+  DraggableId,
+  GameId,
+  PlayerId,
+  RoomId,
+  TokenId,
+  TokenStoreId,
+} from './definition.js';
 import { Phase } from './phase.js';
 import { Token } from './token.js';
 
+/*
+ * ===========================================
+ * ルーム・接続関連
+ * ===========================================
+ */
 export type RoomMeta = {
   id: RoomId;
   gameId: GameId;
@@ -16,12 +33,22 @@ export type RoomMeta = {
   createdAt: number;
 };
 
+export type LobbyRoomsList = {
+  rooms: RoomMeta[];
+  availableGameIds: GameId[];
+};
+
 export type RoomJoinData = {
   roomId: RoomId;
   gameId: GameId;
   playerName: PlayerId;
 };
 
+/*
+ * ===========================================
+ * カード・デッキ操作関連
+ * ===========================================
+ */
 export type DeckDrawData = {
   roomId: RoomId;
   deckId: DeckId;
@@ -47,7 +74,21 @@ export type CardPlayData = {
 export type CardHoldData = {
   roomId: RoomId;
   playerId: PlayerId;
+  cardIdsbyDeck: Record<DeckId, CardId[]>;
+};
+
+export type CardFlipData = {
+  roomId: RoomId;
+  playerId: PlayerId;
   cardIds: CardId[];
+};
+
+export type CardMoveOnFieldData = {
+  roomId: RoomId;
+  deckId: DeckId;
+  cardId: string;
+  coordinate?: Coordinate;
+  zIndex?: number;
 };
 
 export type CardMoveFromFieldData = {
@@ -57,6 +98,11 @@ export type CardMoveFromFieldData = {
   playerId?: PlayerId | null;
 };
 
+/*
+ * ===========================================
+ * トークン・リソース操作関連
+ * ===========================================
+ */
 export type TokenAcquireData = {
   roomId: RoomId;
   tokenStoreId: TokenStoreId;
@@ -67,12 +113,42 @@ export type TokenStoreUpdateData = {
   tokenStore: Token[];
 };
 
+/*
+ * ===========================================
+ * ボード・セル関連
+ * ===========================================
+ */
+
+export type BoardMovableRangeData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  playerId: PlayerId;
+  moveRange: number;
+  isExact: boolean;
+};
+
+export type BaordMovePlayerData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  playerId: PlayerId;
+  newLocation: any;
+};
+
+export type BoardUpdateData = {
+  boardId: BoardId;
+  board: CellData[];
+};
+
+/*
+ * ===========================================
+ * ドラッグ可能オブジェクト
+ * ===========================================
+ */
 export type DraggableMovedData = {
   roomId: RoomId;
   draggableId: DraggableId;
   coordinate: Coordinate;
   rotation: number;
-  zIndex: number;
 };
 
 export type DraggableUpdateData = {
@@ -82,11 +158,38 @@ export type DraggableUpdateData = {
   zIndex: number;
 };
 
-export type SystemMessageData = {
-  message: string;
-  isPersistent?: boolean;
+/*
+ * ===========================================
+ * ダイス
+ * ===========================================
+ */
+export type DiceRollData = {
+  roomId: RoomId;
+  diceId: DiceId;
+  sides: number;
 };
 
+export type DiceUpdateData = {
+  value: number;
+};
+
+/*
+ * ===========================================
+ * オブジェクト重ね順
+ * ===========================================
+ */
+export type ObjectBringToData = {
+  roomId: RoomId;
+  objectId: [DeckId, CardId] | DraggableId;
+  type: 'card' | 'draggable';
+  isFront: boolean;
+};
+
+/*
+ * ===========================================
+ * ゲーム進行・フェーズ管理
+ * ===========================================
+ */
 export type GamePhaseUpdateData = {
   newPhase: Phase;
 };
@@ -103,4 +206,14 @@ export type GameTurnUpdateData = {
   currentPlayerId: PlayerId;
   currentRoundIndex: number;
   currentTurnIndex: number;
+};
+
+/*
+ * ===========================================
+ * システム・ユーティリティ
+ * ===========================================
+ */
+export type SystemMessageData = {
+  message: string;
+  isPersistent?: boolean;
 };

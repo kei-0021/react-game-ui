@@ -1,10 +1,19 @@
 // src/server/server-io-utils.ts
 
+import { CellData, DraggableData } from '@/index.js';
+import { Coordinate } from '@/types/coodinate.js';
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/server.js';
+import { Token } from '@/types/token.js';
 import fs from 'node:fs';
 import { Card } from '../types/card.js';
 import { Resource } from '../types/resource.js';
+
+export type RoomConfig = {
+  gameId: GameId;
+  dataFiles: Record<string, any>;
+  setup: (loadedData: Record<string, any>) => Promise<GameParam>;
+};
 
 // --- 型バリデーター関数群 ---
 export const Validators = {
@@ -73,7 +82,7 @@ export function loadJsonAssert<T>(relativePath: string, validator: (data: any) =
 
 /**
  * 指定した枚数分、IDをユニークにしながらデータを複製する
- * デッキのセット数を増やしたい時に便利
+ * 同じカードやトークンの数を増やすのに使用する
  */
 const replicateData = <T extends { id: string }>(data: T[], numSets: number): T[] => {
   return Array.from({ length: numSets }).flatMap((_, i) =>
@@ -107,23 +116,6 @@ const generateFromTemplates = <T extends { templateId: string }>(
 };
 
 /**
- * 1次元配列を2次元（ボード形式）に変換する
- */
-const chunkTo2D = <T>(array: T[], cols: number): T[][] => {
-  const rows: T[][] = [];
-  for (let i = 0; i < array.length; i += cols) {
-    rows.push(array.slice(i, i + cols));
-  }
-  return rows;
-};
-
-export type RoomConfig = {
-  gameId: GameId;
-  dataFiles: Record<string, any>;
-  setup: (loadedData: Record<string, any>) => Promise<GameParam>;
-};
-
-/**
  * プリセット準備の関数群
  */
 export class SetupHelper {
@@ -153,16 +145,95 @@ export class SetupHelper {
   }
 
   /**
-   * ボードレイアウトの生成
+   * トークンストアの生成。共通情報の初期化も可能。
+   * @param tokens - 入力トークンデータ
+   * @param count - トークン置き場に置くトークンの数
+   * @param imageSrc - トークンの画像URL（省略可能）
+   * @param color - トークンの背景用のカラーコード（省略可能）
+   * @returns トークン置き場
    */
-  createBoardLayout(base: any[], counts: Record<string, number>, cols: number): any[][] {
-    return chunkTo2D(generateFromTemplates(base, counts), cols);
+  createTokenStore(tokens: Token[], count: number, imageSrc?: string, color?: string): Token[] {
+    const replicatedTokens = replicateData(tokens, count);
+    if (imageSrc) {
+      replicatedTokens.forEach((token) => {
+        token.imageSrc = imageSrc;
+      });
+    }
+    if (color) {
+      replicatedTokens.forEach((token) => {
+        token.color = color;
+      });
+    }
+    return replicatedTokens;
   }
 
   /**
-   * トークンストアの生成
+   * グリッド状ボードレイアウトの生成
    */
-  createTokenStore(_id: string, _name: string, templates: any[], count: number): any[] {
-    return replicateData(templates, count);
+  createGridBoardLayout(base: any[], counts: Record<string, number>, rows: number, cols?: number): CellData[] {
+    const effectiveCols = cols ?? rows;
+    const expectedTotal = rows * effectiveCols;
+    const actualTotal = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+    if (actualTotal !== expectedTotal) {
+      throw new Error(`[Grid Error] Size:${rows}x${effectiveCols}(${expectedTotal}) != Total:${actualTotal}`);
+    }
+
+    let templates = generateFromTemplates(base, counts);
+
+    // セルを配置して基本データを作る
+    const grid: CellData[] = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < effectiveCols; c++) {
+        const template = templates[r * effectiveCols + c];
+        grid.push({
+          ...template,
+          id: `r${r}c${c}`,
+          adjacentCellIds: [],
+        });
+      }
+    }
+
+    // 隣接セルIDを計算して流し込む
+    grid.forEach((cell) => {
+      const match = cell.id.match(/r(\d+)c(\d+)/);
+      if (!match) return;
+      const r = parseInt(match[1], 10);
+      const c = parseInt(match[2], 10);
+
+      const adjacents: string[] = [];
+      // 上下左右の相対座標
+      const directions = [
+        { dr: -1, dc: 0 }, // 上
+        { dr: 1, dc: 0 }, // 下
+        { dr: 0, dc: -1 }, // 左
+        { dr: 0, dc: 1 }, // 右
+      ];
+
+      directions.forEach(({ dr, dc }) => {
+        const nr = r + dr;
+        const nc = c + dc;
+        // 盤面内かチェック
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < effectiveCols) {
+          adjacents.push(`r${nr}c${nc}`);
+        }
+      });
+
+      cell.adjacentCellIds = adjacents;
+    });
+
+    return grid;
+  }
+
+  /**
+   * ドラッグ可能オブジェクトの生成
+   */
+  createDraggable(
+    id: string,
+    coordinate: Coordinate = { x: 500, y: 500 },
+    zIndex: number = 0,
+    rotation: number = 0,
+  ): DraggableData {
+    return { id, coordinate, zIndex, rotation };
   }
 }

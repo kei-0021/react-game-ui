@@ -1,19 +1,27 @@
 // src/server/deepAbyssConfig.ts
 
-import type { Card, GameParam, Player, RoomState } from 'react-game-ui';
-import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
-import { RoomManager } from 'react-game-ui/server-utils';
+import { Card, GameParam, Player, RoomState } from '../../src/index.js';
+import { RoomConfig, SetupHelper } from '../../src/server/server-io-utils.js';
+import { RoomManager } from '../../src/server/server-utils.js';
 import { CardPlayData } from '../../src/types/socketData.js';
 import { DeepAbyssPhase } from '../types/phase.js';
+import { cellShuffleAndReconnector } from './cellShuffleAndReConnecter.js';
 
-const CELL_COUNTS = { RA: 5, RB: 10, B_NORM: 4, B_TRACK: 3, T_VOL: 7, T_CRF: 6, N_A: 12, N_B: 17 };
+export const CELL_COUNTS = {
+  RELIC_1: 5,
+  RELIC_2: 10,
+  ENERGY: 8,
+  DANGER: 7,
+  EMPTY: 29,
+  ABYSS: 5,
+};
 
 export const deepAbyssConfig: RoomConfig = {
   gameId: 'deepabyss',
   dataFiles: {
-    deepAbyssSpeciesCards: './data/deepSeaSpeciesCards.json',
-    deepAbyssActionCards: './data/deepSeaActionCards.json',
-    deepAbyssCells: './data/deepSeaCells.json',
+    deepAbyssSpeciesCards: './data/deepAbyssSpeciesCards.json',
+    deepAbyssActionCards: './data/deepAbyssActionCards.json',
+    deepAbyssCells: './data/deepAbyssCells.json',
   },
   setup: async (loadedData: Record<string, any>): Promise<GameParam> => {
     const helper = new SetupHelper();
@@ -22,7 +30,7 @@ export const deepAbyssConfig: RoomConfig = {
       location: 'deck',
       drawCondition: ['field', 'back'],
       playLocation: 'discard',
-      fieldBackCondition: ['hand', 'face'],
+      // fieldBackCondition: ['hand', 'face'],
     };
 
     const deepAbyssSpeciesDeck = helper.createUniqueCards(
@@ -30,7 +38,7 @@ export const deepAbyssConfig: RoomConfig = {
       1,
     );
     const deepAbyssActionDeck = helper.createUniqueCards(helper.assertCards(loadedData.deepAbyssActionCards), 3);
-    const deepAbyssBoard = helper.createBoardLayout(loadedData.deepAbyssCells, CELL_COUNTS, 8);
+    const deepAbyssBoard = helper.createGridBoardLayout(loadedData.deepAbyssCells, CELL_COUNTS, 8, 8);
 
     // エフェクトデータの動的ロード
     const [cardEffectsModule, cellEffectsModule] = await Promise.all([
@@ -61,12 +69,12 @@ export const deepAbyssConfig: RoomConfig = {
         {
           tokenStoreId: 'ARTIFACT',
           name: '遺物',
-          tokens: helper.createTokenStore(
-            'ARTIFACT',
-            '💰',
-            [{ id: 'ARTIFACT', name: '💰', color: '#D4AF37', imageSrc: '', count: 1 }],
-            20,
-          ),
+          tokens: helper.createTokenStore([{ id: 'ARTIFACT', name: '💰' }], 20, undefined, '#D4AF37'),
+        },
+        {
+          tokenStoreId: 'Hanabishi',
+          name: '花火師',
+          tokens: helper.createTokenStore([{ id: '花火師', name: '🎆' }], 20, '/hanabishi.svg', '#d43737'),
         },
       ],
       initialResources: [
@@ -82,6 +90,8 @@ export const deepAbyssConfig: RoomConfig = {
       ],
       initialHand: { deckId: 'deepAbyssAction', count: 6 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
+      shuffleAndReconnectBoard: { deepAbyssBoard: cellShuffleAndReconnector },
+      pieceImage: '/hanabishi.svg',
       initialPhase: DeepAbyssPhase.START,
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,
@@ -92,16 +102,20 @@ export const deepAbyssConfig: RoomConfig = {
         });
         // 場のカードから名前を抽出して「、」で繋げる
         const cardNames = data.cardIds
-          .map((id) => state.playFieldCards['deepAbyssAction'].find((c) => c.id === id)?.name)
+          ?.map((id) => state.playFieldCards['deepAbyssAction'].find((c) => c.id === id)?.name)
           .filter(Boolean) // 名前が見つからない場合を除外
           .join('、');
 
-        manager.emitSystemMessage(`${cardNames} を出した！`, true);
+        manager.emitSystemMessage(`${cardNames} を出した！`, 1000, true);
         manager.updatePhase(DeepAbyssPhase.NEXT);
+      },
+      onPieceMove: (state: RoomState, manager: RoomManager, newLocation: any) => {
+        // マス目をオープンにする
+        manager.updateCellExploredStatus(newLocation, true);
       },
       onNextRound: (state: RoomState, manager: RoomManager) => {
         manager.updatePhase(DeepAbyssPhase.NEXT);
-        manager.emitSystemMessage(`第 ${state.currentRoundIndex + 1} ラウンド開始！`, true);
+        manager.emitSystemMessage(`第 ${state.currentRoundIndex + 1} ラウンド開始！`, 1000, true);
         manager.unholdCards();
       },
       checkGameEnd: (state: RoomState) =>

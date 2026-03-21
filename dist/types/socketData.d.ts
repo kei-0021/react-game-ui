@@ -1,8 +1,9 @@
+import { CellData } from '@/index.js';
 import { Card } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
-import { CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
+import { BoardId, CardId, DeckId, DiceId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
 import { Phase } from './phase.js';
 import { Token } from './token.js';
 export type RoomMeta = {
@@ -11,6 +12,10 @@ export type RoomMeta = {
     playerCount: number;
     maxPlayers?: number;
     createdAt: number;
+};
+export type LobbyRoomsList = {
+    rooms: RoomMeta[];
+    availableGameIds: GameId[];
 };
 export type RoomJoinData = {
     roomId: RoomId;
@@ -39,7 +44,19 @@ export type CardPlayData = {
 export type CardHoldData = {
     roomId: RoomId;
     playerId: PlayerId;
+    cardIdsbyDeck: Record<DeckId, CardId[]>;
+};
+export type CardFlipData = {
+    roomId: RoomId;
+    playerId: PlayerId;
     cardIds: CardId[];
+};
+export type CardMoveOnFieldData = {
+    roomId: RoomId;
+    deckId: DeckId;
+    cardId: string;
+    coordinate?: Coordinate;
+    zIndex?: number;
 };
 export type CardMoveFromFieldData = {
     roomId: RoomId;
@@ -55,12 +72,28 @@ export type TokenAcquireData = {
 export type TokenStoreUpdateData = {
     tokenStore: Token[];
 };
+export type BoardMovableRangeData = {
+    roomId: RoomId;
+    boardId: BoardId;
+    playerId: PlayerId;
+    moveRange: number;
+    isExact: boolean;
+};
+export type BaordMovePlayerData = {
+    roomId: RoomId;
+    boardId: BoardId;
+    playerId: PlayerId;
+    newLocation: any;
+};
+export type BoardUpdateData = {
+    boardId: BoardId;
+    board: CellData[];
+};
 export type DraggableMovedData = {
     roomId: RoomId;
     draggableId: DraggableId;
     coordinate: Coordinate;
     rotation: number;
-    zIndex: number;
 };
 export type DraggableUpdateData = {
     draggableId: DraggableId;
@@ -68,9 +101,19 @@ export type DraggableUpdateData = {
     rotation: number;
     zIndex: number;
 };
-export type SystemMessageData = {
-    message: string;
-    isPersistent?: boolean;
+export type DiceRollData = {
+    roomId: RoomId;
+    diceId: DiceId;
+    sides: number;
+};
+export type DiceUpdateData = {
+    value: number;
+};
+export type ObjectBringToData = {
+    roomId: RoomId;
+    objectId: [DeckId, CardId] | DraggableId;
+    type: 'card' | 'draggable';
+    isFront: boolean;
 };
 export type GamePhaseUpdateData = {
     newPhase: Phase;
@@ -85,5 +128,9 @@ export type GameTurnUpdateData = {
     currentPlayerId: PlayerId;
     currentRoundIndex: number;
     currentTurnIndex: number;
+};
+export type SystemMessageData = {
+    message: string;
+    isPersistent?: boolean;
 };
 //# sourceMappingURL=socketData.d.ts.map

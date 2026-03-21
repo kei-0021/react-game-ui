@@ -1,7 +1,7 @@
 // src/components/Draggable.tsx
 import { Coordinate } from '@/types/coodinate.js';
 import { DraggableId, RoomId } from '@/types/definition.js';
-import { DraggableMovedData, DraggableUpdateData } from '@/types/socketData.js';
+import { DraggableMovedData, DraggableUpdateData, ObjectBringToData } from '@/types/socketData.js';
 import type { CSSProperties, ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Socket } from 'socket.io-client';
@@ -21,16 +21,15 @@ type DraggableProps = {
   draggableId: DraggableId;
   image?: string;
   mask?: boolean;
-  initialXY?: Coordinate;
   size?: number | { width: number; height: number };
   color?: string;
   isTransparent?: boolean;
-  zIndex?: number;
   isFrontOnDragging?: boolean;
   children?: ReactNode;
   style?: CSSProperties;
   gridBounds?: GridBounds;
   scale?: number;
+  isDebug?: boolean;
   containerRef: React.RefObject<HTMLElement | null>;
 };
 
@@ -41,40 +40,38 @@ type DraggableProps = {
  * @param {DraggableId} [draggableId] - この要素を一意に識別するためのID
  * @param {string} [image] - 表示する画像URL
  * @param {boolean} [mask=false] - 画像を背景色(color)でマスク（切り抜き）表示するかどうか
- * @param {Coordinate} [initialXY={x:500, y:500}] - 初期配置のXY座標
  * @param {number | {width: number, height: number}} [size=100] - 要素のサイズ（数値なら正方形、オブジェクトなら長方形）
  * @param {string} [color='yellow'] - 背景色またはマスク時の塗りつぶし色
  * @param {boolean} [isTransparent=false] - 背景を透明にするか（colorより優先）
- * @param {number} [zIndex=90] - 重なり順。デフォルトは100
  * @param {number} [isFrontOnDragging=false] - ドラッグ中に一時的に zIndex を跳ね上げるためのフラグ
  * @param {ReactNode} [children] - 画像がない場合や、画像の上に重ねて表示するコンテンツ
  * @param {CSSProperties} [style] - 外側から適用する追加のスタイル
  * @param {Coordinate => void} [onDragEnd] - ドラッグ終了時に確定座標を通知するハンドラ
  * @param {GridBounds} [gridBounds] - スナップ移動を制御するためのグリッド境界情報
  * @param {number} [scale=1] - 親コンテナのズーム倍率（座標計算の補正に使用）
+ * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  * @param {React.RefObject<HTMLElement | null>} [containerRef] - 座標計算の基準となる親要素の参照
  */
 export function Draggable({
   socket,
   roomId,
   draggableId,
-  initialXY = { x: 500, y: 500 },
   image,
   mask = false,
   size = 100,
   color = 'yellow',
   isTransparent = false,
-  zIndex = 100,
   isFrontOnDragging = false,
   children,
   style = {},
   scale = 1,
+  isDebug = false,
   containerRef,
 }: DraggableProps) {
   // 座標と回転、重なり順を内部状態として管理
-  const [pos, setPos] = useState(initialXY);
+  const [pos, setPos] = useState({ x: 500, y: 500 });
   const [rotation, setRotation] = useState(0);
-  const [currentZ, setCurrentZ] = useState(zIndex);
+  const [currentZ, setCurrentZ] = useState(100);
 
   // 右クリックメニューの表示状態
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -104,10 +101,6 @@ export function Draggable({
     posRef.current = pos;
   }, [pos]);
 
-  useEffect(() => {
-    setCurrentZ(zIndex);
-  }, [zIndex]);
-
   // メニュー外クリックで閉じる処理
   useEffect(() => {
     const closeMenu = () => setContextMenu(null);
@@ -122,10 +115,15 @@ export function Draggable({
     const handleRemoteMove = (data: DraggableUpdateData) => {
       // 自分がドラッグ中の時は、サーバーからの座標更新を無視する
       if (data.draggableId === draggableId && !isDraggingRef.current) {
-        setPos({ x: data.coordinate.x, y: data.coordinate.y });
-        // 他人からの回転と重なり順の更新を反映
-        if (data.rotation !== undefined) setRotation(data.rotation);
-        if (data.zIndex !== undefined) setCurrentZ(data.zIndex);
+        if (data.coordinate) {
+          setPos({ x: data.coordinate.x, y: data.coordinate.y });
+        }
+        if (data.rotation !== undefined) {
+          setRotation(data.rotation);
+        }
+        if (data.zIndex !== undefined) {
+          setCurrentZ(data.zIndex);
+        }
       }
     };
     socket.on('draggable:update', handleRemoteMove);
@@ -145,10 +143,8 @@ export function Draggable({
     setIsDragging(true);
 
     const fixedContainer = containerRef?.current;
-    if (!fixedContainer) {
-      console.error('containerRef がセットされていません！');
-      return;
-    }
+    if (!fixedContainer) return;
+
     const fixedContainerRect = fixedContainer.getBoundingClientRect();
     const clientX_relative = (e.clientX - fixedContainerRect.left) / scale;
     const clientY_relative = (e.clientY - fixedContainerRect.top) / scale;
@@ -215,15 +211,6 @@ export function Draggable({
     emitUpdate(pos, nextRot, currentZ);
   };
 
-  /**
-   * メニューアクション：最前面
-   */
-  const onBringToFrontClick = () => {
-    const nextZ = currentZ + 100;
-    setCurrentZ(nextZ);
-    emitUpdate(pos, rotation, nextZ);
-  };
-
   const MASK_PROP = ['mask', 'Image'].join('');
   const WEBKIT_MASK_PROP = ['Webkit', 'Mask', 'Image'].join('');
   const URL_FUNC = ['u', 'r', 'l'].join('');
@@ -248,7 +235,7 @@ export function Draggable({
   const height = typeof size === 'number' ? size : size.height;
 
   // ドラッグ中は一時的に 9999、それ以外は currentZ を使用
-  const dynamicZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
+  const currentZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
 
   const dynamicStyle: CSSProperties = {
     position: 'absolute',
@@ -266,7 +253,7 @@ export function Draggable({
     top: `${pos.y}px`,
     width: `${width}px`,
     height: `${height}px`,
-    zIndex: dynamicZIndex,
+    zIndex: currentZIndex,
     background: mask && image ? undefined : isTransparent ? 'transparent' : color,
 
     // マスク関連（これも特殊な計算結果なので最後に上書き）
@@ -300,38 +287,91 @@ export function Draggable({
         )}
       </div>
 
-      {/* 簡易右クリックメニュー */}
-      {contextMenu && (
+      {/* デバッグラベルは Draggable の外に配置 */}
+      {isDebug && (
         <div
+          className={draggableStyles.debugLabel}
           style={{
-            position: 'fixed',
-            top: contextMenu.y,
-            left: contextMenu.x,
-            zIndex: 10001,
-            background: '#222',
-            color: '#fff',
-            border: '1px solid #444',
-            borderRadius: '4px',
-            padding: '4px 0',
-            fontSize: '12px',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+            left: `${pos.x}px`,
+            top: `${pos.y - height / 2 - 22}px`,
+            transform: 'translateX(-50%)',
           }}
         >
+          ID: {draggableId} | Z: {currentZIndex}
+        </div>
+      )}
+
+      {/* 右クリックメニュー */}
+      {contextMenu && (
+        <div
+          className={draggableStyles.contextMenu}
+          style={{
+            top: contextMenu.y,
+            left: contextMenu.x,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
           <div
-            style={{ padding: '8px 16px', cursor: 'pointer' }}
-            onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
-            onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-            onClick={onRotateClick}
+            className={draggableStyles.menuItem}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRotateClick();
+              setContextMenu(null);
+            }}
           >
-            🔄 90度回転
+            <span className={draggableStyles.menuIcon}>🔄</span>
+            <span>90度回転</span>
           </div>
           <div
-            style={{ padding: '8px 16px', cursor: 'pointer' }}
-            onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
-            onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-            onClick={onBringToFrontClick}
+            className={draggableStyles.menuItem}
+            onClick={(e) => {
+              e.stopPropagation();
+              const requestData: ObjectBringToData = {
+                roomId,
+                objectId: draggableId,
+                type: 'draggable',
+                isFront: true,
+              };
+              socket.emit('object:bring-to', requestData);
+              setContextMenu(null);
+            }}
           >
-            🔼 最前面へ
+            <span className={draggableStyles.menuIcon}>⬆️</span>
+            <span>最前面に移動</span>
+          </div>
+
+          <div
+            className={draggableStyles.menuItem}
+            onClick={(e) => {
+              e.stopPropagation();
+              const requestData: ObjectBringToData = {
+                roomId,
+                objectId: draggableId,
+                type: 'draggable',
+                isFront: false,
+              };
+              socket.emit('object:bring-to', requestData);
+              setContextMenu(null);
+            }}
+          >
+            <span className={draggableStyles.menuIcon}>⬇️</span>
+            <span>最背面に移動</span>
+          </div>
+
+          <div className={draggableStyles.separator} />
+
+          <div
+            className={draggableStyles.menuItem}
+            onClick={(e) => {
+              e.stopPropagation();
+              const nextRot = 0;
+              setRotation(nextRot);
+              emitUpdate(pos, nextRot, currentZ);
+              setContextMenu(null);
+            }}
+          >
+            <span className={draggableStyles.menuIcon}>🧹</span>
+            <span>角度をリセット</span>
           </div>
         </div>
       )}

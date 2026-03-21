@@ -6,16 +6,6 @@
  * ===========================================
  */
 .boardContainer {
-  /*
-   * Board.tsx で以下のプロパティが動的に設定されます:
-   * display: grid;
-   * grid-template-rows: repeat(var(--board-rows), 1fr); 
-   * grid-template-columns: repeat(var(--board-cols), 1fr);
-   * gap: 4px; 
-   */
-  
-  width: 600px; /* ボードの全体サイズ（任意で調整） */
-  height: 600px;
   background-color: #eee;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -41,18 +31,3 @@
   cursor: pointer;
   padding: 2px; /* 内部要素とセルの境界の間にわずかなスペースを設ける */
 }
-
-
-
-/*
- * ===========================================
- * ハイライト (カスタムクラス)
- * ===========================================
- * MyCustomCellRenderer 内の要素に適用するハイライトは、
- * renderCell 関数内でカスタムスタイルとして定義してください。
- * ここでは .cell ラッパー自体に適用されるスタイルのみを定義します。
- */
-/* .highlight {
-  border: 2px solid orange;
-  box-shadow: 0 0 10px rgba(255, 165, 0, 0.8);
-} */

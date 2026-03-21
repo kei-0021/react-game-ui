@@ -1,12 +1,26 @@
 // src/server/server-utils.ts
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
-import { CardId, DeckId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import {
+  BoardId,
+  CardId,
+  CellId,
+  DeckId,
+  DraggableId,
+  GameId,
+  PlayerId,
+  ResourceId,
+  RoomId,
+  TokenId,
+  TokenStoreId,
+} from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import {
+  CardPlayData,
   DeckUpdateData,
+  DraggableUpdateData,
   GamePhaseUpdateData,
   GameTurnUpdateData,
   SystemMessageData,
@@ -16,39 +30,41 @@ import { Server } from 'socket.io';
 
 export type LogCategory =
   | 'connection'
+  | 'lobby'
+  | 'game'
+  | 'room'
   | 'deck'
   | 'card'
   | 'cell'
-  | 'game'
   | 'dice'
   | 'timer'
   | 'addScore'
   | 'resource'
   | 'token'
-  | 'room'
-  | 'lobby'
-  | 'disconnect'
+  | 'draggable'
   | 'warn'
   | 'popup'
-  | 'custom_event';
+  | 'custom_event'
+  | 'disconnect';
 
 export let LOG_CATEGORIES: Record<LogCategory, boolean> = {
   connection: true,
+  lobby: true,
+  game: true,
+  room: true,
   deck: false,
   card: true,
   cell: true,
-  game: true,
   dice: true,
   timer: false,
   addScore: true,
   resource: true,
   token: true,
-  room: true,
-  lobby: true,
-  disconnect: true,
+  draggable: true,
   warn: true,
   popup: true,
   custom_event: true,
+  disconnect: true,
 };
 
 const ANSI_RED = '\x1b[31m';
@@ -63,8 +79,13 @@ const ANSI_RESET = '\x1b[0m';
  * @param args - 追加のログ情報
  */
 export function server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void {
-  if (!LOG_CATEGORIES[tag]) {
+  if (!(tag in LOG_CATEGORIES)) {
     throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
+  }
+
+  // 出力するかどうかをチェック
+  if (!LOG_CATEGORIES[tag]) {
+    return;
   }
 
   const fullArgs = [firstArg, ...args];
@@ -81,76 +102,6 @@ export const isExplored = (roomState: RoomState, position: Position): boolean =>
   return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
 
-export const markCellAsExplored = (
-  roomState: RoomState,
-  gameId: GameId,
-  roomId: RoomId,
-  position: Position,
-): boolean => {
-  if (!isExplored(roomState, position)) {
-    roomState.exploredCells.push(position);
-    server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
-    return true;
-  }
-  return false;
-};
-
-export const unmarkCellAsExplored = (
-  roomState: RoomState,
-  gameId: GameId,
-  roomId: RoomId,
-  position: Position,
-): boolean => {
-  const initialLength = roomState.exploredCells.length;
-  roomState.exploredCells = roomState.exploredCells.filter(
-    (loc) => !(loc.row === position.row && loc.col === position.col),
-  );
-  const wasRemoved = roomState.exploredCells.length < initialLength;
-  if (wasRemoved) {
-    server_log('cell', gameId, roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
-  }
-  return wasRemoved;
-};
-
-const shuffleArray = <T>(array: T[]): T[] => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-};
-
-export const createRandomBoard = (initialBoard: any[][]): any[][] => {
-  if (!initialBoard || initialBoard.length === 0 || initialBoard[0].length === 0) {
-    return [];
-  }
-  const rows = initialBoard.length;
-  const cols = initialBoard[0].length;
-  let allCells: any[] = [];
-  initialBoard.forEach((rowArr) => {
-    allCells = allCells.concat(rowArr);
-  });
-  shuffleArray(allCells);
-  const newBoard: any[][] = [];
-  let cellIndex = 0;
-  for (let r = 0; r < rows; r++) {
-    const newRow: any[] = [];
-    for (let c = 0; c < cols; c++) {
-      if (cellIndex >= allCells.length) break;
-      const originalCell = allCells[cellIndex];
-      newRow.push({
-        ...originalCell,
-        id: `r${r}c${c}`,
-      });
-      cellIndex++;
-    }
-    if (newRow.length > 0) {
-      newBoard.push(newRow);
-    }
-  }
-  return newBoard;
-};
-
 export const generateColorFromId = (id: string): string => {
   let hash = 0;
   for (let i = 0; i < id.length; i++) {
@@ -163,6 +114,14 @@ export const generateColorFromId = (id: string): string => {
   return `hsl(${finalHue}, 70%, 50%)`;
 };
 
+export const shuffleArray = <T>(array: T[]): T[] => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
  */
@@ -172,6 +131,12 @@ export class RoomManager {
     private param: GameParam,
     private state: RoomState,
   ) {}
+
+  /**
+   * 一定時間待機する
+   * @param ms - 待機時間 (ms)
+   */
+  sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   /**
    * プレイヤー更新を通知する
@@ -189,7 +154,7 @@ export class RoomManager {
       playFieldCards: this.state.playFieldCards[deckId],
       discardPile: this.state.discardPile[deckId],
     };
-    this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
+    this.io.to(this.state.roomId).emit(`deck:update:${deckId}`, updateData);
   };
 
   /**
@@ -197,16 +162,37 @@ export class RoomManager {
    */
   emitTokenStoreUpdate = (tokenStoreId: TokenStoreId) => {
     const updateData: TokenStoreUpdateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
-    this.io.to(this.state.roomId).emit(`token-store:update`, updateData);
+    this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
   };
 
-  emitSystemMessage = (message: string, isPersistent: boolean = false) => {
+  /**
+   * ドラッグ可能オブジェクトの更新を通知する
+   */
+  emitDraggableUpdate = (draggableId: DraggableId) => {
+    const updateData: DraggableUpdateData = {
+      draggableId: draggableId,
+      coordinate: this.state.draggable[draggableId].coordinate,
+      rotation: this.state.draggable[draggableId].rotation,
+      zIndex: this.state.draggable[draggableId].zIndex,
+    };
+    this.io.to(this.state.roomId).emit('draggable:update', updateData);
+  };
+
+  /**
+   * SystemMessageWindowコンポーネントにシステムメッセージを出力する
+   * @param message - メッセージ内容
+   * @param ms=0 - メッセージ表示時間 (ms)
+   * @param isPersistent=false - 次のメッセージが出るまで表示し続けるかどうかのフラグ
+   * @returns 待機が完了した時に解決されるPromise
+   */
+  emitSystemMessage = async (message: string, ms: number = 0, isPersistent: boolean = false) => {
     // 重複チェック: 履歴内に同じメッセージが存在すれば追加しない
     if (!this.state.systemMessageHistory.includes(message)) {
       // 最新10件に制限しつつ追加
       this.state.systemMessageHistory = [...this.state.systemMessageHistory.slice(-9), message];
     }
     this.io.to(this.state.roomId).emit('system:message', { message, isPersistent } as SystemMessageData);
+    await this.sleep(ms);
   };
 
   /**
@@ -262,15 +248,98 @@ export class RoomManager {
   }
 
   /**
+   * カードをプレイする
+   */
+  playCard(data: CardPlayData): void {
+    const { deckId, cardIds, playerId, playLocation = 'field', coordinate } = data;
+    const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (player?.isHolding) {
+      server_log(
+        'card',
+        this.state.gameId,
+        this.state.roomId,
+        `${playerId} はカードをホールドしているので、カードをプレイできません`,
+      );
+      return;
+    }
+
+    ids.forEach((id) => {
+      const card = this.state.decks[deckId]?.find((c) => c.id === id);
+      if (!card) return;
+
+      const p = this.state.players.find((p) => p.id === playerId);
+      if (p) p.cards = p.cards.filter((c) => c.id !== id);
+
+      card.location = playLocation;
+      card.coordinate = coordinate;
+      card.isFaceUp = true;
+
+      this.state.playFieldCards[deckId] = this.state.playFieldCards[deckId].filter((c) => c.id !== id);
+      this.state.discardPile[deckId] = this.state.discardPile[deckId].filter((c) => c.id !== id);
+
+      if (playLocation === 'discard') {
+        this.state.discardPile[deckId].push(card);
+      } else {
+        this.state.playFieldCards[deckId].push(card);
+      }
+
+      // 最前面に移動
+      this.updateZIndex('card', [deckId, card.id], true);
+
+      server_log('card', this.state.gameId, this.state.roomId, `"${card.name}" をプレイした`);
+
+      // カード効果
+      const effect = this.param.cardEffects?.[card.name];
+      if (effect) {
+        server_log('card', this.state.gameId, this.state.roomId, `カード効果発揮: ${card.name} by ${playerId}`);
+        effect({
+          playerId,
+          updateResource: (resourceId: string, amount: number) => this.acquireResource(playerId, resourceId, amount),
+          updateToken: (tokenId: string) => this.acquireToken(this.state.roomId, playerId, tokenId),
+        });
+      }
+    });
+
+    // カスタムフック処理
+    const onCardPlay = this.param.onCardPlay;
+    if (onCardPlay) {
+      onCardPlay(this.state, this, data);
+    }
+
+    // 更新通知
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+  }
+
+  /**
    * ホールド状態を解除し、カードを出す
    */
   unholdCards(): void {
-    this.state.players.forEach((p) => {
-      p.isHolding = false;
-      delete this.state.holdCards[p.id];
+    this.state.players.forEach((player) => {
+      player.isHolding = false;
+
+      // プレイヤーがホールドしているデータがない場合はスキップ
+      const playerHoldData = this.state.holdCards[player.id];
+      if (!playerHoldData) return;
+
+      Object.entries(playerHoldData).forEach(([deckId, cardIds]) => {
+        const playData: CardPlayData = {
+          roomId: this.state.roomId,
+          deckId: deckId,
+          cardIds: cardIds,
+          playerId: player.id,
+          playLocation: 'field',
+          coordinate: { x: 50, y: 50 },
+        };
+        this.playCard(playData);
+      });
+
+      delete this.state.holdCards[player.id];
     });
+
     server_log('card', this.state.gameId, this.state.roomId, `プレイヤー全員のホールド状態を解除しました`);
-    this.emitPlayerUpdate();
   }
 
   /**
@@ -333,51 +402,177 @@ export class RoomManager {
   }
 
   /**
+   * リソースを取得する
+   * @param playerId - 対象のプレイヤーのID
+   * @param resourceId - 対象のリソースID
+   * @param amount - 加算する個数
+   */
+  acquireResource = (playerId: PlayerId, resourceId: ResourceId, amount: number) => {
+    const player = this.state.players.find((p) => p.id === playerId);
+    const resource = player?.resources?.find((r) => r.resourceId === resourceId);
+
+    if (resource) {
+      resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
+      server_log('resource', this.state.gameId, this.state.roomId, `${player!.name}: ${resource.name} 更新`);
+      this.emitPlayerUpdate();
+    }
+  };
+
+  /**
+   * トークンを取得する
+   * @param tokenStoreId - トークン置き場ID
+   * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
+   * @param playerId - プレイヤーID
+   */
+  acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId | null = null, playerId: PlayerId) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return;
+    const tokens = this.state.tokenStores[tokenStoreId];
+    if (tokens.length === 0) return;
+
+    // tokenId が指定されていればそのインデックス、null ならランダムなインデックスを選択
+    const index =
+      tokenId !== null ? tokens.findIndex((t) => t.id === tokenId) : Math.floor(Math.random() * tokens.length);
+
+    if (index !== -1) {
+      const acquiredToken = tokens.splice(index, 1)[0];
+      if (!Array.isArray(player.tokens)) {
+        player.tokens = [];
+      }
+      player.tokens.push(acquiredToken);
+
+      server_log(
+        'token',
+        this.state.gameId,
+        this.state.roomId,
+        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${acquiredToken.id} を獲得しました。`,
+      );
+      this.emitTokenStoreUpdate(tokenStoreId);
+    }
+  }
+
+  /**
+   * 特定のセルの探索状態を切り替える
+   * @param {Position} position - 操作対象の座標
+   * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
+   * @returns {boolean} 状態が実際に変化した場合は true
+   */
+  updateCellExploredStatus = (position: Position, shouldMark: boolean) => {
+    const isCurrentlyExplored = isExplored(this.state, position);
+
+    if (shouldMark && !isCurrentlyExplored) {
+      this.state.exploredCells.push(position);
+      server_log(
+        'cell',
+        this.state.gameId,
+        this.state.roomId,
+        `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`,
+      );
+      this.io.to(this.state.roomId).emit('cell:update', this.state.exploredCells);
+      return;
+    }
+
+    if (!shouldMark && isCurrentlyExplored) {
+      this.state.exploredCells = this.state.exploredCells.filter(
+        (loc) => !(loc.row === position.row && loc.col === position.col),
+      );
+      server_log(
+        'cell',
+        this.state.gameId,
+        this.state.roomId,
+        `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`,
+      );
+      this.io.to(this.state.roomId).emit('cell:update', this.state.exploredCells);
+      return;
+    }
+
+    return;
+  };
+
+  /**
+   * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+   * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
+   */
+  getMovableCellIds = (boardId: BoardId, startCellId: CellId, moveRange: number, isExact: boolean): CellId[] => {
+    const targetBoard = this.state.boards[boardId];
+    const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
+
+    const reachable = new Set<string>();
+    const queue: { id: string; dist: number }[] = [{ id: startCellId, dist: 0 }];
+    const visited = new Set<string>([startCellId]);
+
+    while (queue.length > 0) {
+      const { id, dist } = queue.shift()!;
+
+      // 登録条件の判定
+      if (dist > 0) {
+        if (isExact) {
+          // isExactフラグがtrueなら、指定歩数と同じ場合のみ登録
+          if (dist === moveRange) reachable.add(id);
+        } else {
+          // 通常時は今まで通り移動範囲内すべて
+          reachable.add(id);
+        }
+      }
+
+      // 探索継続の判定（移動範囲を超えたら隣接は探さない）
+      if (dist >= moveRange) continue;
+
+      const cell = boardMap.get(id);
+      cell?.adjacentCellIds.forEach((nextId) => {
+        if (!visited.has(nextId)) {
+          visited.add(nextId);
+          queue.push({ id: nextId, dist: dist + 1 });
+        }
+      });
+    }
+    return Array.from(reachable);
+  };
+
+  /**
    * セル効果を発動する
+   * @param boardId - ボードID
    * @param playerId - 効果を発動させたプレイヤーのID
    * @param position - 発動対象となるマスの座標
    * @param cellEffects - 各セル名に対応する効果処理の定義集
-   * @param updatePlayerResource - プレイヤーのリソース（資源）を更新するためのコールバック関数
-   * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
-   * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
    */
   applyCellEffect = (
+    boardId: BoardId,
     playerId: PlayerId,
     position: Position,
-    cellEffects: Record<string, (params: any) => void>,
-    updatePlayerResource: (playerId: PlayerId, resourceId: string, amount: number) => void,
-    updatePlayerToken: (playerId: PlayerId, tokenId: string, amount: number) => void,
-    requirePopup: (params: any) => void,
+    cellEffects: Record<string, (manager: RoomManager, playerId: PlayerId) => void>,
   ): void => {
     const { row, col } = position;
 
-    // Record（オブジェクト）の最初の値（ボード配列）を取得
-    const targetBoard = Object.values(this.state.board)[0];
+    // ボード配列を取得
+    const targetBoard = this.state.boards[boardId];
 
-    // ボードが存在しない、または座標が範囲外の場合のガード
-    if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
+    if (!targetBoard) {
+      server_log('warn', this.state.gameId, this.state.roomId, 'applyCellEffect: ボードがありません。');
+      return;
+    }
+
+    // ID（座標形式）で対象のセルを検索
+    const targetId = `r${row}c${col}`;
+    const cell = targetBoard.find((c) => c.id === targetId);
+
+    // セルが見つからない場合のガード
+    if (!cell) {
       server_log(
         'warn',
         this.state.gameId,
         this.state.roomId,
-        `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`,
+        `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`,
       );
       return;
     }
 
-    // 特定したボードからセルを取得
-    const cell = targetBoard[row][col];
     const effect = cellEffects[cell.name];
 
     if (effect) {
       server_log('cell', this.state.gameId, this.state.roomId, `マス効果発動: ${cell.name} by ${playerId}`);
       try {
-        effect({
-          playerId,
-          updateResource: updatePlayerResource,
-          updateToken: updatePlayerToken,
-          requirePopup: requirePopup,
-        });
+        effect(this, playerId);
       } catch (e) {
         server_log(
           'warn',
@@ -393,30 +588,60 @@ export class RoomManager {
   };
 
   /**
-   * トークンを取得する
-   * @param tokenStoreId - トークン置き場ID
-   * @param tokenId - トークンID
-   * @param playerId - プレイヤーID
+   * 重ね順を更新する
    */
-  acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId, playerId: PlayerId) {
-    const player = this.state.players.find((p) => p.id === playerId);
-    if (!player) return false;
-    const tokens = this.state.tokenStores[tokenStoreId];
-
-    const index = tokens.findIndex((t) => t.id === tokenId);
-    if (index !== -1) {
-      const acquiredToken = tokens.splice(index, 1)[0];
-      if (!Array.isArray(player.tokens)) {
-        player.tokens = [];
+  updateZIndex(type: 'card' | 'draggable', objectId: [DeckId, CardId] | DraggableId, isToFront: boolean): void {
+    if (isToFront == true) {
+      if (type === 'card') {
+        if (!Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
+        }
+        server_log('deck', this.state.gameId, this.state.roomId, 'カードのz-indexを最全面に移動');
+        const card = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+        if (!card) return;
+        if (!card.zIndex || card.zIndex < this.state.maxZIndex) {
+          this.state.maxZIndex++;
+          card.zIndex = this.state.maxZIndex;
+          server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${this.state.maxZIndex}`);
+          this.emitDeckUpdate(objectId[0]);
+        }
+      } else {
+        if (Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
+        }
+        server_log('draggable', this.state.gameId, this.state.roomId, 'ドラッグ可能オブジェクトを最前面に移動');
+        const draggable = this.state.draggable[objectId];
+        if (draggable.zIndex < this.state.maxZIndex) {
+          this.state.maxZIndex++;
+          draggable.zIndex = this.state.maxZIndex;
+          server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${this.state.maxZIndex}`);
+          this.emitDraggableUpdate(objectId);
+        }
       }
-      player.tokens.push(acquiredToken);
-      server_log(
-        'token',
-        this.state.gameId,
-        this.state.roomId,
-        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`,
-      );
-      this.emitTokenStoreUpdate(tokenStoreId);
+    } else {
+      if (type === 'card') {
+        if (!Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
+        }
+        server_log('deck', this.state.gameId, this.state.roomId, 'カードのを最背面に移動');
+        const card = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+        if (!card) return;
+        if (!card.zIndex) card.zIndex = 100;
+        // 100枚規模の衝突を回避する正規化
+        card.zIndex = 100 + (card.zIndex % 100);
+        server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${card.zIndex}`);
+        this.emitDeckUpdate(objectId[0]);
+      } else {
+        if (Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
+        }
+        server_log('draggable', this.state.gameId, this.state.roomId, 'ドラッグ可能オブジェクトを最背面に移動');
+        const draggable = this.state.draggable[objectId];
+        // 100枚規模の衝突を回避する正規化
+        draggable.zIndex = 100 + (draggable.zIndex % 100);
+        server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${draggable.zIndex}`);
+        this.emitDraggableUpdate(objectId);
+      }
     }
   }
 

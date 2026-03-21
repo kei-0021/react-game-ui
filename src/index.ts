@@ -3,9 +3,9 @@
 // コンポーネントは JS 実体に .js をつける
 export { Cell } from './components/Cell.js';
 export { Deck } from './components/Deck.js';
-export { default as Dice } from './components/Dice.js';
+export { Dice } from './components/Dice.js';
 export { Draggable } from './components/Draggable.js';
-export { default as GridBoard } from './components/GridBoard.js';
+export { GridBoard } from './components/GridBoard.js';
 export { PlayField } from './components/PlayField.js';
 export { RemoteCursor } from './components/RemoteCursor.js';
 export { ScoreBoard } from './components/ScoreBoard.js';
@@ -21,25 +21,30 @@ export { type CardEffectParams } from './types/cardEffectParams.js';
 /* @ts-ignore */
 export * from './types/cardLocation.js';
 /* @ts-ignore */
-export { type CellEffectParams } from './types/cellEffectParams.js';
-/* @ts-ignore */
 export * from './types/definition.js';
 /* @ts-ignore */
 export * from './types/player.js';
 /* @ts-ignore */
 export { type PieceData } from './types/piece.js';
 /* @ts-ignore */
+export { type DraggableData } from './types/draggable.js';
+/* @ts-ignore */
 export { RoomManager } from './server/server-utils.js';
 /* @ts-ignore */
 export { type GameParam, type RoomState } from './types/server.js';
 /* @ts-ignore */
+export { type CellData } from './types/cell.js';
+/* @ts-ignore */
 export { Phase } from './types/phase.js';
+/* @ts-ignore */
+export { ControlPanel } from './components/ControlPanel.js';
 /* @ts-ignore */
 export {
   type CardPlayData,
   type DeckDrawData,
   type GamePhaseUpdateData,
   type GameTurnUpdateData,
+  type LobbyRoomsList,
   type RoomJoinData,
   type RoomMeta,
 } from './types/socketData.js';

@@ -46,3 +46,96 @@
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
   z-index: 10;
 }
+
+/*
+ * ===========================================
+ * 右クリックメニュー
+ * ===========================================
+ */
+.contextMenu {
+  position: fixed;
+  z-index: 10001;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 4px 0;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: fadeIn 0.1s ease-out;
+  pointer-events: auto; /* クリックを確実に拾う */
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+  font-size: 13px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.menuItem:hover {
+  background-color: #383838;
+  color: #ffffff;
+}
+
+.menuIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  font-size: 14px;
+}
+
+.separator {
+  height: 1px;
+  background-color: #333;
+  margin: 4px 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.rgPlayFieldCardWrapper {
+  /* ドラッグ操作を安定させるため */
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/*
+ * ===========================================
+ * デバックラベル
+ * ===========================================
+ */
+.debugLabel {
+  position: absolute;
+  top: -22px;
+  left: 0;
+  background: rgb(0, 0, 0);
+  backdrop-filter: blur(4px);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 10px;
+  font-weight: 200;
+  letter-spacing: 0.05em;
+  padding: 1px 6px;
+  border-radius: 0;
+  z-index: 10000;
+  white-space: nowrap;
+  pointer-events: none;
+  text-transform: uppercase;
+}

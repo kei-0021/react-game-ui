@@ -1,65 +1,126 @@
+// src/components/Piece.tsx
+import type { DragEvent } from 'react';
 import * as React from 'react';
 import type { PieceData } from '../types/piece.js';
 import styles from './Piece.module.css';
 
-// 🚀 [修正] DragEventの型をインポート
-import type { DragEvent } from 'react';
-
 export type PieceProps = {
   piece: PieceData;
-  style: React.CSSProperties; 
+  style: React.CSSProperties;
   onClick: (pieceId: string) => void;
   isDraggable: boolean;
-  // ⭐ [修正] onDragStartの型を、Reactの標準的な DragEvent を受け取るように変更
-  // Board.tsxと型を統一するため、ここでは DragEvent<HTMLDivElement> と PieceData を引数にします
+  isFilled?: boolean;
   onDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
+  onDragEnd: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
 };
 
-// 戻り値の型も明示
-export default function Piece({ piece, style, onClick, isDraggable, onDragStart }: PieceProps): JSX.Element {
-  
+/**
+ * ゲーム盤上に配置される個々の駒コンポーネント。
+ * @param {PieceData} props.piece - 駒のデータ（ID、名前、画像URL、プレイヤーカラーなど）
+ * @param {React.CSSProperties} props.style - 親コンポーネントから渡される絶対配置などのスタイル
+ * @param {(pieceId: string) => void} props.onClick - 駒がクリックされた時のハンドラ
+ * @param {boolean} props.isDraggable - 駒がドラッグ可能かどうか
+ * @param {boolean} [props.isFilled=false] - マスク（着色）モード。trueの場合、画像の線を生かしたままプレイヤーカラーで塗りつぶす
+ * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} props.onDragStart - ドラッグ開始時のハンドラ
+ * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} props.onDragEnd - ドラッグ終了時のハンドラ
+ * @returns {JSX.Element} 駒のJSX要素
+ */
+export function Piece({
+  piece,
+  style,
+  onClick,
+  isDraggable,
+  isFilled = false,
+  onDragStart,
+  onDragEnd,
+}: PieceProps): JSX.Element {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClick(piece.id);
   };
-  
-  // ⭐ [修正] 標準の onDragStart イベントハンドラ
+
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
     if (isDraggable) {
       e.stopPropagation();
-      
-      // 必須: ドラッグが開始されたときに、ドラッグするデータをセットする
-      e.dataTransfer.setData('text/plain', piece.id); 
+      e.dataTransfer.setData('pieceId', piece.id);
       e.dataTransfer.effectAllowed = 'move';
-      
-      // 親（Board.tsx）から渡されたハンドラを実行
-      onDragStart(e, piece); 
+
+      if (piece.image) {
+        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
+      }
+
+      onDragStart(e, piece);
     }
   };
+  const pieceClasses = [styles.piece, isDraggable ? styles.draggable : styles.clickable].join(' ');
 
-  const pieceClasses = [
-      styles.piece,
-      isDraggable ? styles.draggable : styles.clickable 
-  ].join(' ');
+  // ビルド時の最適化を回避するためのプロパティ名分解
+  const MASK_IMAGE_PROP = ['mask', 'Image'].join('');
+  const WEBKIT_MASK_IMAGE_PROP = ['Webkit', 'Mask', 'Image'].join('');
+  const URL_FUNC = ['u', 'r', 'l'].join('');
 
   return (
-    <div 
+    <div
       className={pieceClasses}
-      style={{ 
-        ...style, 
-        backgroundColor: piece.color,
+      style={{
+        ...style,
+        backgroundColor: piece.image ? 'transparent' : piece.color,
+        filter: 'none',
+        border: 'none',
+        outline: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: piece.image ? 'none' : '0 2px 4px rgba(0,0,0,0.2)',
       }}
       onClick={handleClick}
-      // ⭐ [追加] HTMLの draggable 属性を設定
-      draggable={isDraggable} 
-      // ⭐ [修正] 標準の onDragStart イベントハンドラを設定
-      onDragStart={handleDragStart} 
-      // 🚨 onMouseDown/onTouchStart のカスタムドラッグ処理は削除。
-      //    draggable="true"とonDragStartで十分です。
-      title={piece.name}
+      draggable={isDraggable}
+      onDragStart={handleDragStart}
+      onDragEnd={(e) => onDragEnd(e, piece)}
     >
-      {/* コマの中に表示する文字やアイコン */}
-      {piece.name.substring(0, 1)}
+      {piece.image ? (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            position: 'relative',
+            pointerEvents: 'none',
+          }}
+        >
+          <img
+            src={piece.image}
+            alt=""
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+            }}
+          />
+
+          {isFilled && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundColor: piece.color,
+                [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${piece.image}")`,
+                [MASK_IMAGE_PROP]: `${URL_FUNC}("${piece.image}")`,
+                WebkitMaskSize: 'contain',
+                maskSize: 'contain',
+                WebkitMaskRepeat: 'no-repeat',
+                maskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskPosition: 'center',
+                mixBlendMode: 'multiply',
+                pointerEvents: 'none',
+              }}
+            />
+          )}
+        </div>
+      ) : (
+        piece.name.substring(0, 1)
+      )}
     </div>
   );
 }

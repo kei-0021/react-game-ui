@@ -1,0 +1,1 @@
+{"version":3,"file":"CardPreview.d.ts","sourceRoot":"","sources":["../../src/components/CardPreview.tsx"],"names":[],"mappings":"AACA,OAAO,EAAE,IAAI,EAAE,MAAM,iBAAiB,CAAC;AACvC,OAAO,KAA2B,MAAM,OAAO,CAAC;AAIhD,KAAK,gBAAgB,GAAG;IACtB,IAAI,EAAE,IAAI,CAAC;IACX,QAAQ,EAAE,KAAK,CAAC,SAAS,CAAC;CAC3B,CAAC;AAEF,eAAO,MAAM,WAAW,GAAI,oBAAoB,gBAAgB,4CAuC/D,CAAC"}

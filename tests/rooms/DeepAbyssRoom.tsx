@@ -1,8 +1,13 @@
 // tests/rooms/DeepAbyssRoom.tsx
+// カードの動作確認
+// トークンの動作確認
+// ボードの動作確認
+// スコアボードのボタンの動作確認
+// システムメッセージの動作確認
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Deck } from '../../src/components/Deck';
-import { Draggable } from '../../src/components/Draggable';
+import { GridBoard } from '../../src/components/GridBoard';
 import { PlayField } from '../../src/components/PlayField';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
 import { SystemMessageWindow } from '../../src/components/systemMessageWindow';
@@ -10,13 +15,12 @@ import { TokenStore } from '../../src/components/TokenStore';
 import { useSocket } from '../../src/hooks/useSocket';
 import type { Player } from '../../src/types/player';
 import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
-import MyBoard from '../components/MyBoard';
+import { MyCustomCellRenderer } from '../components/MyCustomCellRenderer';
 import Popup from '../components/PopUp';
 import './DeepAbyssRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
 
-const Z_INDX_DRAGGABLE = 201;
 const Z_INDX_CARD = 200;
 
 interface PopupState {
@@ -207,10 +211,23 @@ export function DeepAbyssRoom() {
 
       {/* ボードラッパー */}
       <div className="board-wrapper">
-        <MyBoard socket={socket} roomId={roomId} myPlayerId={myPlayerId} />
+        <GridBoard
+          socket={socket}
+          roomId={roomId}
+          boardId="deepAbyssBoard"
+          players={players}
+          myPlayerId={myPlayerId}
+          allowPieceDrag={true}
+          moveRange={3}
+          renderCell={MyCustomCellRenderer}
+        />
       </div>
       <SystemMessageWindow socket={socket} roomId={roomId} />
-      <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" title="遺物" />
+
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <TokenStore socket={socket} roomId={roomId} tokenStoreId="ARTIFACT" title="遺物トークン" />
+        <TokenStore socket={socket} roomId={roomId} tokenStoreId="Hanabishi" title="花火師トークン" />
+      </div>
 
       <div className="game-main-layout">
         {/* 左側グループ：デッキ列とフィールド列を横に並べる塊 */}
@@ -240,33 +257,22 @@ export function DeepAbyssRoom() {
             <PlayField
               socket={socket}
               roomId={roomId}
-              deckId="deepAbyssAction"
-              title="アクションカード"
-              myPlayerId={myPlayerId}
-              players={players}
-              backgroundImage="/gameboard.png"
-              is_logging={true}
-              baseZIndex={Z_INDX_CARD}
-            />
-            <PlayField
-              socket={socket}
-              roomId={roomId}
               deckId="deepAbyssSpecies"
               players={players}
               myPlayerId={myPlayerId}
               layoutMode="grid"
             />
-            <Draggable
+            <PlayField
               socket={socket}
               roomId={roomId}
-              initialXY={{ x: 1000, y: 500 }}
-              key={`piece`}
-              draggableId={`piece`}
-              size={{ width: 200, height: 100 }}
-              containerRef={containerRef}
-              zIndex={Z_INDX_DRAGGABLE}
-              isFrontOnDragging={true}
-            ></Draggable>
+              deckId="deepAbyssAction"
+              title="アクションカード"
+              myPlayerId={myPlayerId}
+              players={players}
+              backgroundImage="/gameboard.png"
+              zIndex={Z_INDX_CARD}
+              isDebug={true}
+            />
           </div>
         </div>
 
@@ -280,9 +286,12 @@ export function DeepAbyssRoom() {
             myPlayerId={myPlayerId}
             playCardLimit={2}
             isDebug={true}
-            holdButton={true}
-            revealButton={true}
-            turnSkipButton={true}
+            playCardButton={[true, true]}
+            holdButton={[true, false]}
+            flipButton={[true, true]}
+            turnSkipButton={[true, true]}
+            roundSkipButton={[true, false]}
+            enabled={true}
           />
         </div>
       </div>

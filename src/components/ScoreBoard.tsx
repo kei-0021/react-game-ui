@@ -1,7 +1,7 @@
 // src/components/ScoreBoard.tsx
 import { CardLocation } from '@/types/cardLocation.js';
 import { Player } from '@/types/player.js';
-import { CardHoldData, CardPlayData, GameNextRoundData, GameNextTrunData } from '@/types/socketData.js';
+import { CardFlipData, CardHoldData, CardPlayData, GameNextRoundData, GameNextTrunData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import { Card } from '../types/card.js';
@@ -16,27 +16,58 @@ type PlayerListItemProps = {
   player: Player;
   currentPlayerId: PlayerId | null | undefined;
   myPlayerId: PlayerId | null;
-  selectedCards: string[];
+  playCardButton: [boolean, boolean];
+  selectedCards: CardId[];
+  heldCards: CardId[];
   toggleCardSelection: (cardId: string, isOwner: boolean) => void;
   socket: Socket;
   roomId: RoomId;
   isDebug?: boolean;
+  enabled: boolean;
 };
 
 const PlayerListItem = React.memo(
   ({
+    socket,
+    roomId,
     player,
     currentPlayerId,
     myPlayerId,
+    playCardButton,
     selectedCards,
+    heldCards,
     toggleCardSelection,
-    socket,
-    roomId,
     isDebug,
+    enabled,
   }: PlayerListItemProps) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = (player as any).color || '#aaaaaa';
     const isOwner = player.id === myPlayerId;
+    const [showPlay] = playCardButton;
+
+    // --- スコアエフェクト用ステート ---
+    const [scoreDiff, setScoreDiff] = React.useState<number | null>(null);
+    const [isScoreUpdating, setIsScoreUpdating] = React.useState(false);
+    const prevScoreRef = React.useRef(player.score);
+
+    React.useEffect(() => {
+      const prevScore = prevScoreRef.current;
+      if (prevScore !== player.score) {
+        const diff = player.score - prevScore;
+        setScoreDiff(diff);
+        setIsScoreUpdating(true);
+
+        // バーストに合わせて短くクリア (600ms)
+        const timer = setTimeout(() => {
+          setScoreDiff(null);
+          setIsScoreUpdating(false);
+        }, 600);
+
+        prevScoreRef.current = player.score;
+        return () => clearTimeout(timer);
+      }
+    }, [player.score]);
+    // ----------------------------
 
     const handleAddScore = (points: number) => {
       socket.emit('room:player:add-score', {
@@ -64,13 +95,27 @@ const PlayerListItem = React.memo(
             {player.name}
           </span>
           <div className={scoreBoardStyles.scoreArea}>
-            <span className={scoreBoardStyles.playerScore}>スコア: {player.score}</span>
+            <div className={scoreBoardStyles.scoreWrapper} style={{ position: 'relative', display: 'inline-block' }}>
+              <span className={scoreBoardStyles.playerScore}>スコア: {player.score}</span>
+
+              {/* ここで plus / minus クラスを付与して色を変える */}
+              {scoreDiff !== null && (
+                <span
+                  className={`
+      ${scoreBoardStyles.scoreChange} 
+      ${scoreDiff > 0 ? scoreBoardStyles.plus : scoreBoardStyles.minus}
+    `}
+                >
+                  {scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff}
+                </span>
+              )}
+            </div>
             {isDebug && (
               <div className={scoreBoardStyles.debugScoreButtons}>
-                <button onClick={() => handleAddScore(-1)} className={scoreBoardStyles.debugBtn}>
+                <button onClick={() => handleAddScore(-1)} disabled={!enabled} className={scoreBoardStyles.debugBtn}>
                   -
                 </button>
-                <button onClick={() => handleAddScore(1)} className={scoreBoardStyles.debugBtn}>
+                <button onClick={() => handleAddScore(1)} disabled={!enabled} className={scoreBoardStyles.debugBtn}>
                   +
                 </button>
               </div>
@@ -94,7 +139,6 @@ const PlayerListItem = React.memo(
           {player.tokens.map((token: Token) => (
             <div
               key={token.id}
-              className={`${scoreBoardStyles.tokenBadge} ${myPlayerId === player.id ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`}
               onClick={() => {
                 socket.emit('token:reclaim', {
                   roomId,
@@ -108,30 +152,35 @@ const PlayerListItem = React.memo(
           ))}
         </div>
 
-        <div>{player.isHolding && 'カードをホールドしています'}</div>
+        {player.isHolding && <p className={scoreBoardStyles.isHoldMessage}>カードをホールドしています</p>}
         <div className={scoreBoardStyles.cardList}>
           {player.cards.map((card: Card) => {
             const isSelected = selectedCards.includes(card.id);
+            const isHeld = heldCards.includes(card.id);
             const canSeeFront = !!card.isFaceUp || isOwner;
 
             return (
               <div
                 key={card.id}
-                draggable={isOwner}
+                // ホールド中、オーナーでない場合、カードプレイボタンがない場合はドラッグ不可
+                draggable={isOwner && !isHeld && enabled}
                 onDragStart={(e) => {
-                  if (!isOwner) return;
+                  if (!isOwner || isHeld || !showPlay) return;
                   e.dataTransfer.setData('cardId', card.id);
                   e.dataTransfer.setData('deckId', card.deckId);
                   e.dataTransfer.effectAllowed = 'move';
                 }}
-                className={`${scoreBoardStyles.cardBase} rg-playfield-card-wrapper ${
-                  isSelected ? scoreBoardStyles.cardSelected : ''
-                } ${card.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ''}`}
+                className={`
+                  ${scoreBoardStyles.cardBase} 
+                  ${isSelected ? scoreBoardStyles.cardSelected : ''}
+                `}
                 style={
                   {
-                    cursor: isOwner ? 'grab' : 'default',
+                    // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
+                    cursor: isHeld ? 'not-allowed' : isOwner && enabled ? 'grab' : 'default',
                     border: card.isFaceUp ? '3px solid #00ffff' : '1px solid #ccc',
                     boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
+                    opacity: !enabled || isHeld ? 0.7 : 1,
                     padding: 0,
                     overflow: 'hidden',
                     position: 'relative',
@@ -140,9 +189,16 @@ const PlayerListItem = React.memo(
                     justifyContent: 'stretch',
                   } as React.CSSProperties
                 }
-                onClick={() => toggleCardSelection(card.id, isOwner)}
+                // ホールド中はクリック（選択）も無効化
+                onClick={() => !isHeld && enabled && toggleCardSelection(card.id, isOwner)}
               >
+                {/* カードのメインコンテンツ */}
                 <CardDisplayContent card={card} canSeeFront={canSeeFront} />
+
+                {/* 鍵マークのオーバーレイ表示 */}
+                {isHeld && <div className={scoreBoardStyles.cardIsHeld}>🔐</div>}
+
+                {/* ツールチップ */}
                 {canSeeFront && card.description && (
                   <span className={scoreBoardStyles.tooltip}>{card.description}</span>
                 )}
@@ -158,18 +214,21 @@ const PlayerListItem = React.memo(
 /**
  * スコアボードコンポーネント
  * プレイヤーの一覧、現在のターン、各プレイヤーのスコアやトークン数を表示する
+ * 各ボタンのプロパティは [表示/非表示, 有効/無効] のタプル形式で受け取り、
+ * 個別の有効フラグが `enabled` (全体設定) よりも優先して適用される。
  * @param {Socket} socket - Socket.ioのインスタンス
- * @param {string} roomId - 現在のルームID
+ * @param {RoomId} roomId - 現在のルームID
  * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
- * @param {string | null} currentPlayerId - 現在の手番のプレイヤーID
- * @param {string | null} myPlayerId - ローカルプレイヤーのID
- * @param {number} playCardLimit - 1ターンにプレイ可能なカードの上限枚数
- * @param {boolean} autoNextTurnOnCardPlay=false - カードプレイ時に自動でターンを終了するかどうか
- * @param {boolean} holdButton=false - カードを一定期間ホールドしつつプレイするボタンの表示・非表示
- * @param {boolean} revealButton=false - カード公開ボタンの表示・非表示
- * @param {boolean} turnSkipButton=false - ターンスキップボタンの表示・非表示
- * @param {boolean} roundSkipButton=false - ラウンドスキップボタンの表示・非表示
- * @param {booleam} isDebug=false - スコアを手動で増減できるようにするかどうか (デバッグ用)
+ * @param {PlayerId | null} [currentPlayerId] - 現在の手番のプレイヤーID
+ * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
+ * @param {number} [playCardLimit] - 1ターンにプレイ可能なカードの上限枚数
+ * @param {[boolean, boolean]} [playCardButton=[true, true]] - カードプレイボタンの [表示, 有効]
+ * @param {[boolean, boolean]} [holdButton=[false, true]] - カードホールドボタンの [表示, 有効]
+ * @param {[boolean, boolean]} [flipButton=[false, true]] - カードをひっくり返すボタンの [表示, 有効]
+ * @param {[boolean, boolean]} [turnSkipButton=[false, true]] - ターンスキップボタンの [表示, 有効]
+ * @param {[boolean, boolean]} [roundSkipButton=[false, true]] - ラウンドスキップボタンの [表示, 有効]
+ * @param {boolean} [isDebug=false] - スコアを手動で増減できるようにするかどうか (デバッグ用)
+ * @param {boolean} [enabled=true] - 各種操作が全体的に有効かどうかのフラグ (個別設定がない場合のデフォルト)
  */
 export function ScoreBoard({
   socket,
@@ -178,12 +237,13 @@ export function ScoreBoard({
   currentPlayerId,
   myPlayerId,
   playCardLimit,
-  autoNextTurnOnCardPlay = false,
-  holdButton = false,
-  revealButton = false,
-  turnSkipButton = false,
-  roundSkipbutton = false,
+  playCardButton = [true, true],
+  holdButton = [false, true],
+  flipButton = [false, true],
+  turnSkipButton = [false, true],
+  roundSkipButton = [false, true],
   isDebug = false,
+  enabled = true,
 }: {
   socket: Socket;
   roomId: RoomId;
@@ -192,11 +252,13 @@ export function ScoreBoard({
   myPlayerId: PlayerId | null;
   playCardLimit?: number;
   autoNextTurnOnCardPlay?: boolean;
-  holdButton?: boolean;
-  revealButton?: boolean;
-  turnSkipButton?: boolean;
-  roundSkipbutton?: boolean;
+  playCardButton?: [boolean, boolean];
+  holdButton?: [boolean, boolean];
+  flipButton?: [boolean, boolean];
+  turnSkipButton?: [boolean, boolean];
+  roundSkipButton?: [boolean, boolean];
   isDebug?: boolean;
+  enabled?: boolean;
 }) {
   const displayedPlayers: Player[] = React.useMemo(() => {
     return (players || []).map((p: Player) => ({
@@ -209,6 +271,7 @@ export function ScoreBoard({
   }, [players]);
 
   const [selectedCards, setSelectedCards] = React.useState<CardId[]>([]);
+  const [heldCards, setHeldCards] = React.useState<CardId[]>([]);
 
   const toggleCardSelection = React.useCallback((cardId: CardId, isOwner: boolean) => {
     if (!isOwner) return;
@@ -226,10 +289,7 @@ export function ScoreBoard({
       const cardsByDeck: Record<string, string[]> = {};
       let targetPlayLocation: CardLocation | undefined;
 
-      if (isHold == true) {
-        socket.emit('card:hold', { roomId: roomId, playerId: myPlayerId, cardIds: selectedCards } as CardHoldData);
-        return;
-      }
+      if (isHold && myPlayer.isHolding == true) return;
 
       selectedCards.forEach((cardId) => {
         const card = myPlayer.cards.find((c) => c.id === cardId);
@@ -237,49 +297,55 @@ export function ScoreBoard({
         if (!targetPlayLocation) targetPlayLocation = card.playLocation as CardLocation;
         if (!cardsByDeck[card.deckId]) cardsByDeck[card.deckId] = [];
         cardsByDeck[card.deckId].push(card.id);
+        if (isHold) setHeldCards((prev) => [...prev, card.id]);
       });
+
+      if (isHold == true) {
+        socket.emit('card:hold', { roomId: roomId, playerId: myPlayerId, cardIdsbyDeck: cardsByDeck } as CardHoldData);
+        setSelectedCards([]);
+        return;
+      }
 
       if (!targetPlayLocation) return;
       const finalLocation: CardLocation = targetPlayLocation;
 
       Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
-        const playData: CardPlayData = {
+        socket.emit('card:play', {
           roomId,
           deckId,
           cardIds,
           playerId: myPlayerId,
           playLocation: finalLocation,
           coordinate: { x: 50, y: 50 },
-        };
-
-        socket.emit('card:play', playData);
+        } as CardPlayData);
       });
 
-      if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId } as GameNextTrunData);
       setSelectedCards([]);
     },
-    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay],
+    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit],
   );
 
-  const revealSelectedCards = React.useCallback(() => {
+  const flipSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== undefined && selectedCards.length > playCardLimit) return;
-
-    socket.emit('card:reveal', {
-      roomId,
-      playerId: myPlayerId,
-      cardIds: selectedCards,
-    });
-
-    if (autoNextTurnOnCardPlay) socket.emit('game:next-turn', { roomId } as GameNextTrunData);
+    socket.emit('card:flip', { roomId, playerId: myPlayerId, cardIds: selectedCards } as CardFlipData);
     setSelectedCards([]);
-  }, [selectedCards, myPlayerId, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
+  }, [selectedCards, myPlayerId, socket, roomId]);
 
-  const nextTurn = () => socket.emit('game:next-turn', { roomId } as GameNextTrunData);
-  const nextRound = () => socket.emit('game:next-round', { roomId } as GameNextRoundData);
+  // 各ボタンの状態を分解
+  const [showPlay, canPlay] = playCardButton;
+  const [showHold, canHold] = holdButton;
+  const [showFlip, canFlip] = flipButton;
+  const [showTurnSkip, canTurnSkip] = turnSkipButton;
+  const [showRoundSkip, canRoundSkip] = roundSkipButton;
+
+  // 無効判定ロジック：個別設定がある場合はそちらを優先、なければ全体のenabledを参照
+  const isPlayDisabled = (canPlay !== undefined ? !canPlay : !enabled) || selectedCards.length === 0;
+  const isHoldDisabled = (canHold !== undefined ? !canHold : !enabled) || selectedCards.length === 0;
+  const isFlipDisabled = (canFlip !== undefined ? !canFlip : !enabled) || selectedCards.length === 0;
+  const isTurnSkipDisabled = canTurnSkip !== undefined ? !canTurnSkip : !enabled;
+  const isRoundSkipDisabled = canRoundSkip !== undefined ? !canRoundSkip : !enabled;
 
   const isOverLimit = playCardLimit !== undefined && selectedCards.length > playCardLimit;
-  const isActionDisabled = selectedCards.length === 0 || isOverLimit;
 
   return (
     <div className={scoreBoardStyles.container}>
@@ -287,15 +353,18 @@ export function ScoreBoard({
       <ul className={scoreBoardStyles.playerList}>
         {displayedPlayers.map((player) => (
           <PlayerListItem
+            socket={socket}
+            roomId={roomId}
             key={player.id}
             player={player}
             currentPlayerId={currentPlayerId}
             myPlayerId={myPlayerId}
+            playCardButton={playCardButton}
             selectedCards={selectedCards}
+            heldCards={heldCards}
             toggleCardSelection={toggleCardSelection}
-            socket={socket}
-            roomId={roomId}
             isDebug={isDebug}
+            enabled={enabled}
           />
         ))}
       </ul>
@@ -306,17 +375,37 @@ export function ScoreBoard({
         )}
 
         <div className={scoreBoardStyles.buttonGroup}>
-          <button onClick={() => playSelectedCards()} disabled={isActionDisabled}>
-            選択カードを出す
-          </button>
-          {holdButton && (
-            <button onClick={() => playSelectedCards({ isHold: true })} disabled={isActionDisabled}>
+          {showPlay && (
+            <button onClick={() => playSelectedCards()} disabled={isPlayDisabled || isOverLimit}>
+              選択カードを出す
+            </button>
+          )}
+          {showHold && (
+            <button onClick={() => playSelectedCards({ isHold: true })} disabled={isHoldDisabled || isOverLimit}>
               選択カードをホールドする
             </button>
           )}
-          {revealButton && <button onClick={revealSelectedCards}>選択カードを公開する</button>}
-          {turnSkipButton && <button onClick={nextTurn}>ターンをスキップ</button>}
-          {roundSkipbutton && <button onClick={nextRound}>ラウンドをスキップ</button>}
+          {showFlip && (
+            <button onClick={flipSelectedCards} disabled={isFlipDisabled}>
+              選択カードをひっくり返す
+            </button>
+          )}
+          {showTurnSkip && (
+            <button
+              onClick={() => socket.emit('game:next-turn', { roomId } as GameNextTrunData)}
+              disabled={isTurnSkipDisabled}
+            >
+              ターンをスキップ
+            </button>
+          )}
+          {showRoundSkip && (
+            <button
+              onClick={() => socket.emit('game:next-round', { roomId } as GameNextRoundData)}
+              disabled={isRoundSkipDisabled}
+            >
+              ラウンドをスキップ
+            </button>
+          )}
         </div>
       </div>
     </div>

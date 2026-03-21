@@ -1,5 +1,5 @@
 import * as React from "react";
-import React__default, { useState, useRef, useMemo, useEffect, useCallback } from "react";
+import React__default, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production_min = {};
 /**
@@ -928,14 +928,13 @@ function requireJsxRuntime() {
   return jsxRuntime.exports;
 }
 var jsxRuntimeExports = requireJsxRuntime();
-const boardContainer = "_boardContainer_1laip_8";
-const cell = "_cell_1laip_28";
-const styles$6 = {
+const boardContainer = "_boardContainer_14tjg_8";
+const cell = "_cell_14tjg_18";
+const styles$7 = {
   boardContainer,
   cell
 };
 const Cell = ({
-  // ⭐ [修正 1]: ジェネリクスをコンポーネント定義時に適用 (Trailing Commaが必要)
   locationData,
   cellData,
   onClick,
@@ -943,89 +942,145 @@ const Cell = ({
   children,
   onDrop,
   onDragOver,
+  highlighted = false,
   changed = false
 }) => {
-  const handleClick = () => {
-    onClick(locationData);
-  };
-  const handleDoubleClick = () => {
-    onDoubleClick(locationData);
-  };
+  const handleClick = () => onClick(locationData);
+  const handleDoubleClick = () => onDoubleClick(locationData);
   const effectiveBackgroundColor = changed ? cellData.changedColor : cellData.backgroundColor;
   const cellStyle = {
-    backgroundColor: effectiveBackgroundColor
+    backgroundColor: effectiveBackgroundColor,
+    position: "relative",
+    overflow: "hidden",
+    userSelect: "none",
+    cursor: highlighted ? "pointer" : "default"
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
-      className: styles$6.cell,
+      className: styles$7.cell,
       onClick: handleClick,
       onDoubleClick: handleDoubleClick,
       onDrop,
       onDragOver,
       style: cellStyle,
-      children
+      children: [
+        highlighted && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            style: {
+              position: "absolute",
+              inset: 0,
+              backgroundColor: "rgba(20, 184, 166, 0.15)",
+              border: "2px solid rgba(20, 184, 166, 0.4)",
+              boxShadow: "inset 0 0 12px rgba(20, 184, 166, 0.2)",
+              zIndex: 1,
+              pointerEvents: "none"
+            }
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { position: "relative", zIndex: 2, width: "100%", height: "100%" }, children })
+      ]
     }
   );
 };
-const card = "_card_1xb7m_3";
-const tooltip$2 = "_tooltip_1xb7m_20";
-const deckContainer = "_deckContainer_1xb7m_56";
-const deckCard = "_deckCard_1xb7m_63";
-const deckCardFront = "_deckCardFront_1xb7m_79";
-const deckSection = "_deckSection_1xb7m_96";
-const discardPileWrapper = "_discardPileWrapper_1xb7m_104";
-const cardNameText = "_cardNameText_1xb7m_129";
-const cardNameWrapper = "_cardNameWrapper_1xb7m_133";
-const cardImage = "_cardImage_1xb7m_146";
+const card = "_card_zuj83_4";
+const tooltip$2 = "_tooltip_zuj83_22";
+const deckContainer = "_deckContainer_zuj83_61";
+const disabled = "_disabled_zuj83_68";
+const deckCard = "_deckCard_zuj83_75";
+const deckCardFront = "_deckCardFront_zuj83_89";
+const discardPileWrapper = "_discardPileWrapper_zuj83_105";
+const cardNameWrapper = "_cardNameWrapper_zuj83_131";
+const cardNameText = "_cardNameText_zuj83_144";
+const cardImage = "_cardImage_zuj83_155";
+const previewTrigger = "_previewTrigger_zuj83_165";
+const previewOverlay = "_previewOverlay_zuj83_169";
+const previewContent = "_previewContent_zuj83_183";
+const previewDescription = "_previewDescription_zuj83_187";
 const cardStyles = {
   card,
   tooltip: tooltip$2,
   deckContainer,
+  disabled,
   deckCard,
   deckCardFront,
-  deckSection,
   discardPileWrapper,
-  cardNameText,
   cardNameWrapper,
-  cardImage
+  cardNameText,
+  cardImage,
+  previewTrigger,
+  previewOverlay,
+  previewContent,
+  previewDescription
 };
 const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
   if (!canSeeFront) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        className: cardStyles.deckCard,
-        style: {
-          backgroundColor: card2.backColor || "#333"
-        }
-      }
-    );
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card2.backColor || "#333" } });
   }
   if (card2.frontImage) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: cardStyles.cardImage, style: {} });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: cardStyles.cardImage });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, style: {}, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
 });
-const deckTitle = "_deckTitle_14nud_1";
-const deckWrapperFlex = "_deckWrapperFlex_14nud_6";
-const tooltipBase = "_tooltipBase_14nud_11";
+const CardPreview = ({ card: card2, children }) => {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+  const timerRef = useRef(null);
+  const hasPreview = !!card2.frontImage || !!card2.description;
+  const handleMouseEnter = (e) => {
+    timerRef.current = setTimeout(() => {
+      setPosition({ x: e.clientX, y: e.clientY - 180 });
+      setIsHovered(true);
+    }, 500);
+  };
+  const handleMouseLeave = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    setIsHovered(false);
+  };
+  if (!hasPreview) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewTrigger, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, children: [
+    children,
+    isHovered && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewContent, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
+      card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardStyles.previewDescription, children: card2.description })
+    ] }) })
+  ] });
+};
+const deckSection = "_deckSection_190vd_3";
+const deckTitle = "_deckTitle_190vd_13";
+const deckWrapperFlex = "_deckWrapperFlex_190vd_18";
+const deckControls = "_deckControls_190vd_32";
 const deckStyles = {
+  deckSection,
   deckTitle,
   deckWrapperFlex,
-  tooltipBase
+  deckControls
 };
-function Deck({ socket, roomId, deckId, title: title2, currentPlayerId, myPlayerId, alwaysDraw = false }) {
+function Deck({
+  socket,
+  roomId,
+  deckId,
+  title: title2,
+  currentPlayerId,
+  myPlayerId,
+  alwaysDraw = false,
+  enabled = true
+}) {
   const [deckCards, setDeckCards] = React.useState([]);
   const [discardPile, setDiscardPile] = React.useState([]);
   const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
-  React.useEffect(() => {
-    socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
+  useEffect(() => {
+    socket.on(`deck:update:${deckId}`, (data) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
       setDiscardPile(data.discardPile.map((c) => ({ ...c, deckId })));
     });
     return () => {
-      socket.off(`deck:update:${roomId}:${deckId}`);
+      socket.off(`deck:update:${deckId}`);
     };
   }, [socket, roomId, deckId]);
   const draw = () => {
@@ -1050,66 +1105,56 @@ function Deck({ socket, roomId, deckId, title: title2, currentPlayerId, myPlayer
   };
   const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: cardStyles.deckSection, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: deckStyles.deckSection, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: deckStyles.deckTitle, children: title2 }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.deckControls, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, children: "シャッフル" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, children: "山札に戻す" })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.deckControls, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: shuffle, disabled: !enabled, children: "シャッフル" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, disabled: !enabled, children: "山札に戻す" })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${cardStyles.deckWrapper} ${deckStyles.deckWrapperFlex}`, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckContainer, onClick: draw, children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.deckWrapperFlex, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
-          className: cardStyles.deckCard,
-          style: {
-            zIndex: deckCards.length - i,
-            transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-            backgroundColor: c.backColor
-          }
-        },
-        c.id
-      )) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          className: `${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ""}`,
+          onClick: () => enabled && draw(),
+          children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: cardStyles.deckCard,
+              style: {
+                zIndex: deckCards.length - i,
+                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
+                backgroundColor: c.backColor
+              }
+            },
+            c.id
+          ))
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: c, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
           className: cardStyles.deckCardFront,
           style: {
             zIndex: i + 1,
-            transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-            pointerEvents: i === discardPile.length - 1 ? "auto" : "none"
+            transform: `translate(${i * -0.3}px, ${i * -0.3}px)`
           },
-          onMouseEnter: () => i === discardPile.length - 1 && setIsDiscardHovered(true),
-          onMouseLeave: () => i === discardPile.length - 1 && setIsDiscardHovered(false),
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true }),
-            i === discardPile.length - 1 && c.description && /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "span",
-              {
-                className: `${cardStyles.tooltip} ${deckStyles.tooltipBase}`,
-                style: {
-                  visibility: isDiscardHovered ? "visible" : "hidden",
-                  opacity: isDiscardHovered ? 1 : 0
-                },
-                children: c.description
-              }
-            )
-          ]
-        },
-        c.id
-      )) })
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true })
+        }
+      ) }, c.id)) })
     ] })
   ] });
 }
-const diceWrapper = "_diceWrapper_1yy8i_1";
-const diceTitle = "_diceTitle_1yy8i_9";
-const dice = "_dice_1yy8i_1";
-const tooltip$1 = "_tooltip_1yy8i_41";
-const diceRolling = "_diceRolling_1yy8i_69";
-const diceNotRolling = "_diceNotRolling_1yy8i_74";
-const faceImage = "_faceImage_1yy8i_78";
-const faceContainer = "_faceContainer_1yy8i_85";
-const defaultText = "_defaultText_1yy8i_93";
-const styles$5 = {
+const diceWrapper = "_diceWrapper_1gmf4_1";
+const diceTitle = "_diceTitle_1gmf4_9";
+const dice = "_dice_1gmf4_1";
+const tooltip$1 = "_tooltip_1gmf4_41";
+const diceRolling = "_diceRolling_1gmf4_69";
+const diceNotRolling = "_diceNotRolling_1gmf4_75";
+const faceImage = "_faceImage_1gmf4_79";
+const faceContainer = "_faceContainer_1gmf4_86";
+const defaultText = "_defaultText_1gmf4_94";
+const styles$6 = {
   diceWrapper,
   diceTitle,
   dice,
@@ -1134,23 +1179,14 @@ const defaultDiceImages = {
   5: dice5Image,
   6: dice6Image
 };
-function Dice({
-  sides = 6,
-  socket = null,
-  diceId,
-  roomId,
-  title: title2,
-  onRoll,
-  customFaces,
-  tooltipText
-}) {
+function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll, customFaces, tooltipText }) {
   const [value, setValue] = useState(1);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef(null);
-  const rollEventName = useMemo(() => `dice:rolled:${roomId}:${diceId}`, [roomId, diceId]);
+  const rollEventName = useMemo(() => `dice:update:${diceId}`, [diceId]);
   useEffect(() => {
     if (!socket || !roomId) return;
-    const handleRoll = (rolledValue) => {
+    const handleRoll = (data) => {
       setRolling(true);
       const rollDuration = 1e3;
       const interval = 50;
@@ -1163,9 +1199,9 @@ function Dice({
         if (count >= times) {
           clearInterval(animRef.current);
           animRef.current = null;
-          setValue(rolledValue);
+          setValue(data.value);
           setRolling(false);
-          onRoll?.(rolledValue);
+          onRoll?.(data.value);
         }
       }, interval);
     };
@@ -1177,50 +1213,58 @@ function Dice({
   }, [socket, sides, diceId, roomId, onRoll, rollEventName]);
   const roll = () => {
     if (!socket || rolling) return;
-    socket.emit("dice:roll", { roomId, diceId, sides });
+    const requestData = { roomId, diceId, sides };
+    socket.emit("dice:roll", requestData);
   };
   const renderDiceFace = () => {
     if (customFaces && customFaces[value - 1]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.faceContainer, children: customFaces[value - 1] });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.faceContainer, children: customFaces[value - 1] });
     }
     if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$5.faceImage });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$6.faceImage });
     }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$5.defaultText, children: value });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$6.defaultText, children: value });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.diceWrapper, children: [
-    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.diceTitle, children: title2 }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$5.dice} ${rolling ? styles$5.diceRolling : styles$5.diceNotRolling}`, onClick: roll, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.diceWrapper, children: [
+    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.diceTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$6.dice} ${rolling ? styles$6.diceRolling : styles$6.diceNotRolling}`, onClick: roll, children: [
       renderDiceFace(),
-      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.tooltip, children: tooltipText })
+      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.tooltip, children: tooltipText })
     ] })
   ] });
 }
-const draggable = "_draggable_1k3g7_3";
+const draggable = "_draggable_1udwl_3";
+const contextMenu$1 = "_contextMenu_1udwl_28";
+const menuItem$1 = "_menuItem_1udwl_42";
+const separator = "_separator_1udwl_63";
+const debugLabel$1 = "_debugLabel_1udwl_85";
 const draggableStyles = {
-  draggable
+  draggable,
+  contextMenu: contextMenu$1,
+  menuItem: menuItem$1,
+  separator,
+  debugLabel: debugLabel$1
 };
 function Draggable({
   socket,
   roomId,
   draggableId,
-  initialXY = { x: 500, y: 500 },
   image: image2,
   mask = false,
   size = 100,
   color = "yellow",
   isTransparent = false,
-  zIndex = 100,
   isFrontOnDragging = false,
   children,
   style = {},
   scale = 1,
+  isDebug = false,
   containerRef
 }) {
-  const [pos, setPos] = useState(initialXY);
+  const [pos, setPos] = useState({ x: 500, y: 500 });
   const [rotation, setRotation] = useState(0);
-  const [currentZ, setCurrentZ] = useState(zIndex);
-  const [contextMenu, setContextMenu] = useState(null);
+  const [currentZ, setCurrentZ] = useState(100);
+  const [contextMenu2, setContextMenu] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const posRef = useRef(pos);
   const isDraggingRef = useRef(false);
@@ -1242,22 +1286,25 @@ function Draggable({
     posRef.current = pos;
   }, [pos]);
   useEffect(() => {
-    setCurrentZ(zIndex);
-  }, [zIndex]);
-  useEffect(() => {
     const closeMenu = () => setContextMenu(null);
-    if (contextMenu) {
+    if (contextMenu2) {
       window.addEventListener("click", closeMenu);
     }
     return () => window.removeEventListener("click", closeMenu);
-  }, [contextMenu]);
+  }, [contextMenu2]);
   useEffect(() => {
     if (!socket || !draggableId) return;
     const handleRemoteMove = (data) => {
       if (data.draggableId === draggableId && !isDraggingRef.current) {
-        setPos({ x: data.coordinate.x, y: data.coordinate.y });
-        if (data.rotation !== void 0) setRotation(data.rotation);
-        if (data.zIndex !== void 0) setCurrentZ(data.zIndex);
+        if (data.coordinate) {
+          setPos({ x: data.coordinate.x, y: data.coordinate.y });
+        }
+        if (data.rotation !== void 0) {
+          setRotation(data.rotation);
+        }
+        if (data.zIndex !== void 0) {
+          setCurrentZ(data.zIndex);
+        }
       }
     };
     socket.on("draggable:update", handleRemoteMove);
@@ -1271,10 +1318,7 @@ function Draggable({
     isDraggingRef.current = true;
     setIsDragging(true);
     const fixedContainer = containerRef?.current;
-    if (!fixedContainer) {
-      console.error("containerRef がセットされていません！");
-      return;
-    }
+    if (!fixedContainer) return;
     const fixedContainerRect = fixedContainer.getBoundingClientRect();
     const clientX_relative = (e.clientX - fixedContainerRect.left) / scale;
     const clientY_relative = (e.clientY - fixedContainerRect.top) / scale;
@@ -1319,11 +1363,6 @@ function Draggable({
     setRotation(nextRot);
     emitUpdate(pos, nextRot, currentZ);
   };
-  const onBringToFrontClick = () => {
-    const nextZ = currentZ + 100;
-    setCurrentZ(nextZ);
-    emitUpdate(pos, rotation, nextZ);
-  };
   const MASK_PROP = ["mask", "Image"].join("");
   const WEBKIT_MASK_PROP = ["Webkit", "Mask", "Image"].join("");
   const URL_FUNC = ["u", "r", "l"].join("");
@@ -1340,7 +1379,7 @@ function Draggable({
   } : {};
   const width = typeof size === "number" ? size : size.width;
   const height = typeof size === "number" ? size : size.height;
-  const dynamicZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
+  const currentZIndex = isFrontOnDragging && isDragging ? 9999 : currentZ;
   const dynamicStyle = {
     position: "absolute",
     cursor: isDragging ? "grabbing" : "grab",
@@ -1355,7 +1394,7 @@ function Draggable({
     top: `${pos.y}px`,
     width: `${width}px`,
     height: `${height}px`,
-    zIndex: dynamicZIndex,
+    zIndex: currentZIndex,
     background: mask && image2 ? void 0 : isTransparent ? "transparent" : color,
     // マスク関連（これも特殊な計算結果なので最後に上書き）
     ...maskStyle
@@ -1386,41 +1425,106 @@ function Draggable({
         ) : children
       }
     ),
-    contextMenu && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
+        className: draggableStyles.debugLabel,
         style: {
-          position: "fixed",
-          top: contextMenu.y,
-          left: contextMenu.x,
-          zIndex: 10001,
-          background: "#222",
-          color: "#fff",
-          border: "1px solid #444",
-          borderRadius: "4px",
-          padding: "4px 0",
-          fontSize: "12px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.5)"
+          left: `${pos.x}px`,
+          top: `${pos.y - height / 2 - 22}px`,
+          transform: "translateX(-50%)"
         },
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "ID: ",
+          draggableId,
+          " | Z: ",
+          currentZIndex
+        ]
+      }
+    ),
+    contextMenu2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: draggableStyles.contextMenu,
+        style: {
+          top: contextMenu2.y,
+          left: contextMenu2.x
+        },
+        onClick: (e) => e.stopPropagation(),
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "div",
             {
-              style: { padding: "8px 16px", cursor: "pointer" },
-              onMouseOver: (e) => e.currentTarget.style.background = "#444",
-              onMouseOut: (e) => e.currentTarget.style.background = "transparent",
-              onClick: onRotateClick,
-              children: "🔄 90度回転"
+              className: draggableStyles.menuItem,
+              onClick: (e) => {
+                e.stopPropagation();
+                onRotateClick();
+                setContextMenu(null);
+              },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "🔄" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "90度回転" })
+              ]
             }
           ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "div",
             {
-              style: { padding: "8px 16px", cursor: "pointer" },
-              onMouseOver: (e) => e.currentTarget.style.background = "#444",
-              onMouseOut: (e) => e.currentTarget.style.background = "transparent",
-              onClick: onBringToFrontClick,
-              children: "🔼 最前面へ"
+              className: draggableStyles.menuItem,
+              onClick: (e) => {
+                e.stopPropagation();
+                const requestData = {
+                  roomId,
+                  objectId: draggableId,
+                  type: "draggable",
+                  isFront: true
+                };
+                socket.emit("object:bring-to", requestData);
+                setContextMenu(null);
+              },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "⬆️" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最前面に移動" })
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "div",
+            {
+              className: draggableStyles.menuItem,
+              onClick: (e) => {
+                e.stopPropagation();
+                const requestData = {
+                  roomId,
+                  objectId: draggableId,
+                  type: "draggable",
+                  isFront: false
+                };
+                socket.emit("object:bring-to", requestData);
+                setContextMenu(null);
+              },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "⬇️" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最背面に移動" })
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: draggableStyles.separator }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "div",
+            {
+              className: draggableStyles.menuItem,
+              onClick: (e) => {
+                e.stopPropagation();
+                const nextRot = 0;
+                setRotation(nextRot);
+                emitUpdate(pos, nextRot, currentZ);
+                setContextMenu(null);
+              },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: draggableStyles.menuIcon, children: "🧹" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "角度をリセット" })
+              ]
             }
           )
         ]
@@ -1428,11 +1532,19 @@ function Draggable({
     )
   ] });
 }
-const piece = "_piece_wi08l_3";
-const styles$4 = {
+const piece = "_piece_138ki_3";
+const styles$5 = {
   piece
 };
-function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
+function Piece({
+  piece: piece2,
+  style,
+  onClick,
+  isDraggable,
+  isFilled = false,
+  onDragStart,
+  onDragEnd
+}) {
   const handleClick = (e) => {
     e.stopPropagation();
     onClick(piece2.id);
@@ -1440,56 +1552,189 @@ function Piece({ piece: piece2, style, onClick, isDraggable, onDragStart }) {
   const handleDragStart = (e) => {
     if (isDraggable) {
       e.stopPropagation();
-      e.dataTransfer.setData("text/plain", piece2.id);
+      e.dataTransfer.setData("pieceId", piece2.id);
       e.dataTransfer.effectAllowed = "move";
+      if (piece2.image) {
+        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
+      }
       onDragStart(e, piece2);
     }
   };
-  const pieceClasses = [
-    styles$4.piece,
-    isDraggable ? styles$4.draggable : styles$4.clickable
-  ].join(" ");
+  const pieceClasses = [styles$5.piece, isDraggable ? styles$5.draggable : styles$5.clickable].join(" ");
+  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
+  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
+  const URL_FUNC = ["u", "r", "l"].join("");
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
       className: pieceClasses,
       style: {
         ...style,
-        backgroundColor: piece2.color
+        backgroundColor: piece2.image ? "transparent" : piece2.color,
+        filter: "none",
+        border: "none",
+        outline: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: piece2.image ? "none" : "0 2px 4px rgba(0,0,0,0.2)"
       },
       onClick: handleClick,
       draggable: isDraggable,
       onDragStart: handleDragStart,
-      title: piece2.name,
-      children: piece2.name.substring(0, 1)
+      onDragEnd: (e) => onDragEnd(e, piece2),
+      children: piece2.image ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          style: {
+            width: "100%",
+            height: "100%",
+            position: "relative",
+            pointerEvents: "none"
+          },
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "img",
+              {
+                src: piece2.image,
+                alt: "",
+                style: {
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  display: "block"
+                }
+              }
+            ),
+            isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                style: {
+                  position: "absolute",
+                  inset: 0,
+                  backgroundColor: piece2.color,
+                  [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
+                  [MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskPosition: "center",
+                  maskPosition: "center",
+                  mixBlendMode: "multiply",
+                  pointerEvents: "none"
+                }
+              }
+            )
+          ]
+        }
+      ) : piece2.name.substring(0, 1)
     }
   );
 }
 function GridBoard({
-  rows,
-  cols,
-  boardData,
-  pieces,
-  changedCells,
-  renderCell,
-  onCellClick,
-  onCellDoubleClick,
-  onPieceClick,
+  socket,
+  roomId,
+  boardId,
+  players,
+  myPlayerId,
   allowPieceDrag = false,
-  onPieceDragStart,
-  onCellDrop
+  moveRange = 2,
+  isExact = true,
+  width = 800,
+  height = 800,
+  renderCell
 }) {
-  const handleCellClick = (loc) => {
-    const data = boardData[loc.row][loc.col];
-    onCellClick(data, loc);
+  const [isBoardReady, setIsBoardReady] = React.useState(false);
+  const [cells, setCells] = React.useState([]);
+  const [changedCells, setChangedCells] = React.useState([]);
+  const [highlightedCells, setHighlightedCells] = React.useState([]);
+  const [draggingPieceId, setDraggingPieceId] = React.useState(null);
+  const [pieces, setPieces] = React.useState([]);
+  const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
+  const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
+  const handleCellClick = (celldata, loc) => {
+    console.log("クリックされました");
   };
-  const handleCellDoubleClick = (loc) => {
-    const data = boardData[loc.row][loc.col];
-    onCellDoubleClick(data, loc);
+  const handleCellDoubleClick = (celldata, loc) => {
+    if (!isBoardReady || !socket) return;
+    console.log("ダブルクリックされました");
+  };
+  const handleCellDrop = (e, targetRow, targetCol) => {
+    e.preventDefault();
+    if (!isBoardReady || !socket) return;
+    const draggedPieceId = e.dataTransfer.getData("pieceId");
+    if (draggedPieceId) {
+      setHighlightedCells([]);
+      socket.emit("board:move-player", {
+        roomId,
+        boardId,
+        playerId: draggedPieceId,
+        newLocation: { row: targetRow, col: targetCol }
+      });
+    }
+  };
+  const handlePieceClick = (pieceId) => {
+    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
+    const requestData = {
+      roomId,
+      boardId,
+      playerId: pieceId,
+      moveRange,
+      isExact
+    };
+    socket.emit("board:movable-range", requestData);
   };
   const handlePieceDragStart = (e, piece2) => {
-    onPieceDragStart(e, piece2);
+    e.dataTransfer.setData("pieceId", piece2.id);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggingPieceId(piece2.id);
+    handlePieceClick(piece2.id);
   };
+  const handlePieceDragEnd = () => {
+    setDraggingPieceId(null);
+  };
+  React.useEffect(() => {
+    const handleInitBoard = (data) => {
+      if (data.board && data.board.length > 0) {
+        setCells(data.board);
+        setIsBoardReady(true);
+      }
+    };
+    socket.on("board:update", handleInitBoard);
+    return () => {
+      socket.off("board:update", handleInitBoard);
+    };
+  }, [socket]);
+  React.useEffect(() => {
+    const handleCellUpdate = (updatedLocs) => {
+      setChangedCells(updatedLocs);
+    };
+    socket.on("cell:update", handleCellUpdate);
+    return () => {
+      socket.off("cell:update", handleCellUpdate);
+    };
+  }, [socket]);
+  React.useEffect(() => {
+    setPieces((prevPieces) => {
+      if (!players) return [];
+      return players.map((p) => {
+        const existingPiece = prevPieces.find((piece2) => piece2.id === p.id);
+        const location = p.position;
+        const playerColor = p.color || existingPiece?.color || "#aaaaaa";
+        const playerName2 = p.name || existingPiece?.name || `P?`;
+        const playerImage = p.pieceImage || existingPiece?.image;
+        return {
+          ...existingPiece,
+          id: p.id,
+          name: playerName2,
+          color: playerColor,
+          image: playerImage,
+          location
+        };
+      });
+    });
+  }, [players]);
   const boardStyle = {
     "--board-rows": rows,
     "--board-cols": cols,
@@ -1497,39 +1742,52 @@ function GridBoard({
     gridTemplateRows: `repeat(${rows}, 1fr)`,
     gridTemplateColumns: `repeat(${cols}, 1fr)`,
     gap: "4px",
-    width: "600px",
-    height: "600px",
+    width,
+    height,
     position: "relative"
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [
-    boardData.map((rowArr, row) => rowArr.map((originalCellData, col) => {
-      const isChanged = changedCells.some(
-        (loc2) => loc2.row === row && loc2.col === col
-      );
-      const effectiveContent = isChanged ? originalCellData.changedContent : originalCellData.content;
+  if (!isBoardReady) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        style: {
+          padding: "40px",
+          textAlign: "center",
+          fontSize: "20px",
+          color: "#e0e0e0"
+        },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "サーバーから盤面データをロード中..." })
+      }
+    );
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$7.boardContainer, style: boardStyle, children: [
+    cells.map((cell2) => {
+      const match = cell2.id.match(/r(\d+)c(\d+)/);
+      const r = match ? parseInt(match[1], 10) : 0;
+      const c = match ? parseInt(match[2], 10) : 0;
+      const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
+      const isHighlighted = players ? players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false : false;
       const cellDataForRenderer = {
-        ...originalCellData,
-        content: effectiveContent
+        ...cell2,
+        content: isChanged ? cell2.changedContent : cell2.content
       };
-      const loc = { row, col };
-      return (
-        // 💡 修正点 5: Cell にジェネリクス型 (GridLocation) を適用
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Cell,
-          {
-            locationData: loc,
-            cellData: cellDataForRenderer,
-            onClick: handleCellClick,
-            onDoubleClick: handleCellDoubleClick,
-            onDrop: (e) => onCellDrop(e, row, col),
-            onDragOver: (e) => e.preventDefault(),
-            changed: isChanged,
-            children: renderCell(cellDataForRenderer, row, col)
-          },
-          originalCellData.id
-        )
+      const loc = { row: r, col: c };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Cell,
+        {
+          locationData: loc,
+          cellData: cellDataForRenderer,
+          onClick: () => handleCellClick(),
+          onDoubleClick: () => handleCellDoubleClick(),
+          onDrop: (e) => handleCellDrop(e, r, c),
+          onDragOver: (e) => e.preventDefault(),
+          highlighted: isHighlighted,
+          changed: isChanged,
+          children: renderCell(cellDataForRenderer, r, c)
+        },
+        cell2.id
       );
-    })),
+    }),
     pieces.map((piece2) => {
       const sameLocationPieces = pieces.filter(
         (p) => p.location.row === piece2.location.row && p.location.col === piece2.location.col
@@ -1556,22 +1814,32 @@ function GridBoard({
         {
           piece: piece2,
           style: pieceStyle,
-          onClick: onPieceClick,
+          onClick: handlePieceClick,
           isDraggable: allowPieceDrag,
-          onDragStart: (e) => handlePieceDragStart(e, piece2)
+          isFilled: true,
+          onDragStart: handlePieceDragStart,
+          onDragEnd: handlePieceDragEnd
         },
         piece2.id
       );
     })
   ] });
 }
-const rgPlayFieldContainer = "_rgPlayFieldContainer_d0bw8_14";
-const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_d0bw8_22";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_d0bw8_31";
+const rgPlayFieldContainer = "_rgPlayFieldContainer_16v0u_14";
+const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_16v0u_22";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_16v0u_31";
+const contextMenu = "_contextMenu_16v0u_55";
+const menuItem = "_menuItem_16v0u_70";
+const menuIcon = "_menuIcon_16v0u_87";
+const debugLabel = "_debugLabel_16v0u_123";
 const playFieldStyles = {
   rgPlayFieldContainer,
   rgPlayFieldCardWrapper,
-  rgPlayFieldOwnerBadge
+  rgPlayFieldOwnerBadge,
+  contextMenu,
+  menuItem,
+  menuIcon,
+  debugLabel
 };
 function throttle(func, limit) {
   let inThrottle;
@@ -1591,56 +1859,88 @@ function PlayField({
   players,
   myPlayerId,
   layoutMode = "free",
-  is_logging = false,
   backgroundImage,
-  baseZIndex = 100
+  zIndex = 100,
+  isDebug = false
 }) {
   const [playedCards, setPlayedCards] = React.useState([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState(null);
+  const [maxZ, setMaxZ] = React.useState(void 0);
+  const [dragPos, setDragPos] = React.useState(null);
+  const [contextMenu2, setContextMenu] = React.useState(null);
   const containerRef = React.useRef(null);
   const draggingIdRef = React.useRef(null);
   React.useEffect(() => {
-    socket.on(`deck:update:${roomId}:${deckId}`, (data) => {
-      const newCards = data.playFieldCards || [];
-      setPlayedCards(newCards);
+    const closeMenu = () => setContextMenu(null);
+    if (contextMenu2) {
+      window.addEventListener("click", closeMenu);
+    }
+    return () => window.removeEventListener("click", closeMenu);
+  }, [contextMenu2]);
+  React.useEffect(() => {
+    socket.on(`deck:update:${deckId}`, (data) => {
+      const incomingCards = data.playFieldCards || [];
+      const synchronizedCards = incomingCards.map((c) => ({
+        ...c,
+        zIndex: c.zIndex !== void 0 ? Number(c.zIndex) : 0
+      }));
+      setPlayedCards(synchronizedCards);
+      if (synchronizedCards.length > 0) {
+        const incomingMax = Math.max(...synchronizedCards.map((c) => c.zIndex));
+        setMaxZ((prev) => Math.max(prev ?? 0, incomingMax));
+      }
     });
     return () => {
-      socket.off(`deck:update:${roomId}:${deckId}`);
+      socket.off(`deck:update:${deckId}`);
     };
-  }, [socket, roomId, deckId, is_logging]);
+  }, [socket, deckId]);
+  React.useEffect(() => {
+    setMaxZ((prev) => prev === void 0 ? zIndex : Math.max(prev, zIndex));
+  }, [zIndex]);
   const emitMove = React.useMemo(
-    () => throttle((cardId, clientX, clientY) => {
-      if (!containerRef.current) return;
+    () => throttle((cardId, clientX, clientY, rId, dId) => {
+      if (!containerRef.current || !rId || !dId) return;
       const rect = containerRef.current.getBoundingClientRect();
       let x = (clientX - rect.left) / rect.width * 100;
       let y = (clientY - rect.top) / rect.height * 100;
       x = Math.max(0, Math.min(100, x));
       y = Math.max(0, Math.min(100, y));
       socket.emit("card:move-on-field", {
-        roomId,
-        deckId,
+        roomId: rId,
+        deckId: dId,
         cardId,
         coordinate: { x, y }
       });
-    }, 50),
-    [socket, roomId, deckId]
+    }, 30),
+    [socket]
   );
   const handlePointerDown = (e, card2) => {
     if (layoutMode !== "free") return;
     draggingIdRef.current = card2.id;
     setActiveDraggingId(card2.id);
+    setDragPos({ x: card2.coordinate?.x ?? 50, y: card2.coordinate?.y ?? 50 });
     e.currentTarget.setPointerCapture(e.pointerId);
   };
+  const handleContextMenu = (e, card2) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, card: card2 });
+  };
   const handlePointerMove = (e) => {
-    if (!draggingIdRef.current) return;
-    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+    if (!draggingIdRef.current || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
+    const y = Math.max(0, Math.min(100, (e.clientY - rect.top) / rect.height * 100));
+    setDragPos({ x, y });
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
   };
   const handlePointerUp = (e) => {
     if (!draggingIdRef.current) return;
-    emitMove(draggingIdRef.current, e.clientX, e.clientY);
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
     e.currentTarget.releasePointerCapture(e.pointerId);
     draggingIdRef.current = null;
     setActiveDraggingId(null);
+    setDragPos(null);
   };
   const handleDrop = (e) => {
     e.preventDefault();
@@ -1668,7 +1968,7 @@ function PlayField({
     e.dataTransfer.dropEffect = "move";
   };
   const handleCardBack = (card2) => {
-    if (!myPlayerId) return;
+    if (!myPlayerId || !card2.fieldBackCondition) return;
     const backTo = card2.fieldBackCondition[0] || "discard";
     const requestData = {
       roomId,
@@ -1691,7 +1991,7 @@ function PlayField({
       },
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title2 !== void 0 && title2 !== null ? title2 : `プレイフィールド (deckId=${deckId})` }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
           "div",
           {
             ref: containerRef,
@@ -1705,84 +2005,168 @@ function PlayField({
               touchAction: "none",
               overflow: "visible"
             },
-            children: playedCards.map((card2, index) => {
-              const owner = players.find((p) => p.id === card2.ownerId);
-              const isDragging = activeDraggingId === card2.id;
-              const isActuallyFreeShape = !!(card2.freeShape && card2.frontImage);
-              const isOverlapping = playedCards.slice(0, index).some(
-                (other) => Math.abs((other.coordinate?.x ?? 50) - (card2.coordinate?.x ?? 50)) < 1 && Math.abs((other.coordinate?.y ?? 50) - (card2.coordinate?.y ?? 50)) < 1
-              );
-              const visualOffset = isOverlapping ? index * 12 : 0;
-              const currentZIndex = isDragging ? baseZIndex + 100 : baseZIndex + 2;
-              const freeStyle = layoutMode === "free" ? {
-                position: "absolute",
-                left: `${card2.coordinate?.x ?? 50}%`,
-                top: `${card2.coordinate?.y ?? 50}%`,
-                transform: `translate(calc(-50% + ${visualOffset}px), calc(-50% + ${visualOffset}px))`,
-                zIndex: currentZIndex,
-                transition: isDragging ? "none" : "left 0.2s ease, top 0.2s ease"
-              } : {};
-              return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            children: [
+              playedCards.map((card2) => {
+                const owner = players.find((p) => p.id === card2.ownerId);
+                const isDragging = activeDraggingId === card2.id;
+                const isActuallyFreeShape = !!(card2.freeShape && card2.frontImage);
+                const displayX = isDragging && dragPos ? dragPos.x : card2.coordinate?.x ?? 50;
+                const displayY = isDragging && dragPos ? dragPos.y : card2.coordinate?.y ?? 50;
+                const currentZIndex = isDragging ? 9999 : card2.zIndex ?? zIndex + 2;
+                const freeStyle = layoutMode === "free" ? {
+                  position: "absolute",
+                  left: `${displayX}%`,
+                  top: `${displayY}%`,
+                  zIndex: currentZIndex,
+                  // マウスの先端ではなく、カードの中心を掴むように補正
+                  transform: "translate(-50%, -50%)",
+                  // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
+                  transition: isDragging ? "none" : "left 0.2s ease, top 0.2s ease"
+                } : {};
+                return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "div",
+                  {
+                    draggable: false,
+                    onDragStart: (e) => e.preventDefault(),
+                    onPointerDown: (e) => handlePointerDown(e, card2),
+                    onPointerUp: handlePointerUp,
+                    onContextMenu: (e) => handleContextMenu(e, card2),
+                    onPointerCancel: handlePointerUp,
+                    className: `${isActuallyFreeShape ? "" : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`,
+                    style: {
+                      "--owner-color": owner?.color || "#aaaaaa",
+                      ...freeStyle,
+                      touchAction: "none",
+                      cursor: isDragging ? "grabbing" : layoutMode === "free" ? "grab" : "default",
+                      width: "80px",
+                      height: "112px",
+                      background: "transparent",
+                      border: isActuallyFreeShape ? "none" : void 0,
+                      boxShadow: isActuallyFreeShape && isDragging ? "0 0 15px var(--owner-color)" : "none",
+                      padding: 0,
+                      display: "block",
+                      position: layoutMode === "free" ? "absolute" : "relative",
+                      zIndex: currentZIndex
+                    },
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: card2.isFaceUp }),
+                      card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
+                      isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: [
+                        "Z:",
+                        currentZIndex
+                      ] }),
+                      card2.description && !isDragging && card2.isFaceUp && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description })
+                    ]
+                  },
+                  card2.id
+                );
+              }),
+              contextMenu2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(
                 "div",
                 {
-                  draggable: false,
-                  onDragStart: (e) => e.preventDefault(),
-                  onPointerDown: (e) => handlePointerDown(e, card2),
-                  onPointerUp: handlePointerUp,
-                  onPointerCancel: handlePointerUp,
-                  className: `${isActuallyFreeShape ? "" : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`,
+                  className: playFieldStyles.contextMenu,
                   style: {
-                    "--owner-color": owner?.color || "#aaaaaa",
-                    ...freeStyle,
-                    touchAction: "none",
-                    cursor: isDragging ? "grabbing" : layoutMode === "free" ? "grab" : "default",
-                    width: "80px",
-                    height: "112px",
-                    // freeShape 時の設定
-                    ...isActuallyFreeShape ? {
-                      background: "transparent",
-                      border: "none",
-                      boxShadow: isDragging ? "0 0 15px var(--owner-color)" : "none",
-                      padding: 0
-                    } : {}
+                    top: contextMenu2.y,
+                    left: contextMenu2.x,
+                    position: "fixed"
                   },
-                  onDoubleClick: () => handleCardBack(card2),
+                  onClick: (e) => e.stopPropagation(),
                   children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
-                    card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
-                    card2.description && !isDragging && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description })
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "div",
+                      {
+                        className: playFieldStyles.menuItem,
+                        onClick: () => {
+                          const requestData = {
+                            roomId,
+                            objectId: [contextMenu2.card.deckId, contextMenu2.card.id],
+                            type: "card",
+                            isFront: true
+                          };
+                          socket.emit("object:bring-to", requestData);
+                          setContextMenu(null);
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "⬆️" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最前面へ移動" })
+                        ]
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "div",
+                      {
+                        className: playFieldStyles.menuItem,
+                        onClick: () => {
+                          const requestData = {
+                            roomId,
+                            objectId: [contextMenu2.card.deckId, contextMenu2.card.id],
+                            type: "card",
+                            isFront: false
+                          };
+                          socket.emit("object:bring-to", requestData);
+                          setContextMenu(null);
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "⬇️" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "最背面へ移動" })
+                        ]
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { height: "1px", background: "#444", margin: "4px 0" } }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "div",
+                      {
+                        className: playFieldStyles.menuItem,
+                        onClick: () => {
+                          socket.emit("card:flip", {
+                            roomId,
+                            playerId: myPlayerId,
+                            cardIds: [contextMenu2.card.id]
+                          });
+                          setContextMenu(null);
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "🔄" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "カードを裏返す" })
+                        ]
+                      }
+                    ),
+                    contextMenu2.card.fieldBackCondition && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "div",
+                      {
+                        className: playFieldStyles.menuItem,
+                        onClick: () => {
+                          handleCardBack(contextMenu2.card);
+                          setContextMenu(null);
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "✋" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "手札/捨て札へ戻す" })
+                        ]
+                      }
+                    )
                   ]
-                },
-                card2.id
-              );
-            })
+                }
+              )
+            ]
           }
         )
       ]
     }
   );
 }
-const container$1 = "_container_17uio_2";
+const container$2 = "_container_17uio_2";
 const cursorWrapper = "_cursorWrapper_17uio_13";
 const icon = "_icon_17uio_21";
-const label = "_label_17uio_29";
-const styles$3 = {
-  container: container$1,
+const label$1 = "_label_17uio_29";
+const styles$4 = {
+  container: container$2,
   cursorWrapper,
   icon,
-  label
+  label: label$1
 };
 const RemoteCursor = React__default.memo(
-  ({
-    socket,
-    roomId,
-    myPlayerId,
-    players,
-    scale,
-    fixedContainerRef,
-    visible,
-    isRelative = true
-  }) => {
+  ({ socket, roomId, myPlayerId, players, scale, fixedContainerRef, visible, isRelative = true }) => {
     const [remoteCursors, setRemoteCursors] = useState({});
     useEffect(() => {
       if (!socket) return;
@@ -1799,8 +2183,7 @@ const RemoteCursor = React__default.memo(
       };
     }, [socket, myPlayerId]);
     useEffect(() => {
-      if (!socket || !roomId || !myPlayerId || !fixedContainerRef.current)
-        return;
+      if (!socket || !roomId || !myPlayerId || !fixedContainerRef.current) return;
       const THROTTLE = 50;
       let lastTime = 0;
       const handleMove = (e) => {
@@ -1821,84 +2204,80 @@ const RemoteCursor = React__default.memo(
       return () => window.removeEventListener("mousemove", handleMove);
     }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
     if (!visible) return null;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
       const player = players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
       const name = player ? player.name : "接続中...";
       const color = player?.color || "#000000";
       const left = isRelative ? `${coords.x * 100}%` : coords.x;
       const top = isRelative ? `${coords.y * 100}%` : coords.y;
-      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          className: styles$3.cursorWrapper,
-          style: { left, top },
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.icon, style: { color }, children: "👆" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.label, style: { backgroundColor: color }, children: name })
-          ]
-        },
-        id
-      );
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.cursorWrapper, style: { left, top }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.icon, style: { color }, children: "👆" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.label, style: { backgroundColor: color }, children: name })
+      ] }, id);
     }) });
   }
 );
-const container = "_container_1wfh4_1";
-const title$1 = "_title_1wfh4_13";
-const playerList = "_playerList_1wfh4_22";
-const playerItem = "_playerItem_1wfh4_27";
-const activePlayer = "_activePlayer_1wfh4_40";
-const playerHeader = "_playerHeader_1wfh4_48";
-const playerName = "_playerName_1wfh4_54";
-const playerScore = "_playerScore_1wfh4_62";
-const resourceSection = "_resourceSection_1wfh4_71";
-const resourceList = "_resourceList_1wfh4_76";
-const resourceBadge = "_resourceBadge_1wfh4_82";
-const tokenList = "_tokenList_1wfh4_90";
-const tokenBadge = "_tokenBadge_1wfh4_99";
-const tokenBadgeOwner = "_tokenBadgeOwner_1wfh4_114";
-const tokenBadgeGuest = "_tokenBadgeGuest_1wfh4_119";
-const cardList = "_cardList_1wfh4_125";
-const cardBase = "_cardBase_1wfh4_133";
-const cardSelected = "_cardSelected_1wfh4_165";
-const tooltip = "_tooltip_1wfh4_171";
-const buttonArea = "_buttonArea_1wfh4_192";
-const limitMessage = "_limitMessage_1wfh4_198";
-const buttonGroup = "_buttonGroup_1wfh4_212";
-const scoreArea = "_scoreArea_1wfh4_217";
-const debugScoreButtons = "_debugScoreButtons_1wfh4_223";
-const debugBtn = "_debugBtn_1wfh4_228";
+const container$1 = "_container_k18kw_7";
+const title$2 = "_title_k18kw_19";
+const playerList = "_playerList_k18kw_28";
+const playerItem = "_playerItem_k18kw_38";
+const activePlayer = "_activePlayer_k18kw_51";
+const playerHeader = "_playerHeader_k18kw_59";
+const playerName = "_playerName_k18kw_65";
+const scoreArea = "_scoreArea_k18kw_75";
+const playerScore = "_playerScore_k18kw_81";
+const plus = "_plus_k18kw_102";
+const minus = "_minus_k18kw_107";
+const scoreChange = "_scoreChange_k18kw_128";
+const debugScoreButtons = "_debugScoreButtons_k18kw_157";
+const debugBtn = "_debugBtn_k18kw_162";
+const resourceSection = "_resourceSection_k18kw_193";
+const resourceList = "_resourceList_k18kw_198";
+const resourceBadge = "_resourceBadge_k18kw_204";
+const tokenList = "_tokenList_k18kw_212";
+const isHoldMessage = "_isHoldMessage_k18kw_222";
+const cardList = "_cardList_k18kw_229";
+const cardBase = "_cardBase_k18kw_237";
+const cardSelected = "_cardSelected_k18kw_269";
+const cardIsHeld = "_cardIsHeld_k18kw_275";
+const tooltip = "_tooltip_k18kw_287";
+const buttonArea = "_buttonArea_k18kw_312";
+const limitMessage = "_limitMessage_k18kw_319";
+const buttonGroup = "_buttonGroup_k18kw_326";
 const scoreBoardStyles = {
-  container,
-  title: title$1,
+  container: container$1,
+  title: title$2,
   playerList,
   playerItem,
   activePlayer,
   playerHeader,
   playerName,
+  scoreArea,
   playerScore,
+  plus,
+  minus,
+  scoreChange,
+  debugScoreButtons,
+  debugBtn,
   resourceSection,
   resourceList,
   resourceBadge,
   tokenList,
-  tokenBadge,
-  tokenBadgeOwner,
-  tokenBadgeGuest,
+  isHoldMessage,
   cardList,
   cardBase,
   cardSelected,
+  cardIsHeld,
   tooltip,
   buttonArea,
   limitMessage,
-  buttonGroup,
-  scoreArea,
-  debugScoreButtons,
-  debugBtn
+  buttonGroup
 };
-const image = "_image_th9op_2";
-const textWrapper = "_textWrapper_th9op_10";
-const text = "_text_th9op_10";
-const contentWrapper = "_contentWrapper_th9op_26";
-const styles$2 = {
+const image = "_image_965of_2";
+const textWrapper = "_textWrapper_965of_10";
+const text = "_text_965of_10";
+const contentWrapper = "_contentWrapper_965of_26";
+const styles$3 = {
   image,
   textWrapper,
   text,
@@ -1906,27 +2285,45 @@ const styles$2 = {
 };
 const TokenDisplayContent = React__default.memo(({ token }) => {
   if (token.imageSrc) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.contentWrapper, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$2.image }),
-      ";"
-    ] });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$3.image }) });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.contentWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$2.text, children: token.name }) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$3.text, children: token.name }) }) });
 });
 const PlayerListItem = React.memo(
   ({
+    socket,
+    roomId,
     player,
     currentPlayerId,
     myPlayerId,
+    playCardButton,
     selectedCards,
+    heldCards,
     toggleCardSelection,
-    socket,
-    roomId,
-    isDebug
+    isDebug,
+    enabled
   }) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = player.color || "#aaaaaa";
     const isOwner = player.id === myPlayerId;
+    const [showPlay] = playCardButton;
+    const [scoreDiff, setScoreDiff] = React.useState(null);
+    const [isScoreUpdating, setIsScoreUpdating] = React.useState(false);
+    const prevScoreRef = React.useRef(player.score);
+    React.useEffect(() => {
+      const prevScore = prevScoreRef.current;
+      if (prevScore !== player.score) {
+        const diff = player.score - prevScore;
+        setScoreDiff(diff);
+        setIsScoreUpdating(true);
+        const timer = setTimeout(() => {
+          setScoreDiff(null);
+          setIsScoreUpdating(false);
+        }, 600);
+        prevScoreRef.current = player.score;
+        return () => clearTimeout(timer);
+      }
+    }, [player.score]);
     const handleAddScore = (points) => {
       socket.emit("room:player:add-score", {
         roomId,
@@ -1952,13 +2349,25 @@ const PlayerListItem = React.memo(
               player.name
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreArea, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerScore, children: [
-                "スコア: ",
-                player.score
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreWrapper, style: { position: "relative", display: "inline-block" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerScore, children: [
+                  "スコア: ",
+                  player.score
+                ] }),
+                scoreDiff !== null && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "span",
+                  {
+                    className: `
+      ${scoreBoardStyles.scoreChange} 
+      ${scoreDiff > 0 ? scoreBoardStyles.plus : scoreBoardStyles.minus}
+    `,
+                    children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff
+                  }
+                )
               ] }),
               isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(-1), className: scoreBoardStyles.debugBtn, children: "-" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), className: scoreBoardStyles.debugBtn, children: "+" })
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "+" })
               ] })
             ] })
           ] }),
@@ -1974,7 +2383,6 @@ const PlayerListItem = React.memo(
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: player.tokens.map((token) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
-              className: `${scoreBoardStyles.tokenBadge} ${myPlayerId === player.id ? scoreBoardStyles.tokenBadgeOwner : scoreBoardStyles.tokenBadgeGuest}`,
               onClick: () => {
                 socket.emit("token:reclaim", {
                   roomId,
@@ -1986,25 +2394,31 @@ const PlayerListItem = React.memo(
             },
             token.id
           )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: player.isHolding && "カードをホールドしています" }),
+          player.isHolding && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: scoreBoardStyles.isHoldMessage, children: "カードをホールドしています" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card2) => {
             const isSelected = selectedCards.includes(card2.id);
+            const isHeld = heldCards.includes(card2.id);
             const canSeeFront = !!card2.isFaceUp || isOwner;
             return /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
               {
-                draggable: isOwner,
+                draggable: isOwner && !isHeld && enabled,
                 onDragStart: (e) => {
-                  if (!isOwner) return;
+                  if (!isOwner || isHeld || !showPlay) return;
                   e.dataTransfer.setData("cardId", card2.id);
                   e.dataTransfer.setData("deckId", card2.deckId);
                   e.dataTransfer.effectAllowed = "move";
                 },
-                className: `${scoreBoardStyles.cardBase} rg-playfield-card-wrapper ${isSelected ? scoreBoardStyles.cardSelected : ""} ${card2.isFaceUp ? scoreBoardStyles.cardSuperRevealed : ""}`,
+                className: `
+                  ${scoreBoardStyles.cardBase} 
+                  ${isSelected ? scoreBoardStyles.cardSelected : ""}
+                `,
                 style: {
-                  cursor: isOwner ? "grab" : "default",
+                  // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
+                  cursor: isHeld ? "not-allowed" : isOwner && enabled ? "grab" : "default",
                   border: card2.isFaceUp ? "3px solid #00ffff" : "1px solid #ccc",
                   boxShadow: card2.isFaceUp ? "0 0 10px #00ffff" : "none",
+                  opacity: !enabled || isHeld ? 0.7 : 1,
                   padding: 0,
                   overflow: "hidden",
                   position: "relative",
@@ -2012,9 +2426,10 @@ const PlayerListItem = React.memo(
                   alignItems: "stretch",
                   justifyContent: "stretch"
                 },
-                onClick: () => toggleCardSelection(card2.id, isOwner),
+                onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner),
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
+                  isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardIsHeld, children: "🔐" }),
                   canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: scoreBoardStyles.tooltip, children: card2.description })
                 ]
               },
@@ -2033,12 +2448,13 @@ function ScoreBoard({
   currentPlayerId,
   myPlayerId,
   playCardLimit,
-  autoNextTurnOnCardPlay = false,
-  holdButton = false,
-  revealButton = false,
-  turnSkipButton = false,
-  roundSkipbutton = false,
-  isDebug = false
+  playCardButton = [true, true],
+  holdButton = [false, true],
+  flipButton = [false, true],
+  turnSkipButton = [false, true],
+  roundSkipButton = [false, true],
+  isDebug = false,
+  enabled = true
 }) {
   const displayedPlayers = React.useMemo(() => {
     return (players || []).map((p) => ({
@@ -2050,6 +2466,7 @@ function ScoreBoard({
     }));
   }, [players]);
   const [selectedCards, setSelectedCards] = React.useState([]);
+  const [heldCards, setHeldCards] = React.useState([]);
   const toggleCardSelection = React.useCallback((cardId, isOwner) => {
     if (!isOwner) return;
     setSelectedCards((prev) => prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]);
@@ -2062,63 +2479,68 @@ function ScoreBoard({
       if (!myPlayer) return;
       const cardsByDeck = {};
       let targetPlayLocation;
-      if (isHold == true) {
-        socket.emit("card:hold", { roomId, playerId: myPlayerId, cardIds: selectedCards });
-        return;
-      }
+      if (isHold && myPlayer.isHolding == true) return;
       selectedCards.forEach((cardId) => {
         const card2 = myPlayer.cards.find((c) => c.id === cardId);
         if (!card2) return;
         if (!targetPlayLocation) targetPlayLocation = card2.playLocation;
         if (!cardsByDeck[card2.deckId]) cardsByDeck[card2.deckId] = [];
         cardsByDeck[card2.deckId].push(card2.id);
+        if (isHold) setHeldCards((prev) => [...prev, card2.id]);
       });
+      if (isHold == true) {
+        socket.emit("card:hold", { roomId, playerId: myPlayerId, cardIdsbyDeck: cardsByDeck });
+        setSelectedCards([]);
+        return;
+      }
       if (!targetPlayLocation) return;
       const finalLocation = targetPlayLocation;
       Object.entries(cardsByDeck).forEach(([deckId, cardIds]) => {
-        const playData = {
+        socket.emit("card:play", {
           roomId,
           deckId,
           cardIds,
           playerId: myPlayerId,
           playLocation: finalLocation,
           coordinate: { x: 50, y: 50 }
-        };
-        socket.emit("card:play", playData);
+        });
       });
-      if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
       setSelectedCards([]);
     },
-    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]
+    [selectedCards, myPlayerId, displayedPlayers, socket, roomId, playCardLimit]
   );
-  const revealSelectedCards = React.useCallback(() => {
+  const flipSelectedCards = React.useCallback(() => {
     if (selectedCards.length === 0 || !myPlayerId) return;
-    if (playCardLimit !== void 0 && selectedCards.length > playCardLimit) return;
-    socket.emit("card:reveal", {
-      roomId,
-      playerId: myPlayerId,
-      cardIds: selectedCards
-    });
-    if (autoNextTurnOnCardPlay) socket.emit("game:next-turn", { roomId });
+    socket.emit("card:flip", { roomId, playerId: myPlayerId, cardIds: selectedCards });
     setSelectedCards([]);
-  }, [selectedCards, myPlayerId, socket, roomId, playCardLimit, autoNextTurnOnCardPlay]);
-  const nextTurn = () => socket.emit("game:next-turn", { roomId });
-  const nextRound = () => socket.emit("game:next-round", { roomId });
+  }, [selectedCards, myPlayerId, socket, roomId]);
+  const [showPlay, canPlay] = playCardButton;
+  const [showHold, canHold] = holdButton;
+  const [showFlip, canFlip] = flipButton;
+  const [showTurnSkip, canTurnSkip] = turnSkipButton;
+  const [showRoundSkip, canRoundSkip] = roundSkipButton;
+  const isPlayDisabled = (canPlay !== void 0 ? !canPlay : !enabled) || selectedCards.length === 0;
+  const isHoldDisabled = (canHold !== void 0 ? !canHold : !enabled) || selectedCards.length === 0;
+  const isFlipDisabled = (canFlip !== void 0 ? !canFlip : !enabled) || selectedCards.length === 0;
+  const isTurnSkipDisabled = canTurnSkip !== void 0 ? !canTurnSkip : !enabled;
+  const isRoundSkipDisabled = canRoundSkip !== void 0 ? !canRoundSkip : !enabled;
   const isOverLimit = playCardLimit !== void 0 && selectedCards.length > playCardLimit;
-  const isActionDisabled = selectedCards.length === 0 || isOverLimit;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.container, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: scoreBoardStyles.title, children: "ゲームスコアボード" }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       PlayerListItem,
       {
+        socket,
+        roomId,
         player,
         currentPlayerId,
         myPlayerId,
+        playCardButton,
         selectedCards,
+        heldCards,
         toggleCardSelection,
-        socket,
-        roomId,
-        isDebug
+        isDebug,
+        enabled
       },
       player.id
     )) }),
@@ -2129,11 +2551,25 @@ function ScoreBoard({
         " 枚までです"
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.buttonGroup, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isActionDisabled, children: "選択カードを出す" }),
-        holdButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isActionDisabled, children: "選択カードをホールドする" }),
-        revealButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: revealSelectedCards, children: "選択カードを公開する" }),
-        turnSkipButton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextTurn, children: "ターンをスキップ" }),
-        roundSkipbutton && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: nextRound, children: "ラウンドをスキップ" })
+        showPlay && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards(), disabled: isPlayDisabled || isOverLimit, children: "選択カードを出す" }),
+        showHold && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => playSelectedCards({ isHold: true }), disabled: isHoldDisabled || isOverLimit, children: "選択カードをホールドする" }),
+        showFlip && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: flipSelectedCards, disabled: isFlipDisabled, children: "選択カードをひっくり返す" }),
+        showTurnSkip && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "button",
+          {
+            onClick: () => socket.emit("game:next-turn", { roomId }),
+            disabled: isTurnSkipDisabled,
+            children: "ターンをスキップ"
+          }
+        ),
+        showRoundSkip && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "button",
+          {
+            onClick: () => socket.emit("game:next-round", { roomId }),
+            disabled: isRoundSkipDisabled,
+            children: "ラウンドをスキップ"
+          }
+        )
       ] })
     ] })
   ] });
@@ -2141,7 +2577,7 @@ function ScoreBoard({
 const messageContainer = "_messageContainer_1akhg_3";
 const messageList = "_messageList_1akhg_29";
 const messageItemActive = "_messageItemActive_1akhg_38";
-const styles$1 = {
+const styles$2 = {
   messageContainer,
   messageList,
   messageItemActive
@@ -2187,7 +2623,7 @@ const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
       clearTimeout(timer);
     };
   }, [isProcessing, currentData, displayDuration]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$1.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageItemActive, children: displayMessage }, msgKey) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$2.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageItemActive, children: displayMessage }, msgKey) }) });
 };
 function Timer({ socket = null, initialDuration, onFinish, roomId }) {
   const [timeLeft, setTimeLeft] = useState(initialDuration);
@@ -2263,66 +2699,89 @@ function Timer({ socket = null, initialDuration, onFinish, roomId }) {
     }
   );
 }
-const section = "_section_svsi4_2";
-const title = "_title_svsi4_10";
-const list = "_list_svsi4_15";
-const styles = {
+const section = "_section_5m8u8_2";
+const title$1 = "_title_5m8u8_12";
+const list = "_list_5m8u8_17";
+const styles$1 = {
   section,
-  title,
+  title: title$1,
   list
 };
 function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
-  const [tokens, setTokens] = useState([]);
-  const handleUpdateTokens = useCallback((data) => {
-    setTokens(data.tokenStore || []);
-  }, []);
+  const [tokenStoreTokens, setTokenStoreTokens] = useState([]);
   useEffect(() => {
-    if (!socket) return;
-    socket.on(`token-store:update`, handleUpdateTokens);
+    socket.on(`token-store:update:${tokenStoreId}`, (data) => {
+      const newTokens = data.tokenStore || [];
+      setTokenStoreTokens(newTokens);
+    });
     return () => {
-      socket.off(`token-store:update`, handleUpdateTokens);
+      socket.off(`token-store:update:${tokenStoreId}`);
     };
-  }, [socket, handleUpdateTokens]);
-  const getTokenById = useMemo(() => (id) => tokens.find((t) => t.id === id), [tokens]);
+  }, [socket]);
+  const getTokenById = useMemo(() => (id) => tokenStoreTokens.find((t) => t.id === id), [tokenStoreTokens]);
   const handleClick = (id) => {
     const token = getTokenById(id);
     if (!token) return;
     onSelect?.(token);
   };
-  const handleDoubleClick = (id) => {
-    const token = getTokenById(id);
+  const handleDoubleClick = (tokenId) => {
+    const token = getTokenById(tokenId);
     if (!token) return;
-    const data = { roomId, tokenStoreId, tokenId: id };
+    const data = { roomId, tokenStoreId, tokenId };
     socket.emit("token:aquire", data);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles.section, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.list, children: tokens.map((t) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t }) }, t.id)) })
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$1.section, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles$1.title, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.list, children: tokenStoreTokens.map((t, i) => {
+      const offsetX = i % 5 * 40 - 80;
+      const offsetY = i * 3 % 4 * 10 - 20;
+      const rotation = i * 13 % 30 - 15;
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          style: {
+            position: "absolute",
+            left: `calc(40% + ${offsetX}px)`,
+            top: `calc(50% + ${offsetY}px)`,
+            transform: `rotate(${rotation}deg)`,
+            zIndex: i
+          },
+          onClick: () => handleClick(t.id),
+          onDoubleClick: () => handleDoubleClick(t.id),
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t })
+        },
+        t.id
+      );
+    }) })
   ] });
 }
 let LOG_CATEGORIES = {
   connection: true,
+  lobby: true,
+  game: true,
+  room: true,
   deck: false,
   card: true,
   cell: true,
-  game: true,
   dice: true,
   timer: false,
   addScore: true,
   resource: true,
   token: true,
-  room: true,
-  lobby: true,
-  disconnect: true,
+  draggable: true,
   warn: true,
   popup: true,
-  custom_event: true
+  custom_event: true,
+  disconnect: true
 };
 const ANSI_RED = "\x1B[31m";
 const ANSI_RESET = "\x1B[0m";
 function server_log(tag, gameId, roomId, firstArg, ...args) {
-  if (!LOG_CATEGORIES[tag]) {
+  if (!(tag in LOG_CATEGORIES)) {
     throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
+  }
+  if (!LOG_CATEGORIES[tag]) {
+    return;
   }
   const fullArgs = [firstArg, ...args];
   if (tag === "warn") {
@@ -2332,12 +2791,20 @@ function server_log(tag, gameId, roomId, firstArg, ...args) {
     console.log(`[${tag}] [${gameId} (${roomId})]`, ...fullArgs);
   }
 }
+const isExplored = (roomState, position) => {
+  return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
+};
 class RoomManager {
   constructor(io, param, state) {
     this.io = io;
     this.param = param;
     this.state = state;
   }
+  /**
+   * 一定時間待機する
+   * @param ms - 待機時間 (ms)
+   */
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   /**
    * プレイヤー更新を通知する
    */
@@ -2353,20 +2820,40 @@ class RoomManager {
       playFieldCards: this.state.playFieldCards[deckId],
       discardPile: this.state.discardPile[deckId]
     };
-    this.io.to(this.state.roomId).emit(`deck:update:${this.state.roomId}:${deckId}`, updateData);
+    this.io.to(this.state.roomId).emit(`deck:update:${deckId}`, updateData);
   };
   /**
    * トークン置き場更新を通知する
    */
   emitTokenStoreUpdate = (tokenStoreId) => {
     const updateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
-    this.io.to(this.state.roomId).emit(`token-store:update`, updateData);
+    this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
   };
-  emitSystemMessage = (message, isPersistent = false) => {
+  /**
+   * ドラッグ可能オブジェクトの更新を通知する
+   */
+  emitDraggableUpdate = (draggableId) => {
+    const updateData = {
+      draggableId,
+      coordinate: this.state.draggable[draggableId].coordinate,
+      rotation: this.state.draggable[draggableId].rotation,
+      zIndex: this.state.draggable[draggableId].zIndex
+    };
+    this.io.to(this.state.roomId).emit("draggable:update", updateData);
+  };
+  /**
+   * SystemMessageWindowコンポーネントにシステムメッセージを出力する
+   * @param message - メッセージ内容
+   * @param ms=0 - メッセージ表示時間 (ms)
+   * @param isPersistent=false - 次のメッセージが出るまで表示し続けるかどうかのフラグ
+   * @returns 待機が完了した時に解決されるPromise
+   */
+  emitSystemMessage = async (message, ms = 0, isPersistent = false) => {
     if (!this.state.systemMessageHistory.includes(message)) {
       this.state.systemMessageHistory = [...this.state.systemMessageHistory.slice(-9), message];
     }
     this.io.to(this.state.roomId).emit("system:message", { message, isPersistent });
+    await this.sleep(ms);
   };
   /**
    * カードをデッキから引く
@@ -2408,14 +2895,77 @@ class RoomManager {
     return true;
   }
   /**
-   * ホールド状態を解消し、カードを出す
+   * カードをプレイする
+   */
+  playCard(data) {
+    const { deckId, cardIds, playerId, playLocation = "field", coordinate } = data;
+    const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (player?.isHolding) {
+      server_log(
+        "card",
+        this.state.gameId,
+        this.state.roomId,
+        `${playerId} はカードをホールドしているので、カードをプレイできません`
+      );
+      return;
+    }
+    ids.forEach((id) => {
+      const card2 = this.state.decks[deckId]?.find((c) => c.id === id);
+      if (!card2) return;
+      const p = this.state.players.find((p2) => p2.id === playerId);
+      if (p) p.cards = p.cards.filter((c) => c.id !== id);
+      card2.location = playLocation;
+      card2.coordinate = coordinate;
+      card2.isFaceUp = true;
+      this.state.playFieldCards[deckId] = this.state.playFieldCards[deckId].filter((c) => c.id !== id);
+      this.state.discardPile[deckId] = this.state.discardPile[deckId].filter((c) => c.id !== id);
+      if (playLocation === "discard") {
+        this.state.discardPile[deckId].push(card2);
+      } else {
+        this.state.playFieldCards[deckId].push(card2);
+      }
+      this.updateZIndex("card", [deckId, card2.id], true);
+      server_log("card", this.state.gameId, this.state.roomId, `"${card2.name}" をプレイした`);
+      const effect = this.param.cardEffects?.[card2.name];
+      if (effect) {
+        server_log("card", this.state.gameId, this.state.roomId, `カード効果発揮: ${card2.name} by ${playerId}`);
+        effect({
+          playerId,
+          updateResource: (resourceId, amount) => this.acquireResource(playerId, resourceId, amount),
+          updateToken: (tokenId) => this.acquireToken(this.state.roomId, playerId, tokenId)
+        });
+      }
+    });
+    const onCardPlay = this.param.onCardPlay;
+    if (onCardPlay) {
+      onCardPlay(this.state, this, data);
+    }
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+  }
+  /**
+   * ホールド状態を解除し、カードを出す
    */
   unholdCards() {
-    this.state.players.forEach((p) => {
-      p.isHolding = false;
-      delete this.state.holdCards[p.id];
+    this.state.players.forEach((player) => {
+      player.isHolding = false;
+      const playerHoldData = this.state.holdCards[player.id];
+      if (!playerHoldData) return;
+      Object.entries(playerHoldData).forEach(([deckId, cardIds]) => {
+        const playData = {
+          roomId: this.state.roomId,
+          deckId,
+          cardIds,
+          playerId: player.id,
+          playLocation: "field",
+          coordinate: { x: 50, y: 50 }
+        };
+        this.playCard(playData);
+      });
+      delete this.state.holdCards[player.id];
     });
-    this.emitPlayerUpdate();
+    server_log("card", this.state.gameId, this.state.roomId, `プレイヤー全員のホールド状態を解除しました`);
   }
   /**
    * フィールドからカードを回収（手札に戻す or 捨て札へ）
@@ -2459,37 +3009,141 @@ class RoomManager {
     this.emitPlayerUpdate();
   }
   /**
+   * リソースを取得する
+   * @param playerId - 対象のプレイヤーのID
+   * @param resourceId - 対象のリソースID
+   * @param amount - 加算する個数
+   */
+  acquireResource = (playerId, resourceId, amount) => {
+    const player = this.state.players.find((p) => p.id === playerId);
+    const resource = player?.resources?.find((r) => r.resourceId === resourceId);
+    if (resource) {
+      resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
+      server_log("resource", this.state.gameId, this.state.roomId, `${player.name}: ${resource.name} 更新`);
+      this.emitPlayerUpdate();
+    }
+  };
+  /**
+   * トークンを取得する
+   * @param tokenStoreId - トークン置き場ID
+   * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
+   * @param playerId - プレイヤーID
+   */
+  acquireToken(tokenStoreId, tokenId = null, playerId) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return;
+    const tokens = this.state.tokenStores[tokenStoreId];
+    if (tokens.length === 0) return;
+    const index = tokenId !== null ? tokens.findIndex((t) => t.id === tokenId) : Math.floor(Math.random() * tokens.length);
+    if (index !== -1) {
+      const acquiredToken = tokens.splice(index, 1)[0];
+      if (!Array.isArray(player.tokens)) {
+        player.tokens = [];
+      }
+      player.tokens.push(acquiredToken);
+      server_log(
+        "token",
+        this.state.gameId,
+        this.state.roomId,
+        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${acquiredToken.id} を獲得しました。`
+      );
+      this.emitTokenStoreUpdate(tokenStoreId);
+    }
+  }
+  /**
+   * 特定のセルの探索状態を切り替える
+   * @param {Position} position - 操作対象の座標
+   * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
+   * @returns {boolean} 状態が実際に変化した場合は true
+   */
+  updateCellExploredStatus = (position, shouldMark) => {
+    const isCurrentlyExplored = isExplored(this.state, position);
+    if (shouldMark && !isCurrentlyExplored) {
+      this.state.exploredCells.push(position);
+      server_log(
+        "cell",
+        this.state.gameId,
+        this.state.roomId,
+        `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`
+      );
+      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
+      return;
+    }
+    if (!shouldMark && isCurrentlyExplored) {
+      this.state.exploredCells = this.state.exploredCells.filter(
+        (loc) => !(loc.row === position.row && loc.col === position.col)
+      );
+      server_log(
+        "cell",
+        this.state.gameId,
+        this.state.roomId,
+        `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`
+      );
+      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
+      return;
+    }
+    return;
+  };
+  /**
+   * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+   * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
+   */
+  getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
+    const targetBoard = this.state.boards[boardId];
+    const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
+    const reachable = /* @__PURE__ */ new Set();
+    const queue = [{ id: startCellId, dist: 0 }];
+    const visited = /* @__PURE__ */ new Set([startCellId]);
+    while (queue.length > 0) {
+      const { id, dist } = queue.shift();
+      if (dist > 0) {
+        if (isExact) {
+          if (dist === moveRange) reachable.add(id);
+        } else {
+          reachable.add(id);
+        }
+      }
+      if (dist >= moveRange) continue;
+      const cell2 = boardMap.get(id);
+      cell2?.adjacentCellIds.forEach((nextId) => {
+        if (!visited.has(nextId)) {
+          visited.add(nextId);
+          queue.push({ id: nextId, dist: dist + 1 });
+        }
+      });
+    }
+    return Array.from(reachable);
+  };
+  /**
    * セル効果を発動する
+   * @param boardId - ボードID
    * @param playerId - 効果を発動させたプレイヤーのID
    * @param position - 発動対象となるマスの座標
    * @param cellEffects - 各セル名に対応する効果処理の定義集
-   * @param updatePlayerResource - プレイヤーのリソース（資源）を更新するためのコールバック関数
-   * @param updatePlayerToken - プレイヤーのトークン所持数を更新するためのコールバック関数
-   * @param requirePopup - クライアント側でポップアップを表示させるための要求関数
    */
-  applyCellEffect = (playerId, position, cellEffects, updatePlayerResource, updatePlayerToken, requirePopup) => {
+  applyCellEffect = (boardId, playerId, position, cellEffects) => {
     const { row, col } = position;
-    const targetBoard = Object.values(this.state.board)[0];
-    if (!targetBoard || row < 0 || row >= targetBoard.length || col < 0 || col >= targetBoard[row].length) {
+    const targetBoard = this.state.boards[boardId];
+    if (!targetBoard) {
+      server_log("warn", this.state.gameId, this.state.roomId, "applyCellEffect: ボードがありません。");
+      return;
+    }
+    const targetId = `r${row}c${col}`;
+    const cell2 = targetBoard.find((c) => c.id === targetId);
+    if (!cell2) {
       server_log(
         "warn",
         this.state.gameId,
         this.state.roomId,
-        `applyCellEffect: 不正な座標 (${row}, ${col}) またはボードがありません。`
+        `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`
       );
       return;
     }
-    const cell2 = targetBoard[row][col];
     const effect = cellEffects[cell2.name];
     if (effect) {
       server_log("cell", this.state.gameId, this.state.roomId, `マス効果発動: ${cell2.name} by ${playerId}`);
       try {
-        effect({
-          playerId,
-          updateResource: updatePlayerResource,
-          updateToken: updatePlayerToken,
-          requirePopup
-        });
+        effect(this, playerId);
       } catch (e) {
         server_log(
           "warn",
@@ -2504,29 +3158,58 @@ class RoomManager {
     }
   };
   /**
-   * トークンを取得する
-   * @param tokenStoreId - トークン置き場ID
-   * @param tokenId - トークンID
-   * @param playerId - プレイヤーID
+   * 重ね順を更新する
    */
-  acquireToken(tokenStoreId, tokenId, playerId) {
-    const player = this.state.players.find((p) => p.id === playerId);
-    if (!player) return false;
-    const tokens = this.state.tokenStores[tokenStoreId];
-    const index = tokens.findIndex((t) => t.id === tokenId);
-    if (index !== -1) {
-      const acquiredToken = tokens.splice(index, 1)[0];
-      if (!Array.isArray(player.tokens)) {
-        player.tokens = [];
+  updateZIndex(type, objectId, isToFront) {
+    if (isToFront == true) {
+      if (type === "card") {
+        if (!Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
+        }
+        server_log("deck", this.state.gameId, this.state.roomId, "カードのz-indexを最全面に移動");
+        const card2 = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+        if (!card2) return;
+        if (!card2.zIndex || card2.zIndex < this.state.maxZIndex) {
+          this.state.maxZIndex++;
+          card2.zIndex = this.state.maxZIndex;
+          server_log("draggable", this.state.gameId, this.state.roomId, `新しいz-index: ${this.state.maxZIndex}`);
+          this.emitDeckUpdate(objectId[0]);
+        }
+      } else {
+        if (Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
+        }
+        server_log("draggable", this.state.gameId, this.state.roomId, "ドラッグ可能オブジェクトを最前面に移動");
+        const draggable2 = this.state.draggable[objectId];
+        if (draggable2.zIndex < this.state.maxZIndex) {
+          this.state.maxZIndex++;
+          draggable2.zIndex = this.state.maxZIndex;
+          server_log("draggable", this.state.gameId, this.state.roomId, `新しいz-index: ${this.state.maxZIndex}`);
+          this.emitDraggableUpdate(objectId);
+        }
       }
-      player.tokens.push(acquiredToken);
-      server_log(
-        "token",
-        this.state.gameId,
-        this.state.roomId,
-        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${tokenId} を獲得しました。`
-      );
-      this.emitTokenStoreUpdate(tokenStoreId);
+    } else {
+      if (type === "card") {
+        if (!Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
+        }
+        server_log("deck", this.state.gameId, this.state.roomId, "カードのを最背面に移動");
+        const card2 = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+        if (!card2) return;
+        if (!card2.zIndex) card2.zIndex = 100;
+        card2.zIndex = 100 + card2.zIndex % 100;
+        server_log("draggable", this.state.gameId, this.state.roomId, `新しいz-index: ${card2.zIndex}`);
+        this.emitDeckUpdate(objectId[0]);
+      } else {
+        if (Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
+        }
+        server_log("draggable", this.state.gameId, this.state.roomId, "ドラッグ可能オブジェクトを最背面に移動");
+        const draggable2 = this.state.draggable[objectId];
+        draggable2.zIndex = 100 + draggable2.zIndex % 100;
+        server_log("draggable", this.state.gameId, this.state.roomId, `新しいz-index: ${draggable2.zIndex}`);
+        this.emitDraggableUpdate(objectId);
+      }
     }
   }
   /**
@@ -2613,8 +3296,172 @@ class Phase {
     return this.name;
   }
 }
+const wrapper = "_wrapper_7p4au_3";
+const open = "_open_7p4au_18";
+const container = "_container_7p4au_22";
+const title = "_title_7p4au_31";
+const field = "_field_7p4au_39";
+const label = "_label_7p4au_45";
+const slider = "_slider_7p4au_52";
+const hamburger = "_hamburger_7p4au_58";
+const saveButton = "_saveButton_7p4au_77";
+const input = "_input_7p4au_89";
+const styles = {
+  wrapper,
+  open,
+  container,
+  title,
+  field,
+  label,
+  slider,
+  hamburger,
+  saveButton,
+  input
+};
+const ControlPanel = ({ socket, gameIds }) => {
+  const [initialValues, setInitialValues] = useState({
+    maxPlayers: 1,
+    handDeckId: "main",
+    handCount: 0
+  });
+  const [selectedGameId, setSelectedGameId] = useState(gameIds[0] || "");
+  const [maxPlayers, setMaxPlayers] = useState(1);
+  const [handDeckId, setHandDeckId] = useState("main");
+  const [handCount, setHandCount] = useState(0);
+  const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
+  const isHandDirty = handDeckId !== initialValues.handDeckId || handCount !== initialValues.handCount;
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  useEffect(() => {
+    const onUpdated = (data) => {
+      if (data.success) {
+        setIsSaving(false);
+        setShowSuccess(true);
+        setInitialValues({
+          maxPlayers,
+          handDeckId,
+          handCount
+        });
+        setTimeout(() => setShowSuccess(false), 2e3);
+      }
+    };
+    socket.on("game-param:updated", onUpdated);
+    return () => {
+      socket.off("game-param:updated", onUpdated);
+    };
+  }, [socket, maxPlayers, handDeckId, handCount]);
+  const handleSave = () => {
+    if (!socket.connected || !selectedGameId) return;
+    const newParam = {};
+    if (isMaxPlayersDirty) {
+      newParam.maxPlayers = maxPlayers;
+    }
+    if (isHandDirty) {
+      newParam.initialHand = {
+        deckId: handDeckId,
+        count: handCount
+      };
+    }
+    if (Object.keys(newParam).length === 0) {
+      alert("変更箇所がありません");
+      return;
+    }
+    setIsSaving(true);
+    socket.emit("game-param:save", {
+      gameId: selectedGameId,
+      newParam
+    });
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.hamburger, onClick: () => setIsOpen(!isOpen), children: isOpen ? "✕" : "☰" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ""}`, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.container, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: "コントロールパネル" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "対象ゲームを選択:" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "select",
+          {
+            className: styles.select,
+            value: selectedGameId,
+            onChange: (e) => {
+              setSelectedGameId(e.target.value);
+            },
+            children: gameIds.map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: id, children: id }, id))
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            "最大プレイヤー数: ",
+            isMaxPlayersDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: maxPlayers })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "range",
+            min: "1",
+            max: "10",
+            className: styles.slider,
+            value: maxPlayers,
+            onChange: (e) => {
+              setMaxPlayers(Number(e.target.value));
+            }
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+          "初期手札: ",
+          isHandDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "text",
+            className: styles.input,
+            value: handDeckId,
+            onChange: (e) => {
+              setHandDeckId(e.target.value);
+            }
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "枚数:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: handCount })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "range",
+            min: "0",
+            max: "10",
+            className: styles.slider,
+            value: handCount,
+            onChange: (e) => {
+              setHandCount(Number(e.target.value));
+            }
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          className: styles.saveButton,
+          onClick: handleSave,
+          disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty,
+          children: isSaving ? "保存中..." : showSuccess ? "完了" : "変更箇所のみ反映"
+        }
+      )
+    ] }) })
+  ] });
+};
 export {
   Cell,
+  ControlPanel,
   Deck,
   Dice,
   Draggable,

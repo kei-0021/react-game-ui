@@ -4,7 +4,7 @@ const CLIENT_LOG_CATEGORIES = {
     socket: true,
     component: true,
     card: true,
-    playField: true
+    playField: true,
     // ... その他必要なカテゴリ
 };
 export function client_log(tag, ...args) {

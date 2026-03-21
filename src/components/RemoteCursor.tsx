@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import type { Socket } from "socket.io-client";
-import type { PlayerId, RoomId } from "../types/definition.js";
-import styles from "./RemoteCursor.module.css";
+import React, { useEffect, useState } from 'react';
+import type { Socket } from 'socket.io-client';
+import type { PlayerId, RoomId } from '../types/definition.js';
+import styles from './RemoteCursor.module.css';
 
 type RemoteCursorCoords = { x: number; y: number };
 
@@ -17,28 +17,13 @@ interface Props {
 }
 
 export const RemoteCursor = React.memo(
-  ({
-    socket,
-    roomId,
-    myPlayerId,
-    players,
-    scale,
-    fixedContainerRef,
-    visible,
-    isRelative = true,
-  }: Props) => {
-    const [remoteCursors, setRemoteCursors] = useState<
-      Record<string, RemoteCursorCoords>
-    >({});
+  ({ socket, roomId, myPlayerId, players, scale, fixedContainerRef, visible, isRelative = true }: Props) => {
+    const [remoteCursors, setRemoteCursors] = useState<Record<string, RemoteCursorCoords>>({});
 
     useEffect(() => {
       if (!socket) return;
 
-      const handleUpdate = (data: {
-        playerId: string;
-        x: number;
-        y: number;
-      }) => {
+      const handleUpdate = (data: { playerId: string; x: number; y: number }) => {
         if (data.playerId === socket.id || data.playerId === myPlayerId) return;
 
         setRemoteCursors((prev) => ({
@@ -47,15 +32,14 @@ export const RemoteCursor = React.memo(
         }));
       };
 
-      socket.on("cursor:update", handleUpdate);
+      socket.on('cursor:update', handleUpdate);
       return () => {
-        socket.off("cursor:update", handleUpdate);
+        socket.off('cursor:update', handleUpdate);
       };
     }, [socket, myPlayerId]);
 
     useEffect(() => {
-      if (!socket || !roomId || !myPlayerId || !fixedContainerRef.current)
-        return;
+      if (!socket || !roomId || !myPlayerId || !fixedContainerRef.current) return;
 
       const THROTTLE = 50;
       let lastTime = 0;
@@ -67,14 +51,10 @@ export const RemoteCursor = React.memo(
 
         const rect = fixedContainerRef.current!.getBoundingClientRect();
 
-        const x = isRelative
-          ? (e.clientX - rect.left) / rect.width
-          : (e.clientX - rect.left) / scale;
-        const y = isRelative
-          ? (e.clientY - rect.top) / rect.height
-          : (e.clientY - rect.top) / scale;
+        const x = isRelative ? (e.clientX - rect.left) / rect.width : (e.clientX - rect.left) / scale;
+        const y = isRelative ? (e.clientY - rect.top) / rect.height : (e.clientY - rect.top) / scale;
 
-        socket.emit("cursor:move", {
+        socket.emit('cursor:move', {
           roomId,
           playerId: myPlayerId,
           x,
@@ -82,8 +62,8 @@ export const RemoteCursor = React.memo(
         });
       };
 
-      window.addEventListener("mousemove", handleMove);
-      return () => window.removeEventListener("mousemove", handleMove);
+      window.addEventListener('mousemove', handleMove);
+      return () => window.removeEventListener('mousemove', handleMove);
     }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
 
     if (!visible) return null;
@@ -92,21 +72,16 @@ export const RemoteCursor = React.memo(
       <div className={styles.container}>
         {Object.entries(remoteCursors).map(([id, coords]) => {
           const player =
-            players.find((p) => String(p.socketId) === String(id)) ||
-            players.find((p) => p.socketId !== myPlayerId);
+            players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
 
-          const name = player ? player.name : "接続中...";
-          const color = player?.color || "#000000";
+          const name = player ? player.name : '接続中...';
+          const color = player?.color || '#000000';
 
           const left = isRelative ? `${coords.x * 100}%` : coords.x;
           const top = isRelative ? `${coords.y * 100}%` : coords.y;
 
           return (
-            <div
-              key={id}
-              className={styles.cursorWrapper}
-              style={{ left, top }}
-            >
+            <div key={id} className={styles.cursorWrapper} style={{ left, top }}>
               <div className={styles.icon} style={{ color: color }}>
                 👆
               </div>

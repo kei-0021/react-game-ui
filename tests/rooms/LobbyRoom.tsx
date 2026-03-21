@@ -1,7 +1,9 @@
+// tests/rooms/LobbyRoom.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
-import type { RoomMeta } from '../../src/types/socketData';
+import { ControlPanel } from '../../src/components/ControlPanel';
+import type { LobbyRoomsList, RoomMeta } from '../../src/types/socketData';
 import './LobbyRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
@@ -23,8 +25,10 @@ const GAME_PRESETS = [
 
 export function LobbyRoom() {
   const [rooms, setRooms] = useState<RoomMeta[]>([]);
+  const [availableIds, setAvailableIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,9 +44,15 @@ export function LobbyRoom() {
     });
 
     // ルームリスト受信
-    lobbySocket.on('lobby:rooms-list', (fetchedRooms: RoomMeta[]) => {
-      fetchedRooms.sort((a, b) => b.createdAt - a.createdAt);
-      setRooms(fetchedRooms);
+    lobbySocket.on('lobby:rooms-list', (data: LobbyRoomsList) => {
+      const roomArray = Array.isArray(data) ? data : data.rooms || [];
+      roomArray.sort((a, b) => b.createdAt - a.createdAt);
+      setRooms(roomArray);
+
+      if (!Array.isArray(data) && data.availableGameIds) {
+        setAvailableIds(data.availableGameIds);
+      }
+
       setIsLoading(false);
     });
 
@@ -58,7 +68,7 @@ export function LobbyRoom() {
     };
   }, []);
 
-  // 1. 既存ルームに参加
+  // 既存ルームに参加
   const handleJoinRoom = (roomMeta: RoomMeta) => {
     const preset = GAME_PRESETS.find((p) => p.id === roomMeta.gameId || p.name === roomMeta.gameId);
     const segment = preset ? preset.pathSegment : 'sample';
@@ -66,7 +76,7 @@ export function LobbyRoom() {
     navigate(`/game/${segment}/${roomMeta.id}`);
   };
 
-  // 2. 新しいルームを作成
+  // 新しいルームを作成
   const handleCreateRoom = (preset: (typeof GAME_PRESETS)[0]) => {
     const newRoomId = Math.random().toString(36).substring(2, 8);
     navigate(`/game/${preset.pathSegment}/${newRoomId}`);
@@ -127,6 +137,10 @@ export function LobbyRoom() {
             ))}
           </ul>
         )}
+      </div>
+
+      <div className={`control-panel-wrapper ${isPanelOpen ? 'open' : ''}`}>
+        {socket && <ControlPanel socket={socket} gameIds={availableIds} />}
       </div>
     </div>
   );

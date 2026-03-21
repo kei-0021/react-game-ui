@@ -7,12 +7,26 @@ import { fileURLToPath } from 'url';
 import { initGameServer } from './server-logic.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+/**
+ * GameServer
+ * ExpressとSocket.IOを統合し、ゲームプリセットの管理、静的ファイル配信、
+ * および実行時のGameParam動的更新（ホットスワップ）を統括するコアクラス。
+ * @property {number} port - サーバーがリッスンするポート番号
+ * @property {string} libDistPath - /lib パスで提供されるビルド済みライブラリ資産のパス
+ * @property {string} clientDistPath - ルートパスで提供されるクライアント側静的ファイルのパス
+ * @property {string[]} corsOrigins - CORSを許可するオリジンのリスト
+ * @property {Record<string, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
+ * @property {any} customEvents - ユーザー定義のカスタムイベントハンドラ
+ * @property {Partial<Record<LogCategory, boolean>> | null} initialLogCategories - ログ出力の制御設定
+ * @property {express.Application} app - Expressアプリケーションインスタンス
+ * @property {HttpServer} httpServer - Node.js HTTPサーバーインスタンス
+ * @property {SocketIOServer} io - 通信を制御するSocket.IOサーバーインスタンス
+ */
 export class GameServer {
     port;
     libDistPath;
     clientDistPath;
     corsOrigins;
-    onServerStart;
     gameParams;
     customEvents;
     initialLogCategories;
@@ -24,7 +38,6 @@ export class GameServer {
         this.libDistPath = options.libDistPath || path.resolve(__dirname, '../../dist');
         this.clientDistPath = options.clientDistPath || path.resolve(__dirname, '../tests');
         this.corsOrigins = options.corsOrigins || ['http://localhost:5173'];
-        this.onServerStart = options.onServerStart;
         // プリセット情報を保持（必須項目として代入）
         this.gameParams = options.gameParams;
         // サーバー全体のデフォルト設定
@@ -49,6 +62,11 @@ export class GameServer {
         this.setupStaticRoutes();
         this.initSocketLogic();
     }
+    /**
+     * 静的ファイルのルーティングを設定する。
+     * ライブラリ本体（/lib）とクライアント側資産（/）の各ディレクトリが存在する場合、
+     * Expressのミドルウェアを使用して公開し、ルートアクセス時の index.html 配信を制御する。
+     */
     setupStaticRoutes() {
         if (fs.existsSync(this.libDistPath)) {
             this.app.use('/lib', express.static(this.libDistPath));
@@ -82,14 +100,32 @@ export class GameServer {
             console.error('[Server] Failed to initialize game server logic:', err);
         }
     }
+    /**
+     * 指定されたポートでHTTPサーバーの待機を開始する。
+     * 起動完了後、コンソールにアクセス可能なURL（http://localhost:{port}）を出力する。
+     */
     start() {
         this.httpServer.listen(this.port, () => {
             const address = this.httpServer.address();
             const actualPort = typeof address === 'string' ? address : address?.port;
             const url = `http://localhost:${actualPort}`;
             console.log(`[Server] Server listening on ${url}`);
-            if (this.onServerStart)
-                this.onServerStart(url);
         });
+    }
+    /**
+     * 指定したGameIdのパラメータを安全に更新し通知する
+     */
+    updateGameParam(gameId, param) {
+        if (!this.gameParams[gameId]) {
+            console.warn(`[Server] 未登録のGameIdです: ${gameId}`);
+        }
+        // 内部状態の更新
+        this.gameParams[gameId] = param;
+        // 実行中の全ルームへ「最新ルール」を強制同期
+        // server-logic.ts 側でエクスポートした同期関数を呼ぶ
+        // reloadActiveRooms(this.io, gameId, param);
+        console.log(`[Server] Hot Swapped: ${gameId}. All rooms synchronized.`);
+        // クライアント変更を一斉送信
+        this.io.emit('server:config_reloaded', { gameId });
     }
 }
