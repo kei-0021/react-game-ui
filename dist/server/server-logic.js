@@ -198,7 +198,12 @@ export const ${data.gameId}Config: RoomConfig = {
                     createdAt: state.createdAt,
                 });
             }
-            socket.emit('lobby:rooms-list', roomList);
+            const availableGameIds = Object.keys(gameParams);
+            // 現在稼働中のルームとゲーム一覧を合わせて送る
+            socket.emit('lobby:rooms-list', {
+                rooms: roomList,
+                availableGameIds: availableGameIds,
+            });
         });
         // ルーム参加
         socket.on('room:join', async ({ roomId, playerName, gameId }) => {

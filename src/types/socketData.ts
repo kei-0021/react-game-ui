@@ -33,6 +33,11 @@ export type RoomMeta = {
   createdAt: number;
 };
 
+export type LobbyRoomsList = {
+  rooms: RoomMeta[];
+  availableGameIds: GameId[];
+};
+
 export type RoomJoinData = {
   roomId: RoomId;
   gameId: GameId;

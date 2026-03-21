@@ -19,6 +19,7 @@ import {
   GameNextRoundData,
   GameNextTrunData,
   GameTurnUpdateData,
+  LobbyRoomsList,
   ObjectBringToData,
   RoomJoinData,
   RoomMeta,
@@ -271,7 +272,13 @@ export const ${data.gameId}Config: RoomConfig = {
         });
       }
 
-      socket.emit('lobby:rooms-list', roomList);
+      const availableGameIds = Object.keys(gameParams);
+
+      // 現在稼働中のルームとゲーム一覧を合わせて送る
+      socket.emit('lobby:rooms-list', {
+        rooms: roomList,
+        availableGameIds: availableGameIds,
+      } as LobbyRoomsList);
     });
 
     // ルーム参加

@@ -44,6 +44,7 @@ export {
   type DeckDrawData,
   type GamePhaseUpdateData,
   type GameTurnUpdateData,
+  type LobbyRoomsList,
   type RoomJoinData,
   type RoomMeta,
 } from './types/socketData.js';

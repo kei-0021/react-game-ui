@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
 import { ControlPanel } from '../../src/components/ControlPanel';
-import type { RoomMeta } from '../../src/types/socketData';
+import type { LobbyRoomsList, RoomMeta } from '../../src/types/socketData';
 import './LobbyRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
@@ -25,6 +25,7 @@ const GAME_PRESETS = [
 
 export function LobbyRoom() {
   const [rooms, setRooms] = useState<RoomMeta[]>([]);
+  const [availableIds, setAvailableIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -43,9 +44,15 @@ export function LobbyRoom() {
     });
 
     // ルームリスト受信
-    lobbySocket.on('lobby:rooms-list', (fetchedRooms: RoomMeta[]) => {
-      fetchedRooms.sort((a, b) => b.createdAt - a.createdAt);
-      setRooms(fetchedRooms);
+    lobbySocket.on('lobby:rooms-list', (data: LobbyRoomsList) => {
+      const roomArray = Array.isArray(data) ? data : data.rooms || [];
+      roomArray.sort((a, b) => b.createdAt - a.createdAt);
+      setRooms(roomArray);
+
+      if (!Array.isArray(data) && data.availableGameIds) {
+        setAvailableIds(data.availableGameIds);
+      }
+
       setIsLoading(false);
     });
 
@@ -133,7 +140,7 @@ export function LobbyRoom() {
       </div>
 
       <div className={`control-panel-wrapper ${isPanelOpen ? 'open' : ''}`}>
-        {socket && <ControlPanel socket={socket} gameIds={['sample', 'deepabyss']} />}
+        {socket && <ControlPanel socket={socket} gameIds={availableIds} />}
       </div>
     </div>
   );
