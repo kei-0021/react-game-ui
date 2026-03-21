@@ -1,7 +1,8 @@
+#!/usr/bin/env node
 // src/cli/delete-game.ts
 import fs from 'node:fs';
 import path from 'node:path';
-const rawName = process.argv[2];
+const rawName = process.argv[3];
 if (!rawName) {
     console.error('削除するゲーム名を指定してください');
     process.exit(1);

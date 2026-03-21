@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// src/cli/generate-new-game.ts
 import fs from 'node:fs';
 import path from 'node:path';
 

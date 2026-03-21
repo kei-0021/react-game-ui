@@ -38,6 +38,9 @@
     "dev:multi": "concurrently \"npm run server\" \"vite\"",
     "test": "vitest"
   },
+  "bin": {
+    "rg-ui": "./dist/cli/index.js"
+  },
   "peerDependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
