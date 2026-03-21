@@ -10,5 +10,5 @@
     "allowArbitraryExtensions": true,
     "noEmit": true
   },
-  "include": ["./**/*", "../src/vite-env.d.ts"]
+  "include": ["./**/*", "../src/vite-env.d.ts", "../src/components/ControlPanel.tsx"]
 }

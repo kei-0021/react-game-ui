@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
+import { ControlPanel } from '../../src/components/ControlPanel';
 import type { RoomMeta } from '../../src/types/socketData';
-import { ControlPanel } from '../components/ControlPanel';
 import './LobbyRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';

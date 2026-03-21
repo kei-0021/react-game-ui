@@ -4,14 +4,22 @@ import type { Socket } from 'socket.io-client';
 import styles from './ControlPanel.module.css';
 
 export const ControlPanel = ({ socket, gameIds }: { socket: Socket; gameIds: string[] }) => {
+  // 保存済みの基準値
+  const [initialValues, setInitialValues] = useState({
+    maxPlayers: 1,
+    handDeckId: 'main',
+    handCount: 0,
+  });
+
   const [selectedGameId, setSelectedGameId] = useState(gameIds[0] || '');
 
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [handDeckId, setHandDeckId] = useState('main');
   const [handCount, setHandCount] = useState(0);
 
-  const [isMaxPlayersDirty, setIsMaxPlayersDirty] = useState(false);
-  const [isHandDirty, setIsHandDirty] = useState(false);
+  // フラグは State ではなく、その場で計算
+  const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
+  const isHandDirty = handDeckId !== initialValues.handDeckId || handCount !== initialValues.handCount;
 
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -23,9 +31,12 @@ export const ControlPanel = ({ socket, gameIds }: { socket: Socket; gameIds: str
       if (data.success) {
         setIsSaving(false);
         setShowSuccess(true);
-        // 保存できたらフラグをリセット
-        setIsMaxPlayersDirty(false);
-        setIsHandDirty(false);
+        // 保存できたら、現在の値を新しい「基準値」としてセット
+        setInitialValues({
+          maxPlayers,
+          handDeckId,
+          handCount,
+        });
         setTimeout(() => setShowSuccess(false), 2000);
       }
     };
@@ -35,7 +46,7 @@ export const ControlPanel = ({ socket, gameIds }: { socket: Socket; gameIds: str
     return () => {
       socket.off('game-param:updated', onUpdated);
     };
-  }, [socket]);
+  }, [socket, maxPlayers, handDeckId, handCount]);
 
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
@@ -86,9 +97,7 @@ export const ControlPanel = ({ socket, gameIds }: { socket: Socket; gameIds: str
               value={selectedGameId}
               onChange={(e) => {
                 setSelectedGameId(e.target.value);
-                // ゲームを切り替えたら一旦フラグを落とす（誤爆防止）
-                setIsMaxPlayersDirty(false);
-                setIsHandDirty(false);
+                // 本来はここで選択したゲームの初期値をサーバーから取ってきて setInitialValues するのがベスト
               }}
             >
               {gameIds.map((id) => (
@@ -112,7 +121,6 @@ export const ControlPanel = ({ socket, gameIds }: { socket: Socket; gameIds: str
               value={maxPlayers}
               onChange={(e) => {
                 setMaxPlayers(Number(e.target.value));
-                setIsMaxPlayersDirty(true); // 触ったらフラグON
               }}
             />
           </div>
@@ -128,7 +136,6 @@ export const ControlPanel = ({ socket, gameIds }: { socket: Socket; gameIds: str
               value={handDeckId}
               onChange={(e) => {
                 setHandDeckId(e.target.value);
-                setIsHandDirty(true);
               }}
             />
             <div className={styles.label}>
@@ -143,7 +150,6 @@ export const ControlPanel = ({ socket, gameIds }: { socket: Socket; gameIds: str
               value={handCount}
               onChange={(e) => {
                 setHandCount(Number(e.target.value));
-                setIsHandDirty(true);
               }}
             />
           </div>
