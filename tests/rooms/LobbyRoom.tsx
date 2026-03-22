@@ -3,14 +3,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
 import { ControlPanel } from '../../src/components/ControlPanel';
-import type { LobbyRoomsList, RoomMeta } from '../../src/types/socketData';
+import type { GameMeta, LobbyList, RoomMeta } from '../../src/types/socketData';
 import './LobbyRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
 
 export function LobbyRoom() {
+  const [games, setGames] = useState<GameMeta[]>([]);
   const [rooms, setRooms] = useState<RoomMeta[]>([]);
-  const [availableIds, setAvailableIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -28,14 +28,14 @@ export function LobbyRoom() {
       lobbySocket.emit('custom:events:1');
     });
 
-    // ルームリスト受信
-    lobbySocket.on('lobby:rooms-list', (data: LobbyRoomsList) => {
+    // ロビーリスト受信
+    lobbySocket.on('lobby:list', (data: LobbyList) => {
       const roomArray = Array.isArray(data) ? data : data.rooms || [];
       roomArray.sort((a, b) => b.createdAt - a.createdAt);
       setRooms(roomArray);
 
-      if (!Array.isArray(data) && data.availableGameIds) {
-        setAvailableIds(data.availableGameIds);
+      if (!Array.isArray(data) && data.games) {
+        setGames(data.games);
       }
 
       setIsLoading(false);
@@ -47,7 +47,7 @@ export function LobbyRoom() {
 
     return () => {
       lobbySocket.off('connect');
-      lobbySocket.off('lobby:rooms-list');
+      lobbySocket.off('lobby:list');
       lobbySocket.off('lobby:room-update');
       lobbySocket.disconnect();
     };
@@ -72,14 +72,14 @@ export function LobbyRoom() {
       <div className="section create-room-section">
         <h2 className="section-title">新しいゲームを始める</h2>
         <div className="preset-button-group" style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-          {availableIds.map((gameId) => (
+          {games.map((gameMeta) => (
             <button
-              key={gameId}
-              onClick={() => handleCreateRoom(gameId)}
+              key={gameMeta.gameId}
+              onClick={() => handleCreateRoom(gameMeta.gameId)}
               className={`button primary-button`}
               disabled={!socket?.connected}
             >
-              {gameId}
+              {gameMeta.gameIcon} {gameMeta.gameId}
             </button>
           ))}
         </div>
@@ -123,7 +123,7 @@ export function LobbyRoom() {
       </div>
 
       <div className={`control-panel-wrapper ${isPanelOpen ? 'open' : ''}`}>
-        {socket && <ControlPanel socket={socket} gameIds={availableIds} />}
+        {socket && <ControlPanel socket={socket} gameIds={Object.keys((gameMeta) => gameMeta.gameId)} />}
       </div>
     </div>
   );

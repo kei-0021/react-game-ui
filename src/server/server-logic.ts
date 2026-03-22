@@ -16,10 +16,11 @@ import {
   DiceRollData,
   DiceUpdateData,
   DraggableMovedData,
+  GameMeta,
   GameNextRoundData,
   GameNextTrunData,
   GameTurnUpdateData,
-  LobbyRoomsList,
+  LobbyList,
   ObjectBringToData,
   RoomJoinData,
   RoomMeta,
@@ -126,7 +127,6 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     roomId: roomId,
     gameId: param.gameId || '不明なゲーム',
     createdAt: Date.now(),
-    maxPlayers: param.maxPlayers,
     currentTurnIndex: 0,
     currentRoundIndex: -1,
     currentPhase: param.initialPhase,
@@ -260,26 +260,27 @@ export const ${data.gameId}Config: RoomConfig = {
 
     // ロビー
     socket.on('lobby:get-rooms', () => {
-      const roomList: RoomMeta[] = [];
+      const gameList: GameMeta[] = Object.keys(gameParams).map((id) => ({
+        gameId: id,
+        gameIcon: gameParams[id].gameIcon,
+      }));
 
+      const roomList: RoomMeta[] = [];
       for (const [id, state] of activeRooms) {
         roomList.push({
           id,
           gameId: state.gameId,
-          gameIcon: gameParams[state.gameId].gameIcon,
           playerCount: state.players.length,
-          maxPlayers: state.maxPlayers,
+          maxPlayers: gameParams[state.gameId].maxPlayers,
           createdAt: state.createdAt,
         });
       }
 
-      const availableGameIds = Object.keys(gameParams);
-
       // 現在稼働中のルームとゲーム一覧を合わせて送る
-      socket.emit('lobby:rooms-list', {
+      socket.emit('lobby:list', {
+        games: gameList,
         rooms: roomList,
-        availableGameIds: availableGameIds,
-      } as LobbyRoomsList);
+      } as LobbyList);
     });
 
     // ルーム参加

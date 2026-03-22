@@ -51,6 +51,7 @@ export const deepAbyssConfig: RoomConfig = {
 
     return {
       gameId: 'deepabyss',
+      gameIcon: '🌊',
       initialDecks: [
         {
           deckId: 'deepAbyssSpecies',

@@ -72,7 +72,6 @@ function initializeRoom(roomId, param) {
         roomId: roomId,
         gameId: param.gameId || '不明なゲーム',
         createdAt: Date.now(),
-        maxPlayers: param.maxPlayers,
         currentTurnIndex: 0,
         currentRoundIndex: -1,
         currentPhase: param.initialPhase,
@@ -188,22 +187,24 @@ export const ${data.gameId}Config: RoomConfig = {
         });
         // ロビー
         socket.on('lobby:get-rooms', () => {
+            const gameList = Object.keys(gameParams).map((id) => ({
+                gameId: id,
+                gameIcon: gameParams[id].gameIcon,
+            }));
             const roomList = [];
             for (const [id, state] of activeRooms) {
                 roomList.push({
                     id,
                     gameId: state.gameId,
-                    gameIcon: gameParams[state.gameId].gameIcon,
                     playerCount: state.players.length,
-                    maxPlayers: state.maxPlayers,
+                    maxPlayers: gameParams[state.gameId].maxPlayers,
                     createdAt: state.createdAt,
                 });
             }
-            const availableGameIds = Object.keys(gameParams);
             // 現在稼働中のルームとゲーム一覧を合わせて送る
-            socket.emit('lobby:rooms-list', {
+            socket.emit('lobby:list', {
+                games: gameList,
                 rooms: roomList,
-                availableGameIds: availableGameIds,
             });
         });
         // ルーム参加

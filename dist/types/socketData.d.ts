@@ -6,17 +6,20 @@ import { Coordinate } from './coodinate.js';
 import { BoardId, CardId, DeckId, DiceId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
 import { Phase } from './phase.js';
 import { Token } from './token.js';
+export type GameMeta = {
+    gameId: GameId;
+    gameIcon: string;
+};
 export type RoomMeta = {
     id: RoomId;
     gameId: GameId;
-    gameIcon: string;
     playerCount: number;
     maxPlayers?: number;
     createdAt: number;
 };
-export type LobbyRoomsList = {
+export type LobbyList = {
+    games: GameMeta[];
     rooms: RoomMeta[];
-    availableGameIds: GameId[];
 };
 export type RoomJoinData = {
     roomId: RoomId;

@@ -70,7 +70,6 @@ export type GameParam = {
  * @param gameId - 適用されているゲーム設定の識別ID。
  * @param roomId - ルームを一意に識別するID。
  * @param createdAt - ルームが作成されたタイムスタンプ。
- * @param maxPlayers - このルームの最大参加人数。
  * @param currentRoundIndex - 現在のラウンド数（0開始）。
  * @param currentTurnIndex - 現在のターン数（0開始）。
  * @param currentPhase - 現在の進行フェーズ。
@@ -89,7 +88,6 @@ export interface RoomState {
     gameId: GameId;
     roomId: RoomId;
     createdAt: number;
-    maxPlayers?: number;
     currentRoundIndex: number;
     currentTurnIndex: number;
     currentPhase?: Phase;

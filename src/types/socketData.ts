@@ -22,21 +22,25 @@ import { Token } from './token.js';
 
 /*
  * ===========================================
- * ルーム・接続関連
+ * ゲーム・ルーム情報
  * ===========================================
  */
+export type GameMeta = {
+  gameId: GameId;
+  gameIcon: string;
+};
+
 export type RoomMeta = {
   id: RoomId;
   gameId: GameId;
-  gameIcon: string;
   playerCount: number;
   maxPlayers?: number;
   createdAt: number;
 };
 
-export type LobbyRoomsList = {
+export type LobbyList = {
+  games: GameMeta[];
   rooms: RoomMeta[];
-  availableGameIds: GameId[];
 };
 
 export type RoomJoinData = {

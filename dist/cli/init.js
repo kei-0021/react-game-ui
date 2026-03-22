@@ -98,7 +98,7 @@ export default function LobbyRoom() {
       lobbySocket.emit("lobby:get-rooms");
     });
 
-    lobbySocket.on("lobby:rooms-list", (fetchedRooms: RoomMeta[]) => {
+    lobbySocket.on("lobby:list", (fetchedRooms: RoomMeta[]) => {
       fetchedRooms.sort((a, b) => b.createdAt - a.createdAt);
       setRooms(fetchedRooms);
       setIsLoading(false);
