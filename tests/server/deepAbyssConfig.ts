@@ -128,6 +128,7 @@ export const deepAbyssConfig: RoomConfig = {
           .map((p, index) => ({ rank: index + 1, name: p.name, score: p.score }));
         return { message: '潜水任務完了', rankings, finalRound: state.currentRoundIndex };
       },
+      components: [],
     };
   },
 };

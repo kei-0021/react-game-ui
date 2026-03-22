@@ -34,6 +34,7 @@ import { TokenStore } from './tokenStore.js';
  * @param onNextRound - 次のラウンドへ進んだ時のカスタムフック。
  * @param checkGameEnd - 終了判定ロジック。
  * @param onGameEnd - リザルト生成ロジック。
+ * @param components - クライアントサイドで表示するコンポーンネント一覧。
  */
 export type GameParam = {
     gameId: GameId;
@@ -64,6 +65,7 @@ export type GameParam = {
     onNextRound?: (state: RoomState, manager: RoomManager) => void;
     checkGameEnd?: (state: RoomState) => void;
     onGameEnd?: (state: RoomState) => any;
+    components: ComponentInfo[];
 };
 /**
  * 実行中のゲームルームの動的な状態を管理する。
@@ -102,6 +104,12 @@ export interface RoomState {
     draggable: Record<DraggableId, DraggableData>;
     maxZIndex: number;
     systemMessageHistory: string[];
+}
+export type ComponentType = 'Deck' | 'PlayField' | 'ScoreBoard' | 'TokenStore' | 'GridBoard' | 'Draggable' | 'Dice' | 'Timer' | 'SystemMessage';
+export interface ComponentInfo {
+    id: string;
+    type: ComponentType;
+    props: Record<string, any>;
 }
 export { GameId };
 //# sourceMappingURL=server.d.ts.map

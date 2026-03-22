@@ -1,10 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
-// ESM環境で __dirname を再現する
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const activeRooms = new Map();
 const roomTimers = new Map();
 /**
@@ -261,6 +257,12 @@ export const ${data.gameId}Config: RoomConfig = {
             }
             // 各種コンポーネントの準備
             socket.emit('player:assign-id', player.id);
+            // コンポーネント情報を伝える
+            const data = {
+                state: state,
+                components: param.components,
+            };
+            socket.emit('game:component', data);
             // ここで準備完了を促す
             socket.emit('client:ready-to-sync', player.id);
         });

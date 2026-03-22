@@ -9,12 +9,14 @@ import { useParams } from 'react-router-dom';
 import { Deck } from '../../src/components/Deck';
 import { Dice } from '../../src/components/Dice';
 import { Draggable } from '../../src/components/Draggable';
+import { DynamicComponent } from '../../src/components/DynamicComponent';
 import { PlayField } from '../../src/components/PlayField';
 import { RemoteCursor } from '../../src/components/RemoteCursor';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
 import Timer from '../../src/components/Timer';
 import { useSocket } from '../../src/hooks/useSocket';
 import { Player } from '../../src/types/player';
+import type { ComponentInfo } from '../../src/types/server';
 import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
 import './SampleRoom.css';
 
@@ -28,6 +30,8 @@ export function SampleRoom() {
   const [userName, setUserName] = useState<string>('');
   const [isJoining, setIsJoining] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
+
+  const [componentInfo, setComponentInfo] = useState<ComponentInfo[]>([]);
 
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -61,6 +65,10 @@ export function SampleRoom() {
       setIsJoining(false);
     };
 
+    const handleGameComponent = (data: { components: ComponentInfo[] }) => {
+      setComponentInfo(data.components);
+    };
+
     const onClientReady = () => {
       socket.emit('client:ready', roomId);
     };
@@ -78,12 +86,14 @@ export function SampleRoom() {
 
     socket.on('player:assign-id', handleAssignId);
     socket.on('client:ready-to-sync', onClientReady);
+    socket.on('game:component', handleGameComponent);
     socket.on('players:update', handlePlayersUpdate);
     socket.on('game:turn', handleGameTurn);
 
     return () => {
       socket.off('player:assign-id', handleAssignId);
       socket.off('client:ready-to-sync', onClientReady);
+      socket.off('room_init_success', handleGameComponent);
       socket.off('players:update', handlePlayersUpdate);
       socket.off('game:turn', handleGameTurn);
     };
@@ -142,6 +152,9 @@ export function SampleRoom() {
           tooltipText="快晴・曇り・風・雨"
         />
         <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" onRoll={setCurrentValue} />
+        {componentInfo.map((info) => (
+          <DynamicComponent key={info.id} type={info.type} props={info.props} socket={socket} roomId={roomId} />
+        ))}
       </div>
 
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>

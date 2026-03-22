@@ -16,6 +16,7 @@ import {
   DiceRollData,
   DiceUpdateData,
   DraggableMovedData,
+  GameComponentData,
   GameMeta,
   GameNextRoundData,
   GameNextTrunData,
@@ -30,16 +31,11 @@ import { Token } from '@/types/token.js';
 import { TokenStore } from '@/types/tokenStore.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { Server, Socket } from 'socket.io';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
 import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 import type { GameServerOptions } from './server.js';
-
-// ESM環境で __dirname を再現する
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const activeRooms = new Map<string, RoomState>();
 const roomTimers = new Map<string, NodeJS.Timeout>();
@@ -340,6 +336,13 @@ export const ${data.gameId}Config: RoomConfig = {
       }
       // 各種コンポーネントの準備
       socket.emit('player:assign-id', player.id);
+
+      // コンポーネント情報を伝える
+      const data: GameComponentData = {
+        state: state,
+        components: param.components,
+      };
+      socket.emit('game:component', data);
 
       // ここで準備完了を促す
       socket.emit('client:ready-to-sync', player.id);

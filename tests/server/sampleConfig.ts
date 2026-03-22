@@ -46,6 +46,18 @@ export const sampleConfig: RoomConfig = {
       ],
       draggable: draggables,
       maxPlayers: 1,
+      components: [
+        {
+          id: 'extra-coin-flip',
+          type: 'Dice',
+          props: {
+            diceId: 'coin',
+            sides: 2,
+            title: '追加2面ダイス',
+            tooltipText: '表か裏か',
+          },
+        },
+      ],
     };
   },
 };

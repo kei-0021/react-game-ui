@@ -1,4 +1,5 @@
 import { CellData } from '@/index.js';
+import { ComponentInfo, RoomState } from '@/types/server.js';
 import { Card } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
@@ -21,6 +22,10 @@ export type LobbyList = {
     games: GameMeta[];
     rooms: RoomMeta[];
 };
+export interface GameComponentData {
+    state: RoomState;
+    components: ComponentInfo[];
+}
 export type RoomJoinData = {
     roomId: RoomId;
     gameId: GameId;
