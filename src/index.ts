@@ -45,6 +45,7 @@ export {
   type GameMeta,
   type GamePhaseUpdateData,
   type GameTurnUpdateData,
+  type LobbyGameList,
   type LobbyRoomList,
   type RoomJoinData,
   type RoomMeta,
