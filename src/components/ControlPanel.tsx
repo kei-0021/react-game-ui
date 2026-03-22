@@ -4,7 +4,17 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import styles from './ControlPanel.module.css';
 
-export const ControlPanel = ({ socket, gameMeta }: { socket: Socket; gameMeta: GameMeta[] }) => {
+export const ControlPanel = ({
+  socket,
+  gameMeta,
+  isOpen,
+  onToggle,
+}: {
+  socket: Socket;
+  gameMeta: GameMeta[];
+  isOpen: boolean;
+  onToggle: () => void;
+}) => {
   const [selectedGameId, setSelectedGameId] = useState<string>(gameMeta[0]?.gameId || '');
 
   const [maxPlayers, setMaxPlayers] = useState(1);
@@ -19,7 +29,6 @@ export const ControlPanel = ({ socket, gameMeta }: { socket: Socket; gameMeta: G
     initialHand: {},
   });
 
-  const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -67,10 +76,7 @@ export const ControlPanel = ({ socket, gameMeta }: { socket: Socket; gameMeta: G
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
     if (isHandDirty) newParam.initialHand = initialHand;
 
-    if (Object.keys(newParam).length === 0) {
-      alert('変更箇所がありません');
-      return;
-    }
+    if (Object.keys(newParam).length === 0) return;
 
     setIsSaving(true);
     socket.emit('game-param:save', {
@@ -81,7 +87,7 @@ export const ControlPanel = ({ socket, gameMeta }: { socket: Socket; gameMeta: G
 
   return (
     <>
-      <button className={styles.hamburger} onClick={() => setIsOpen(!isOpen)}>
+      <button className={styles.hamburger} onClick={onToggle}>
         {isOpen ? '✕' : '☰'}
       </button>
 

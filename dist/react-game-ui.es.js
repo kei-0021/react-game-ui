@@ -3316,7 +3316,12 @@ const styles = {
   hamburger,
   saveButton
 };
-const ControlPanel = ({ socket, gameMeta }) => {
+const ControlPanel = ({
+  socket,
+  gameMeta,
+  isOpen,
+  onToggle
+}) => {
   const [selectedGameId, setSelectedGameId] = useState(gameMeta[0]?.gameId || "");
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState({});
@@ -3324,7 +3329,6 @@ const ControlPanel = ({ socket, gameMeta }) => {
     maxPlayers: 1,
     initialHand: {}
   });
-  const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
@@ -3361,10 +3365,7 @@ const ControlPanel = ({ socket, gameMeta }) => {
     const newParam = {};
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
     if (isHandDirty) newParam.initialHand = initialHand;
-    if (Object.keys(newParam).length === 0) {
-      alert("変更箇所がありません");
-      return;
-    }
+    if (Object.keys(newParam).length === 0) return;
     setIsSaving(true);
     socket.emit("game-param:save", {
       gameId: selectedGameId,
@@ -3372,7 +3373,7 @@ const ControlPanel = ({ socket, gameMeta }) => {
     });
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.hamburger, onClick: () => setIsOpen(!isOpen), children: isOpen ? "✕" : "☰" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? "✕" : "☰" }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ""}`, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.container, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: "コントロールパネル" }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [

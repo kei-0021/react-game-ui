@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useEffect, useMemo, useState } from 'react';
 import styles from './ControlPanel.module.css';
-export const ControlPanel = ({ socket, gameMeta }) => {
+export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
     const [selectedGameId, setSelectedGameId] = useState(gameMeta[0]?.gameId || '');
     const [maxPlayers, setMaxPlayers] = useState(1);
     // initialHand 全体を管理するように変更
@@ -10,7 +10,6 @@ export const ControlPanel = ({ socket, gameMeta }) => {
         maxPlayers: 1,
         initialHand: {},
     });
-    const [isOpen, setIsOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
@@ -51,17 +50,15 @@ export const ControlPanel = ({ socket, gameMeta }) => {
             newParam.maxPlayers = maxPlayers;
         if (isHandDirty)
             newParam.initialHand = initialHand;
-        if (Object.keys(newParam).length === 0) {
-            alert('変更箇所がありません');
+        if (Object.keys(newParam).length === 0)
             return;
-        }
         setIsSaving(true);
         socket.emit('game-param:save', {
             gameId: selectedGameId,
             newParam,
         });
     };
-    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: () => setIsOpen(!isOpen), children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.container, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsxs("div", { className: styles.field, children: [_jsx("div", { className: styles.label, children: "\u5BFE\u8C61\u30B2\u30FC\u30E0\u3092\u9078\u629E:" }), _jsx("select", { className: styles.select, value: selectedGameId, onChange: (e) => setSelectedGameId(e.target.value), children: gameMeta.map((game) => (_jsx("option", { value: game.gameId, children: game.gameId }, game.gameId))) })] }), selectedGame && (_jsxs(_Fragment, { children: [selectedGame.maxPlayers !== undefined && (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.label, children: [_jsxs("span", { children: ["\u6700\u5927\u30D7\u30EC\u30A4\u30E4\u30FC\u6570: ", isMaxPlayersDirty && _jsx("small", { children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("strong", { children: maxPlayers })] }), _jsx("input", { type: "range", min: "1", max: "10", className: styles.slider, value: maxPlayers, onChange: (e) => setMaxPlayers(Number(e.target.value)) })] })), Object.entries(initialHand).map(([deckId, count]) => (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.label, children: [_jsx("span", { children: _jsx("strong", { children: deckId }) }), initialValues.initialHand[deckId] !== count && _jsx("small", { children: " (\u5909\u66F4\u3042\u308A)" })] }), _jsxs("div", { className: styles.label, children: [_jsx("span", { children: "\u521D\u671F\u624B\u672D\u679A\u6570:" }), _jsx("strong", { children: count })] }), _jsx("input", { type: "range", min: "0", max: "10", className: styles.slider, value: count, onChange: (e) => {
+    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.container, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsxs("div", { className: styles.field, children: [_jsx("div", { className: styles.label, children: "\u5BFE\u8C61\u30B2\u30FC\u30E0\u3092\u9078\u629E:" }), _jsx("select", { className: styles.select, value: selectedGameId, onChange: (e) => setSelectedGameId(e.target.value), children: gameMeta.map((game) => (_jsx("option", { value: game.gameId, children: game.gameId }, game.gameId))) })] }), selectedGame && (_jsxs(_Fragment, { children: [selectedGame.maxPlayers !== undefined && (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.label, children: [_jsxs("span", { children: ["\u6700\u5927\u30D7\u30EC\u30A4\u30E4\u30FC\u6570: ", isMaxPlayersDirty && _jsx("small", { children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("strong", { children: maxPlayers })] }), _jsx("input", { type: "range", min: "1", max: "10", className: styles.slider, value: maxPlayers, onChange: (e) => setMaxPlayers(Number(e.target.value)) })] })), Object.entries(initialHand).map(([deckId, count]) => (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.label, children: [_jsx("span", { children: _jsx("strong", { children: deckId }) }), initialValues.initialHand[deckId] !== count && _jsx("small", { children: " (\u5909\u66F4\u3042\u308A)" })] }), _jsxs("div", { className: styles.label, children: [_jsx("span", { children: "\u521D\u671F\u624B\u672D\u679A\u6570:" }), _jsx("strong", { children: count })] }), _jsx("input", { type: "range", min: "0", max: "10", className: styles.slider, value: count, onChange: (e) => {
                                                 setInitialHand({
                                                     ...initialHand,
                                                     [deckId]: Number(e.target.value),

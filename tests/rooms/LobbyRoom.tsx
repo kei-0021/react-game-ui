@@ -70,6 +70,23 @@ export function LobbyRoom() {
 
   return (
     <div className="lobby-container">
+      {/* パネルが開いている時だけ背後に敷く透明なレイヤー */}
+      {isPanelOpen && (
+        <div
+          className="panel-overlay"
+          onClick={() => setIsPanelOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 998,
+            background: 'transparent',
+          }}
+        />
+      )}
+
       <h1 className="lobby-title">🎲 ゲームロビー 🤝</h1>
 
       <div className="section create-room-section">
@@ -125,8 +142,15 @@ export function LobbyRoom() {
         )}
       </div>
 
-      <div className={`control-panel-wrapper ${isPanelOpen ? 'open' : ''}`}>
-        {socket && <ControlPanel socket={socket} gameMeta={games} />}
+      <div className={`control-panel-wrapper ${isPanelOpen ? 'open' : ''}`} style={{ zIndex: 999 }}>
+        {socket && (
+          <ControlPanel
+            socket={socket}
+            gameMeta={games}
+            isOpen={isPanelOpen}
+            onToggle={() => setIsPanelOpen(!isPanelOpen)}
+          />
+        )}
       </div>
     </div>
   );
