@@ -21,7 +21,7 @@ import { TokenStore } from './tokenStore.js';
  * @param initialHand - デッキごとの初期手札の枚数設定。
  * @param initialResources - プレイヤーの初期リソース。
  * @param initialTokenStores - 共有トークンの保管場所。
- * @param initialTokens - ボード上の初期配置トークン。
+ * @param initialTokens - トークンごとの初期配布個数設定。
  * @param initialBoard - ボードの初期レイアウト。
  * @param shuffleAndReconnectBoard - シャッフルと再接続を利用するボードとその戦略関数。
  * @param pieceImage - ボード上のプレイヤーコマに使用する画像URL。
@@ -46,10 +46,7 @@ export type GameParam = {
   initialHand?: Record<DeckId, number>;
   initialResources?: Resource[];
   initialTokenStores?: TokenStore[];
-  initialTokens?: {
-    tokenId: TokenId;
-    count: number;
-  };
+  initialTokens?: Record<TokenId, number>;
   initialBoard?: Record<BoardId, CellData[]>;
   shuffleAndReconnectBoard?: Record<BoardId, (cells: CellData[]) => CellData[]>;
   pieceImage?: string;

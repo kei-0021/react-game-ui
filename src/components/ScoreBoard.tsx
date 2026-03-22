@@ -7,7 +7,6 @@ import { Socket } from 'socket.io-client';
 import { Card } from '../types/card.js';
 import { CardId, PlayerId, RoomId } from '../types/definition.js';
 import type { Resource } from '../types/resource.js';
-import { Token } from '../types/token.js';
 import { CardDisplayContent } from './Card.js';
 import scoreBoardStyles from './ScoreBoard.module.css';
 import { TokenDisplayContent } from './Token.js';
@@ -136,14 +135,14 @@ const PlayerListItem = React.memo(
         )}
 
         <div className={scoreBoardStyles.tokenList}>
-          {player.tokens.map((token: Token) => (
+          {Object.entries(player.tokens || {}).map(([tokenId, token]) => (
             <div
-              key={token.id}
+              key={tokenId}
               onClick={() => {
                 socket.emit('token:reclaim', {
                   roomId,
                   playerId: myPlayerId,
-                  tokenId: token.id,
+                  tokenId: tokenId,
                 });
               }}
             >

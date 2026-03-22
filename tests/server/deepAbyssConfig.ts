@@ -90,6 +90,7 @@ export const deepAbyssConfig: RoomConfig = {
         },
       ],
       initialHand: { deepAbyssAction: 6 },
+      initialTokens: { ARTIFACT: 2, Hanabishi: 3 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
       shuffleAndReconnectBoard: { deepAbyssBoard: cellShuffleAndReconnector },
       pieceImage: '/hanabishi.svg',

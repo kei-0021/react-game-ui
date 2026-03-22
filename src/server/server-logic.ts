@@ -312,7 +312,7 @@ export const ${data.gameId}Config: RoomConfig = {
           isHolding: false,
           score: 0,
           resources: JSON.parse(JSON.stringify(param.initialResources || [])),
-          tokens: JSON.parse(JSON.stringify(param.initialTokens || [])),
+          tokens: [],
           position: { row: 0, col: 0 },
           movableCells: [],
           pieceImage: param.pieceImage,
@@ -322,7 +322,6 @@ export const ${data.gameId}Config: RoomConfig = {
 
         // 初期手札配布処理
         const initialHand = param.initialHand;
-
         if (initialHand) {
           // initialHand に含まれるすべてのデッキ（deckId）をループ
           for (const [deckId, count] of Object.entries(initialHand)) {
@@ -341,6 +340,24 @@ export const ${data.gameId}Config: RoomConfig = {
               card.isFaceUp = card.drawCondition[1] === 'face';
 
               player.cards.push(card);
+            }
+          }
+        }
+
+        // 初期トークンの配布処理
+        const initialTokens = param.initialTokens;
+        if (initialTokens) {
+          for (const [tokenId, count] of Object.entries(initialTokens)) {
+            const masterTokenList = state.tokenStores[tokenId];
+
+            if (masterTokenList && masterTokenList.length > 0) {
+              // 配列の最初の要素（Tokenオブジェクト）を取り出す
+              const masterToken = masterTokenList[0];
+
+              for (let i = 0; i < count; i++) {
+                // オブジェクトをコピーして push
+                player.tokens.push(masterToken);
+              }
             }
           }
         }
