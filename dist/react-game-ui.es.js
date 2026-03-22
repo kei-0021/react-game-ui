@@ -3322,7 +3322,7 @@ const ControlPanel = ({
   isOpen,
   onToggle
 }) => {
-  const [selectedGameId, setSelectedGameId] = useState(gameMeta[0]?.gameId || "");
+  const [selectedGameId, setSelectedGameId] = useState("");
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState({});
   const [initialValues, setInitialValues] = useState({
@@ -3331,6 +3331,11 @@ const ControlPanel = ({
   });
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  useEffect(() => {
+    if (gameMeta.length > 0 && !selectedGameId) {
+      setSelectedGameId(gameMeta[0].gameId);
+    }
+  }, [gameMeta, selectedGameId]);
   const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
   useEffect(() => {
     if (selectedGame) {
@@ -3378,13 +3383,16 @@ const ControlPanel = ({
       /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: "コントロールパネル" }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "対象ゲームを選択:" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
           "select",
           {
             className: styles.select,
             value: selectedGameId,
             onChange: (e) => setSelectedGameId(e.target.value),
-            children: gameMeta.map((game) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: game.gameId, children: game.gameId }, game.gameId))
+            children: [
+              gameMeta.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "読み込み中..." }),
+              gameMeta.map((game) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: game.gameId, children: game.gameId }, game.gameId))
+            ]
           }
         )
       ] }),

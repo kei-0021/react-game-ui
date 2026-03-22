@@ -15,10 +15,8 @@ export const ControlPanel = ({
   isOpen: boolean;
   onToggle: () => void;
 }) => {
-  const [selectedGameId, setSelectedGameId] = useState<string>(gameMeta[0]?.gameId || '');
-
+  const [selectedGameId, setSelectedGameId] = useState<string>('');
   const [maxPlayers, setMaxPlayers] = useState(1);
-  // initialHand 全体を管理するように変更
   const [initialHand, setInitialHand] = useState<Record<string, number>>({});
 
   const [initialValues, setInitialValues] = useState<{
@@ -32,8 +30,16 @@ export const ControlPanel = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // gameMetaが空からデータありに変わった瞬間に最初の要素を強制セット
+  useEffect(() => {
+    if (gameMeta.length > 0 && !selectedGameId) {
+      setSelectedGameId(gameMeta[0].gameId);
+    }
+  }, [gameMeta, selectedGameId]);
+
   const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
 
+  // 選択ゲームが確定・変更されたタイミングでStateを同期
   useEffect(() => {
     if (selectedGame) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
@@ -49,7 +55,6 @@ export const ControlPanel = ({
   }, [selectedGame]);
 
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
-  // オブジェクトの比較（簡易的に文字列化）
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
 
   useEffect(() => {
@@ -102,6 +107,7 @@ export const ControlPanel = ({
               value={selectedGameId}
               onChange={(e) => setSelectedGameId(e.target.value)}
             >
+              {gameMeta.length === 0 && <option value="">読み込み中...</option>}
               {gameMeta.map((game) => (
                 <option key={game.gameId} value={game.gameId}>
                   {game.gameId}
