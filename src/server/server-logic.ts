@@ -260,6 +260,8 @@ export const ${data.gameId}Config: RoomConfig = {
       const gameList: GameMeta[] = Object.keys(gameParams).map((id) => ({
         gameId: id,
         gameIcon: gameParams[id].gameIcon,
+        maxPlayers: gameParams[id].maxPlayers,
+        initialHand: gameParams[id].initialHand,
       }));
 
       const roomList: RoomMeta[] = [];

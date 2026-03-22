@@ -3305,7 +3305,6 @@ const label = "_label_7p4au_45";
 const slider = "_slider_7p4au_52";
 const hamburger = "_hamburger_7p4au_58";
 const saveButton = "_saveButton_7p4au_77";
-const input = "_input_7p4au_89";
 const styles = {
   wrapper,
   open,
@@ -3315,24 +3314,40 @@ const styles = {
   label,
   slider,
   hamburger,
-  saveButton,
-  input
+  saveButton
 };
-const ControlPanel = ({ socket, gameIds }) => {
+const ControlPanel = ({ socket, gameMeta }) => {
+  const [selectedGameId, setSelectedGameId] = useState(gameMeta[0]?.gameId || "");
+  const [maxPlayers, setMaxPlayers] = useState(1);
+  const [handDeckId, setHandDeckId] = useState("main");
+  const [handCount, setHandCount] = useState(0);
   const [initialValues, setInitialValues] = useState({
     maxPlayers: 1,
     handDeckId: "main",
     handCount: 0
   });
-  const [selectedGameId, setSelectedGameId] = useState(gameIds[0] || "");
-  const [maxPlayers, setMaxPlayers] = useState(1);
-  const [handDeckId, setHandDeckId] = useState("main");
-  const [handCount, setHandCount] = useState(0);
-  const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
-  const isHandDirty = handDeckId !== initialValues.handDeckId || handCount !== initialValues.handCount;
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
+  useEffect(() => {
+    if (selectedGame) {
+      const configMaxPlayers = selectedGame.maxPlayers ?? 1;
+      const configHandDeckId = selectedGame.initialHand?.deckId ?? "main";
+      const configHandCount = selectedGame.initialHand?.count ?? 0;
+      const newInit = {
+        maxPlayers: configMaxPlayers,
+        handDeckId: configHandDeckId,
+        handCount: configHandCount
+      };
+      setInitialValues(newInit);
+      setMaxPlayers(configMaxPlayers);
+      setHandDeckId(configHandDeckId);
+      setHandCount(configHandCount);
+    }
+  }, [selectedGame]);
+  const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
+  const isHandDirty = handDeckId !== initialValues.handDeckId || handCount !== initialValues.handCount;
   useEffect(() => {
     const onUpdated = (data) => {
       if (data.success) {
@@ -3354,9 +3369,7 @@ const ControlPanel = ({ socket, gameIds }) => {
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
     const newParam = {};
-    if (isMaxPlayersDirty) {
-      newParam.maxPlayers = maxPlayers;
-    }
+    if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
     if (isHandDirty) {
       newParam.initialHand = {
         deckId: handDeckId,
@@ -3384,68 +3397,56 @@ const ControlPanel = ({ socket, gameIds }) => {
           {
             className: styles.select,
             value: selectedGameId,
-            onChange: (e) => {
-              setSelectedGameId(e.target.value);
-            },
-            children: gameIds.map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: id, children: id }, id))
+            onChange: (e) => setSelectedGameId(e.target.value),
+            children: gameMeta.map((game) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: game.gameId, children: game.gameId }, game.gameId))
           }
         )
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-            "最大プレイヤー数: ",
-            isMaxPlayersDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
+      selectedGame && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+        selectedGame.maxPlayers !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+              "最大プレイヤー数: ",
+              isMaxPlayersDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: maxPlayers })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: maxPlayers })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "range",
+              min: "1",
+              max: "10",
+              className: styles.slider,
+              value: maxPlayers,
+              onChange: (e) => setMaxPlayers(Number(e.target.value))
+            }
+          )
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            type: "range",
-            min: "1",
-            max: "10",
-            className: styles.slider,
-            value: maxPlayers,
-            onChange: (e) => {
-              setMaxPlayers(Number(e.target.value));
+        selectedGame.initialHand !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+              "初期手札: ",
+              isHandDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: handDeckId })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "枚数:" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: handCount })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "range",
+              min: "0",
+              max: "10",
+              className: styles.slider,
+              value: handCount,
+              onChange: (e) => setHandCount(Number(e.target.value))
             }
-          }
-        )
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-          "初期手札: ",
-          isHandDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
-        ] }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            type: "text",
-            className: styles.input,
-            value: handDeckId,
-            onChange: (e) => {
-              setHandDeckId(e.target.value);
-            }
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "枚数:" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: handCount })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            type: "range",
-            min: "0",
-            max: "10",
-            className: styles.slider,
-            value: handCount,
-            onChange: (e) => {
-              setHandCount(Number(e.target.value));
-            }
-          }
-        )
+          )
+        ] })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",

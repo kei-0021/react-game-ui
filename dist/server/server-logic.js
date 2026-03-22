@@ -186,6 +186,8 @@ export const ${data.gameId}Config: RoomConfig = {
             const gameList = Object.keys(gameParams).map((id) => ({
                 gameId: id,
                 gameIcon: gameParams[id].gameIcon,
+                maxPlayers: gameParams[id].maxPlayers,
+                initialHand: gameParams[id].initialHand,
             }));
             const roomList = [];
             for (const [id, state] of activeRooms) {
