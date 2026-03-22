@@ -48,13 +48,14 @@ export const sampleConfig: RoomConfig = {
       maxPlayers: 1,
       components: [
         {
-          id: 'extra-coin-flip',
+          id: 'dice-1',
           type: 'Dice',
           props: {
-            diceId: 'coin',
-            sides: 2,
-            title: '追加2面ダイス',
-            tooltipText: '表か裏か',
+            diceId: '天気',
+            sides: 4,
+            title: '天気ダイス',
+            tooltipText: '快晴・曇り・風・雨',
+            customFaces: ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png'],
           },
         },
       ],

@@ -7,7 +7,7 @@ export { PlayField } from './components/PlayField.js';
 export { RemoteCursor } from './components/RemoteCursor.js';
 export { ScoreBoard } from './components/ScoreBoard.js';
 export { SystemMessageWindow } from './components/systemMessageWindow.js';
-export { default as Timer } from './components/Timer.js';
+export { Timer } from './components/Timer.js';
 export { TokenStore } from './components/TokenStore.js';
 export * from './types/card.js';
 export { type CardEffectParams } from './types/cardEffectParams.js';

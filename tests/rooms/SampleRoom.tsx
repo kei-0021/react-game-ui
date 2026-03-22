@@ -13,7 +13,7 @@ import { DynamicComponent } from '../../src/components/DynamicComponent';
 import { PlayField } from '../../src/components/PlayField';
 import { RemoteCursor } from '../../src/components/RemoteCursor';
 import { ScoreBoard } from '../../src/components/ScoreBoard';
-import Timer from '../../src/components/Timer';
+import { Timer } from '../../src/components/Timer';
 import { useSocket } from '../../src/hooks/useSocket';
 import { Player } from '../../src/types/player';
 import type { ComponentInfo } from '../../src/types/server';
@@ -137,24 +137,10 @@ export function SampleRoom() {
       />
 
       <div style={{ display: 'flex', gap: '16px' }}>
-        <Dice
-          socket={socket}
-          diceId="天気"
-          roomId={roomId}
-          title="天気ダイス"
-          sides={4}
-          customFaces={[
-            <img key="f1" src="/weather_sunny.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-            <img key="f2" src="/weather_cloud.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-            <img key="f3" src="/weather_wind.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-            <img key="f4" src="/weather_rain.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-          ]}
-          tooltipText="快晴・曇り・風・雨"
-        />
-        <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" onRoll={setCurrentValue} />
         {componentInfo.map((info) => (
           <DynamicComponent key={info.id} type={info.type} props={info.props} socket={socket} roomId={roomId} />
         ))}
+        <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" onRoll={setCurrentValue} />
       </div>
 
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>

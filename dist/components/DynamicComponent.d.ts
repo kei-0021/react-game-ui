@@ -1,6 +1,6 @@
-import type { ComponentType } from '../types/server.js';
+import type { ComponentInfo } from '../types/server.js';
 interface DynamicProps {
-    type: ComponentType;
+    type: ComponentInfo['type'];
     props: any;
     socket: any;
     roomId: string;
