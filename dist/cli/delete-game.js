@@ -18,7 +18,6 @@ export const remove = (rawName) => {
         config: path.join(baseDir, 'server', `${pascalName}Config.ts`),
         room: path.join(baseDir, 'rooms', `${gameName}Room.tsx`),
         style: path.join(baseDir, 'rooms', `${gameName}Room.module.css`),
-        registry: path.join(baseDir, 'constants/games.ts'),
     };
     // ファイルの削除
     [paths.config, paths.room, paths.style].forEach((filePath) => {
@@ -30,20 +29,6 @@ export const remove = (rawName) => {
             console.warn(`Not found: ${path.basename(filePath)}`);
         }
     });
-    // Registry (games.ts) からの削除
-    if (fs.existsSync(paths.registry)) {
-        const content = fs.readFileSync(paths.registry, 'utf-8');
-        const lines = content.split('\n');
-        // 指定したIDを含む行を除外
-        const filteredLines = lines.filter((line) => !line.includes(`id: "${lowerName}"`));
-        if (lines.length !== filteredLines.length) {
-            fs.writeFileSync(paths.registry, filteredLines.join('\n'));
-            console.log(`Registry entry for "${lowerName}" removed.`);
-        }
-        else {
-            console.warn(`Entry for "${lowerName}" not found in registry.`);
-        }
-    }
     console.log(`Cleanup complete: ${gameName}`);
 };
 // 直接実行時の処理

@@ -259,26 +259,15 @@ export function ${pascalName}Room() {
     config: path.join(baseDir, 'server', `${pascalName}Config.ts`),
     room: path.join(baseDir, 'rooms', `${gameName}Room.tsx`),
     css: path.join(baseDir, 'rooms', `${gameName}Room.module.css`),
-    registry: path.join(baseDir, 'constants/games.ts'),
   };
 
-  [path.dirname(paths.config), path.dirname(paths.room), path.dirname(paths.registry)].forEach((dir) => {
+  [path.dirname(paths.config), path.dirname(paths.room)].forEach((dir) => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   });
 
   fs.writeFileSync(paths.config, configTemplate);
   fs.writeFileSync(paths.room, roomTemplate);
   fs.writeFileSync(paths.css, cssModuleTemplate);
-
-  // Registryの更新
-  if (fs.existsSync(paths.registry)) {
-    let content = fs.readFileSync(paths.registry, 'utf-8');
-    if (!content.includes(`id: "${lowerName}"`)) {
-      const newEntry = `  { id: "${lowerName}", name: "${gameName}", icon: "${gameIcon}" },\n];`;
-      content = content.replace(/\];\s*$/, newEntry);
-      fs.writeFileSync(paths.registry, content);
-    }
-  }
 
   console.log(`✅ 生成完了: ${gameName} at ${baseDir}`);
 };
