@@ -13,6 +13,7 @@ import { TokenStore } from './tokenStore.js';
 /**
  * ゲームルーム作成時の初期設定パラメータ。
  * @param gameId - ゲームを一意に識別するID。
+ * @param gameIcon - ロビーで表示するゲームのアイコン。
  * @param maxPlayers - 最大プレイヤー数（任意）。
  * @param initialDecks - デッキの初期構成リスト。
  * @param initialHand - 初期手札設定。{ deckId, count }
@@ -36,6 +37,7 @@ import { TokenStore } from './tokenStore.js';
  */
 export type GameParam = {
     gameId: GameId;
+    gameIcon: string;
     maxPlayers?: number;
     initialDecks: Deck[];
     initialHand?: {

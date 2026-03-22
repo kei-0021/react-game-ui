@@ -193,6 +193,7 @@ export const ${data.gameId}Config: RoomConfig = {
                 roomList.push({
                     id,
                     gameId: state.gameId,
+                    gameIcon: gameParams[state.gameId].gameIcon,
                     playerCount: state.players.length,
                     maxPlayers: state.maxPlayers,
                     createdAt: state.createdAt,

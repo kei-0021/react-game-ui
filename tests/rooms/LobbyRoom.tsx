@@ -8,21 +8,6 @@ import './LobbyRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
 
-const GAME_PRESETS = [
-  {
-    id: 'sample',
-    name: 'サンプル',
-    pathSegment: 'sample',
-    buttonClass: 'primary-button',
-  },
-  {
-    id: 'deepabyss',
-    name: '深海大冒険',
-    pathSegment: 'deepabyss',
-    buttonClass: 'primary-button',
-  },
-];
-
 export function LobbyRoom() {
   const [rooms, setRooms] = useState<RoomMeta[]>([]);
   const [availableIds, setAvailableIds] = useState<string[]>([]);
@@ -69,17 +54,15 @@ export function LobbyRoom() {
   }, []);
 
   // 既存ルームに参加
-  const handleJoinRoom = (roomMeta: RoomMeta) => {
-    const preset = GAME_PRESETS.find((p) => p.id === roomMeta.gameId || p.name === roomMeta.gameId);
-    const segment = preset ? preset.pathSegment : 'sample';
-
-    navigate(`/game/${segment}/${roomMeta.id}`);
+  const handleJoinRoom = (room: RoomMeta) => {
+    if (!room.id.trim()) return;
+    navigate(`/${room.gameId || 'unknown'}/${room.id.trim()}`);
   };
 
   // 新しいルームを作成
-  const handleCreateRoom = (preset: (typeof GAME_PRESETS)[0]) => {
+  const handleCreateRoom = (gameId: string) => {
     const newRoomId = Math.random().toString(36).substring(2, 8);
-    navigate(`/game/${preset.pathSegment}/${newRoomId}`);
+    navigate(`/game/${gameId}/${newRoomId}`);
   };
 
   return (
@@ -89,14 +72,14 @@ export function LobbyRoom() {
       <div className="section create-room-section">
         <h2 className="section-title">新しいゲームを始める</h2>
         <div className="preset-button-group" style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-          {GAME_PRESETS.map((preset) => (
+          {availableIds.map((gameId) => (
             <button
-              key={preset.id}
-              onClick={() => handleCreateRoom(preset)}
-              className={`button ${preset.buttonClass}`}
+              key={gameId}
+              onClick={() => handleCreateRoom(gameId)}
+              className={`button primary-button`}
               disabled={!socket?.connected}
             >
-              {preset.name}
+              {gameId}
             </button>
           ))}
         </div>

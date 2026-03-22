@@ -28,6 +28,7 @@ import { Token } from './token.js';
 export type RoomMeta = {
   id: RoomId;
   gameId: GameId;
+  gameIcon: string;
   playerCount: number;
   maxPlayers?: number;
   createdAt: number;
