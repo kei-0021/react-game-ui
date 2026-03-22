@@ -198,8 +198,10 @@ export const ${data.gameId}Config: RoomConfig = {
                 });
             }
             // 現在稼働中のルームとゲーム一覧を合わせて送る
-            socket.emit('lobby:list', {
+            socket.emit('lobby:game-list', {
                 games: gameList,
+            });
+            socket.emit('lobby:room-list', {
                 rooms: roomList,
             });
         });

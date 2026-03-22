@@ -18,8 +18,10 @@ export type RoomMeta = {
     maxPlayers?: number;
     createdAt: number;
 };
-export type LobbyList = {
+export type LobbyGameList = {
     games: GameMeta[];
+};
+export type LobbyRoomList = {
     rooms: RoomMeta[];
 };
 export interface GameComponentData {

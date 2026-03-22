@@ -39,8 +39,11 @@ export type RoomMeta = {
   createdAt: number;
 };
 
-export type LobbyList = {
+export type LobbyGameList = {
   games: GameMeta[];
+};
+
+export type LobbyRoomList = {
   rooms: RoomMeta[];
 };
 

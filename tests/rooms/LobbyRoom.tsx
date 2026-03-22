@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
 import { ControlPanel } from '../../src/components/ControlPanel';
-import type { GameMeta, LobbyList, RoomMeta } from '../../src/types/socketData';
+import type { GameMeta, LobbyGameList, LobbyRoomList, RoomMeta } from '../../src/types/socketData';
 import './LobbyRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
@@ -28,16 +28,18 @@ export function LobbyRoom() {
       lobbySocket.emit('custom:events:1');
     });
 
-    // ロビーリスト受信
-    lobbySocket.on('lobby:list', (data: LobbyList) => {
-      const roomArray = Array.isArray(data) ? data : data.rooms || [];
-      roomArray.sort((a, b) => b.createdAt - a.createdAt);
-      setRooms(roomArray);
-
+    // ゲームリスト受信
+    lobbySocket.on('lobby:game-list', (data: LobbyGameList) => {
       if (!Array.isArray(data) && data.games) {
         setGames(data.games);
       }
+    });
 
+    // ルームリスト受信
+    lobbySocket.on('lobby:room-list', (data: LobbyRoomList) => {
+      const roomArray = Array.isArray(data) ? data : data.rooms || [];
+      roomArray.sort((a, b) => b.createdAt - a.createdAt);
+      setRooms(roomArray);
       setIsLoading(false);
     });
 
@@ -47,7 +49,8 @@ export function LobbyRoom() {
 
     return () => {
       lobbySocket.off('connect');
-      lobbySocket.off('lobby:list');
+      lobbySocket.off('lobby:game-list');
+      lobbySocket.off('lobby:room-list');
       lobbySocket.off('lobby:room-update');
       lobbySocket.disconnect();
     };
