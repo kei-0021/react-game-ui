@@ -3414,7 +3414,7 @@ const ControlPanel = ({
               type: "text",
               className: styles.select,
               style: { flex: 1 },
-              placeholder: "GameName",
+              placeholder: "GameName 🎲",
               value: newGameName,
               onChange: (e) => setNewGameName(e.target.value)
             }

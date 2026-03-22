@@ -146,3 +146,11 @@ const gameServer = new GameServer({
 // コンポーネントとして配置
 <Timer socket={socket} onFinish={() => console.log('タイマー終了！')} />
 ```
+
+## 開発者の方へ
+
+- tests 内のアプリケーションを実行する際は、以下の環境変数を含むコマンドで起動してください
+
+```
+RG_UI_BASE_DIR=tests pnpm run dev:multi
+```

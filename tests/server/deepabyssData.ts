@@ -684,11 +684,11 @@ export const deepabyssData: any = {
     }
   ],
   "initialHand": {
-    "deepAbyssAction": 10
+    "deepAbyssAction": 5
   },
   "initialTokens": {
-    "ARTIFACT": 4,
-    "Hanabishi": 4
+    "ARTIFACT": 3,
+    "Hanabishi": 3
   },
   "pieceImage": "/hanabishi.svg",
   "initialPhase": {
