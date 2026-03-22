@@ -89,7 +89,7 @@ export const deepAbyssConfig: RoomConfig = {
           type: 'CONSUMABLE' as const,
         },
       ],
-      initialHand: { deckId: 'deepAbyssAction', count: 6 },
+      initialHand: { deepAbyssAction: 6 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
       shuffleAndReconnectBoard: { deepAbyssBoard: cellShuffleAndReconnector },
       pieceImage: '/hanabishi.svg',

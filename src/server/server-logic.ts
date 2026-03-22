@@ -321,19 +321,27 @@ export const ${data.gameId}Config: RoomConfig = {
         server_log('game', param.gameId, roomId, `${player.name} (${player.id})が参加しました`);
 
         // 初期手札配布処理
-        const hand = param.initialHand;
-        if (hand && state.decks[hand.deckId]) {
-          const target = state.decks[hand.deckId];
-          for (let i = 0; i < hand.count; i++) {
-            const idx = target.findIndex((c) => c.location === 'deck');
-            if (idx === -1) break;
+        const initialHand = param.initialHand;
 
-            const card = target[idx];
-            card.location = 'hand';
-            card.ownerId = player.id;
-            card.isFaceUp = card.drawCondition[1] === 'face' ? true : false;
+        if (initialHand) {
+          // initialHand に含まれるすべてのデッキ（deckId）をループ
+          for (const [deckId, count] of Object.entries(initialHand)) {
+            const target = state.decks[deckId];
 
-            player.cards.push(card);
+            if (!target) continue;
+
+            for (let i = 0; i < count; i++) {
+              const idx = target.findIndex((c) => c.location === 'deck');
+              if (idx === -1) break;
+
+              const card = target[idx];
+              card.location = 'hand';
+              card.ownerId = player.id;
+
+              card.isFaceUp = card.drawCondition[1] === 'face';
+
+              player.cards.push(card);
+            }
           }
         }
       } else {

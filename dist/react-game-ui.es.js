@@ -3319,12 +3319,10 @@ const styles = {
 const ControlPanel = ({ socket, gameMeta }) => {
   const [selectedGameId, setSelectedGameId] = useState(gameMeta[0]?.gameId || "");
   const [maxPlayers, setMaxPlayers] = useState(1);
-  const [handDeckId, setHandDeckId] = useState("main");
-  const [handCount, setHandCount] = useState(0);
+  const [initialHand, setInitialHand] = useState({});
   const [initialValues, setInitialValues] = useState({
     maxPlayers: 1,
-    handDeckId: "main",
-    handCount: 0
+    initialHand: {}
   });
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -3333,31 +3331,23 @@ const ControlPanel = ({ socket, gameMeta }) => {
   useEffect(() => {
     if (selectedGame) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
-      const configHandDeckId = selectedGame.initialHand?.deckId ?? "main";
-      const configHandCount = selectedGame.initialHand?.count ?? 0;
-      const newInit = {
+      const configInitialHand = selectedGame.initialHand ?? {};
+      setInitialValues({
         maxPlayers: configMaxPlayers,
-        handDeckId: configHandDeckId,
-        handCount: configHandCount
-      };
-      setInitialValues(newInit);
+        initialHand: { ...configInitialHand }
+      });
       setMaxPlayers(configMaxPlayers);
-      setHandDeckId(configHandDeckId);
-      setHandCount(configHandCount);
+      setInitialHand({ ...configInitialHand });
     }
   }, [selectedGame]);
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
-  const isHandDirty = handDeckId !== initialValues.handDeckId || handCount !== initialValues.handCount;
+  const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
   useEffect(() => {
     const onUpdated = (data) => {
       if (data.success) {
         setIsSaving(false);
         setShowSuccess(true);
-        setInitialValues({
-          maxPlayers,
-          handDeckId,
-          handCount
-        });
+        setInitialValues({ maxPlayers, initialHand: { ...initialHand } });
         setTimeout(() => setShowSuccess(false), 2e3);
       }
     };
@@ -3365,17 +3355,12 @@ const ControlPanel = ({ socket, gameMeta }) => {
     return () => {
       socket.off("game-param:updated", onUpdated);
     };
-  }, [socket, maxPlayers, handDeckId, handCount]);
+  }, [socket, maxPlayers, initialHand]);
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
     const newParam = {};
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
-    if (isHandDirty) {
-      newParam.initialHand = {
-        deckId: handDeckId,
-        count: handCount
-      };
-    }
+    if (isHandDirty) newParam.initialHand = initialHand;
     if (Object.keys(newParam).length === 0) {
       alert("変更箇所がありません");
       return;
@@ -3423,17 +3408,14 @@ const ControlPanel = ({ socket, gameMeta }) => {
             }
           )
         ] }),
-        selectedGame.initialHand !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+        Object.entries(initialHand).map(([deckId, count]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-              "初期手札: ",
-              isHandDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: handDeckId })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: deckId }) }),
+            initialValues.initialHand[deckId] !== count && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: " (変更あり)" })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "枚数:" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: handCount })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "初期手札枚数:" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: count })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             "input",
@@ -3442,11 +3424,16 @@ const ControlPanel = ({ socket, gameMeta }) => {
               min: "0",
               max: "10",
               className: styles.slider,
-              value: handCount,
-              onChange: (e) => setHandCount(Number(e.target.value))
+              value: count,
+              onChange: (e) => {
+                setInitialHand({
+                  ...initialHand,
+                  [deckId]: Number(e.target.value)
+                });
+              }
             }
           )
-        ] })
+        ] }, deckId))
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",

@@ -18,7 +18,7 @@ import { TokenStore } from './tokenStore.js';
  * @param gameIcon - ロビーで表示するゲームのアイコン。
  * @param maxPlayers - 最大プレイヤー数（任意）。
  * @param initialDecks - デッキの初期構成リスト。
- * @param initialHand - 初期手札設定。{ deckId, count }
+ * @param initialHand - デッキごとの初期手札の枚数設定。
  * @param initialResources - プレイヤーの初期リソース。
  * @param initialTokenStores - 共有トークンの保管場所。
  * @param initialTokens - ボード上の初期配置トークン。
@@ -43,10 +43,7 @@ export type GameParam = {
   gameIcon: string;
   maxPlayers?: number;
   initialDecks: Deck[];
-  initialHand?: {
-    deckId: DeckId;
-    count: number;
-  };
+  initialHand?: Record<DeckId, number>;
   initialResources?: Resource[];
   initialTokenStores?: TokenStore[];
   initialTokens?: {

@@ -11,10 +11,7 @@ export type GameMeta = {
     gameId: GameId;
     gameIcon: string;
     maxPlayers?: number;
-    initialHand?: {
-        deckId: DeckId;
-        count: number;
-    };
+    initialHand?: Record<DeckId, number>;
 };
 export type RoomMeta = {
     id: RoomId;

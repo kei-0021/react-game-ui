@@ -8,76 +8,64 @@ export const ControlPanel = ({ socket, gameMeta }: { socket: Socket; gameMeta: G
   const [selectedGameId, setSelectedGameId] = useState<string>(gameMeta[0]?.gameId || '');
 
   const [maxPlayers, setMaxPlayers] = useState(1);
-  const [handDeckId, setHandDeckId] = useState('main');
-  const [handCount, setHandCount] = useState(0);
+  // initialHand 全体を管理するように変更
+  const [initialHand, setInitialHand] = useState<Record<string, number>>({});
 
-  const [initialValues, setInitialValues] = useState({
+  const [initialValues, setInitialValues] = useState<{
+    maxPlayers: number;
+    initialHand: Record<string, number>;
+  }>({
     maxPlayers: 1,
-    handDeckId: 'main',
-    handCount: 0,
+    initialHand: {},
   });
 
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // 選択中のゲームのメタデータを取得
   const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
 
-  // ゲーム選択が切り替わった時に Meta の値を同期
   useEffect(() => {
     if (selectedGame) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
-      const configHandDeckId = selectedGame.initialHand?.deckId ?? 'main';
-      const configHandCount = selectedGame.initialHand?.count ?? 0;
+      const configInitialHand = selectedGame.initialHand ?? {};
 
-      const newInit = {
+      setInitialValues({
         maxPlayers: configMaxPlayers,
-        handDeckId: configHandDeckId,
-        handCount: configHandCount,
-      };
-
-      setInitialValues(newInit);
+        initialHand: { ...configInitialHand },
+      });
       setMaxPlayers(configMaxPlayers);
-      setHandDeckId(configHandDeckId);
-      setHandCount(configHandCount);
+      setInitialHand({ ...configInitialHand });
     }
   }, [selectedGame]);
 
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
-  const isHandDirty = handDeckId !== initialValues.handDeckId || handCount !== initialValues.handCount;
+  // オブジェクトの比較（簡易的に文字列化）
+  const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
 
   useEffect(() => {
     const onUpdated = (data: { success: boolean }) => {
       if (data.success) {
         setIsSaving(false);
         setShowSuccess(true);
-        setInitialValues({
-          maxPlayers,
-          handDeckId,
-          handCount,
-        });
+        setInitialValues({ maxPlayers, initialHand: { ...initialHand } });
         setTimeout(() => setShowSuccess(false), 2000);
       }
     };
 
     socket.on('game-param:updated', onUpdated);
+
     return () => {
       socket.off('game-param:updated', onUpdated);
     };
-  }, [socket, maxPlayers, handDeckId, handCount]);
+  }, [socket, maxPlayers, initialHand]);
 
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
 
-    const newParam: any = {};
+    const newParam: Partial<GameMeta> = {};
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
-    if (isHandDirty) {
-      newParam.initialHand = {
-        deckId: handDeckId,
-        count: handCount,
-      };
-    }
+    if (isHandDirty) newParam.initialHand = initialHand;
 
     if (Object.keys(newParam).length === 0) {
       alert('変更箇所がありません');
@@ -116,10 +104,8 @@ export const ControlPanel = ({ socket, gameMeta }: { socket: Socket; gameMeta: G
             </select>
           </div>
 
-          {/* selectedGame が存在する場合のみ、各フィールドの表示判定へ進む */}
           {selectedGame && (
             <>
-              {/* maxPlayers プロパティが Config に定義されている場合のみ表示 */}
               {selectedGame.maxPlayers !== undefined && (
                 <div className={styles.field}>
                   <div className={styles.label}>
@@ -137,30 +123,34 @@ export const ControlPanel = ({ socket, gameMeta }: { socket: Socket; gameMeta: G
                 </div>
               )}
 
-              {/* initialHand プロパティが Config に定義されている場合のみ表示 */}
-              {selectedGame.initialHand !== undefined && (
-                <div className={styles.field}>
+              {/* initialHand 内の全エントリーを map で回して表示 */}
+              {Object.entries(initialHand).map(([deckId, count]) => (
+                <div key={deckId} className={styles.field}>
                   <div className={styles.label}>
-                    <span>初期手札: {isHandDirty && <small>(変更あり)</small>}</span>
-                    {/* 入力ではなく表示のみにする */}
-                    <strong>{handDeckId}</strong>
+                    <span>
+                      <strong>{deckId}</strong>
+                    </span>
+                    {initialValues.initialHand[deckId] !== count && <small> (変更あり)</small>}
                   </div>
-
                   <div className={styles.label}>
-                    <span>枚数:</span>
-                    <strong>{handCount}</strong>
+                    <span>初期手札枚数:</span>
+                    <strong>{count}</strong>
                   </div>
-
                   <input
                     type="range"
                     min="0"
                     max="10"
                     className={styles.slider}
-                    value={handCount}
-                    onChange={(e) => setHandCount(Number(e.target.value))}
+                    value={count}
+                    onChange={(e) => {
+                      setInitialHand({
+                        ...initialHand,
+                        [deckId]: Number(e.target.value),
+                      });
+                    }}
                   />
                 </div>
-              )}
+              ))}
             </>
           )}
 
