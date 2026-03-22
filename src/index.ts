@@ -42,6 +42,7 @@ export { ControlPanel } from './components/ControlPanel.js';
 export {
   type CardPlayData,
   type DeckDrawData,
+  type GameMeta,
   type GamePhaseUpdateData,
   type GameTurnUpdateData,
   type LobbyList as LobbyRoomsList,
