@@ -24,6 +24,8 @@ export const deepAbyssConfig: RoomConfig = {
     deepAbyssCells: './data/deepAbyssCells.json',
   },
   setup: async (loadedData: Record<string, any>): Promise<GameParam> => {
+    const { deepabyssData } = await import(`./deepabyssData.js?t=${Date.now()}`);
+
     const helper = new SetupHelper();
 
     const defaults: Partial<Card> = {
@@ -130,6 +132,7 @@ export const deepAbyssConfig: RoomConfig = {
         return { message: '潜水任務完了', rankings, finalRound: state.currentRoundIndex };
       },
       components: [],
+      ...deepabyssData,
     };
   },
 };

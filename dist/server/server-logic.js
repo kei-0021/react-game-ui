@@ -147,10 +147,7 @@ export function initGameServer(io, options) {
                     const srcPath = path.join(root, 'src', 'server');
                     const testsPath = path.join(root, 'tests', 'server');
                     // tests/server が存在すればそこを優先
-                    if (fs.existsSync(testsPath)) {
-                        return testsPath;
-                    }
-                    return srcPath;
+                    return fs.existsSync(testsPath) ? testsPath : srcPath;
                 };
                 const targetDir = getTargetDir();
                 const targetPath = path.join(targetDir, `${data.gameId}Data.ts`);
@@ -161,11 +158,12 @@ export function initGameServer(io, options) {
                     ...currentParam,
                     ...data.newParam,
                 };
-                // インデントを揃えた文字列に変換
-                const setupContent = JSON.stringify(mergedParam, null, 2);
+                // 【自動フィルタ】値が関数のプロパティをすべて除外する
+                const cleanParam = Object.fromEntries(Object.entries(mergedParam).filter(([_, value]) => typeof value !== 'function'));
+                const setupContent = JSON.stringify(cleanParam, null, 2);
                 const content = `export const ${data.gameId}Data: any = ${setupContent};`;
                 await fs.promises.writeFile(targetPath, content, 'utf8');
-                console.log(`[Admin] ${data.gameId}Config.ts を更新（マージ完了）`);
+                console.log(`[Admin] ${data.gameId}Data.ts を更新`);
                 socket.emit('game-param:updated', { success: true });
             }
             catch (err) {
