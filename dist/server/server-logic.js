@@ -158,9 +158,12 @@ export function initGameServer(io, options) {
                     ...currentParam,
                     ...data.newParam,
                 };
-                // 【自動フィルタ】値が関数のプロパティをすべて除外する
-                const cleanParam = Object.fromEntries(Object.entries(mergedParam).filter(([_, value]) => typeof value !== 'function'));
-                const setupContent = JSON.stringify(cleanParam, null, 2);
+                delete mergedParam.cardEffects;
+                delete mergedParam.cellEffects;
+                delete mergedParam.components;
+                delete mergedParam.shuffleAndReconnectBoard;
+                delete mergedParam.initialBoard;
+                const setupContent = JSON.stringify(mergedParam, null, 2);
                 const content = `export const ${data.gameId}Data: any = ${setupContent};`;
                 await fs.promises.writeFile(targetPath, content, 'utf8');
                 console.log(`[Admin] ${data.gameId}Data.ts を更新`);
