@@ -1,13 +1,12 @@
 // tests/server.ts
 import chokidar from 'chokidar';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import type { GameParam } from '../src/index.js';
 import { loadJsonAssert, RoomConfig } from '../src/server/server-io-utils.js';
 import { GameServer, GameServerOptions } from '../src/server/server.js';
 import { customEvents } from './data/customEvents.js';
-import { deepAbyssConfig } from './server/deepAbyssConfig.js';
-import { sampleConfig } from './server/sampleConfig.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,19 +14,52 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const allLoadedData = new Map<string, any>();
   const gameParams: Record<string, GameParam> = {};
-  const configs: RoomConfig[] = [sampleConfig, deepAbyssConfig];
+  const isProduction = process.env.NODE_ENV === 'production';
+  const rootDir = process.cwd();
 
-  // プリセットを生成
-  for (const config of configs) {
-    const loadedData: Record<string, any> = {};
+  const serverDirPath = isProduction ? path.join(rootDir, 'tests', 'server') : path.join(rootDir, 'tests', 'server');
 
-    for (const [key, relPath] of Object.entries(config.dataFiles)) {
-      const finalPath = path.resolve(__dirname, relPath as string);
-      loadedData[key] = await loadJsonAssert(finalPath, (data): data is any => true);
+  // ディレクトリ存在チェック
+  let files: string[] = [];
+  if (fs.existsSync(serverDirPath)) {
+    files = fs.readdirSync(serverDirPath);
+  } else {
+    console.error(`Directory not found: ${serverDirPath}`);
+  }
+
+  const configFiles = files.filter((f) => f.endsWith('Config.ts') || f.endsWith('Config.js'));
+
+  for (const file of configFiles) {
+    // コンパイル後の .js を読み込むための相対パス
+    const modulePath = `./server/${file.replace(/\.ts$/, '.js')}`;
+    const module = await import(modulePath);
+
+    const configName = file.replace(/\.(ts|js)$/, '');
+    const config: RoomConfig = module[configName] || module.default;
+
+    if (config && config.gameId) {
+      console.log(`Config detected: ${configName} (gameId: ${config.gameId})`);
+
+      const loadedData: Record<string, any> = {};
+
+      for (const [key, relPath] of Object.entries(config.dataFiles)) {
+        const dataPath = (relPath as string).split('data/')[1];
+        const finalPath = path.join(rootDir, 'tests', 'data', dataPath);
+
+        // ファイルの存在を確認してから読み込む
+        if (fs.existsSync(finalPath)) {
+          loadedData[key] = await loadJsonAssert(finalPath, (_data): _data is any => true);
+        } else {
+          console.warn(`[Warning] データファイルが見つかりません (スキップ): ${finalPath}`);
+          loadedData[key] = {}; // または適切な初期値
+        }
+      }
+
+      // ツール群を渡してプリセットを生成
+      gameParams[config.gameId] = await config.setup(loadedData);
+
+      allLoadedData.set(config.gameId, loadedData);
     }
-
-    allLoadedData.set(config.gameId, loadedData);
-    gameParams[config.gameId] = await config.setup(loadedData);
   }
 
   // サーバーオプションの設定

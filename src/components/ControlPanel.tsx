@@ -1,4 +1,3 @@
-// tests/components/ControlPanel.tsx
 import { GameMeta } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';
@@ -16,10 +15,14 @@ export const ControlPanel = ({
   onToggle: () => void;
 }) => {
   const [selectedGameId, setSelectedGameId] = useState<string>('');
+  const [newGameName, setNewGameName] = useState('');
+
+  // 各種パラメータの状態
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState<Record<string, number>>({});
   const [initialTokens, setInitialTokens] = useState<Record<string, number>>({});
 
+  // 比較用の初期値保持
   const [initialValues, setInitialValues] = useState<{
     maxPlayers: number;
     initialHand: Record<string, number>;
@@ -33,6 +36,7 @@ export const ControlPanel = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // ゲーム選択の初期化
   useEffect(() => {
     if (gameMeta.length > 0 && !selectedGameId) {
       setSelectedGameId(gameMeta[0].gameId);
@@ -41,6 +45,7 @@ export const ControlPanel = ({
 
   const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
 
+  // 選択ゲームが変わった時にフォーム値を更新
   useEffect(() => {
     if (selectedGame) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
@@ -58,6 +63,7 @@ export const ControlPanel = ({
     }
   }, [selectedGame]);
 
+  // 変更検知
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
   const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
@@ -76,10 +82,19 @@ export const ControlPanel = ({
       }
     };
 
+    const onCreated = (data: { success: boolean; gameId: string }) => {
+      if (data.success) {
+        setSelectedGameId(data.gameId);
+        setNewGameName('');
+      }
+    };
+
     socket.on('game-param:updated', onUpdated);
+    socket.on('game:created', onCreated);
 
     return () => {
       socket.off('game-param:updated', onUpdated);
+      socket.off('game:created', onCreated);
     };
   }, [socket, maxPlayers, initialHand, initialTokens]);
 
@@ -100,6 +115,11 @@ export const ControlPanel = ({
     });
   };
 
+  const handleCreateGame = () => {
+    if (!newGameName || !socket.connected) return;
+    socket.emit('game:create', { gameName: newGameName, gameIcon: '🆕' });
+  };
+
   return (
     <>
       <button className={styles.hamburger} onClick={onToggle}>
@@ -110,6 +130,32 @@ export const ControlPanel = ({
         <div className={styles.container}>
           <h3 className={styles.title}>コントロールパネル</h3>
 
+          {/* 新規作成セクション */}
+          <div className={styles.field}>
+            <div className={styles.label}>新規ゲーム作成:</div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                className={styles.select}
+                style={{ flex: 1 }}
+                placeholder="GameName"
+                value={newGameName}
+                onChange={(e) => setNewGameName(e.target.value)}
+              />
+              <button
+                className={styles.saveButton}
+                onClick={handleCreateGame}
+                style={{ marginTop: 0, padding: '0 15px', whiteSpace: 'nowrap' }}
+                disabled={!newGameName}
+              >
+                作成
+              </button>
+            </div>
+          </div>
+
+          <hr className={styles.divider} style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #444' }} />
+
+          {/* ゲーム選択セクション */}
           <div className={styles.field}>
             <div className={styles.label}>対象ゲームを選択:</div>
             <select
@@ -145,7 +191,6 @@ export const ControlPanel = ({
                 </div>
               )}
 
-              {/* initialHand 内の全エントリーを map で回して表示 */}
               {Object.entries(initialHand).map(([deckId, count]) => (
                 <div key={`hand-${deckId}`} className={styles.field}>
                   <div className={styles.label}>
@@ -155,7 +200,7 @@ export const ControlPanel = ({
                     {initialValues.initialHand[deckId] !== count && <small> (変更あり)</small>}
                   </div>
                   <div className={styles.label}>
-                    <span>初期手札枚数:</span>
+                    <span>枚数:</span>
                     <strong>{count}</strong>
                   </div>
                   <input
@@ -183,7 +228,7 @@ export const ControlPanel = ({
                     {initialValues.initialTokens[tokenId] !== count && <small> (変更あり)</small>}
                   </div>
                   <div className={styles.label}>
-                    <span>初期トークン数:</span>
+                    <span>個数:</span>
                     <strong>{count}</strong>
                   </div>
                   <input

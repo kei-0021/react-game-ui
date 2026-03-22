@@ -3323,6 +3323,7 @@ const ControlPanel = ({
   onToggle
 }) => {
   const [selectedGameId, setSelectedGameId] = useState("");
+  const [newGameName, setNewGameName] = useState("");
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState({});
   const [initialTokens, setInitialTokens] = useState({});
@@ -3370,9 +3371,17 @@ const ControlPanel = ({
         setTimeout(() => setShowSuccess(false), 2e3);
       }
     };
+    const onCreated = (data) => {
+      if (data.success) {
+        setSelectedGameId(data.gameId);
+        setNewGameName("");
+      }
+    };
     socket.on("game-param:updated", onUpdated);
+    socket.on("game:created", onCreated);
     return () => {
       socket.off("game-param:updated", onUpdated);
+      socket.off("game:created", onCreated);
     };
   }, [socket, maxPlayers, initialHand, initialTokens]);
   const handleSave = () => {
@@ -3388,10 +3397,41 @@ const ControlPanel = ({
       newParam
     });
   };
+  const handleCreateGame = () => {
+    if (!newGameName || !socket.connected) return;
+    socket.emit("game:create", { gameName: newGameName, gameIcon: "🆕" });
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? "✕" : "☰" }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ""}`, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.container, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: "コントロールパネル" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "新規ゲーム作成:" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "8px" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "text",
+              className: styles.select,
+              style: { flex: 1 },
+              placeholder: "GameName",
+              value: newGameName,
+              onChange: (e) => setNewGameName(e.target.value)
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              className: styles.saveButton,
+              onClick: handleCreateGame,
+              style: { marginTop: 0, padding: "0 15px", whiteSpace: "nowrap" },
+              disabled: !newGameName,
+              children: "作成"
+            }
+          )
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: styles.divider, style: { margin: "20px 0", border: "none", borderTop: "1px solid #444" } }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "対象ゲームを選択:" }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -3437,7 +3477,7 @@ const ControlPanel = ({
             initialValues.initialHand[deckId] !== count && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: " (変更あり)" })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "初期手札枚数:" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "枚数:" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: count })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -3466,7 +3506,7 @@ const ControlPanel = ({
             initialValues.initialTokens[tokenId] !== count && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: " (変更あり)" })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "初期トークン数:" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "個数:" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: count })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(

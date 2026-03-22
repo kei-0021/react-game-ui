@@ -1,8 +1,11 @@
+import { exec } from 'child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import util from 'util';
 import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 const activeRooms = new Map();
 const roomTimers = new Map();
+const execPromise = util.promisify(exec);
 /**
  * 新しいゲームルームの状態を初期化し、実行中のルーム管理（activeRooms）に追加する。
  * @param roomId - ルームID
@@ -172,6 +175,29 @@ export function initGameServer(io, options) {
             catch (err) {
                 console.error('[Admin] 書き換え失敗:', err);
                 socket.emit('error', 'ファイルの保存に失敗');
+            }
+        });
+        // --- socket.on 内 ---
+        socket.on('game:create', async (data) => {
+            try {
+                const { gameName, gameIcon } = data;
+                // プロジェクトルートにある CLI を実行
+                const cliPath = path.resolve(process.cwd(), 'src/cli/generate-new-game.ts');
+                const command = `npx tsx ${cliPath} ${gameName} ${gameIcon}`;
+                console.log(`[Admin] CLI実行中: ${command}`);
+                const { stdout, stderr } = await execPromise(command);
+                if (stderr) {
+                    console.warn(`[Admin] CLI警告: ${stderr}`);
+                }
+                console.log(`[Admin] CLI完了: ${stdout}`);
+                socket.emit('game:created', {
+                    success: true,
+                    gameId: gameName.toLowerCase(),
+                });
+            }
+            catch (err) {
+                console.error(`[Admin] CLIエラー: ${err.message}`);
+                socket.emit('error', 'ゲーム生成に失敗しました');
             }
         });
         // ロビー
