@@ -3,7 +3,6 @@
 import { DraggableData, DraggableId } from '../../dist/index.js';
 import { Card, GameParam } from '../../src/index.js';
 import { RoomConfig, SetupHelper } from '../../src/server/server-io-utils.js';
-
 const Z_INDX_DRAGGABLE = 201;
 
 export const sampleConfig: RoomConfig = {
@@ -12,6 +11,7 @@ export const sampleConfig: RoomConfig = {
     cards: './data/numberCards.json',
   },
   setup: async (loadedData: Record<string, any>): Promise<GameParam> => {
+    const { sampleData } = await import(`./sampleData.js?t=${Date.now()}`);
     const helper = new SetupHelper();
 
     const defaults: Partial<Card> = {
@@ -59,6 +59,7 @@ export const sampleConfig: RoomConfig = {
           },
         },
       ],
+      ...sampleData,
     };
   },
 };

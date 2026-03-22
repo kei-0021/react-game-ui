@@ -41,8 +41,9 @@ async function startServer() {
     initialLogCategories: {
       connection: true,
       lobby: true,
-      room: true,
+      room: false,
       deck: false,
+      draggable: false,
     },
   };
 
@@ -51,24 +52,38 @@ async function startServer() {
 
   const configDir = path.resolve(__dirname, 'server');
   chokidar.watch(configDir).on('change', async (filePath) => {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     try {
-      const fileUrl = `file://${filePath}?update=${Date.now()}`;
+      const fileName = path.basename(filePath);
+      // Data か Config どちらの変更でも gameId を抽出 (例: sampleData -> sample)
+      const gameIdMatch = fileName.match(/^(.+?)(Config|Data)\.ts$/);
+      if (!gameIdMatch) return;
+
+      const gameId = gameIdMatch[1];
+      // 常に Config ファイルのパスを生成
+      const configPath = path.join(configDir, `${gameId}Config.ts`);
+
+      // キャッシュを避けて Config を読み込み
+      const fileUrl = `file://${configPath}?update=${Date.now()}`;
       const module = await import(fileUrl);
 
-      // 設定ファイルから config を取得
       const newConfig = Object.values(module).find(
-        (val: any) => val && typeof val.setup === 'function' && val.gameId,
+        (val: any) =>
+          val && typeof val.setup === 'function' && (val.gameId === gameId || val.gameId === gameId.toLowerCase()),
       ) as any;
 
-      if (newConfig && allLoadedData.has(newConfig.gameId)) {
-        console.log(`[Watcher] 🍴 ${newConfig.gameId} を再セットアップ中...`);
+      if (newConfig && allLoadedData.has(gameId)) {
+        console.log(`[Watcher] 🍴 ${gameId} を再セットアップ中... (${fileName} の変更)`);
 
-        // 保存しておいた「正しい材料」を取り出して渡す
-        const targetData = allLoadedData.get(newConfig.gameId);
+        const targetData = allLoadedData.get(gameId);
         const updatedParam = await newConfig.setup(targetData);
 
-        gameServer.updateGameParam(newConfig.gameId, updatedParam);
-        console.log(`[Watcher] ✅ ${newConfig.gameId} のホットスワップに成功しました`);
+        gameServer.updateGameParam(gameId, updatedParam);
+        // メモリ上の gameParams も同期しておく
+        gameParams[gameId] = updatedParam;
+
+        console.log(`[Watcher] ✅ ${gameId} のホットスワップに成功しました`);
       }
     } catch (err) {
       console.error('[Watcher] ❌ 再読み込み失敗:', err);

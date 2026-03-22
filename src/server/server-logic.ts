@@ -55,6 +55,10 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   let Cells: Record<BoardId, CellData[]> = {};
   const boardEntries = Object.entries(initialBoard);
 
+  if (param.maxPlayers) {
+    server_log('game', param.gameId, roomId, `参加可能人数: ${param.maxPlayers}人`);
+  }
+
   boardEntries.forEach(([boardId, boardData]) => {
     Cells[boardId] = boardData;
 
@@ -219,7 +223,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         };
 
         const targetDir = getTargetDir();
-        const targetPath = path.join(targetDir, `${data.gameId}Config.ts`);
+        const targetPath = path.join(targetDir, `${data.gameId}Data.ts`);
 
         // 現在のメモリ上の設定を取得
         const currentParam = gameParams[data.gameId] || {};
@@ -231,20 +235,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         };
 
         // インデントを揃えた文字列に変換
-        const setupContent = JSON.stringify(mergedParam, null, 2)
-          .split('\n')
-          .map((line) => `    ${line}`)
-          .join('\n')
-          .trimStart();
+        const setupContent = JSON.stringify(mergedParam, null, 2);
 
-        const content = `import { type RoomConfig } from "react-game-ui/server-io-utils";
-
-export const ${data.gameId}Config: RoomConfig = {
-  gameId: '${data.gameId}',
-  dataFiles: [],
-  setup: async () => (${setupContent}),
-};
-`;
+        const content = `export const ${data.gameId}Data: any = ${setupContent};`;
 
         await fs.promises.writeFile(targetPath, content, 'utf8');
         console.log(`[Admin] ${data.gameId}Config.ts を更新（マージ完了）`);
@@ -319,7 +312,7 @@ export const ${data.gameId}Config: RoomConfig = {
           pieceImage: param.pieceImage,
         };
         state.players.push(player);
-        server_log('game', param.gameId, roomId, `${player.name} (${player.id})が参加しました`);
+        server_log('room', param.gameId, roomId, `${player.name} (${player.id})が参加しました`);
 
         // 初期手札配布処理
         const initialHand = param.initialHand;

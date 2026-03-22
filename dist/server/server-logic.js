@@ -15,6 +15,9 @@ function initializeRoom(roomId, param) {
     const initialBoard = param.initialBoard || {};
     let Cells = {};
     const boardEntries = Object.entries(initialBoard);
+    if (param.maxPlayers) {
+        server_log('game', param.gameId, roomId, `参加可能人数: ${param.maxPlayers}人`);
+    }
     boardEntries.forEach(([boardId, boardData]) => {
         Cells[boardId] = boardData;
         // カスタムの再配置・接続関数があるか確認
@@ -150,7 +153,7 @@ export function initGameServer(io, options) {
                     return srcPath;
                 };
                 const targetDir = getTargetDir();
-                const targetPath = path.join(targetDir, `${data.gameId}Config.ts`);
+                const targetPath = path.join(targetDir, `${data.gameId}Data.ts`);
                 // 現在のメモリ上の設定を取得
                 const currentParam = gameParams[data.gameId] || {};
                 // 届いた newParam で既存の設定をマージ
@@ -159,19 +162,8 @@ export function initGameServer(io, options) {
                     ...data.newParam,
                 };
                 // インデントを揃えた文字列に変換
-                const setupContent = JSON.stringify(mergedParam, null, 2)
-                    .split('\n')
-                    .map((line) => `    ${line}`)
-                    .join('\n')
-                    .trimStart();
-                const content = `import { type RoomConfig } from "react-game-ui/server-io-utils";
-
-export const ${data.gameId}Config: RoomConfig = {
-  gameId: '${data.gameId}',
-  dataFiles: [],
-  setup: async () => (${setupContent}),
-};
-`;
+                const setupContent = JSON.stringify(mergedParam, null, 2);
+                const content = `export const ${data.gameId}Data: any = ${setupContent};`;
                 await fs.promises.writeFile(targetPath, content, 'utf8');
                 console.log(`[Admin] ${data.gameId}Config.ts を更新（マージ完了）`);
                 socket.emit('game-param:updated', { success: true });
@@ -240,7 +232,7 @@ export const ${data.gameId}Config: RoomConfig = {
                     pieceImage: param.pieceImage,
                 };
                 state.players.push(player);
-                server_log('game', param.gameId, roomId, `${player.name} (${player.id})が参加しました`);
+                server_log('room', param.gameId, roomId, `${player.name} (${player.id})が参加しました`);
                 // 初期手札配布処理
                 const initialHand = param.initialHand;
                 if (initialHand) {
