@@ -31,6 +31,7 @@ export type GameMeta = {
   gameIcon: string;
   maxPlayers?: number;
   initialHand?: Record<DeckId, number>;
+  initialTokens?: Record<TokenStoreId, number>;
 };
 
 export type RoomMeta = {

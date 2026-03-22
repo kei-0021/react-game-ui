@@ -3325,9 +3325,11 @@ const ControlPanel = ({
   const [selectedGameId, setSelectedGameId] = useState("");
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState({});
+  const [initialTokens, setInitialTokens] = useState({});
   const [initialValues, setInitialValues] = useState({
     maxPlayers: 1,
-    initialHand: {}
+    initialHand: {},
+    initialTokens: {}
   });
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -3341,22 +3343,30 @@ const ControlPanel = ({
     if (selectedGame) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
       const configInitialHand = selectedGame.initialHand ?? {};
+      const configInitialTokens = selectedGame.initialTokens ?? {};
       setInitialValues({
         maxPlayers: configMaxPlayers,
-        initialHand: { ...configInitialHand }
+        initialHand: { ...configInitialHand },
+        initialTokens: { ...configInitialTokens }
       });
       setMaxPlayers(configMaxPlayers);
       setInitialHand({ ...configInitialHand });
+      setInitialTokens({ ...configInitialTokens });
     }
   }, [selectedGame]);
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
+  const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
   useEffect(() => {
     const onUpdated = (data) => {
       if (data.success) {
         setIsSaving(false);
         setShowSuccess(true);
-        setInitialValues({ maxPlayers, initialHand: { ...initialHand } });
+        setInitialValues({
+          maxPlayers,
+          initialHand: { ...initialHand },
+          initialTokens: { ...initialTokens }
+        });
         setTimeout(() => setShowSuccess(false), 2e3);
       }
     };
@@ -3364,12 +3374,13 @@ const ControlPanel = ({
     return () => {
       socket.off("game-param:updated", onUpdated);
     };
-  }, [socket, maxPlayers, initialHand]);
+  }, [socket, maxPlayers, initialHand, initialTokens]);
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
     const newParam = {};
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
     if (isHandDirty) newParam.initialHand = initialHand;
+    if (isTokensDirty) newParam.initialTokens = initialTokens;
     if (Object.keys(newParam).length === 0) return;
     setIsSaving(true);
     socket.emit("game-param:save", {
@@ -3419,7 +3430,10 @@ const ControlPanel = ({
         ] }),
         Object.entries(initialHand).map(([deckId, count]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: deckId }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("strong", { children: [
+              "Hand: ",
+              deckId
+            ] }) }),
             initialValues.initialHand[deckId] !== count && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: " (変更あり)" })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
@@ -3442,14 +3456,43 @@ const ControlPanel = ({
               }
             }
           )
-        ] }, deckId))
+        ] }, `hand-${deckId}`)),
+        Object.entries(initialTokens).map(([tokenId, count]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("strong", { children: [
+              "Token: ",
+              tokenId
+            ] }) }),
+            initialValues.initialTokens[tokenId] !== count && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: " (変更あり)" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "初期トークン数:" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: count })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "range",
+              min: "0",
+              max: "10",
+              className: styles.slider,
+              value: count,
+              onChange: (e) => {
+                setInitialTokens({
+                  ...initialTokens,
+                  [tokenId]: Number(e.target.value)
+                });
+              }
+            }
+          )
+        ] }, `token-${tokenId}`))
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
         {
           className: styles.saveButton,
           onClick: handleSave,
-          disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty,
+          disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty && !isTokensDirty,
           children: isSaving ? "保存中..." : showSuccess ? "完了" : "変更箇所のみ反映"
         }
       )

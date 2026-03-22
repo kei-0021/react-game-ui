@@ -18,19 +18,21 @@ export const ControlPanel = ({
   const [selectedGameId, setSelectedGameId] = useState<string>('');
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState<Record<string, number>>({});
+  const [initialTokens, setInitialTokens] = useState<Record<string, number>>({});
 
   const [initialValues, setInitialValues] = useState<{
     maxPlayers: number;
     initialHand: Record<string, number>;
+    initialTokens: Record<string, number>;
   }>({
     maxPlayers: 1,
     initialHand: {},
+    initialTokens: {},
   });
 
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // gameMetaが空からデータありに変わった瞬間に最初の要素を強制セット
   useEffect(() => {
     if (gameMeta.length > 0 && !selectedGameId) {
       setSelectedGameId(gameMeta[0].gameId);
@@ -39,30 +41,37 @@ export const ControlPanel = ({
 
   const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
 
-  // 選択ゲームが確定・変更されたタイミングでStateを同期
   useEffect(() => {
     if (selectedGame) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
       const configInitialHand = selectedGame.initialHand ?? {};
+      const configInitialTokens = selectedGame.initialTokens ?? {};
 
       setInitialValues({
         maxPlayers: configMaxPlayers,
         initialHand: { ...configInitialHand },
+        initialTokens: { ...configInitialTokens },
       });
       setMaxPlayers(configMaxPlayers);
       setInitialHand({ ...configInitialHand });
+      setInitialTokens({ ...configInitialTokens });
     }
   }, [selectedGame]);
 
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
+  const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
 
   useEffect(() => {
     const onUpdated = (data: { success: boolean }) => {
       if (data.success) {
         setIsSaving(false);
         setShowSuccess(true);
-        setInitialValues({ maxPlayers, initialHand: { ...initialHand } });
+        setInitialValues({
+          maxPlayers,
+          initialHand: { ...initialHand },
+          initialTokens: { ...initialTokens },
+        });
         setTimeout(() => setShowSuccess(false), 2000);
       }
     };
@@ -72,7 +81,7 @@ export const ControlPanel = ({
     return () => {
       socket.off('game-param:updated', onUpdated);
     };
-  }, [socket, maxPlayers, initialHand]);
+  }, [socket, maxPlayers, initialHand, initialTokens]);
 
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
@@ -80,6 +89,7 @@ export const ControlPanel = ({
     const newParam: Partial<GameMeta> = {};
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
     if (isHandDirty) newParam.initialHand = initialHand;
+    if (isTokensDirty) newParam.initialTokens = initialTokens;
 
     if (Object.keys(newParam).length === 0) return;
 
@@ -137,10 +147,10 @@ export const ControlPanel = ({
 
               {/* initialHand 内の全エントリーを map で回して表示 */}
               {Object.entries(initialHand).map(([deckId, count]) => (
-                <div key={deckId} className={styles.field}>
+                <div key={`hand-${deckId}`} className={styles.field}>
                   <div className={styles.label}>
                     <span>
-                      <strong>{deckId}</strong>
+                      <strong>Hand: {deckId}</strong>
                     </span>
                     {initialValues.initialHand[deckId] !== count && <small> (変更あり)</small>}
                   </div>
@@ -163,13 +173,41 @@ export const ControlPanel = ({
                   />
                 </div>
               ))}
+
+              {Object.entries(initialTokens).map(([tokenId, count]) => (
+                <div key={`token-${tokenId}`} className={styles.field}>
+                  <div className={styles.label}>
+                    <span>
+                      <strong>Token: {tokenId}</strong>
+                    </span>
+                    {initialValues.initialTokens[tokenId] !== count && <small> (変更あり)</small>}
+                  </div>
+                  <div className={styles.label}>
+                    <span>初期トークン数:</span>
+                    <strong>{count}</strong>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="10"
+                    className={styles.slider}
+                    value={count}
+                    onChange={(e) => {
+                      setInitialTokens({
+                        ...initialTokens,
+                        [tokenId]: Number(e.target.value),
+                      });
+                    }}
+                  />
+                </div>
+              ))}
             </>
           )}
 
           <button
             className={styles.saveButton}
             onClick={handleSave}
-            disabled={!socket.connected || isSaving || (!isMaxPlayersDirty && !isHandDirty)}
+            disabled={!socket.connected || isSaving || (!isMaxPlayersDirty && !isHandDirty && !isTokensDirty)}
           >
             {isSaving ? '保存中...' : showSuccess ? '完了' : '変更箇所のみ反映'}
           </button>

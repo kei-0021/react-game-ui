@@ -188,6 +188,7 @@ export const ${data.gameId}Config: RoomConfig = {
                 gameIcon: gameParams[id].gameIcon,
                 maxPlayers: gameParams[id].maxPlayers,
                 initialHand: gameParams[id].initialHand,
+                initialTokens: gameParams[id].initialTokens,
             }));
             const roomList = [];
             for (const [id, state] of activeRooms) {
