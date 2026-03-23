@@ -1,9 +1,7 @@
 // src/server/deepAbyssConfig.ts
 
-import { Card, GameParam, Player, RoomState } from '../../src/index.js';
+import { Card, CardPlayData, GameParam, Player, RoomManager, RoomState } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from '../../src/server/server-io-utils.js';
-import { RoomManager } from '../../src/server/server-utils.js';
-import { CardPlayData } from '../../src/types/socketData.js';
 import { DeepAbyssPhase } from '../types/phase.js';
 import { cellShuffleAndReconnector } from './cellShuffleAndReConnecter.js';
 

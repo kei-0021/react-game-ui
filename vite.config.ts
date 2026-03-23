@@ -8,6 +8,7 @@ const commonResolve = {
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      'react-game-ui': path.resolve(__dirname, 'src/index.ts'),
     },
   },
 };

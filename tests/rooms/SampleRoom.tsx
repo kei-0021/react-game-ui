@@ -5,19 +5,22 @@
 
 /// <reference types="vite/client" />
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Deck,
+  Dice,
+  Draggable,
+  GameTurnUpdateData,
+  Player,
+  PlayField,
+  RemoteCursor,
+  RoomJoinData,
+  ScoreBoard,
+  Timer,
+} from 'react-game-ui';
 import { useParams } from 'react-router-dom';
-import { Deck } from '../../src/components/Deck';
-import { Dice } from '../../src/components/Dice';
-import { Draggable } from '../../src/components/Draggable';
 import { DynamicComponent } from '../../src/components/DynamicComponent';
-import { PlayField } from '../../src/components/PlayField';
-import { RemoteCursor } from '../../src/components/RemoteCursor';
-import { ScoreBoard } from '../../src/components/ScoreBoard';
-import { Timer } from '../../src/components/Timer';
 import { useSocket } from '../../src/hooks/useSocket';
-import { Player } from '../../src/types/player';
 import type { ComponentInfo } from '../../src/types/server';
-import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
 import './SampleRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';

@@ -5,16 +5,19 @@
 // スコアボードのボタンの動作確認
 // システムメッセージの動作確認
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Deck,
+  GameTurnUpdateData,
+  GridBoard,
+  Player,
+  PlayField,
+  RoomJoinData,
+  ScoreBoard,
+  SystemMessageWindow,
+  TokenStore,
+} from 'react-game-ui';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Deck } from '../../src/components/Deck';
-import { GridBoard } from '../../src/components/GridBoard';
-import { PlayField } from '../../src/components/PlayField';
-import { ScoreBoard } from '../../src/components/ScoreBoard';
-import { SystemMessageWindow } from '../../src/components/systemMessageWindow';
-import { TokenStore } from '../../src/components/TokenStore';
 import { useSocket } from '../../src/hooks/useSocket';
-import type { Player } from '../../src/types/player';
-import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
 import { MyCustomCellRenderer } from '../components/MyCustomCellRenderer';
 import Popup from '../components/PopUp';
 import './DeepAbyssRoom.css';

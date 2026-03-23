@@ -1,5 +1,6 @@
 // tests/types/phase.ts
-import { Phase } from '../../src/types/phase.js';
+
+import { Phase } from 'react-game-ui';
 
 export class DeepAbyssPhase extends Phase {
   static readonly START = new (class extends DeepAbyssPhase {

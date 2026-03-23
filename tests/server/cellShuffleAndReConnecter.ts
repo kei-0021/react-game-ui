@@ -1,4 +1,4 @@
-import { CellData } from '../../dist';
+import { CellData } from 'react-game-ui';
 
 const rows = 8;
 const cols = 8;

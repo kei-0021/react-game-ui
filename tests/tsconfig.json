@@ -8,7 +8,13 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowArbitraryExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+
+    "baseUrl": "..",
+    "paths": {
+      "react-game-ui": ["src/index.ts"],
+      "@/*": ["src/*"]
+    }
   },
-  "include": ["./**/*", "../src/vite-env.d.ts", "../src/components/ControlPanel.tsx"]
+  "include": ["./**/*", "../src/**/*"]
 }

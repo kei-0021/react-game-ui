@@ -1,9 +1,8 @@
 // tests/rooms/LobbyRoom.tsx
 import { useEffect, useState } from 'react';
+import { ControlPanel, GameMeta, LobbyGameList, LobbyRoomList, RoomMeta } from 'react-game-ui';
 import { useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
-import { ControlPanel } from '../../src/components/ControlPanel';
-import type { GameMeta, LobbyGameList, LobbyRoomList, RoomMeta } from '../../src/types/socketData';
 import './LobbyRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
