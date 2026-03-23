@@ -83,7 +83,9 @@ async function startServer() {
   gameServer.start();
 
   const configDir = path.resolve(__dirname, 'server');
-  chokidar.watch(configDir).on('change', async (filePath) => {
+  chokidar.watch(configDir, { ignoreInitial: true }).on('all', async (event, filePath) => {
+    if (event !== 'add' && event !== 'change') return;
+
     await new Promise((resolve) => setTimeout(resolve, 200));
 
     try {
@@ -105,8 +107,24 @@ async function startServer() {
           val && typeof val.setup === 'function' && (val.gameId === gameId || val.gameId === gameId.toLowerCase()),
       ) as any;
 
-      if (newConfig && allLoadedData.has(gameId)) {
-        console.log(`[Watcher] 🍴 ${gameId} を再セットアップ中... (${fileName} の変更)`);
+      if (newConfig) {
+        // 新規追加 (add) でデータがまだロードされていない場合の処理を追加
+        if (!allLoadedData.has(gameId)) {
+          console.log(`[Watcher] ✨ 新規 Config 検出: ${gameId}`);
+          const loadedData: Record<string, any> = {};
+
+          for (const [key, relPath] of Object.entries(newConfig.dataFiles)) {
+            const dataPath = (relPath as string).split('data/')[1];
+            const finalPath = path.join(rootDir, 'tests', 'data', dataPath);
+
+            if (fs.existsSync(finalPath)) {
+              loadedData[key] = await loadJsonAssert(finalPath, (_data): _data is any => true);
+            }
+          }
+          allLoadedData.set(gameId, loadedData);
+        }
+
+        console.log(`[Watcher] 🍴 ${gameId} をセットアップ中... (${event})`);
 
         const targetData = allLoadedData.get(gameId);
         const updatedParam = await newConfig.setup(targetData);
