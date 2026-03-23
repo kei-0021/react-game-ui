@@ -6,9 +6,11 @@
 /// <reference types="vite/client" />
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ComponentInfo,
   Deck,
   Dice,
   Draggable,
+  DynamicComponent,
   GameTurnUpdateData,
   Player,
   PlayField,
@@ -16,11 +18,9 @@ import {
   RoomJoinData,
   ScoreBoard,
   Timer,
+  useSocket,
 } from 'react-game-ui';
 import { useParams } from 'react-router-dom';
-import { DynamicComponent } from '../../src/components/DynamicComponent';
-import { useSocket } from '../../src/hooks/useSocket';
-import type { ComponentInfo } from '../../src/types/server';
 import './SampleRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';

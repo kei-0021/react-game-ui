@@ -105,5 +105,5 @@ export interface ComponentInfo {
     type: ComponentType;
     props: Record<string, any>;
 }
-export { GameId };
+export type { GameId };
 //# sourceMappingURL=server.d.ts.map

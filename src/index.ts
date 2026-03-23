@@ -29,6 +29,8 @@ export { type PieceData } from './types/piece.js';
 /* @ts-ignore */
 export { type DraggableData } from './types/draggable.js';
 /* @ts-ignore */
+export { type ComponentInfo } from './types/server.js';
+/* @ts-ignore */
 export { RoomManager } from './server/server-utils.js';
 /* @ts-ignore */
 export { type GameParam, type RoomState } from './types/server.js';
@@ -38,6 +40,10 @@ export { type CellData } from './types/cell.js';
 export { Phase } from './types/phase.js';
 /* @ts-ignore */
 export { ControlPanel } from './components/ControlPanel.js';
+/* @ts-ignore */
+export { DynamicComponent } from './components/DynamicComponent.js';
+/* @ts-ignore */
+export { useSocket } from './hooks/useSocket.js';
 /* @ts-ignore */
 export {
   type CardPlayData,

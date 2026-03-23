@@ -120,4 +120,4 @@ export interface ComponentInfo {
   props: Record<string, any>;
 }
 
-export { GameId };
+export type { GameId };

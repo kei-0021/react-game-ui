@@ -26,3 +26,7 @@ export { RoomManager } from './server/server-utils.js';
 export { Phase } from './types/phase.js';
 /* @ts-ignore */
 export { ControlPanel } from './components/ControlPanel.js';
+/* @ts-ignore */
+export { DynamicComponent } from './components/DynamicComponent.js';
+/* @ts-ignore */
+export { useSocket } from './hooks/useSocket.js';

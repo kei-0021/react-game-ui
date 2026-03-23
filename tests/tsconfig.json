@@ -13,6 +13,7 @@
     "baseUrl": "..",
     "paths": {
       "react-game-ui": ["src/index.ts"],
+      "react-game-ui/server-io-utils": ["src/server/server-io-utils.js"],
       "@/*": ["src/*"]
     }
   },

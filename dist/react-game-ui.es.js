@@ -1,5 +1,6 @@
 import * as React from "react";
 import React__default, { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { io } from "socket.io-client";
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production_min = {};
 /**
@@ -1985,7 +1986,7 @@ function PlayField({
     {
       className: `rg-playfield mode-${layoutMode}`,
       style: {
-        background: backgroundImage ? `({})(${backgroundImage}) center/cover no-repeat` : void 0,
+        background: backgroundImage ? `url(${backgroundImage}) center/cover no-repeat` : void 0,
         // 親の zIndex を消すことで、中のカードが Draggable と同じ階層で比較されるようにする
         position: "relative"
       },
@@ -2795,8 +2796,8 @@ const isExplored = (roomState, position) => {
   return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
 class RoomManager {
-  constructor(io, param, state) {
-    this.io = io;
+  constructor(io2, param, state) {
+    this.io = io2;
     this.param = param;
     this.state = state;
   }
@@ -3539,12 +3540,43 @@ const ControlPanel = ({
     ] }) })
   ] });
 };
+const DynamicComponent = ({ type, props, socket, roomId }) => {
+  const commonProps = { socket, roomId };
+  switch (type) {
+    case "Dice":
+      const processedProps = { ...props };
+      if (Array.isArray(props.customFaces)) {
+        processedProps.customFaces = props.customFaces.map((src, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src, style: { width: "100%", height: "100%", objectFit: "contain" } }, `f${i}`));
+      }
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Dice, { ...commonProps, ...processedProps });
+    case "Timer":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Timer, { ...commonProps, ...props });
+    case "Deck":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props });
+    // 未定義のコンポーネントが来た場合
+    default:
+      console.warn(`Unknown component type: ${type}`);
+      return null;
+  }
+};
+function useSocket(url) {
+  const [socket, setSocket] = useState(null);
+  useEffect(() => {
+    const newSocket = io(url, { transports: ["websocket", "polling"] });
+    setSocket(newSocket);
+    return () => {
+      newSocket.close();
+    };
+  }, [url]);
+  return socket;
+}
 export {
   Cell,
   ControlPanel,
   Deck,
   Dice,
   Draggable,
+  DynamicComponent,
   GridBoard,
   Phase,
   PlayField,
@@ -3553,5 +3585,6 @@ export {
   ScoreBoard,
   SystemMessageWindow,
   Timer,
-  TokenStore
+  TokenStore,
+  useSocket
 };

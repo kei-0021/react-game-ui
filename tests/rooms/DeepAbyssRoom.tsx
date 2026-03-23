@@ -15,9 +15,9 @@ import {
   ScoreBoard,
   SystemMessageWindow,
   TokenStore,
+  useSocket,
 } from 'react-game-ui';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSocket } from '../../src/hooks/useSocket';
 import { MyCustomCellRenderer } from '../components/MyCustomCellRenderer';
 import Popup from '../components/PopUp';
 import './DeepAbyssRoom.css';
