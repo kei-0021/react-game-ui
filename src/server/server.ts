@@ -147,14 +147,17 @@ export class GameServer {
       console.warn(`[Server] 未登録のGameIdです: ${gameId}`);
     }
 
-    // GameParamの更新
-    this.gameParams[gameId] = param;
-
-    // 実行中の全ルームへ「最新ルール」を強制同期
-    // server-logic.ts 側でエクスポートした同期関数を呼ぶ
-    // reloadActiveRooms(this.io, gameId, param);
-
-    console.log(`[Server] Hot Swapped: ${gameId}. All rooms synchronized.`);
+    // 削除時は param が undefined で渡ってくる
+    if (param === undefined) {
+      delete this.gameParams[gameId];
+      console.log(`[Server] Removed: ${gameId}.`);
+    } else {
+      // GameParamの更新
+      this.gameParams[gameId] = param;
+      // 実行中の全ルームへ「最新ルール」を同期
+      // reloadActiveRooms(this.io, gameId, param);
+      console.log(`[Server] Hot Swapped: ${gameId}.`);
+    }
 
     // クライアントにゲーム一覧を送信
     const gameList: GameMeta[] = Object.keys(this.gameParams).map((id) => ({

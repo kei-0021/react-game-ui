@@ -1,4 +1,4 @@
-import { GameMeta } from '@/types/socketData.js';
+import { GameCreateData, GameDeleteData, GameMeta } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import styles from './ControlPanel.module.css';
@@ -130,13 +130,13 @@ export const ControlPanel = ({
 
   const handleCreateGame = () => {
     if (!newGameName || !socket.connected) return;
-    socket.emit('game:create', { gameName: newGameName, gameIcon: '🆕' });
+    socket.emit('game:create', { gameName: newGameName, gameIcon: '🆕' } as GameCreateData);
   };
 
   const handleDeleteGame = () => {
     if (!selectedGameId || !socket.connected) return;
     if (window.confirm(`ゲーム「${selectedGameId}」を削除しますか？`)) {
-      socket.emit('game:delete', { gameId: selectedGameId });
+      socket.emit('game:delete', { gameId: selectedGameId } as GameDeleteData);
     }
   };
 

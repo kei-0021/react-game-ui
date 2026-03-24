@@ -17,6 +17,8 @@ import {
   DiceUpdateData,
   DraggableMovedData,
   GameComponentData,
+  GameCreateData,
+  GameDeleteData,
   GameMeta,
   GameNextRoundData,
   GameNextTrunData,
@@ -254,7 +256,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       }
     });
 
-    socket.on('game:create', async (data: { gameName: string; gameIcon: string }) => {
+    socket.on('game:create', async (data: GameCreateData) => {
       try {
         const { gameName, gameIcon } = data;
 
@@ -282,7 +284,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       }
     });
 
-    socket.on('game:delete', async (data: { gameId: string }) => {
+    socket.on('game:delete', async (data: GameDeleteData) => {
       try {
         const { gameId } = data;
 

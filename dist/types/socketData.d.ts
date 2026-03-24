@@ -36,6 +36,13 @@ export type RoomJoinData = {
     gameId: GameId;
     playerName: PlayerId;
 };
+export type GameCreateData = {
+    gameName: string;
+    gameIcon: string;
+};
+export type GameDeleteData = {
+    gameId: string;
+};
 export type DeckDrawData = {
     roomId: RoomId;
     deckId: DeckId;

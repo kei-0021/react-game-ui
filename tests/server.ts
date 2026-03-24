@@ -2,7 +2,7 @@ import chokidar from 'chokidar';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import type { GameParam } from '../src/index.js';
+import type { GameId, GameParam } from '../src/index.js';
 import { loadJsonAssert, RoomConfig } from '../src/server/server-io-utils.js';
 import { GameServer, GameServerOptions } from '../src/server/server.js';
 import { customEvents } from './data/customEvents.js';
@@ -11,8 +11,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
-  const allLoadedData = new Map<string, any>();
-  const gameParams: Record<string, GameParam> = {};
+  const allLoadedData = new Map<GameId, any>();
+  const gameParams: Record<GameId, GameParam> = {};
   const isProduction = process.env.NODE_ENV === 'production';
   const rootDir = process.cwd();
 
@@ -93,21 +93,13 @@ async function startServer() {
 
     // 削除イベントのハンドリング
     if (event === 'unlink') {
-      // 既に削除処理中の場合はスキップ
       if (!gameParams[gameId]) return;
 
-      console.log(`[Watcher] 🗑️  ${gameId} の削除を検知しました`);
+      console.log(`[Watcher] ${gameId} の削除を検知しました`);
 
-      // サーバーへ undefined を送り、クライアントのリスト更新を先に走らせる
       gameServer.updateGameParam(gameId, undefined as any);
-
-      // 重要：直後に delete するとブロードキャスト中の参照で落ちるため
-      // 処理が一段落した後にメモリを解放する
-      setImmediate(() => {
-        allLoadedData.delete(gameId);
-        delete gameParams[gameId];
-        console.log(`[Watcher] ✅ ${gameId} をメモリから解放しました`);
-      });
+      allLoadedData.delete(gameId);
+      delete gameParams[gameId];
 
       return;
     }
