@@ -109,11 +109,10 @@ import {
   RemoteCursor,
   ScoreBoard,
   TokenStore,
+  useSocket,
 } from "react-game-ui";
-import "react-game-ui/dist/react-game-ui.css";
 import styles from "./${gameName}Room.module.css";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSocket } from "../hooks/useSocket.js";
 
 const SERVER_URL =
   import.meta.env.MODE === "development"

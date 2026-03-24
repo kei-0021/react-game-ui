@@ -64,7 +64,7 @@ export function LobbyRoom() {
   // 新しいルームを作成
   const handleCreateRoom = (gameId: string) => {
     const newRoomId = Math.random().toString(36).substring(2, 8);
-    navigate(`/game/${gameId}/${newRoomId}`);
+    navigate(`${gameId}/${newRoomId}`);
   };
 
   return (
