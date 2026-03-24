@@ -1,5 +1,6 @@
 // src/server.ts
 import { GameId, GameParam } from '@/types/server.js';
+import { GameMeta, LobbyGameList } from '@/types/socketData.js';
 import express from 'express';
 import fs from 'fs';
 import { createServer, Server as HttpServer } from 'http';
@@ -8,7 +9,6 @@ import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { initGameServer } from './server-logic.js';
 import { LogCategory } from './server-utils.js';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -147,7 +147,7 @@ export class GameServer {
       console.warn(`[Server] 未登録のGameIdです: ${gameId}`);
     }
 
-    // 内部状態の更新
+    // GameParamの更新
     this.gameParams[gameId] = param;
 
     // 実行中の全ルームへ「最新ルール」を強制同期
@@ -156,7 +156,16 @@ export class GameServer {
 
     console.log(`[Server] Hot Swapped: ${gameId}. All rooms synchronized.`);
 
-    // クライアント変更を一斉送信
-    this.io.emit('server:config_reloaded', { gameId });
+    // クライアントにゲーム一覧を送信
+    const gameList: GameMeta[] = Object.keys(this.gameParams).map((id) => ({
+      gameId: id,
+      gameIcon: this.gameParams[id].gameIcon,
+      maxPlayers: this.gameParams[id].maxPlayers,
+      initialHand: this.gameParams[id].initialHand,
+      initialTokens: this.gameParams[id].initialTokens,
+    }));
+    this.io.emit('lobby:game-list', {
+      games: gameList,
+    } as LobbyGameList);
   }
 }

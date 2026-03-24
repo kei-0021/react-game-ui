@@ -119,13 +119,22 @@ export class GameServer {
         if (!this.gameParams[gameId]) {
             console.warn(`[Server] 未登録のGameIdです: ${gameId}`);
         }
-        // 内部状態の更新
+        // GameParamの更新
         this.gameParams[gameId] = param;
         // 実行中の全ルームへ「最新ルール」を強制同期
         // server-logic.ts 側でエクスポートした同期関数を呼ぶ
         // reloadActiveRooms(this.io, gameId, param);
         console.log(`[Server] Hot Swapped: ${gameId}. All rooms synchronized.`);
-        // クライアント変更を一斉送信
-        this.io.emit('server:config_reloaded', { gameId });
+        // クライアントにゲーム一覧を送信
+        const gameList = Object.keys(this.gameParams).map((id) => ({
+            gameId: id,
+            gameIcon: this.gameParams[id].gameIcon,
+            maxPlayers: this.gameParams[id].maxPlayers,
+            initialHand: this.gameParams[id].initialHand,
+            initialTokens: this.gameParams[id].initialTokens,
+        }));
+        this.io.emit('lobby:game-list', {
+            games: gameList,
+        });
     }
 }
