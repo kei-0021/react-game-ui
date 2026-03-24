@@ -92,11 +92,13 @@ export const ${pascalName}Config: RoomConfig = {
 
     return {
       gameId: "${lowerName}",
+      gameIcon: "${gameIcon}",
       initialDecks: [],
       initialBoard: {},
       draggable: initialDraggables,
       checkGameEnd: () => false,
       onGameEnd: () => ({ message: "終了" }),
+      components: []
     };
   },
 };
