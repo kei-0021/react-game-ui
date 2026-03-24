@@ -21,7 +21,7 @@ export function LobbyRoom() {
 
     lobbySocket.on('connect', () => {
       console.log('Lobby connected. Requesting room list.');
-      lobbySocket.emit('lobby:get-rooms');
+      lobbySocket.emit('lobby:get-info');
 
       // --- テストとして、カスタムイベント1を強制発動 ---
       lobbySocket.emit('custom:events:1');
@@ -42,15 +42,15 @@ export function LobbyRoom() {
       setIsLoading(false);
     });
 
-    lobbySocket.on('lobby:room-update', () => {
-      lobbySocket.emit('lobby:get-rooms');
+    lobbySocket.on('room-ready', () => {
+      lobbySocket.emit('lobby:get-info');
     });
 
     return () => {
       lobbySocket.off('connect');
       lobbySocket.off('lobby:game-list');
       lobbySocket.off('lobby:room-list');
-      lobbySocket.off('lobby:room-update');
+      lobbySocket.off('room-ready');
       lobbySocket.disconnect();
     };
   }, []);

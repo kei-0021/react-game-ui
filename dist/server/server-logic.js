@@ -222,7 +222,7 @@ export function initGameServer(io, options) {
             }
         });
         // ロビー
-        socket.on('lobby:get-rooms', () => {
+        socket.on('lobby:get-info', () => {
             const gameList = Object.keys(gameParams).map((id) => ({
                 gameId: id,
                 gameIcon: gameParams[id].gameIcon,
@@ -258,7 +258,7 @@ export function initGameServer(io, options) {
             if (!state) {
                 state = initializeRoom(roomId, { ...param, gameId: gameId });
                 Object.keys(state.decks).forEach((id) => shuffleDeck(roomId, id));
-                io.emit('lobby:room-update');
+                io.emit('room-ready');
             }
             await socket.join(roomId);
             let player = state.players.find((p) => p.socketId === socket.id);
@@ -674,7 +674,7 @@ export function initGameServer(io, options) {
                     state.players.splice(idx, 1);
                     if (state.players.length === 0) {
                         activeRooms.delete(id);
-                        io.emit('lobby:room-update');
+                        io.emit('room-ready');
                     }
                     else {
                         const param = gameParams[state.gameId];
