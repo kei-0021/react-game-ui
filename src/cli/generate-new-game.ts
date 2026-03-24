@@ -259,8 +259,8 @@ export function ${pascalName}Room() {
 
   const paths = {
     config: path.join(baseDir, 'server', `${pascalName}Config.ts`),
-    room: path.join(baseDir, 'rooms', `${gameName}Room.tsx`),
-    css: path.join(baseDir, 'rooms', `${gameName}Room.module.css`),
+    room: path.join(baseDir, 'rooms', `${pascalName}Room.tsx`),
+    css: path.join(baseDir, 'rooms', `${pascalName}Room.module.css`),
   };
 
   [path.dirname(paths.config), path.dirname(paths.room)].forEach((dir) => {

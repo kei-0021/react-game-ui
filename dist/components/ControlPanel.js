@@ -4,6 +4,7 @@ import styles from './ControlPanel.module.css';
 export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
     const [selectedGameId, setSelectedGameId] = useState('');
     const [newGameName, setNewGameName] = useState('');
+    const [newGameIcon, setNewGameIcon] = useState('🎲');
     // 各種パラメータの状態
     const [maxPlayers, setMaxPlayers] = useState(1);
     const [initialHand, setInitialHand] = useState({});
@@ -61,6 +62,7 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
             if (data.success) {
                 setSelectedGameId(data.gameId);
                 setNewGameName('');
+                setNewGameIcon('🎲');
             }
         };
         const onDeleted = (data) => {
@@ -102,7 +104,17 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
     const handleCreateGame = () => {
         if (!newGameName || !socket.connected)
             return;
-        socket.emit('game:create', { gameName: newGameName, gameIcon: '🆕' });
+        // アルファベット以外を排除して小文字に変換
+        // 例: "My Game 01!" -> "mygame"
+        const sanitizedGameId = newGameName.toLowerCase().replace(/[^a-z]/g, '');
+        if (!sanitizedGameId) {
+            alert('ゲーム名はアルファベットを含めてください');
+            return;
+        }
+        socket.emit('game:create', {
+            gameName: sanitizedGameId,
+            gameIcon: newGameIcon || '🎲',
+        });
     };
     const handleDeleteGame = () => {
         if (!selectedGameId || !socket.connected)
@@ -111,7 +123,7 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
             socket.emit('game:delete', { gameId: selectedGameId });
         }
     };
-    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.container, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsxs("div", { className: styles.field, children: [_jsx("div", { className: styles.label, children: "\u65B0\u898F\u30B2\u30FC\u30E0\u4F5C\u6210:" }), _jsxs("div", { style: { display: 'flex', gap: '8px' }, children: [_jsx("input", { type: "text", className: styles.select, style: { flex: 1 }, placeholder: "GameName \uD83C\uDFB2", value: newGameName, onChange: (e) => setNewGameName(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: handleCreateGame, style: { marginTop: 0, padding: '0 15px', whiteSpace: 'nowrap' }, disabled: !newGameName, children: "\u4F5C\u6210" })] })] }), _jsx("hr", { className: styles.divider, style: { margin: '20px 0', border: 'none', borderTop: '1px solid #444' } }), _jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.label, style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' }, children: [_jsx("span", { children: "\u5BFE\u8C61\u30B2\u30FC\u30E0\u3092\u9078\u629E:" }), _jsx("button", { onClick: () => setIsDeleteMode(!isDeleteMode), style: {
+    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.container, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsxs("div", { className: styles.field, children: [_jsx("div", { className: styles.label, children: "\u65B0\u898F\u30B2\u30FC\u30E0\u4F5C\u6210:" }), _jsxs("div", { style: { display: 'flex', gap: '8px' }, children: [_jsx("input", { type: "text", className: styles.select, style: { width: '45px', textAlign: 'center' }, placeholder: "Icon", value: newGameIcon, onChange: (e) => setNewGameIcon(e.target.value.slice(0, 5)) }), _jsx("input", { type: "text", className: styles.select, style: { flex: 1 }, placeholder: "GameName", value: newGameName, onChange: (e) => setNewGameName(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: handleCreateGame, style: { marginTop: 0, padding: '0 15px', whiteSpace: 'nowrap' }, disabled: !newGameName, children: "\u4F5C\u6210" })] })] }), _jsx("hr", { className: styles.divider, style: { margin: '20px 0', border: 'none', borderTop: '1px solid #444' } }), _jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.label, style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' }, children: [_jsx("span", { children: "\u5BFE\u8C61\u30B2\u30FC\u30E0\u3092\u9078\u629E:" }), _jsx("button", { onClick: () => setIsDeleteMode(!isDeleteMode), style: {
                                                 background: 'none',
                                                 border: 'none',
                                                 color: isDeleteMode ? '#ff4444' : '#888',

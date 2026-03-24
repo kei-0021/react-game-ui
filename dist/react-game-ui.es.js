@@ -3325,6 +3325,7 @@ const ControlPanel = ({
 }) => {
   const [selectedGameId, setSelectedGameId] = useState("");
   const [newGameName, setNewGameName] = useState("");
+  const [newGameIcon, setNewGameIcon] = useState("🎲");
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState({});
   const [initialTokens, setInitialTokens] = useState({});
@@ -3377,6 +3378,7 @@ const ControlPanel = ({
       if (data.success) {
         setSelectedGameId(data.gameId);
         setNewGameName("");
+        setNewGameIcon("🎲");
       }
     };
     const onDeleted = (data) => {
@@ -3412,7 +3414,15 @@ const ControlPanel = ({
   };
   const handleCreateGame = () => {
     if (!newGameName || !socket.connected) return;
-    socket.emit("game:create", { gameName: newGameName, gameIcon: "🆕" });
+    const sanitizedGameId = newGameName.toLowerCase().replace(/[^a-z]/g, "");
+    if (!sanitizedGameId) {
+      alert("ゲーム名はアルファベットを含めてください");
+      return;
+    }
+    socket.emit("game:create", {
+      gameName: sanitizedGameId,
+      gameIcon: newGameIcon || "🎲"
+    });
   };
   const handleDeleteGame = () => {
     if (!selectedGameId || !socket.connected) return;
@@ -3432,8 +3442,19 @@ const ControlPanel = ({
             {
               type: "text",
               className: styles.select,
+              style: { width: "45px", textAlign: "center" },
+              placeholder: "Icon",
+              value: newGameIcon,
+              onChange: (e) => setNewGameIcon(e.target.value.slice(0, 5))
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "text",
+              className: styles.select,
               style: { flex: 1 },
-              placeholder: "GameName 🎲",
+              placeholder: "GameName",
               value: newGameName,
               onChange: (e) => setNewGameName(e.target.value)
             }

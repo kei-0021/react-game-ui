@@ -1,3 +1,4 @@
+// src/components/ControlPanel.tsx
 import { GameCreateData, GameDeleteData, GameMeta } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';
@@ -16,6 +17,7 @@ export const ControlPanel = ({
 }) => {
   const [selectedGameId, setSelectedGameId] = useState<string>('');
   const [newGameName, setNewGameName] = useState('');
+  const [newGameIcon, setNewGameIcon] = useState('🎲');
 
   // 各種パラメータの状態
   const [maxPlayers, setMaxPlayers] = useState(1);
@@ -87,6 +89,7 @@ export const ControlPanel = ({
       if (data.success) {
         setSelectedGameId(data.gameId);
         setNewGameName('');
+        setNewGameIcon('🎲');
       }
     };
 
@@ -130,7 +133,20 @@ export const ControlPanel = ({
 
   const handleCreateGame = () => {
     if (!newGameName || !socket.connected) return;
-    socket.emit('game:create', { gameName: newGameName, gameIcon: '🆕' } as GameCreateData);
+
+    // アルファベット以外を排除して小文字に変換
+    // 例: "My Game 01!" -> "mygame"
+    const sanitizedGameId = newGameName.toLowerCase().replace(/[^a-z]/g, '');
+
+    if (!sanitizedGameId) {
+      alert('ゲーム名はアルファベットを含めてください');
+      return;
+    }
+
+    socket.emit('game:create', {
+      gameName: sanitizedGameId,
+      gameIcon: newGameIcon || '🎲',
+    } as GameCreateData);
   };
 
   const handleDeleteGame = () => {
@@ -154,11 +170,21 @@ export const ControlPanel = ({
           <div className={styles.field}>
             <div className={styles.label}>新規ゲーム作成:</div>
             <div style={{ display: 'flex', gap: '8px' }}>
+              {/* アイコン入力 (幅を狭く) */}
+              <input
+                type="text"
+                className={styles.select}
+                style={{ width: '45px', textAlign: 'center' }}
+                placeholder="Icon"
+                value={newGameIcon}
+                onChange={(e) => setNewGameIcon(e.target.value.slice(0, 5))}
+              />
+              {/* 名前入力 */}
               <input
                 type="text"
                 className={styles.select}
                 style={{ flex: 1 }}
-                placeholder="GameName 🎲"
+                placeholder="GameName"
                 value={newGameName}
                 onChange={(e) => setNewGameName(e.target.value)}
               />

@@ -89,7 +89,10 @@ async function startServer() {
     const gameIdMatch = fileName.match(/^(.+?)(Config|Data)\.ts$/);
     if (!gameIdMatch) return;
 
-    const gameId = gameIdMatch[1];
+    // ファイル名から抽出したIDを強制的に小文字化
+    // 例: "Poker" -> "poker"
+    const rawGameId = gameIdMatch[1];
+    const gameId = rawGameId.toLowerCase();
 
     // 削除イベントのハンドリング
     if (event === 'unlink') {
@@ -108,19 +111,16 @@ async function startServer() {
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     try {
-      const configPath = path.join(configDir, `${gameId}Config.ts`);
-
-      // 物理ファイルの存在チェック（削除直後のゴーストイベント対策）
-      if (!fs.existsSync(configPath)) {
-        return;
-      }
+      // 読み込み先は元のファイル名（大文字含む可能性あり）を使う
+      const configPath = path.join(configDir, `${rawGameId}Config.ts`);
+      if (!fs.existsSync(configPath)) return;
 
       const fileUrl = `file://${configPath}?update=${Date.now()}`;
       const module = await import(fileUrl);
 
+      // 検索条件も小文字化した gameId で照合
       const newConfig = Object.values(module).find(
-        (val: any) =>
-          val && typeof val.setup === 'function' && (val.gameId === gameId || val.gameId === gameId.toLowerCase()),
+        (val: any) => val && typeof val.setup === 'function' && String(val.gameId).toLowerCase() === gameId,
       ) as any;
 
       if (newConfig) {
