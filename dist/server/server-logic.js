@@ -177,7 +177,6 @@ export function initGameServer(io, options) {
                 socket.emit('error', 'ファイルの保存に失敗');
             }
         });
-        // --- socket.on 内 ---
         socket.on('game:create', async (data) => {
             try {
                 const { gameName, gameIcon } = data;
@@ -198,6 +197,28 @@ export function initGameServer(io, options) {
             catch (err) {
                 console.error(`[Admin] CLIエラー: ${err.message}`);
                 socket.emit('error', 'ゲーム生成に失敗しました');
+            }
+        });
+        socket.on('game:delete', async (data) => {
+            try {
+                const { gameId } = data;
+                const cliPath = path.resolve(process.cwd(), 'src/cli/delete-game.ts');
+                const command = `npx tsx ${cliPath} ${gameId}`;
+                console.log(`[Admin] 削除CLI実行中: ${command}`);
+                const { stdout, stderr } = await execPromise(command);
+                if (stderr) {
+                    console.warn(`[Admin] 削除CLI警告: ${stderr}`);
+                }
+                console.log(`[Admin] 削除CLI完了: ${stdout}`);
+                // フロントに完了を通知
+                socket.emit('game:deleted', {
+                    success: true,
+                    gameId: gameId,
+                });
+            }
+            catch (err) {
+                console.error(`[Admin] 削除CLIエラー: ${err.message}`);
+                socket.emit('error', 'ゲームの削除に失敗しました');
             }
         });
         // ロビー

@@ -3335,6 +3335,7 @@ const ControlPanel = ({
   });
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
   useEffect(() => {
     if (gameMeta.length > 0 && !selectedGameId) {
       setSelectedGameId(gameMeta[0].gameId);
@@ -3378,13 +3379,24 @@ const ControlPanel = ({
         setNewGameName("");
       }
     };
+    const onDeleted = (data) => {
+      if (data.success) {
+        setIsDeleteMode(false);
+        if (selectedGameId === data.gameId) {
+          const nextGame = gameMeta.find((g) => g.gameId !== data.gameId);
+          setSelectedGameId(nextGame ? nextGame.gameId : "");
+        }
+      }
+    };
     socket.on("game-param:updated", onUpdated);
     socket.on("game:created", onCreated);
+    socket.on("game:deleted", onDeleted);
     return () => {
       socket.off("game-param:updated", onUpdated);
       socket.off("game:created", onCreated);
+      socket.off("game:deleted", onDeleted);
     };
-  }, [socket, maxPlayers, initialHand, initialTokens]);
+  }, [socket, maxPlayers, initialHand, initialTokens, selectedGameId, gameMeta]);
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
     const newParam = {};
@@ -3401,6 +3413,12 @@ const ControlPanel = ({
   const handleCreateGame = () => {
     if (!newGameName || !socket.connected) return;
     socket.emit("game:create", { gameName: newGameName, gameIcon: "🆕" });
+  };
+  const handleDeleteGame = () => {
+    if (!selectedGameId || !socket.connected) return;
+    if (window.confirm(`ゲーム「${selectedGameId}」を削除しますか？`)) {
+      socket.emit("game:delete", { gameId: selectedGameId });
+    }
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? "✕" : "☰" }),
@@ -3434,19 +3452,60 @@ const ControlPanel = ({
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: styles.divider, style: { margin: "20px 0", border: "none", borderTop: "1px solid #444" } }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "対象ゲームを選択:" }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "select",
+          "div",
           {
-            className: styles.select,
-            value: selectedGameId,
-            onChange: (e) => setSelectedGameId(e.target.value),
+            className: styles.label,
+            style: { display: "flex", justifyContent: "space-between", alignItems: "center" },
             children: [
-              gameMeta.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "読み込み中..." }),
-              gameMeta.map((game) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: game.gameId, children: game.gameId }, game.gameId))
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "対象ゲームを選択:" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  onClick: () => setIsDeleteMode(!isDeleteMode),
+                  style: {
+                    background: "none",
+                    border: "none",
+                    color: isDeleteMode ? "#ff4444" : "#888",
+                    cursor: "pointer",
+                    fontSize: "12px"
+                  },
+                  children: isDeleteMode ? "キャンセル" : "削除モード"
+                }
+              )
             ]
           }
-        )
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "8px" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "select",
+            {
+              className: styles.select,
+              style: { flex: 1 },
+              value: selectedGameId,
+              onChange: (e) => setSelectedGameId(e.target.value),
+              children: [
+                gameMeta.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "読み込み中..." }),
+                gameMeta.map((game) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: game.gameId, children: game.gameId }, game.gameId))
+              ]
+            }
+          ),
+          isDeleteMode && selectedGameId && /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              className: styles.saveButton,
+              onClick: handleDeleteGame,
+              style: {
+                marginTop: 0,
+                padding: "0 15px",
+                background: "#ff4444",
+                border: "none",
+                whiteSpace: "nowrap"
+              },
+              children: "削除"
+            }
+          )
+        ] })
       ] }),
       selectedGame && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
         selectedGame.maxPlayers !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [

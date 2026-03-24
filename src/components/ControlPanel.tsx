@@ -35,6 +35,7 @@ export const ControlPanel = ({
 
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
 
   // ゲーム選択の初期化
   useEffect(() => {
@@ -89,14 +90,26 @@ export const ControlPanel = ({
       }
     };
 
+    const onDeleted = (data: { success: boolean; gameId: string }) => {
+      if (data.success) {
+        setIsDeleteMode(false);
+        if (selectedGameId === data.gameId) {
+          const nextGame = gameMeta.find((g) => g.gameId !== data.gameId);
+          setSelectedGameId(nextGame ? nextGame.gameId : '');
+        }
+      }
+    };
+
     socket.on('game-param:updated', onUpdated);
     socket.on('game:created', onCreated);
+    socket.on('game:deleted', onDeleted);
 
     return () => {
       socket.off('game-param:updated', onUpdated);
       socket.off('game:created', onCreated);
+      socket.off('game:deleted', onDeleted);
     };
-  }, [socket, maxPlayers, initialHand, initialTokens]);
+  }, [socket, maxPlayers, initialHand, initialTokens, selectedGameId, gameMeta]);
 
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
@@ -118,6 +131,13 @@ export const ControlPanel = ({
   const handleCreateGame = () => {
     if (!newGameName || !socket.connected) return;
     socket.emit('game:create', { gameName: newGameName, gameIcon: '🆕' });
+  };
+
+  const handleDeleteGame = () => {
+    if (!selectedGameId || !socket.connected) return;
+    if (window.confirm(`ゲーム「${selectedGameId}」を削除しますか？`)) {
+      socket.emit('game:delete', { gameId: selectedGameId });
+    }
   };
 
   return (
@@ -157,19 +177,54 @@ export const ControlPanel = ({
 
           {/* ゲーム選択セクション */}
           <div className={styles.field}>
-            <div className={styles.label}>対象ゲームを選択:</div>
-            <select
-              className={styles.select}
-              value={selectedGameId}
-              onChange={(e) => setSelectedGameId(e.target.value)}
+            <div
+              className={styles.label}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
             >
-              {gameMeta.length === 0 && <option value="">読み込み中...</option>}
-              {gameMeta.map((game) => (
-                <option key={game.gameId} value={game.gameId}>
-                  {game.gameId}
-                </option>
-              ))}
-            </select>
+              <span>対象ゲームを選択:</span>
+              <button
+                onClick={() => setIsDeleteMode(!isDeleteMode)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: isDeleteMode ? '#ff4444' : '#888',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                }}
+              >
+                {isDeleteMode ? 'キャンセル' : '削除モード'}
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <select
+                className={styles.select}
+                style={{ flex: 1 }}
+                value={selectedGameId}
+                onChange={(e) => setSelectedGameId(e.target.value)}
+              >
+                {gameMeta.length === 0 && <option value="">読み込み中...</option>}
+                {gameMeta.map((game) => (
+                  <option key={game.gameId} value={game.gameId}>
+                    {game.gameId}
+                  </option>
+                ))}
+              </select>
+              {isDeleteMode && selectedGameId && (
+                <button
+                  className={styles.saveButton}
+                  onClick={handleDeleteGame}
+                  style={{
+                    marginTop: 0,
+                    padding: '0 15px',
+                    background: '#ff4444',
+                    border: 'none',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  削除
+                </button>
+              )}
+            </div>
           </div>
 
           {selectedGame && (

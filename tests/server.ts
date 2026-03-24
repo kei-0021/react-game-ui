@@ -1,4 +1,3 @@
-// tests/server.ts
 import chokidar from 'chokidar';
 import fs from 'fs';
 import path from 'path';
@@ -84,21 +83,46 @@ async function startServer() {
 
   const configDir = path.resolve(__dirname, 'server');
   chokidar.watch(configDir, { ignoreInitial: true }).on('all', async (event, filePath) => {
-    if (event !== 'add' && event !== 'change') return;
+    if (event !== 'add' && event !== 'change' && event !== 'unlink') return;
 
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    const fileName = path.basename(filePath);
+    const gameIdMatch = fileName.match(/^(.+?)(Config|Data)\.ts$/);
+    if (!gameIdMatch) return;
+
+    const gameId = gameIdMatch[1];
+
+    // 削除イベントのハンドリング
+    if (event === 'unlink') {
+      // 既に削除処理中の場合はスキップ
+      if (!gameParams[gameId]) return;
+
+      console.log(`[Watcher] 🗑️  ${gameId} の削除を検知しました`);
+
+      // サーバーへ undefined を送り、クライアントのリスト更新を先に走らせる
+      gameServer.updateGameParam(gameId, undefined as any);
+
+      // 重要：直後に delete するとブロードキャスト中の参照で落ちるため
+      // 処理が一段落した後にメモリを解放する
+      setImmediate(() => {
+        allLoadedData.delete(gameId);
+        delete gameParams[gameId];
+        console.log(`[Watcher] ✅ ${gameId} をメモリから解放しました`);
+      });
+
+      return;
+    }
+
+    // 追加・変更時の安定待ち
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     try {
-      const fileName = path.basename(filePath);
-      // Data か Config どちらの変更でも gameId を抽出 (例: sampleData -> sample)
-      const gameIdMatch = fileName.match(/^(.+?)(Config|Data)\.ts$/);
-      if (!gameIdMatch) return;
-
-      const gameId = gameIdMatch[1];
-      // 常に Config ファイルのパスを生成
       const configPath = path.join(configDir, `${gameId}Config.ts`);
 
-      // キャッシュを避けて Config を読み込み
+      // 物理ファイルの存在チェック（削除直後のゴーストイベント対策）
+      if (!fs.existsSync(configPath)) {
+        return;
+      }
+
       const fileUrl = `file://${configPath}?update=${Date.now()}`;
       const module = await import(fileUrl);
 
@@ -108,7 +132,6 @@ async function startServer() {
       ) as any;
 
       if (newConfig) {
-        // 新規追加 (add) でデータがまだロードされていない場合の処理を追加
         if (!allLoadedData.has(gameId)) {
           console.log(`[Watcher] ✨ 新規 Config 検出: ${gameId}`);
           const loadedData: Record<string, any> = {};
@@ -129,9 +152,8 @@ async function startServer() {
         const targetData = allLoadedData.get(gameId);
         const updatedParam = await newConfig.setup(targetData);
 
-        gameServer.updateGameParam(gameId, updatedParam);
-        // メモリ上の gameParams も同期しておく
         gameParams[gameId] = updatedParam;
+        gameServer.updateGameParam(gameId, updatedParam);
 
         console.log(`[Watcher] ✅ ${gameId} のホットスワップに成功しました`);
       }
