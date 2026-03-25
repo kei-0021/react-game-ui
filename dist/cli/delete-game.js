@@ -10,14 +10,13 @@ export const remove = (rawName) => {
     }
     // 生成時と同じロジックで英数字のみ抽出
     const gameName = rawName.replace(/[^\w]/g, '');
-    const lowerName = gameName.toLowerCase();
     const pascalName = gameName.charAt(0).toUpperCase() + gameName.slice(1);
     // 環境変数があればそれをベースにし、なければ通常の 'src' を起点にする
     const baseDir = process.env.RG_UI_BASE_DIR || path.join(process.cwd(), 'src');
     const paths = {
         config: path.join(baseDir, 'server', `${pascalName}Config.ts`),
-        room: path.join(baseDir, 'rooms', `${gameName}Room.tsx`),
-        style: path.join(baseDir, 'rooms', `${gameName}Room.module.css`),
+        room: path.join(baseDir, 'rooms', `${pascalName}Room.tsx`),
+        style: path.join(baseDir, 'rooms', `${pascalName}Room.module.css`),
     };
     // ファイルの削除
     [paths.config, paths.room, paths.style].forEach((filePath) => {

@@ -88,6 +88,7 @@ export const ${pascalName}Config: RoomConfig = {
     return {
       gameId: "${lowerName}",
       gameIcon: "${gameIcon}",
+      maxPlayers: 4,
       initialDecks: [],
       initialBoard: {},
       draggable: initialDraggables,
@@ -254,9 +255,11 @@ export function ${pascalName}Room() {
         room: path.join(baseDir, 'rooms', `${pascalName}Room.tsx`),
         css: path.join(baseDir, 'rooms', `${pascalName}Room.module.css`),
     };
-    [path.dirname(paths.config), path.dirname(paths.room)].forEach((dir) => {
-        if (!fs.existsSync(dir))
+    Object.values(paths).forEach((p) => {
+        const dir = path.dirname(p);
+        if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
+        }
     });
     fs.writeFileSync(paths.config, configTemplate);
     fs.writeFileSync(paths.room, roomTemplate);
