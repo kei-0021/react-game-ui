@@ -3326,6 +3326,8 @@ const ControlPanel = ({
   const [selectedGameId, setSelectedGameId] = useState("");
   const [newGameName, setNewGameName] = useState("");
   const [newGameIcon, setNewGameIcon] = useState("🎲");
+  const [newCompId, setNewCompId] = useState("");
+  const [newCompType, setNewCompType] = useState("Dice");
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState({});
   const [initialTokens, setInitialTokens] = useState({});
@@ -3430,194 +3432,271 @@ const ControlPanel = ({
       socket.emit("game:delete", { gameId: selectedGameId });
     }
   };
+  const handleAddComponent = () => {
+    if (!newCompId || !socket.connected || !selectedGameId) return;
+    const newComponent = {
+      id: newCompId,
+      type: newCompType,
+      props: {
+        x: 500,
+        // 座標固定
+        y: 500,
+        title: `${newCompType}-${newCompId}`
+      }
+    };
+    socket.emit("game-param:add-component", {
+      gameId: selectedGameId,
+      component: newComponent
+    });
+    setNewCompId("");
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? "✕" : "☰" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ""}`, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.container, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: "コントロールパネル" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "新規ゲーム作成:" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "8px" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "input",
-            {
-              type: "text",
-              className: styles.select,
-              style: { width: "45px", textAlign: "center" },
-              placeholder: "Icon",
-              value: newGameIcon,
-              onChange: (e) => setNewGameIcon(e.target.value.slice(0, 5))
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "input",
-            {
-              type: "text",
-              className: styles.select,
-              style: { flex: 1 },
-              placeholder: "GameName",
-              value: newGameName,
-              onChange: (e) => setNewGameName(e.target.value)
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "button",
-            {
-              className: styles.saveButton,
-              onClick: handleCreateGame,
-              style: { marginTop: 0, padding: "0 15px", whiteSpace: "nowrap" },
-              disabled: !newGameName,
-              children: "作成"
-            }
-          )
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: styles.divider, style: { margin: "20px 0", border: "none", borderTop: "1px solid #444" } }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            className: styles.label,
-            style: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "対象ゲームを選択:" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ""}`, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: styles.container,
+        style: {
+          maxHeight: "100vh",
+          overflowY: "auto",
+          paddingBottom: "60px"
+          // ボタンが隠れないよう余白
+        },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: "コントロールパネル" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "新規ゲーム作成:" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "8px" }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "input",
+                {
+                  type: "text",
+                  className: styles.select,
+                  style: { width: "45px", textAlign: "center" },
+                  placeholder: "Icon",
+                  value: newGameIcon,
+                  onChange: (e) => setNewGameIcon(e.target.value.slice(0, 5))
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "input",
+                {
+                  type: "text",
+                  className: styles.select,
+                  style: { flex: 1 },
+                  placeholder: "GameName",
+                  value: newGameName,
+                  onChange: (e) => setNewGameName(e.target.value)
+                }
+              ),
               /* @__PURE__ */ jsxRuntimeExports.jsx(
                 "button",
                 {
-                  onClick: () => setIsDeleteMode(!isDeleteMode),
-                  style: {
-                    background: "none",
-                    border: "none",
-                    color: isDeleteMode ? "#ff4444" : "#888",
-                    cursor: "pointer",
-                    fontSize: "12px"
-                  },
-                  children: isDeleteMode ? "キャンセル" : "削除モード"
+                  className: styles.saveButton,
+                  onClick: handleCreateGame,
+                  style: { marginTop: 0, padding: "0 15px", whiteSpace: "nowrap" },
+                  disabled: !newGameName,
+                  children: "作成"
                 }
               )
-            ]
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "8px" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "select",
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: styles.divider, style: { margin: "20px 0", border: "none", borderTop: "1px solid #444" } }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "div",
+              {
+                className: styles.label,
+                style: { display: "flex", justifyContent: "space-between", alignItems: "center" },
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "対象ゲームを選択:" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      onClick: () => setIsDeleteMode(!isDeleteMode),
+                      style: {
+                        background: "none",
+                        border: "none",
+                        color: isDeleteMode ? "#ff4444" : "#888",
+                        cursor: "pointer",
+                        fontSize: "12px"
+                      },
+                      children: isDeleteMode ? "キャンセル" : "削除モード"
+                    }
+                  )
+                ]
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "8px" }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "select",
+                {
+                  className: styles.select,
+                  style: { flex: 1 },
+                  value: selectedGameId,
+                  onChange: (e) => setSelectedGameId(e.target.value),
+                  children: [
+                    gameMeta.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "読み込み中..." }),
+                    gameMeta.map((game) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: game.gameId, children: game.gameId }, game.gameId))
+                  ]
+                }
+              ),
+              isDeleteMode && selectedGameId && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  className: styles.saveButton,
+                  onClick: handleDeleteGame,
+                  style: {
+                    marginTop: 0,
+                    padding: "0 15px",
+                    background: "#ff4444",
+                    border: "none",
+                    whiteSpace: "nowrap"
+                  },
+                  children: "削除"
+                }
+              )
+            ] })
+          ] }),
+          selectedGame && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "div",
             {
-              className: styles.select,
-              style: { flex: 1 },
-              value: selectedGameId,
-              onChange: (e) => setSelectedGameId(e.target.value),
+              className: styles.field,
+              style: { background: "#222", padding: "10px", borderRadius: "4px", marginTop: "10px" },
               children: [
-                gameMeta.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "読み込み中..." }),
-                gameMeta.map((game) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: game.gameId, children: game.gameId }, game.gameId))
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "コンポーネント追加:" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "4px" }, children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                    "select",
+                    {
+                      className: styles.select,
+                      style: { width: "70px" },
+                      value: newCompType,
+                      onChange: (e) => setNewCompType(e.target.value),
+                      children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "Dice", children: "Dice" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "Board", children: "Board" })
+                      ]
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "input",
+                    {
+                      type: "text",
+                      className: styles.select,
+                      style: { flex: 1 },
+                      placeholder: "ID (例: dice-2)",
+                      value: newCompId,
+                      onChange: (e) => setNewCompId(e.target.value)
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      className: styles.saveButton,
+                      onClick: handleAddComponent,
+                      style: { marginTop: 0, padding: "0 10px" },
+                      disabled: !newCompId,
+                      children: "追加"
+                    }
+                  )
+                ] })
               ]
             }
           ),
-          isDeleteMode && selectedGameId && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: styles.divider, style: { margin: "20px 0", border: "none", borderTop: "1px solid #444" } }),
+          selectedGame && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+            selectedGame.maxPlayers !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+                  "最大プレイヤー数: ",
+                  isMaxPlayersDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: maxPlayers })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "input",
+                {
+                  type: "range",
+                  min: "1",
+                  max: "10",
+                  className: styles.slider,
+                  value: maxPlayers,
+                  onChange: (e) => setMaxPlayers(Number(e.target.value))
+                }
+              )
+            ] }),
+            Object.entries(initialHand).map(([deckId, count]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("strong", { children: [
+                  "Hand: ",
+                  deckId
+                ] }) }),
+                initialValues.initialHand[deckId] !== count && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: " (変更あり)" })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "枚数:" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: count })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "input",
+                {
+                  type: "range",
+                  min: "0",
+                  max: "10",
+                  className: styles.slider,
+                  value: count,
+                  onChange: (e) => {
+                    setInitialHand({
+                      ...initialHand,
+                      [deckId]: Number(e.target.value)
+                    });
+                  }
+                }
+              )
+            ] }, `hand-${deckId}`)),
+            Object.entries(initialTokens).map(([tokenId, count]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("strong", { children: [
+                  "Token: ",
+                  tokenId
+                ] }) }),
+                initialValues.initialTokens[tokenId] !== count && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: " (変更あり)" })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "個数:" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: count })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "input",
+                {
+                  type: "range",
+                  min: "0",
+                  max: "10",
+                  className: styles.slider,
+                  value: count,
+                  onChange: (e) => {
+                    setInitialTokens({
+                      ...initialTokens,
+                      [tokenId]: Number(e.target.value)
+                    });
+                  }
+                }
+              )
+            ] }, `token-${tokenId}`))
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
             "button",
             {
               className: styles.saveButton,
-              onClick: handleDeleteGame,
-              style: {
-                marginTop: 0,
-                padding: "0 15px",
-                background: "#ff4444",
-                border: "none",
-                whiteSpace: "nowrap"
-              },
-              children: "削除"
+              onClick: handleSave,
+              disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty && !isTokensDirty,
+              children: isSaving ? "保存中..." : showSuccess ? "完了" : "変更箇所のみ反映"
             }
           )
-        ] })
-      ] }),
-      selectedGame && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-        selectedGame.maxPlayers !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-              "最大プレイヤー数: ",
-              isMaxPlayersDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: maxPlayers })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "input",
-            {
-              type: "range",
-              min: "1",
-              max: "10",
-              className: styles.slider,
-              value: maxPlayers,
-              onChange: (e) => setMaxPlayers(Number(e.target.value))
-            }
-          )
-        ] }),
-        Object.entries(initialHand).map(([deckId, count]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("strong", { children: [
-              "Hand: ",
-              deckId
-            ] }) }),
-            initialValues.initialHand[deckId] !== count && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: " (変更あり)" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "枚数:" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: count })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "input",
-            {
-              type: "range",
-              min: "0",
-              max: "10",
-              className: styles.slider,
-              value: count,
-              onChange: (e) => {
-                setInitialHand({
-                  ...initialHand,
-                  [deckId]: Number(e.target.value)
-                });
-              }
-            }
-          )
-        ] }, `hand-${deckId}`)),
-        Object.entries(initialTokens).map(([tokenId, count]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("strong", { children: [
-              "Token: ",
-              tokenId
-            ] }) }),
-            initialValues.initialTokens[tokenId] !== count && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: " (変更あり)" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "個数:" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: count })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "input",
-            {
-              type: "range",
-              min: "0",
-              max: "10",
-              className: styles.slider,
-              value: count,
-              onChange: (e) => {
-                setInitialTokens({
-                  ...initialTokens,
-                  [tokenId]: Number(e.target.value)
-                });
-              }
-            }
-          )
-        ] }, `token-${tokenId}`))
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
-        {
-          className: styles.saveButton,
-          onClick: handleSave,
-          disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty && !isTokensDirty,
-          children: isSaving ? "保存中..." : showSuccess ? "完了" : "変更箇所のみ反映"
-        }
-      )
-    ] }) })
+        ]
+      }
+    ) })
   ] });
 };
 const DynamicComponent = ({ type, props, socket, roomId }) => {

@@ -19,6 +19,10 @@ export const ControlPanel = ({
   const [newGameName, setNewGameName] = useState('');
   const [newGameIcon, setNewGameIcon] = useState('🎲');
 
+  // 新規コンポーネント追加用の状態
+  const [newCompId, setNewCompId] = useState('');
+  const [newCompType, setNewCompType] = useState<'Dice' | 'Board'>('Dice');
+
   // 各種パラメータの状態
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState<Record<string, number>>({});
@@ -156,6 +160,28 @@ export const ControlPanel = ({
     }
   };
 
+  // コンポーネント追加ハンドラ
+  const handleAddComponent = () => {
+    if (!newCompId || !socket.connected || !selectedGameId) return;
+
+    const newComponent = {
+      id: newCompId,
+      type: newCompType,
+      props: {
+        x: 500, // 座標固定
+        y: 500,
+        title: `${newCompType}-${newCompId}`,
+      },
+    };
+
+    socket.emit('game-param:add-component', {
+      gameId: selectedGameId,
+      component: newComponent,
+    });
+
+    setNewCompId('');
+  };
+
   return (
     <>
       <button className={styles.hamburger} onClick={onToggle}>
@@ -163,7 +189,14 @@ export const ControlPanel = ({
       </button>
 
       <div className={`${styles.wrapper} ${isOpen ? styles.open : ''}`}>
-        <div className={styles.container}>
+        <div
+          className={styles.container}
+          style={{
+            maxHeight: '100vh',
+            overflowY: 'auto',
+            paddingBottom: '60px', // ボタンが隠れないよう余白
+          }}
+        >
           <h3 className={styles.title}>コントロールパネル</h3>
 
           {/* 新規作成セクション */}
@@ -253,6 +286,45 @@ export const ControlPanel = ({
             </div>
           </div>
 
+          {/* コンポーネント追加（座標固定） */}
+          {selectedGame && (
+            <div
+              className={styles.field}
+              style={{ background: '#222', padding: '10px', borderRadius: '4px', marginTop: '10px' }}
+            >
+              <div className={styles.label}>コンポーネント追加:</div>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <select
+                  className={styles.select}
+                  style={{ width: '70px' }}
+                  value={newCompType}
+                  onChange={(e) => setNewCompType(e.target.value as any)}
+                >
+                  <option value="Dice">Dice</option>
+                  <option value="Board">Board</option>
+                </select>
+                <input
+                  type="text"
+                  className={styles.select}
+                  style={{ flex: 1 }}
+                  placeholder="ID (例: dice-2)"
+                  value={newCompId}
+                  onChange={(e) => setNewCompId(e.target.value)}
+                />
+                <button
+                  className={styles.saveButton}
+                  onClick={handleAddComponent}
+                  style={{ marginTop: 0, padding: '0 10px' }}
+                  disabled={!newCompId}
+                >
+                  追加
+                </button>
+              </div>
+            </div>
+          )}
+
+          <hr className={styles.divider} style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #444' }} />
+
           {selectedGame && (
             <>
               {selectedGame.maxPlayers !== undefined && (
@@ -272,6 +344,7 @@ export const ControlPanel = ({
                 </div>
               )}
 
+              {/* 手札・トークン設定 */}
               {Object.entries(initialHand).map(([deckId, count]) => (
                 <div key={`hand-${deckId}`} className={styles.field}>
                   <div className={styles.label}>
