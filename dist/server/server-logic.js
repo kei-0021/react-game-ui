@@ -141,7 +141,7 @@ export function initGameServer(io, options) {
     };
     io.on('connection', (socket) => {
         // GUIからConfigファイルを直接書き換える
-        socket.on('game-param:save', async (data) => {
+        socket.on('game-param:update', async (data) => {
             try {
                 // ベースとなるルートディレクトリを確定させる
                 const root = process.cwd();
@@ -161,11 +161,12 @@ export function initGameServer(io, options) {
                     ...currentParam,
                     ...data.newParam,
                 };
+                console.log('新しく届いたデータ:', data.newParam);
                 delete mergedParam.cardEffects;
                 delete mergedParam.cellEffects;
-                delete mergedParam.components;
                 delete mergedParam.shuffleAndReconnectBoard;
                 delete mergedParam.initialBoard;
+                // delete mergedParam.components;
                 const setupContent = JSON.stringify(mergedParam, null, 2);
                 const content = `export const ${data.gameId}Data: any = ${setupContent};`;
                 await fs.promises.writeFile(targetPath, content, 'utf8');

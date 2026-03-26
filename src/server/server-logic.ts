@@ -22,6 +22,7 @@ import {
   GameMeta,
   GameNextRoundData,
   GameNextTrunData,
+  GameParamUpdateData,
   GameTurnUpdateData,
   LobbyGameList,
   LobbyRoomList,
@@ -211,7 +212,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
   io.on('connection', (socket: Socket) => {
     // GUIからConfigファイルを直接書き換える
-    socket.on('game-param:save', async (data: { gameId: string; newParam: any }) => {
+    socket.on('game-param:update', async (data: GameParamUpdateData) => {
       try {
         // ベースとなるルートディレクトリを確定させる
         const root = process.cwd();
@@ -237,11 +238,13 @@ export function initGameServer(io: Server, options: GameServerOptions) {
           ...data.newParam,
         };
 
+        console.log('新しく届いたデータ:', data.newParam);
+
         delete mergedParam.cardEffects;
         delete mergedParam.cellEffects;
-        delete mergedParam.components;
         delete mergedParam.shuffleAndReconnectBoard;
         delete mergedParam.initialBoard;
+        // delete mergedParam.components;
 
         const setupContent = JSON.stringify(mergedParam, null, 2);
 

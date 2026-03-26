@@ -32,6 +32,7 @@ export type GameMeta = {
   maxPlayers?: number;
   initialHand?: Record<DeckId, number>;
   initialTokens?: Record<TokenStoreId, number>;
+  components?: ComponentInfo[];
 };
 
 export type RoomMeta = {
@@ -61,6 +62,11 @@ export type RoomJoinData = {
   playerName: PlayerId;
 };
 
+/*
+ * ===========================================
+ * ゲーム追加・削除・更新
+ * ===========================================
+ */
 export type GameCreateData = {
   gameName: string;
   gameIcon: string;
@@ -68,6 +74,11 @@ export type GameCreateData = {
 
 export type GameDeleteData = {
   gameId: string;
+};
+
+export type GameParamUpdateData = {
+  gameId: GameId;
+  newParam: Partial<GameMeta>;
 };
 
 /*

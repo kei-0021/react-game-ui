@@ -13,6 +13,7 @@ export type GameMeta = {
     maxPlayers?: number;
     initialHand?: Record<DeckId, number>;
     initialTokens?: Record<TokenStoreId, number>;
+    components?: ComponentInfo[];
 };
 export type RoomMeta = {
     id: RoomId;
@@ -42,6 +43,10 @@ export type GameCreateData = {
 };
 export type GameDeleteData = {
     gameId: string;
+};
+export type GameParamUpdateData = {
+    gameId: GameId;
+    newParam: Partial<GameMeta>;
 };
 export type DeckDrawData = {
     roomId: RoomId;

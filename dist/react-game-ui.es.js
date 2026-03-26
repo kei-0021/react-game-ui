@@ -3409,7 +3409,7 @@ const ControlPanel = ({
     if (isTokensDirty) newParam.initialTokens = initialTokens;
     if (Object.keys(newParam).length === 0) return;
     setIsSaving(true);
-    socket.emit("game-param:save", {
+    socket.emit("game-param:update", {
       gameId: selectedGameId,
       newParam
     });
@@ -3438,15 +3438,25 @@ const ControlPanel = ({
       id: newCompId,
       type: newCompType,
       props: {
-        x: 500,
-        // 座標固定
-        y: 500,
-        title: `${newCompType}-${newCompId}`
+        diceId: "天気",
+        sides: 4,
+        title: "天気ダイス",
+        tooltipText: "快晴・曇り・風・雨",
+        customFaces: ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"]
       }
     };
-    socket.emit("game-param:add-component", {
+    const currentComponents = selectedGame?.components || [];
+    const updatedComponents = [...currentComponents, newComponent];
+    const updateData = {
       gameId: selectedGameId,
-      component: newComponent
+      newParam: {
+        components: updatedComponents
+      }
+    };
+    console.log(updateData);
+    socket.emit("game-param:update", {
+      gameId: selectedGameId,
+      newParam: updateData.newParam
     });
     setNewCompId("");
   };
