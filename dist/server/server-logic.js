@@ -4,7 +4,6 @@ import * as path from 'node:path';
 import util from 'util';
 import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
 const activeRooms = new Map();
-const roomTimers = new Map();
 const execPromise = util.promisify(exec);
 /**
  * 新しいゲームルームの状態を初期化し、実行中のルーム管理（activeRooms）に追加する。
@@ -86,6 +85,7 @@ function initializeRoom(roomId, param) {
         exploredCells: [],
         tokenStores: tokenStores,
         draggable: draggables,
+        timer: {},
         maxZIndex: initialMaxZIndex,
         systemMessageHistory: [],
     };
@@ -106,15 +106,6 @@ export function initGameServer(io, options) {
             console.log(`${key}: ${color}${value}${reset}`);
         });
     }
-    // --- ヘルパー関数 ---
-    const stopTimer = (roomId, gameId) => {
-        const timer = roomTimers.get(roomId);
-        if (timer) {
-            clearTimeout(timer);
-            roomTimers.delete(roomId);
-            server_log('timer', gameId, roomId, `タイマー停止`);
-        }
-    };
     io.on('connection', (socket) => {
         // GUIからConfigファイルを直接書き換える
         socket.on('game-param:update', async (data) => {
@@ -560,18 +551,20 @@ export function initGameServer(io, options) {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;
-            stopTimer(roomId, state.gameId);
+            const param = gameParams[state.gameId];
+            const roomManager = new RoomManager(io, param, state);
+            roomManager.stopTimer();
             let rem = duration;
             io.to(roomId).emit('timer:start', { duration, roomId });
             const tick = () => {
                 if (rem <= 0) {
-                    stopTimer(roomId, state.gameId);
+                    roomManager.stopTimer();
                     io.to(roomId).emit('timer:finish', { roomId });
                     return;
                 }
                 io.to(roomId).emit('timer:update', { remaining: rem, roomId });
                 rem--;
-                roomTimers.set(roomId, setTimeout(tick, 1000));
+                state.timer = setTimeout(tick, 1000);
             };
             tick();
         });

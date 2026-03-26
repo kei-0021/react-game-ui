@@ -452,6 +452,16 @@ export class RoomManager {
         }
     };
     /**
+     * タイマーを停止させる
+     */
+    stopTimer = () => {
+        const timer = this.state.timer;
+        if (timer) {
+            clearTimeout(timer);
+            server_log('timer', this.state.gameId, this.state.roomId, `タイマー停止`);
+        }
+    };
+    /**
      * 重ね順を更新する
      */
     updateZIndex(type, objectId, isToFront) {

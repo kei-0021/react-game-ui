@@ -115,6 +115,10 @@ export declare class RoomManager {
      */
     applyCellEffect: (boardId: BoardId, playerId: PlayerId, position: Position, cellEffects: Record<string, (manager: RoomManager, playerId: PlayerId) => void>) => void;
     /**
+     * タイマーを停止させる
+     */
+    stopTimer: () => void;
+    /**
      * 重ね順を更新する
      */
     updateZIndex(type: 'card' | 'draggable', objectId: [DeckId, CardId] | DraggableId, isToFront: boolean): void;

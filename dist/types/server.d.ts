@@ -77,6 +77,7 @@ export type GameParam = {
  * @param exploredCells - すでに探索・公開されたセルの座標リスト。
  * @param tokenStores - 共有トークンの現在のストック状況。
  * @param draggable - ドラッグ可能オブジェクト。
+ * @param timer - タイマー。
  * @param maxZIndex - フィールド上の全オブジェクト（カード、ピース等）で共有する 重ね順のグローバル・カウンタ
  * @param systemMessageHistory - 過去のシステムメッセージの履歴。
  */
@@ -96,6 +97,7 @@ export interface RoomState {
     exploredCells: Position[];
     tokenStores: Record<TokenStoreId, Token[]>;
     draggable: Record<DraggableId, DraggableData>;
+    timer: NodeJS.Timeout;
     maxZIndex: number;
     systemMessageHistory: string[];
 }

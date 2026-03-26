@@ -44,7 +44,6 @@ import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './
 import type { GameServerOptions } from './server.js';
 
 const activeRooms = new Map<string, RoomState>();
-const roomTimers = new Map<string, NodeJS.Timeout>();
 
 const execPromise = util.promisify(exec);
 
@@ -147,6 +146,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     exploredCells: [],
     tokenStores: tokenStores,
     draggable: draggables,
+    timer: {} as NodeJS.Timeout,
     maxZIndex: initialMaxZIndex,
     systemMessageHistory: [],
   };
@@ -173,16 +173,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       console.log(`${key}: ${color}${value}${reset}`);
     });
   }
-
-  // --- ヘルパー関数 ---
-  const stopTimer = (roomId: RoomId, gameId: string) => {
-    const timer = roomTimers.get(roomId);
-    if (timer) {
-      clearTimeout(timer);
-      roomTimers.delete(roomId);
-      server_log('timer', gameId, roomId, `タイマー停止`);
-    }
-  };
 
   io.on('connection', (socket: Socket) => {
     // GUIからConfigファイルを直接書き換える
@@ -696,18 +686,21 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     socket.on('timer:start', ({ duration, roomId }) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
-      stopTimer(roomId, state.gameId);
+      const param = gameParams[state.gameId];
+      const roomManager = new RoomManager(io, param, state);
+
+      roomManager.stopTimer();
       let rem = duration;
       io.to(roomId).emit('timer:start', { duration, roomId });
       const tick = () => {
         if (rem <= 0) {
-          stopTimer(roomId, state.gameId);
+          roomManager.stopTimer();
           io.to(roomId).emit('timer:finish', { roomId });
           return;
         }
         io.to(roomId).emit('timer:update', { remaining: rem, roomId });
         rem--;
-        roomTimers.set(roomId, setTimeout(tick, 1000));
+        state.timer = setTimeout(tick, 1000);
       };
       tick();
     });
