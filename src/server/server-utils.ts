@@ -52,11 +52,11 @@ export let LOG_CATEGORIES: Record<LogCategory, boolean> = {
   lobby: true,
   game: true,
   room: true,
-  deck: false,
+  deck: true,
   card: true,
   cell: true,
   dice: true,
-  timer: false,
+  timer: true,
   addScore: true,
   resource: true,
   token: true,
@@ -143,6 +143,19 @@ export class RoomManager {
    */
   emitPlayerUpdate = () => {
     this.io.to(this.state.roomId).emit('players:update', this.state.players);
+  };
+
+  shuffleDeck = (deckId: DeckId) => {
+    if (!this.state.decks[deckId]) return;
+
+    server_log('deck', this.state.gameId, this.state.roomId, `${deckId} をシャッフル`);
+    const currentDeck = this.state.decks[deckId].filter((c) => c.location === 'deck');
+    const otherCards = this.state.decks[deckId].filter((c) => c.location !== 'deck');
+    for (let i = currentDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
+    }
+    this.state.decks[deckId] = currentDeck.concat(otherCards);
   };
 
   /**

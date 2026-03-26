@@ -106,17 +106,6 @@ export function initGameServer(io, options) {
             console.log(`${key}: ${color}${value}${reset}`);
         });
     }
-    // --- プリセットごとの中身をスキャンしてログに出す ---
-    Object.entries(gameParams).forEach(([gameId, preset]) => {
-        if (preset.cardEffects) {
-            const keys = Object.keys(preset.cardEffects);
-            console.log(`[log][${gameId}] cardEffects (${keys.length}件): [ ${keys.join(', ')} ]`);
-        }
-        if (preset.cellEffects) {
-            const keys = Object.keys(preset.cellEffects);
-            console.log(`[log][${gameId}] cellEffects (${keys.length}件): [ ${keys.join(', ')} ]`);
-        }
-    });
     // --- ヘルパー関数 ---
     const stopTimer = (roomId, gameId) => {
         const timer = roomTimers.get(roomId);
@@ -125,19 +114,6 @@ export function initGameServer(io, options) {
             roomTimers.delete(roomId);
             server_log('timer', gameId, roomId, `タイマー停止`);
         }
-    };
-    const shuffleDeck = (roomId, deckId) => {
-        const state = activeRooms.get(roomId);
-        if (!state || !state.decks[deckId])
-            return;
-        server_log('deck', state.gameId, roomId, `${deckId} をシャッフル`);
-        const currentDeck = state.decks[deckId].filter((c) => c.location === 'deck');
-        const otherCards = state.decks[deckId].filter((c) => c.location !== 'deck');
-        for (let i = currentDeck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
-        }
-        state.decks[deckId] = currentDeck.concat(otherCards);
     };
     io.on('connection', (socket) => {
         // GUIからConfigファイルを直接書き換える
@@ -259,7 +235,8 @@ export function initGameServer(io, options) {
             // 初回は状態の初期化を行う
             if (!state) {
                 state = initializeRoom(roomId, { ...param, gameId: gameId });
-                Object.keys(state.decks).forEach((id) => shuffleDeck(roomId, id));
+                const roomManager = new RoomManager(io, param, state);
+                Object.keys(state.decks).forEach((deckId) => roomManager.shuffleDeck(deckId));
                 io.emit('room-ready');
             }
             await socket.join(roomId);
@@ -391,7 +368,7 @@ export function initGameServer(io, options) {
                 return;
             const param = gameParams[state.gameId];
             const roomManager = new RoomManager(io, param, state);
-            shuffleDeck(roomId, deckId);
+            roomManager.shuffleDeck(deckId);
             roomManager.emitDeckUpdate(deckId);
         });
         socket.on('deck:reset', ({ roomId, deckId }) => {
@@ -409,7 +386,7 @@ export function initGameServer(io, options) {
                 }
             });
             state.discardPile[deckId] = [];
-            shuffleDeck(roomId, deckId);
+            roomManager.shuffleDeck(deckId);
             roomManager.emitDeckUpdate(deckId);
         });
         // カードプレイ

@@ -37,6 +37,7 @@ export declare class RoomManager {
      * プレイヤー更新を通知する
      */
     emitPlayerUpdate: () => void;
+    shuffleDeck: (deckId: DeckId) => void;
     /**
      * デッキ更新を通知する
      */
