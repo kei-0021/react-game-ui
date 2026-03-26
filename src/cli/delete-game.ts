@@ -18,13 +18,14 @@ export const remove = (rawName: string) => {
   const baseDir = process.env.RG_UI_BASE_DIR || path.join(process.cwd(), 'src');
 
   const paths = {
+    data: path.join(baseDir, 'server', `${pascalName}Data.ts`),
     config: path.join(baseDir, 'server', `${pascalName}Config.ts`),
     room: path.join(baseDir, 'rooms', `${pascalName}Room.tsx`),
     style: path.join(baseDir, 'rooms', `${pascalName}Room.module.css`),
   };
 
   // ファイルの削除
-  [paths.config, paths.room, paths.style].forEach((filePath) => {
+  [paths.data, paths.config, paths.room, paths.style].forEach((filePath) => {
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
       console.log(`Deleted: ${path.basename(filePath)}`);

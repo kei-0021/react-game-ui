@@ -168,9 +168,10 @@ export function initGameServer(io, options) {
                 delete mergedParam.initialBoard;
                 // delete mergedParam.components;
                 const setupContent = JSON.stringify(mergedParam, null, 2);
-                const content = `export const ${data.gameId}Data: any = ${setupContent};`;
+                const pascalName = data.gameId.charAt(0).toUpperCase() + data.gameId.slice(1);
+                const content = `export const ${pascalName}Data: any = ${setupContent};`;
                 await fs.promises.writeFile(targetPath, content, 'utf8');
-                console.log(`[Admin] ${data.gameId}Data.ts を更新`);
+                console.log(`[Admin] ${pascalName}Data.ts を更新`);
                 socket.emit('game-param:updated', { success: true });
             }
             catch (err) {

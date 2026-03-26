@@ -69,8 +69,13 @@ export const generate = (gameName, gameIcon = '🎲') => {
 }
 `;
     // --- Server Config Template ---
+    const dataTemplate = `export const ${pascalName}Data: any = {
+  "gameId": "${lowerName}",
+  "gameIcon": "${gameIcon}",
+}`;
     const configTemplate = `import type { GameParam } from "react-game-ui";
 import { type RoomConfig } from "react-game-ui/server-io-utils";
+import { ${pascalName}Data } from "./${pascalName}Data";
 
 export const ${pascalName}Config: RoomConfig = {
   gameId: "${lowerName}",
@@ -94,18 +99,20 @@ export const ${pascalName}Config: RoomConfig = {
       draggable: initialDraggables,
       checkGameEnd: () => false,
       onGameEnd: () => ({ message: "終了" }),
-      components: []
+      components: [],
+      ...${pascalName}Data
     };
   },
 };
 `;
     // --- Room Component Template ---
     const roomTemplate = `import { useCallback, useEffect, useRef, useState } from "react";
-import type { GameTurnUpdateData, Player, RoomJoinData } from "react-game-ui";
+import type { GameTurnUpdateData, Player, RoomJoinData, ComponentInfo } from "react-game-ui";
 import {
   Deck,
   Dice,
   Draggable,
+  DynamicComponent,
   PlayField,
   RemoteCursor,
   ScoreBoard,
@@ -138,6 +145,9 @@ export function ${pascalName}Room() {
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [currentDiceValue, setCurrentDiceValue] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
+
+  // 動的コンポーネント情報の管理
+  const [componentInfo, setComponentInfo] = useState<ComponentInfo[]>([]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -176,15 +186,23 @@ export function ${pascalName}Room() {
       setCurrentRound(data.currentRoundIndex + 1);
     };
 
+    // コンポーネント情報の同期受信
+    const handleGameComponent = (data: { components: ComponentInfo[] }) => {
+      setComponentInfo(data.components);
+    };
+
     socket.on("player:assign-id", handleAssignId);
     socket.on("client:ready-to-sync", onClientReady);
     socket.on("players:update", handlePlayersUpdate);
     socket.on("game:turn", handleGameTurn);
+    socket.on("game:component", handleGameComponent);
 
     return () => {
       socket.off("player:assign-id", handleAssignId);
+      socket.off("client:ready-to-sync", onClientReady);
       socket.off("players:update", handlePlayersUpdate);
       socket.off("game:turn", handleGameTurn);
+      socket.off("game:component", handleGameComponent);
     };
   }, [socket, roomId]);
 
@@ -234,6 +252,17 @@ export function ${pascalName}Room() {
           </aside>
 
           <div className={styles.playFieldContainer}>
+             {/* 動的コンポーネントのレンダリング */}
+             {componentInfo.map((info) => (
+               <DynamicComponent 
+                 key={info.id} 
+                 type={info.type} 
+                 props={info.props} 
+                 socket={socket!} 
+                 roomId={roomId!} 
+               />
+             ))}
+
              <RemoteCursor socket={socket!} roomId={roomId} myPlayerId={myPlayerId} players={players.map(p => ({ name: p.name, socketId: String(p.id), color: p.color }))} scale={scale} fixedContainerRef={containerRef} visible={true} isRelative={false} />
              <PlayField socket={socket} roomId={roomId} deckId="main" players={players} myPlayerId={myPlayerId} layoutMode="free" />
              <Draggable socket={socket} roomId={roomId} draggableId="piece" containerRef={containerRef}/>
@@ -251,6 +280,7 @@ export function ${pascalName}Room() {
 }
 `;
     const paths = {
+        data: path.join(baseDir, 'server', `${pascalName}Data.ts`),
         config: path.join(baseDir, 'server', `${pascalName}Config.ts`),
         room: path.join(baseDir, 'rooms', `${pascalName}Room.tsx`),
         css: path.join(baseDir, 'rooms', `${pascalName}Room.module.css`),
@@ -261,6 +291,7 @@ export function ${pascalName}Room() {
             fs.mkdirSync(dir, { recursive: true });
         }
     });
+    fs.writeFileSync(paths.data, dataTemplate);
     fs.writeFileSync(paths.config, configTemplate);
     fs.writeFileSync(paths.room, roomTemplate);
     fs.writeFileSync(paths.css, cssModuleTemplate);

@@ -111,7 +111,7 @@ async function startServer() {
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     try {
-      // 読み込み先は元のファイル名（大文字含む可能性あり）を使う
+      // 読み込み先は元のファイル名を使う
       const configPath = path.join(configDir, `${rawGameId}Config.ts`);
       if (!fs.existsSync(configPath)) return;
 
