@@ -40,7 +40,7 @@ import { Server, Socket } from 'socket.io';
 import util from 'util';
 import type { Card } from '../types/card.js';
 import type { Deck } from '../types/deck.js';
-import { generateColorFromId, LOG_CATEGORIES, RoomManager } from './server-utils.js';
+import { deepMerge, generateColorFromId, LOG_CATEGORIES, RoomManager } from './server-utils.js';
 import type { GameServerOptions } from './server.js';
 
 const activeRooms = new Map<string, RoomState>();
@@ -194,12 +194,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
         // 現在のメモリ上の設定を取得
         const currentParam = gameParams[data.gameId] || {};
+        console.log('現在のParam: ', JSON.stringify(currentParam, null, 2));
 
-        // 届いた newParam で既存の設定をマージ
-        const mergedParam = {
-          ...currentParam,
-          ...data.newParam,
-        };
+        const mergedParam = deepMerge({ ...currentParam }, data.newParam);
 
         delete mergedParam.cardEffects;
         delete mergedParam.cellEffects;
@@ -212,7 +209,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         const content = `export const ${pascalName}Data: any = ${setupContent};`;
 
         await fs.promises.writeFile(targetPath, content, 'utf8');
-        console.log(`[Admin] ${pascalName}Data.ts の更新: ${JSON.stringify(data.newParam, null, 2)}`);
         socket.emit('game-param:updated', { success: true });
       } catch (err) {
         console.error('[Admin] 書き換え失敗:', err);
