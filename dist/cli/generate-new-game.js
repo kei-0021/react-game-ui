@@ -75,12 +75,13 @@ export const generate = (gameName, gameIcon = '🎲') => {
 }`;
     const configTemplate = `import type { GameParam } from "react-game-ui";
 import { type RoomConfig } from "react-game-ui/server-io-utils";
-import { ${pascalName}Data } from "./${pascalName}Data";
 
 export const ${pascalName}Config: RoomConfig = {
   gameId: "${lowerName}",
   dataFiles: [],
   setup: async (): Promise<GameParam> => {
+    const { ${pascalName}Data } = await import(\`./${pascalName}Data.ts?t=\${Date.now()}\`);
+
     const initialDraggables = {
       "piece": {
         id: "piece",

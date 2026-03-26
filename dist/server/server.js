@@ -127,9 +127,9 @@ export class GameServer {
         else {
             // GameParamの更新
             this.gameParams[gameId] = param;
-            // 実行中の全ルームへ「最新ルール」を同期
+            // 実行中の全ルームへ「最新ルール」をzs同期
             // reloadActiveRooms(this.io, gameId, param);
-            console.log(`[Server] Hot Swapped: ${gameId}.`);
+            console.log(`[${gameId}] Paramを更新しました: ${JSON.stringify(param, null, 2)}`);
         }
         // クライアントにゲーム一覧を送信
         const gameList = Object.keys(this.gameParams).map((id) => ({

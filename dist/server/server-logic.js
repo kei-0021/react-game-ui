@@ -128,17 +128,15 @@ export function initGameServer(io, options) {
                     ...currentParam,
                     ...data.newParam,
                 };
-                console.log('新しく届いたデータ:', data.newParam);
                 delete mergedParam.cardEffects;
                 delete mergedParam.cellEffects;
                 delete mergedParam.shuffleAndReconnectBoard;
                 delete mergedParam.initialBoard;
-                // delete mergedParam.components;
                 const setupContent = JSON.stringify(mergedParam, null, 2);
                 const pascalName = data.gameId.charAt(0).toUpperCase() + data.gameId.slice(1);
                 const content = `export const ${pascalName}Data: any = ${setupContent};`;
                 await fs.promises.writeFile(targetPath, content, 'utf8');
-                console.log(`[Admin] ${pascalName}Data.ts を更新`);
+                console.log(`[Admin] ${pascalName}Data.ts の更新: ${JSON.stringify(data.newParam, null, 2)}`);
                 socket.emit('game-param:updated', { success: true });
             }
             catch (err) {

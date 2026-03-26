@@ -2793,11 +2793,18 @@ class RoomManager {
     if (!LOG_CATEGORIES[tag]) {
       return;
     }
+    const time = new Intl.DateTimeFormat("ja-JP", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Tokyo"
+    }).format(/* @__PURE__ */ new Date());
+    const header = `[${time}] [${tag}] [${gameId} (${roomId})]`;
     if (tag === "warn") {
-      const header = `[${tag}] [${gameId} (${roomId})]`;
-      console.warn(ANSI_RED + header + ANSI_RESET);
+      console.warn(ANSI_RED + header + ANSI_RESET + ` ${msg}`);
     } else {
-      console.log(`[${tag}] [${gameId} (${roomId})] ${msg}`);
+      console.log(`${header} ${msg}`);
     }
   }
   /**
