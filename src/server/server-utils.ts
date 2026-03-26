@@ -70,34 +70,6 @@ export let LOG_CATEGORIES: Record<LogCategory, boolean> = {
 const ANSI_RED = '\x1b[31m';
 const ANSI_RESET = '\x1b[0m';
 
-/**
- * サーバーの実行ログを出力する
- * @param tag - ログのカテゴリ
- * @param gameId - 対象のゲームプリセットID
- * @param roomId - 対象のルームID
- * @param firstArg - ログのメイン内容（1つ以上の引数が必須）
- * @param args - 追加のログ情報
- */
-export function server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void {
-  if (!(tag in LOG_CATEGORIES)) {
-    throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
-  }
-
-  // 出力するかどうかをチェック
-  if (!LOG_CATEGORIES[tag]) {
-    return;
-  }
-
-  const fullArgs = [firstArg, ...args];
-
-  if (tag === 'warn') {
-    const header = `[${tag}] [${gameId} (${roomId})]`;
-    console.warn(ANSI_RED + header + ANSI_RESET, ...fullArgs.map((arg) => ANSI_RED + String(arg) + ANSI_RESET));
-  } else {
-    console.log(`[${tag}] [${gameId} (${roomId})]`, ...fullArgs);
-  }
-}
-
 export const isExplored = (roomState: RoomState, position: Position): boolean => {
   return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
@@ -132,6 +104,35 @@ export class RoomManager {
     private state: RoomState,
   ) {}
 
+  static server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, msg: string): void {
+    if (!(tag in LOG_CATEGORIES)) {
+      throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
+    }
+
+    // 出力するかどうかをチェック
+    if (!LOG_CATEGORIES[tag]) {
+      return;
+    }
+
+    if (tag === 'warn') {
+      const header = `[${tag}] [${gameId} (${roomId})]`;
+      console.warn(ANSI_RED + header + ANSI_RESET);
+    } else {
+      console.log(`[${tag}] [${gameId} (${roomId})] ${msg}`);
+    }
+  }
+
+  /**
+   * サーバーの実行ログを出力する
+   * @param tag - ログのカテゴリ
+   * @param gameId - 対象のゲームプリセットID
+   * @param roomId - 対象のルームID
+   * @param msg - ログのメイン内容
+   */
+  server_log(tag: LogCategory, msg: string): void {
+    RoomManager.server_log(tag, this.state.gameId, this.state.roomId, msg);
+  }
+
   /**
    * 一定時間待機する
    * @param ms - 待機時間 (ms)
@@ -148,7 +149,7 @@ export class RoomManager {
   shuffleDeck = (deckId: DeckId) => {
     if (!this.state.decks[deckId]) return;
 
-    server_log('deck', this.state.gameId, this.state.roomId, `${deckId} をシャッフル`);
+    this.server_log('deck', `${deckId} をシャッフル`);
     const currentDeck = this.state.decks[deckId].filter((c) => c.location === 'deck');
     const otherCards = this.state.decks[deckId].filter((c) => c.location !== 'deck');
     for (let i = currentDeck.length - 1; i > 0; i--) {
@@ -223,12 +224,7 @@ export class RoomManager {
 
     let destination = '';
 
-    server_log(
-      'deck',
-      this.state.gameId,
-      this.state.roomId,
-      `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`,
-    );
+    this.server_log('deck', `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`);
 
     // A. 捨て札へ
     if (targetLocation === 'discard') {
@@ -269,12 +265,7 @@ export class RoomManager {
 
     const player = this.state.players.find((p) => p.id === playerId);
     if (player?.isHolding) {
-      server_log(
-        'card',
-        this.state.gameId,
-        this.state.roomId,
-        `${playerId} はカードをホールドしているので、カードをプレイできません`,
-      );
+      this.server_log('card', `${playerId} はカードをホールドしているので、カードをプレイできません`);
       return;
     }
 
@@ -301,12 +292,12 @@ export class RoomManager {
       // 最前面に移動
       this.updateZIndex('card', [deckId, card.id], true);
 
-      server_log('card', this.state.gameId, this.state.roomId, `"${card.name}" をプレイした`);
+      this.server_log('card', `"${card.name}" をプレイした`);
 
       // カード効果
       const effect = this.param.cardEffects?.[card.name];
       if (effect) {
-        server_log('card', this.state.gameId, this.state.roomId, `カード効果発揮: ${card.name} by ${playerId}`);
+        this.server_log('card', `カード効果発揮: ${card.name} by ${playerId}`);
         effect({
           playerId,
           updateResource: (resourceId: string, amount: number) => this.acquireResource(playerId, resourceId, amount),
@@ -352,7 +343,7 @@ export class RoomManager {
       delete this.state.holdCards[player.id];
     });
 
-    server_log('card', this.state.gameId, this.state.roomId, `プレイヤー全員のホールド状態を解除しました`);
+    this.server_log('card', `プレイヤー全員のホールド状態を解除しました`);
   }
 
   /**
@@ -383,7 +374,7 @@ export class RoomManager {
       player.cards = player.cards || [];
       player.cards.push(card);
 
-      server_log('card', gameId, roomId, `Return: ${card.name} -> Player:${playerId}`);
+      this.server_log('card', `Return: ${card.name} -> Player:${playerId}`);
     } else {
       // --- 捨て札に送る場合 ---
       card.location = 'discard';
@@ -391,7 +382,7 @@ export class RoomManager {
       discardPile[deckId] = discardPile[deckId] || [];
       discardPile[deckId].push(card);
 
-      server_log('card', gameId, roomId, `Discard: ${card.name} -> discard`);
+      this.server_log('card', `Discard: ${card.name} -> discard`);
     }
 
     this.emitDeckUpdate(deckId);
@@ -410,7 +401,7 @@ export class RoomManager {
 
     player.score = (player.score || 0) + points;
 
-    server_log('addScore', this.state.gameId, this.state.roomId, `${player.name} に ${points}pt 加算`);
+    this.server_log('addScore', `${player.name} に ${points}pt 加算`);
     this.emitPlayerUpdate();
   }
 
@@ -426,7 +417,7 @@ export class RoomManager {
 
     if (resource) {
       resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
-      server_log('resource', this.state.gameId, this.state.roomId, `${player!.name}: ${resource.name} 更新`);
+      this.server_log('resource', `${player!.name}: ${resource.name} 更新`);
       this.emitPlayerUpdate();
     }
   };
@@ -454,10 +445,8 @@ export class RoomManager {
       }
       player.tokens.push(acquiredToken);
 
-      server_log(
+      this.server_log(
         'token',
-        this.state.gameId,
-        this.state.roomId,
         `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${acquiredToken.id} を獲得しました。`,
       );
       this.emitTokenStoreUpdate(tokenStoreId);
@@ -475,12 +464,7 @@ export class RoomManager {
 
     if (shouldMark && !isCurrentlyExplored) {
       this.state.exploredCells.push(position);
-      server_log(
-        'cell',
-        this.state.gameId,
-        this.state.roomId,
-        `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`,
-      );
+      this.server_log('cell', `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
       this.io.to(this.state.roomId).emit('cell:update', this.state.exploredCells);
       return;
     }
@@ -489,12 +473,7 @@ export class RoomManager {
       this.state.exploredCells = this.state.exploredCells.filter(
         (loc) => !(loc.row === position.row && loc.col === position.col),
       );
-      server_log(
-        'cell',
-        this.state.gameId,
-        this.state.roomId,
-        `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`,
-      );
+      this.server_log('cell', `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
       this.io.to(this.state.roomId).emit('cell:update', this.state.exploredCells);
       return;
     }
@@ -561,7 +540,7 @@ export class RoomManager {
     const targetBoard = this.state.boards[boardId];
 
     if (!targetBoard) {
-      server_log('warn', this.state.gameId, this.state.roomId, 'applyCellEffect: ボードがありません。');
+      this.server_log('warn', 'applyCellEffect: ボードがありません。');
       return;
     }
 
@@ -571,32 +550,21 @@ export class RoomManager {
 
     // セルが見つからない場合のガード
     if (!cell) {
-      server_log(
-        'warn',
-        this.state.gameId,
-        this.state.roomId,
-        `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`,
-      );
+      this.server_log('warn', `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`);
       return;
     }
 
     const effect = cellEffects[cell.name];
 
     if (effect) {
-      server_log('cell', this.state.gameId, this.state.roomId, `マス効果発動: ${cell.name} by ${playerId}`);
+      this.server_log('cell', `マス効果発動: ${cell.name} by ${playerId}`);
       try {
         effect(this, playerId);
       } catch (e) {
-        server_log(
-          'warn',
-          this.state.gameId,
-          this.state.roomId,
-          `マス効果の実行中にエラーが発生しました: ${cell.name}`,
-          e,
-        );
+        this.server_log('warn', `マス効果の実行中にエラーが発生しました: ${cell.name}`);
       }
     } else {
-      server_log('cell', this.state.gameId, this.state.roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
+      this.server_log('cell', `マス効果なし: (${row}, ${col}) ${cell.name}`);
     }
   };
 
@@ -607,7 +575,7 @@ export class RoomManager {
     const timer = this.state.timer;
     if (timer) {
       clearTimeout(timer);
-      server_log('timer', this.state.gameId, this.state.roomId, `タイマー停止`);
+      this.server_log('timer', `タイマー停止`);
     }
   };
 
@@ -620,25 +588,25 @@ export class RoomManager {
         if (!Array.isArray(objectId)) {
           throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
         }
-        server_log('deck', this.state.gameId, this.state.roomId, 'カードのz-indexを最全面に移動');
+        this.server_log('deck', 'カードのz-indexを最全面に移動');
         const card = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
         if (!card) return;
         if (!card.zIndex || card.zIndex < this.state.maxZIndex) {
           this.state.maxZIndex++;
           card.zIndex = this.state.maxZIndex;
-          server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${this.state.maxZIndex}`);
+          this.server_log('draggable', `新しいz-index: ${this.state.maxZIndex}`);
           this.emitDeckUpdate(objectId[0]);
         }
       } else {
         if (Array.isArray(objectId)) {
           throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
         }
-        server_log('draggable', this.state.gameId, this.state.roomId, 'ドラッグ可能オブジェクトを最前面に移動');
+        this.server_log('draggable', 'ドラッグ可能オブジェクトを最前面に移動');
         const draggable = this.state.draggable[objectId];
         if (draggable.zIndex < this.state.maxZIndex) {
           this.state.maxZIndex++;
           draggable.zIndex = this.state.maxZIndex;
-          server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${this.state.maxZIndex}`);
+          this.server_log('draggable', `新しいz-index: ${this.state.maxZIndex}`);
           this.emitDraggableUpdate(objectId);
         }
       }
@@ -647,23 +615,23 @@ export class RoomManager {
         if (!Array.isArray(objectId)) {
           throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
         }
-        server_log('deck', this.state.gameId, this.state.roomId, 'カードのを最背面に移動');
+        this.server_log('deck', 'カードのを最背面に移動');
         const card = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
         if (!card) return;
         if (!card.zIndex) card.zIndex = 100;
         // 100枚規模の衝突を回避する正規化
         card.zIndex = 100 + (card.zIndex % 100);
-        server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${card.zIndex}`);
+        this.server_log('draggable', `新しいz-index: ${card.zIndex}`);
         this.emitDeckUpdate(objectId[0]);
       } else {
         if (Array.isArray(objectId)) {
           throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
         }
-        server_log('draggable', this.state.gameId, this.state.roomId, 'ドラッグ可能オブジェクトを最背面に移動');
+        this.server_log('draggable', 'ドラッグ可能オブジェクトを最背面に移動');
         const draggable = this.state.draggable[objectId];
         // 100枚規模の衝突を回避する正規化
         draggable.zIndex = 100 + (draggable.zIndex % 100);
-        server_log('draggable', this.state.gameId, this.state.roomId, `新しいz-index: ${draggable.zIndex}`);
+        this.server_log('draggable', `新しいz-index: ${draggable.zIndex}`);
         this.emitDraggableUpdate(objectId);
       }
     }
@@ -701,10 +669,8 @@ export class RoomManager {
     this.state.currentTurnIndex = nextIndex;
     const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
 
-    server_log(
+    this.server_log(
       'game',
-      this.state.gameId,
-      this.state.roomId,
       `ターン更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`,
     );
 
@@ -740,10 +706,8 @@ export class RoomManager {
       onNextRound(this.state, this);
     }
 
-    server_log(
+    this.server_log(
       'game',
-      this.state.gameId,
-      this.state.roomId,
       `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`,
     );
 
@@ -761,7 +725,7 @@ export class RoomManager {
   updatePhase(newPhase: Phase): void {
     if (this.state.currentPhase !== newPhase) {
       this.state.currentPhase = newPhase;
-      server_log('game', this.state.gameId, this.state.roomId, `フェーズを更新しました: ${newPhase}`);
+      this.server_log('game', `フェーズを更新しました: ${newPhase}`);
       this.io.to(this.state.roomId).emit('game:phase:update', {
         newPhase: this.state.currentPhase,
       } as GamePhaseUpdateData);

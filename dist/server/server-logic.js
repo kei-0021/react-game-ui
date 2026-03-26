@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import util from 'util';
-import { generateColorFromId, LOG_CATEGORIES, RoomManager, server_log } from './server-utils.js';
+import { generateColorFromId, LOG_CATEGORIES, RoomManager } from './server-utils.js';
 const activeRooms = new Map();
 const execPromise = util.promisify(exec);
 /**
@@ -18,17 +18,17 @@ function initializeRoom(roomId, param) {
     let Cells = {};
     const boardEntries = Object.entries(initialBoard);
     if (param.maxPlayers) {
-        server_log('game', param.gameId, roomId, `参加可能人数: ${param.maxPlayers}人`);
+        RoomManager.server_log('game', param.gameId, roomId, `参加可能人数: ${param.maxPlayers}人`);
     }
     boardEntries.forEach(([boardId, boardData]) => {
         Cells[boardId] = boardData;
         // カスタムの再配置・接続関数があるか確認
         const shuffleAndReconnector = param.shuffleAndReconnectBoard?.[boardId];
         if (typeof shuffleAndReconnector === 'function') {
-            server_log('cell', param.gameId, roomId, `ボード "${boardId}" をカスタム戦略で再配置・接続します`);
+            RoomManager.server_log('cell', param.gameId, roomId, `ボード "${boardId}" をカスタム戦略で再配置・接続します`);
             Cells[boardId] = shuffleAndReconnector(boardData);
         }
-        server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
+        RoomManager.server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
     });
     const decks = {};
     const playFieldCards = {};
@@ -48,9 +48,9 @@ function initializeRoom(roomId, param) {
         decks[deck.deckId] = cards;
         playFieldCards[deck.deckId] = [];
         discardPile[deck.deckId] = [];
-        server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
+        RoomManager.server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
         if (cards.length > 0) {
-            server_log('deck', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(cards[0], null, 2)}`);
+            RoomManager.server_log('deck', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(cards[0], null, 2)}`);
         }
     });
     initialTokenStores.forEach((tokenStore) => {
@@ -60,13 +60,13 @@ function initializeRoom(roomId, param) {
             instanceId: `${roomId}_${tokenStore.tokenStoreId}_${index}`,
         }));
         tokenStores[tokenStore.tokenStoreId] = tokens;
-        server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
+        RoomManager.server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
     });
     let draggables = {};
     if (param.draggable) {
         draggables = structuredClone(param.draggable);
-        server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
-        server_log('draggable', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(Object.values(draggables)[0], null, 2)}`);
+        RoomManager.server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
+        RoomManager.server_log('draggable', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(Object.values(draggables)[0], null, 2)}`);
     }
     const initialMaxZIndex = Object.values(draggables).reduce((max, d) => Math.max(max, d.zIndex || 0), 0);
     const state = {
@@ -90,7 +90,7 @@ function initializeRoom(roomId, param) {
         systemMessageHistory: [],
     };
     activeRooms.set(roomId, state);
-    server_log('room', state.gameId, roomId, `ルーム初期化完了`);
+    RoomManager.server_log('room', state.gameId, roomId, `ルーム初期化完了`);
     return state;
 }
 export function initGameServer(io, options) {
@@ -230,6 +230,7 @@ export function initGameServer(io, options) {
                 Object.keys(state.decks).forEach((deckId) => roomManager.shuffleDeck(deckId));
                 io.emit('room-ready');
             }
+            const roomManager = new RoomManager(io, param, state);
             await socket.join(roomId);
             let player = state.players.find((p) => p.socketId === socket.id);
             // プレイヤークラスの初期化
@@ -250,7 +251,7 @@ export function initGameServer(io, options) {
                     pieceImage: param.pieceImage,
                 };
                 state.players.push(player);
-                server_log('room', param.gameId, roomId, `${player.name} (${player.id})が参加しました`);
+                roomManager.server_log('room', `${player.name} (${player.id})が参加しました`);
                 // 初期手札配布処理
                 const initialHand = param.initialHand;
                 if (initialHand) {
@@ -343,7 +344,7 @@ export function initGameServer(io, options) {
             const param = gameParams[state.gameId];
             const roomManager = new RoomManager(io, param, state);
             if (playerId && state.holdCards[playerId]) {
-                server_log('card', state.gameId, state.roomId, `${playerId} はカードをホールドしているので、カードを引くことができません`);
+                roomManager.server_log('card', `${playerId} はカードをホールドしているので、カードを引くことができません`);
                 return;
             }
             const success = roomManager.drawCard(deckId, drawCondition, playerId);
@@ -368,7 +369,7 @@ export function initGameServer(io, options) {
                 return;
             const param = gameParams[state.gameId];
             const roomManager = new RoomManager(io, param, state);
-            server_log('deck', state.gameId, roomId, `${deckId} を山札に戻した`);
+            roomManager.server_log('deck', `${deckId} を山札に戻した`);
             state.decks[deckId].forEach((c) => {
                 if (c.location === 'discard') {
                     c.location = 'deck';
@@ -402,7 +403,7 @@ export function initGameServer(io, options) {
                 Object.entries(cardIdsbyDeck).forEach(([deckId, cardIds]) => {
                     const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
                     state.holdCards[player.id][deckId] = ids;
-                    server_log('card', state.gameId, state.roomId, `${playerId} がカード [${cardIds}] をホールドしました`);
+                    roomManager.server_log('card', `${playerId} がカード [${cardIds}] をホールドしました`);
                 });
                 player.isHolding = true;
             }
@@ -426,7 +427,7 @@ export function initGameServer(io, options) {
                 p.cards.forEach((c) => {
                     if (ids.includes(c.id)) {
                         c.isFaceUp = !c.isFaceUp;
-                        server_log('card', state.gameId, state.roomId, `${playerId} がカード ${c.id} をひっくり返しました`);
+                        roomManager.server_log('card', `${playerId} がカード ${c.id} をひっくり返しました`);
                     }
                 });
                 roomManager.emitPlayerUpdate();
@@ -435,7 +436,7 @@ export function initGameServer(io, options) {
                 cards.forEach((c) => {
                     if (cardIds.includes(c.id)) {
                         c.isFaceUp = !c.isFaceUp;
-                        server_log('card', state.gameId, state.roomId, `${playerId} がカード ${c.id} をひっくり返しました`);
+                        roomManager.server_log('card', `${playerId} がカード ${c.id} をひっくり返しました`);
                     }
                 });
                 roomManager.emitDeckUpdate(deckId);
@@ -466,7 +467,7 @@ export function initGameServer(io, options) {
             const param = gameParams[state.gameId];
             const roomManager = new RoomManager(io, param, state);
             if (state.holdCards[playerId]) {
-                server_log('card', state.gameId, state.roomId, `${playerId} はカードをホールドしているので、カードを移動できません`);
+                roomManager.server_log('card', `${playerId} はカードをホールドしているので、カードを移動できません`);
                 return;
             }
             const success = roomManager.moveFromField(deckId, cardId, playerId);
@@ -540,10 +541,12 @@ export function initGameServer(io, options) {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;
+            const param = gameParams[state.gameId];
+            const roomManager = new RoomManager(io, param, state);
             const data = {
                 value: Math.floor(Math.random() * sides) + 1,
             };
-            server_log('dice', state.gameId, roomId, `Dice ${diceId} rolled. Result: ${data.value}`);
+            roomManager.server_log('dice', `Dice ${diceId} rolled. Result: ${data.value}`);
             io.to(roomId).emit(`dice:update:${diceId}`, data);
         });
         // タイマー・その他同期

@@ -8,15 +8,6 @@ import { CardPlayData } from '@/types/socketData.js';
 import { Server } from 'socket.io';
 export type LogCategory = 'connection' | 'lobby' | 'game' | 'room' | 'deck' | 'card' | 'cell' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'draggable' | 'warn' | 'popup' | 'custom_event' | 'disconnect';
 export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
-/**
- * サーバーの実行ログを出力する
- * @param tag - ログのカテゴリ
- * @param gameId - 対象のゲームプリセットID
- * @param roomId - 対象のルームID
- * @param firstArg - ログのメイン内容（1つ以上の引数が必須）
- * @param args - 追加のログ情報
- */
-export declare function server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void;
 export declare const isExplored: (roomState: RoomState, position: Position) => boolean;
 export declare const generateColorFromId: (id: string) => string;
 export declare const shuffleArray: <T>(array: T[]) => T[];
@@ -28,6 +19,15 @@ export declare class RoomManager {
     private param;
     private state;
     constructor(io: Server, param: GameParam, state: RoomState);
+    static server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, msg: string): void;
+    /**
+     * サーバーの実行ログを出力する
+     * @param tag - ログのカテゴリ
+     * @param gameId - 対象のゲームプリセットID
+     * @param roomId - 対象のルームID
+     * @param msg - ログのメイン内容
+     */
+    server_log(tag: LogCategory, msg: string): void;
     /**
      * 一定時間待機する
      * @param ms - 待機時間 (ms)
