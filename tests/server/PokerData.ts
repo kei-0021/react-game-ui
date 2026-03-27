@@ -32,35 +32,22 @@ export const PokerData: any = {
       }
     },
     {
-      "id": "2",
-      "type": "Dice",
+      "id": "3",
+      "type": "Timer",
       "props": {
-        "diceId": "天気",
-        "sides": 4,
-        "title": "天気ダイス",
-        "tooltipText": "快晴・曇り・風・雨",
-        "customFaces": [
-          "/weather_sunny.png",
-          "/weather_cloud.png",
-          "/weather_wind.png",
-          "/weather_rain.png"
-        ]
+        "initialDuration": 30
       }
     },
     {
-      "id": "3",
-      "type": "Board",
+      "id": "5",
+      "type": "Draggable",
       "props": {
-        "diceId": "天気",
-        "sides": 4,
-        "title": "天気ダイス",
-        "tooltipText": "快晴・曇り・風・雨",
-        "customFaces": [
-          "/weather_sunny.png",
-          "/weather_cloud.png",
-          "/weather_wind.png",
-          "/weather_rain.png"
-        ]
+        "draggableId": "piece",
+        "image": "/hanabishi.svg",
+        "mask": true,
+        "color": "red",
+        "size": 100,
+        "isDebug": true
       }
     }
   ]

@@ -1,12 +1,14 @@
 import { jsx as _jsx } from "react/jsx-runtime";
-// src/components/DynamicComponent.tsx
-import { Deck } from '../components/Deck.js'; // 順次追加
+import { Deck } from '../components/Deck.js';
 import { Dice } from '../components/Dice.js';
-import { Timer } from '../components/Timer.js'; // 順次追加
+import { Timer } from '../components/Timer.js';
+import { Draggable } from './Draggable.js';
 export const DynamicComponent = ({ type, props, socket, roomId }) => {
     // 共通の Props をまとめておく
     const commonProps = { socket, roomId };
     switch (type) {
+        case 'Draggable':
+            return _jsx(Draggable, { ...commonProps, ...props });
         case 'Dice':
             const processedProps = { ...props };
             if (Array.isArray(props.customFaces)) {

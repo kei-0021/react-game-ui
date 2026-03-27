@@ -41,13 +41,16 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
             setSelectedGameId(gameMeta[0].gameId);
         }
     }, [gameMeta, selectedGameId]);
+    /** 現在選択されているゲームのオブジェクトをメモ化 */
     const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
-    // 変更検知
+    /** 変更検知フラグ（Dirtyチェック） */
     const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
     const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
     const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
     const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
-    // 選択ゲームが変わった時にフォーム値を更新
+    /** 入力中のIDが既存のコンポーネントと重複していないかチェック */
+    const isDuplicateId = localComponents.some((comp) => comp.id === newCompId);
+    /** 選択ゲームが切り替わった際のフォーム値の同期 */
     useEffect(() => {
         if (selectedGame && !isSaving) {
             const configMaxPlayers = selectedGame.maxPlayers ?? 1;
@@ -60,23 +63,24 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
                 initialTokens: { ...configInitialTokens },
                 components: [...configComponents],
             });
-            // 編集中（Dirty）でない場合のみ、外部の最新データを localComponents に反映する
-            if (!isComponentsDirty) {
+            // 他の項目も含め、未編集の場合のみ外部データを反映
+            if (!isComponentsDirty && !isMaxPlayersDirty && !isHandDirty && !isTokensDirty) {
                 setMaxPlayers(configMaxPlayers);
                 setInitialHand({ ...configInitialHand });
                 setInitialTokens({ ...configInitialTokens });
                 setLocalComponents([...configComponents]);
             }
         }
-    }, [selectedGame, isSaving, isComponentsDirty]);
+    }, [selectedGame, isSaving, isComponentsDirty, isMaxPlayersDirty, isHandDirty, isTokensDirty]);
+    /** Socket通信のイベントリスナー設定 */
     useEffect(() => {
         const onUpdated = (data) => {
             if (data.success) {
                 setIsSaving(false);
                 setShowSuccess(true);
-                // 保存成功時の「現在の値」を「初期値」として上書きし、Dirty判定をクリアする
+                // 成功した現在の値を初期値として再設定
                 setInitialValues({
-                    maxPlayers: maxPlayers,
+                    maxPlayers,
                     initialHand: { ...initialHand },
                     initialTokens: { ...initialTokens },
                     components: [...localComponents],
@@ -109,6 +113,7 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
             socket.off('game:deleted', onDeleted);
         };
     }, [socket, maxPlayers, initialHand, initialTokens, localComponents, selectedGameId, gameMeta]);
+    /** 変更箇所を抽出し、サーバーへ一括送信する */
     const handleSave = () => {
         if (!socket.connected || !selectedGameId)
             return;
@@ -129,16 +134,14 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
             newParam,
         });
     };
+    /** 新規ゲームの作成依頼を送信 */
     const handleCreateGame = () => {
         if (!newGameName || !socket.connected)
             return;
-        // アルファベット以外を排除して小文字に変換
-        // 例: "My Game 01!" -> "mygame"
+        // アルファベット小文字のみを許容するID生成
         const sanitizedGameId = newGameName.toLowerCase().replace(/[^a-z]/g, '');
-        if (!sanitizedGameId) {
-            alert('ゲーム名はアルファベットを含めてください');
+        if (!sanitizedGameId)
             return;
-        }
         socket.emit('game:create', {
             gameName: sanitizedGameId,
             gameIcon: newGameIcon || '🎲',
@@ -155,18 +158,39 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
     const handleAddComponent = () => {
         if (!newCompId || !selectedGameId)
             return;
+        let initialProps = {};
+        // タイプに応じた初期設定
+        switch (newCompType) {
+            case 'Draggable':
+                initialProps = {
+                    draggableId: 'piece',
+                    image: '/hanabishi.svg',
+                    mask: true,
+                    color: 'red',
+                    size: 100,
+                    isDebug: true,
+                };
+                break;
+            case 'Dice':
+                initialProps = {
+                    diceId: '天気',
+                    sides: 4,
+                    title: '天気ダイス',
+                    tooltipText: '快晴・曇り・風・雨',
+                    customFaces: ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png'],
+                };
+                break;
+            case 'Timer':
+                initialProps = { initialDuration: 30 };
+                break;
+            default:
+                initialProps = {};
+        }
         const newComponent = {
             id: newCompId,
             type: newCompType,
-            props: {
-                diceId: '天気',
-                sides: 4,
-                title: '天気ダイス',
-                tooltipText: '快晴・曇り・風・雨',
-                customFaces: ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png'],
-            },
+            props: initialProps,
         };
-        // ローカル状態のみ更新（保存ボタンを押すまで emit しないことで増殖を防ぐ）
         setLocalComponents([...localComponents, newComponent]);
         // 既存のコンポーネント配列をコピーして新要素を追加
         const currentComponents = selectedGame?.components || [];
@@ -181,7 +205,7 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
             gameId: selectedGameId,
             newParam: updateData.newParam,
         });
-        setNewCompId('Dice');
+        setNewCompId('');
     };
     // コンポーネント削除ハンドラ
     const handleDeleteComponent = (compId) => {
@@ -194,7 +218,7 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
             },
         });
     };
-    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.scrollContainer, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsxs("div", { className: styles.field, children: [_jsx("div", { className: styles.label, children: "\u65B0\u898F\u30B2\u30FC\u30E0\u4F5C\u6210:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("input", { type: "text", className: `${styles.select} ${styles.iconInput}`, placeholder: "Icon", value: newGameIcon, onChange: (e) => setNewGameIcon(e.target.value.slice(0, 5)) }), _jsx("input", { type: "text", className: `${styles.select} ${styles.flexFill}`, placeholder: "GameName", value: newGameName, onChange: (e) => setNewGameName(e.target.value) }), _jsx("button", { className: `${styles.saveButton} ${styles.createButton}`, onClick: handleCreateGame, disabled: !newGameName, children: "\u4F5C\u6210" })] })] }), _jsx("hr", { className: styles.divider }), _jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsx("div", { className: styles.label, children: "\u5BFE\u8C61\u30B2\u30FC\u30E0\u3092\u9078\u629E:" }), _jsx("button", { onClick: () => setIsDeleteMode(!isDeleteMode), className: styles.deleteModeBtn, style: { color: isDeleteMode ? '#ff4444' : '#888' }, children: isDeleteMode ? 'キャンセル' : '削除モード' })] }), _jsxs("div", { className: styles.createSection, children: [_jsxs("select", { className: `${styles.select} ${styles.flexFill}`, value: selectedGameId, onChange: (e) => setSelectedGameId(e.target.value), children: [gameMeta.length === 0 && _jsx("option", { value: "", children: "\u8AAD\u307F\u8FBC\u307F\u4E2D..." }), gameMeta.map((game) => (_jsx("option", { value: game.gameId, children: game.gameId }, game.gameId)))] }), isDeleteMode && selectedGameId && (_jsx("button", { className: styles.saveButton, onClick: handleDeleteGame, style: { background: '#ff4444', border: 'none' }, children: "\u524A\u9664" }))] })] }), selectedGame && (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: `${styles.select} ${styles.compTypeSelect}`, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: `${styles.select} ${styles.flexFill}`, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: handleAddComponent, disabled: !newCompId, children: "\u8FFD\u52A0" })] })] })), localComponents.length > 0 && (_jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs("div", { className: styles.label, children: ["\u65E2\u5B58\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8: ", isComponentsDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("div", { className: styles.componentList, children: localComponents.map((comp) => (_jsxs("div", { className: styles.componentItem, children: [_jsxs("span", { children: [comp.id, " (", comp.type, ")"] }), _jsx("button", { onClick: () => handleDeleteComponent(comp.id), className: styles.deleteCompBtn, children: "\u2715" })] }, comp.id))) })] })), _jsx("hr", { className: styles.divider }), selectedGame && (_jsxs(_Fragment, { children: [selectedGame.maxPlayers !== undefined && (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: ["\u6700\u5927\u30D7\u30EC\u30A4\u30E4\u30FC\u6570: ", isMaxPlayersDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("span", { className: styles.rangeValue, children: maxPlayers })] }), _jsx("input", { type: "range", min: "1", max: "10", className: styles.slider, value: maxPlayers, onChange: (e) => setMaxPlayers(Number(e.target.value)) })] })), Object.entries(initialHand).map(([deckId, count]) => (_jsxs("div", { className: styles.rangeField, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: [_jsxs("strong", { children: ["Hand: ", deckId] }), initialValues.initialHand[deckId] !== count && (_jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" }))] }), _jsx("span", { className: styles.rangeValue, children: count })] }), _jsx("input", { type: "range", min: "0", max: "10", className: styles.slider, value: count, onChange: (e) => {
+    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.scrollContainer, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsxs("div", { className: styles.field, children: [_jsx("div", { className: styles.label, children: "\u65B0\u898F\u30B2\u30FC\u30E0\u4F5C\u6210:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("input", { type: "text", className: `${styles.select} ${styles.iconInput}`, placeholder: "Icon", value: newGameIcon, onChange: (e) => setNewGameIcon(e.target.value.slice(0, 5)) }), _jsx("input", { type: "text", className: `${styles.select} ${styles.flexFill}`, placeholder: "GameName", value: newGameName, onChange: (e) => setNewGameName(e.target.value) }), _jsx("button", { className: `${styles.saveButton} ${styles.createButton}`, onClick: handleCreateGame, disabled: !newGameName, children: "\u4F5C\u6210" })] })] }), _jsx("hr", { className: styles.divider }), _jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsx("div", { className: styles.label, children: "\u5BFE\u8C61\u30B2\u30FC\u30E0\u3092\u9078\u629E:" }), _jsx("button", { onClick: () => setIsDeleteMode(!isDeleteMode), className: styles.deleteModeBtn, style: { color: isDeleteMode ? '#ff4444' : '#888' }, children: isDeleteMode ? 'キャンセル' : '削除モード' })] }), _jsxs("div", { className: styles.createSection, children: [_jsxs("select", { className: `${styles.select} ${styles.flexFill}`, value: selectedGameId, onChange: (e) => setSelectedGameId(e.target.value), children: [gameMeta.length === 0 && _jsx("option", { value: "", children: "\u8AAD\u307F\u8FBC\u307F\u4E2D..." }), gameMeta.map((game) => (_jsx("option", { value: game.gameId, children: game.gameId }, game.gameId)))] }), isDeleteMode && selectedGameId && (_jsx("button", { className: styles.saveButton, onClick: handleDeleteGame, style: { background: '#ff4444', border: 'none' }, children: "\u524A\u9664" }))] })] }), selectedGame && (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: `${styles.select} ${styles.compTypeSelect}`, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: `${styles.select} ${styles.flexFill}`, style: { borderColor: isDuplicateId ? '#ff4444' : '' }, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: handleAddComponent, disabled: !newCompId || isDuplicateId, children: "\u8FFD\u52A0" })] }), isDuplicateId && (_jsx("div", { style: { color: '#ff4444', fontSize: '12px', marginTop: '-4px' }, children: "\u3053\u306EID\u306F\u65E2\u306B\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059" }))] })), localComponents.length > 0 && (_jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs("div", { className: styles.label, children: ["\u65E2\u5B58\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8: ", isComponentsDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("div", { className: styles.componentList, children: localComponents.map((comp) => (_jsxs("div", { className: styles.componentItem, children: [_jsxs("span", { children: [comp.id, " (", comp.type, ")"] }), _jsx("button", { onClick: () => handleDeleteComponent(comp.id), className: styles.deleteCompBtn, children: "\u2715" })] }, comp.id))) })] })), _jsx("hr", { className: styles.divider }), selectedGame && (_jsxs(_Fragment, { children: [selectedGame.maxPlayers !== undefined && (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: ["\u6700\u5927\u30D7\u30EC\u30A4\u30E4\u30FC\u6570: ", isMaxPlayersDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("span", { className: styles.rangeValue, children: maxPlayers })] }), _jsx("input", { type: "range", min: "1", max: "10", className: styles.slider, value: maxPlayers, onChange: (e) => setMaxPlayers(Number(e.target.value)) })] })), Object.entries(initialHand).map(([deckId, count]) => (_jsxs("div", { className: styles.rangeField, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: [_jsxs("strong", { children: ["Hand: ", deckId] }), initialValues.initialHand[deckId] !== count && (_jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" }))] }), _jsx("span", { className: styles.rangeValue, children: count })] }), _jsx("input", { type: "range", min: "0", max: "10", className: styles.slider, value: count, onChange: (e) => {
                                                 setInitialHand({
                                                     ...initialHand,
                                                     [deckId]: Number(e.target.value),

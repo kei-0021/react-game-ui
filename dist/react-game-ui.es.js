@@ -3394,6 +3394,7 @@ const ControlPanel = ({
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
   const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
   const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
+  const isDuplicateId = localComponents.some((comp) => comp.id === newCompId);
   useEffect(() => {
     if (selectedGame && !isSaving) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
@@ -3406,14 +3407,14 @@ const ControlPanel = ({
         initialTokens: { ...configInitialTokens },
         components: [...configComponents]
       });
-      if (!isComponentsDirty) {
+      if (!isComponentsDirty && !isMaxPlayersDirty && !isHandDirty && !isTokensDirty) {
         setMaxPlayers(configMaxPlayers);
         setInitialHand({ ...configInitialHand });
         setInitialTokens({ ...configInitialTokens });
         setLocalComponents([...configComponents]);
       }
     }
-  }, [selectedGame, isSaving, isComponentsDirty]);
+  }, [selectedGame, isSaving, isComponentsDirty, isMaxPlayersDirty, isHandDirty, isTokensDirty]);
   useEffect(() => {
     const onUpdated = (data) => {
       if (data.success) {
@@ -3470,10 +3471,7 @@ const ControlPanel = ({
   const handleCreateGame = () => {
     if (!newGameName || !socket.connected) return;
     const sanitizedGameId = newGameName.toLowerCase().replace(/[^a-z]/g, "");
-    if (!sanitizedGameId) {
-      alert("ゲーム名はアルファベットを含めてください");
-      return;
-    }
+    if (!sanitizedGameId) return;
     socket.emit("game:create", {
       gameName: sanitizedGameId,
       gameIcon: newGameIcon || "🎲"
@@ -3487,16 +3485,37 @@ const ControlPanel = ({
   };
   const handleAddComponent = () => {
     if (!newCompId || !selectedGameId) return;
+    let initialProps = {};
+    switch (newCompType) {
+      case "Draggable":
+        initialProps = {
+          draggableId: "piece",
+          image: "/hanabishi.svg",
+          mask: true,
+          color: "red",
+          size: 100,
+          isDebug: true
+        };
+        break;
+      case "Dice":
+        initialProps = {
+          diceId: "天気",
+          sides: 4,
+          title: "天気ダイス",
+          tooltipText: "快晴・曇り・風・雨",
+          customFaces: ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"]
+        };
+        break;
+      case "Timer":
+        initialProps = { initialDuration: 30 };
+        break;
+      default:
+        initialProps = {};
+    }
     const newComponent = {
       id: newCompId,
       type: newCompType,
-      props: {
-        diceId: "天気",
-        sides: 4,
-        title: "天気ダイス",
-        tooltipText: "快晴・曇り・風・雨",
-        customFaces: ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"]
-      }
+      props: initialProps
     };
     setLocalComponents([...localComponents, newComponent]);
     const currentComponents = selectedGame?.components || [];
@@ -3510,7 +3529,7 @@ const ControlPanel = ({
       gameId: selectedGameId,
       newParam: updateData.newParam
     });
-    setNewCompId("Dice");
+    setNewCompId("");
   };
   const handleDeleteComponent = (compId) => {
     const updated = localComponents.filter((comp) => comp.id !== compId);
@@ -3615,13 +3634,23 @@ const ControlPanel = ({
             {
               type: "text",
               className: `${styles.select} ${styles.flexFill}`,
+              style: { borderColor: isDuplicateId ? "#ff4444" : "" },
               placeholder: "ID (例: dice-2)",
               value: newCompId,
               onChange: (e) => setNewCompId(e.target.value)
             }
           ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: handleAddComponent, disabled: !newCompId, children: "追加" })
-        ] })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              className: styles.saveButton,
+              onClick: handleAddComponent,
+              disabled: !newCompId || isDuplicateId,
+              children: "追加"
+            }
+          )
+        ] }),
+        isDuplicateId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#ff4444", fontSize: "12px", marginTop: "-4px" }, children: "このIDは既に使用されています" })
       ] }),
       localComponents.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "10px" }, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
@@ -3732,6 +3761,8 @@ const ControlPanel = ({
 const DynamicComponent = ({ type, props, socket, roomId }) => {
   const commonProps = { socket, roomId };
   switch (type) {
+    case "Draggable":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Draggable, { ...commonProps, ...props });
     case "Dice":
       const processedProps = { ...props };
       if (Array.isArray(props.customFaces)) {

@@ -1,15 +1,17 @@
 // src/components/DynamicComponent.tsx
-import { Deck } from '../components/Deck.js'; // 順次追加
+import { RoomId } from '@/types/definition.js';
+import type { Socket } from 'socket.io-client';
+import { Deck } from '../components/Deck.js';
 import { Dice } from '../components/Dice.js';
-import { Timer } from '../components/Timer.js'; // 順次追加
+import { Timer } from '../components/Timer.js';
 import type { ComponentInfo } from '../types/server.js';
+import { Draggable } from './Draggable.js';
 
 interface DynamicProps {
   type: ComponentInfo['type'];
   props: any;
-  socket: any;
-  roomId: string;
-  // 必要に応じて共通で渡すべき state などを追加
+  socket: Socket;
+  roomId: RoomId;
 }
 
 export const DynamicComponent = ({ type, props, socket, roomId }: DynamicProps) => {
@@ -17,6 +19,9 @@ export const DynamicComponent = ({ type, props, socket, roomId }: DynamicProps) 
   const commonProps = { socket, roomId };
 
   switch (type) {
+    case 'Draggable':
+      return <Draggable {...commonProps} {...props} />;
+
     case 'Dice':
       const processedProps = { ...props };
 

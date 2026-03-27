@@ -67,15 +67,19 @@ export const ControlPanel = ({
     }
   }, [gameMeta, selectedGameId]);
 
+  /** 現在選択されているゲームのオブジェクトをメモ化 */
   const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
 
-  // 変更検知
+  /** 変更検知フラグ（Dirtyチェック） */
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
   const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
   const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
 
-  // 選択ゲームが変わった時にフォーム値を更新
+  /** 入力中のIDが既存のコンポーネントと重複していないかチェック */
+  const isDuplicateId = localComponents.some((comp) => comp.id === newCompId);
+
+  /** 選択ゲームが切り替わった際のフォーム値の同期 */
   useEffect(() => {
     if (selectedGame && !isSaving) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
@@ -90,25 +94,26 @@ export const ControlPanel = ({
         components: [...configComponents],
       });
 
-      // 編集中（Dirty）でない場合のみ、外部の最新データを localComponents に反映する
-      if (!isComponentsDirty) {
+      // 他の項目も含め、未編集の場合のみ外部データを反映
+      if (!isComponentsDirty && !isMaxPlayersDirty && !isHandDirty && !isTokensDirty) {
         setMaxPlayers(configMaxPlayers);
         setInitialHand({ ...configInitialHand });
         setInitialTokens({ ...configInitialTokens });
         setLocalComponents([...configComponents]);
       }
     }
-  }, [selectedGame, isSaving, isComponentsDirty]);
+  }, [selectedGame, isSaving, isComponentsDirty, isMaxPlayersDirty, isHandDirty, isTokensDirty]);
 
+  /** Socket通信のイベントリスナー設定 */
   useEffect(() => {
     const onUpdated = (data: { success: boolean }) => {
       if (data.success) {
         setIsSaving(false);
         setShowSuccess(true);
 
-        // 保存成功時の「現在の値」を「初期値」として上書きし、Dirty判定をクリアする
+        // 成功した現在の値を初期値として再設定
         setInitialValues({
-          maxPlayers: maxPlayers,
+          maxPlayers,
           initialHand: { ...initialHand },
           initialTokens: { ...initialTokens },
           components: [...localComponents],
@@ -147,6 +152,7 @@ export const ControlPanel = ({
     };
   }, [socket, maxPlayers, initialHand, initialTokens, localComponents, selectedGameId, gameMeta]);
 
+  /** 変更箇所を抽出し、サーバーへ一括送信する */
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
 
@@ -165,17 +171,13 @@ export const ControlPanel = ({
     } as GameParamUpdateData);
   };
 
+  /** 新規ゲームの作成依頼を送信 */
   const handleCreateGame = () => {
     if (!newGameName || !socket.connected) return;
 
-    // アルファベット以外を排除して小文字に変換
-    // 例: "My Game 01!" -> "mygame"
+    // アルファベット小文字のみを許容するID生成
     const sanitizedGameId = newGameName.toLowerCase().replace(/[^a-z]/g, '');
-
-    if (!sanitizedGameId) {
-      alert('ゲーム名はアルファベットを含めてください');
-      return;
-    }
+    if (!sanitizedGameId) return;
 
     socket.emit('game:create', {
       gameName: sanitizedGameId,
@@ -194,19 +196,42 @@ export const ControlPanel = ({
   const handleAddComponent = () => {
     if (!newCompId || !selectedGameId) return;
 
+    let initialProps: Record<string, any> = {};
+
+    // タイプに応じた初期設定
+    switch (newCompType) {
+      case 'Draggable':
+        initialProps = {
+          draggableId: 'piece',
+          image: '/hanabishi.svg',
+          mask: true,
+          color: 'red',
+          size: 100,
+          isDebug: true,
+        };
+        break;
+      case 'Dice':
+        initialProps = {
+          diceId: '天気',
+          sides: 4,
+          title: '天気ダイス',
+          tooltipText: '快晴・曇り・風・雨',
+          customFaces: ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png'],
+        };
+        break;
+      case 'Timer':
+        initialProps = { initialDuration: 30 };
+        break;
+      default:
+        initialProps = {};
+    }
+
     const newComponent: ComponentInfo = {
       id: newCompId,
       type: newCompType,
-      props: {
-        diceId: '天気',
-        sides: 4,
-        title: '天気ダイス',
-        tooltipText: '快晴・曇り・風・雨',
-        customFaces: ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png'],
-      },
+      props: initialProps,
     };
 
-    // ローカル状態のみ更新（保存ボタンを押すまで emit しないことで増殖を防ぐ）
     setLocalComponents([...localComponents, newComponent]);
 
     // 既存のコンポーネント配列をコピーして新要素を追加
@@ -224,8 +249,7 @@ export const ControlPanel = ({
       gameId: selectedGameId,
       newParam: updateData.newParam,
     } as GameParamUpdateData);
-
-    setNewCompId('Dice');
+    setNewCompId('');
   };
 
   // コンポーネント削除ハンドラ
@@ -255,7 +279,7 @@ export const ControlPanel = ({
           <div className={styles.field}>
             <div className={styles.label}>新規ゲーム作成:</div>
             <div className={styles.createSection}>
-              {/* アイコン入力 (幅を狭く) */}
+              {/* アイコン入力 */}
               <input
                 type="text"
                 className={`${styles.select} ${styles.iconInput}`}
@@ -339,14 +363,24 @@ export const ControlPanel = ({
                 <input
                   type="text"
                   className={`${styles.select} ${styles.flexFill}`}
+                  style={{ borderColor: isDuplicateId ? '#ff4444' : '' }}
                   placeholder="ID (例: dice-2)"
                   value={newCompId}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCompId(e.target.value)}
                 />
-                <button className={styles.saveButton} onClick={handleAddComponent} disabled={!newCompId}>
+                <button
+                  className={styles.saveButton}
+                  onClick={handleAddComponent}
+                  disabled={!newCompId || isDuplicateId}
+                >
                   追加
                 </button>
               </div>
+              {isDuplicateId && (
+                <div style={{ color: '#ff4444', fontSize: '12px', marginTop: '-4px' }}>
+                  このIDは既に使用されています
+                </div>
+              )}
             </div>
           )}
 
@@ -374,6 +408,7 @@ export const ControlPanel = ({
 
           <hr className={styles.divider} />
 
+          {/* 各種ゲームパラメータ調整エリア */}
           {selectedGame && (
             <>
               {/* 最大プレイヤー数設定 */}

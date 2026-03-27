@@ -38,7 +38,7 @@ export function Timer({ socket = null, roomId, initialDuration, onFinish }) {
         // initialDuration をサーバーに送信
         socket.emit('timer:start', { duration: initialDuration, roomId }); // ルームIDと初期時間付き
     };
-    // 💡 修正2: timeLeft が null になる可能性がないため、null合体演算子 (??) を削除
+    // timeLeft が null になる可能性がないため、null合体演算子 (??) を削除
     return (_jsxs("div", { style: {
             width: '300px',
             height: '80px',
