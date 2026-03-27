@@ -3487,6 +3487,11 @@ const ControlPanel = ({
     if (!newCompId || !selectedGameId) return;
     let initialProps = {};
     switch (newCompType) {
+      case "Deck":
+        initialProps = {
+          deckId: `deck-${newCompId}`
+        };
+        break;
       case "Draggable":
         initialProps = {
           draggableId: `piece-${newCompId}`,
@@ -3524,18 +3529,40 @@ const ControlPanel = ({
     const newParam = {
       components: updatedComponents
     };
-    if (newCompType == "Draggable") {
-      newParam.draggables = {
-        piece: {
-          id: `piece-${newCompId}`,
-          coordinate: {
-            x: 500,
-            y: 500
-          },
-          zIndex: 100,
-          rotation: 0
-        }
-      };
+    switch (newCompType) {
+      case "Deck":
+        newParam.initialDecks = [
+          {
+            deckId: `deck-${newCompId}`,
+            name: "カード",
+            backColor: "black",
+            cards: [
+              {
+                id: "1",
+                deckId: `deck-${newCompId}`,
+                name: "1",
+                ownerId: null,
+                location: "deck",
+                drawCondition: ["field", "face"],
+                playLocation: "discard",
+                isFaceUp: true,
+                backColor: "black"
+              }
+            ]
+          }
+        ];
+      case "Draggable":
+        newParam.draggables = {
+          piece: {
+            id: `piece-${newCompId}`,
+            coordinate: {
+              x: 500,
+              y: 500
+            },
+            zIndex: 100,
+            rotation: 0
+          }
+        };
     }
     socket.emit("game-param:update", {
       gameId: selectedGameId,
@@ -3773,6 +3800,8 @@ const ControlPanel = ({
 const DynamicComponent = ({ type, props, socket, roomId, containerRef }) => {
   const commonProps = { socket, roomId };
   switch (type) {
+    case "Deck":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props });
     case "Draggable":
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Draggable, { ...commonProps, ...props, containerRef });
     case "Dice":
@@ -3783,8 +3812,6 @@ const DynamicComponent = ({ type, props, socket, roomId, containerRef }) => {
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Dice, { ...commonProps, ...processedProps });
     case "Timer":
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Timer, { ...commonProps, ...props });
-    case "Deck":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props });
     // 未定義のコンポーネントが来た場合
     default:
       console.warn(`Unknown component type: ${type}`);

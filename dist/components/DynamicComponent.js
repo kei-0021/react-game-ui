@@ -7,6 +7,8 @@ export const DynamicComponent = ({ type, props, socket, roomId, containerRef }) 
     // 共通の Props をまとめておく
     const commonProps = { socket, roomId };
     switch (type) {
+        case 'Deck':
+            return _jsx(Deck, { ...commonProps, ...props });
         case 'Draggable':
             return _jsx(Draggable, { ...commonProps, ...props, containerRef: containerRef });
         case 'Dice':
@@ -17,8 +19,6 @@ export const DynamicComponent = ({ type, props, socket, roomId, containerRef }) 
             return _jsx(Dice, { ...commonProps, ...processedProps });
         case 'Timer':
             return _jsx(Timer, { ...commonProps, ...props });
-        case 'Deck':
-            return _jsx(Deck, { ...commonProps, ...props });
         // 未定義のコンポーネントが来た場合
         default:
             console.warn(`Unknown component type: ${type}`);

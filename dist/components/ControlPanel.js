@@ -161,6 +161,11 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
         let initialProps = {};
         // タイプに応じた初期設定
         switch (newCompType) {
+            case 'Deck':
+                initialProps = {
+                    deckId: `deck-${newCompId}`,
+                };
+                break;
             case 'Draggable':
                 initialProps = {
                     draggableId: `piece-${newCompId}`,
@@ -200,18 +205,40 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
         const newParam = {
             components: updatedComponents,
         };
-        if (newCompType == 'Draggable') {
-            newParam.draggables = {
-                piece: {
-                    id: `piece-${newCompId}`,
-                    coordinate: {
-                        x: 500,
-                        y: 500,
+        switch (newCompType) {
+            case 'Deck':
+                newParam.initialDecks = [
+                    {
+                        deckId: `deck-${newCompId}`,
+                        name: 'カード',
+                        backColor: 'black',
+                        cards: [
+                            {
+                                id: '1',
+                                deckId: `deck-${newCompId}`,
+                                name: '1',
+                                ownerId: null,
+                                location: 'deck',
+                                drawCondition: ['field', 'face'],
+                                playLocation: 'discard',
+                                isFaceUp: true,
+                                backColor: 'black',
+                            },
+                        ],
                     },
-                    zIndex: 100,
-                    rotation: 0,
-                },
-            };
+                ];
+            case 'Draggable':
+                newParam.draggables = {
+                    piece: {
+                        id: `piece-${newCompId}`,
+                        coordinate: {
+                            x: 500,
+                            y: 500,
+                        },
+                        zIndex: 100,
+                        rotation: 0,
+                    },
+                };
         }
         socket.emit('game-param:update', {
             gameId: selectedGameId,

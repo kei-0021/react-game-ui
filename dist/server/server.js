@@ -136,6 +136,7 @@ export class GameServer {
             gameIcon: this.gameParams[id].gameIcon,
             maxPlayers: this.gameParams[id].maxPlayers,
             initialHand: this.gameParams[id].initialHand,
+            initialDecks: this.gameParams[id].initialDecks,
             initialTokens: this.gameParams[id].initialTokens,
             draggables: this.gameParams[id].draggables,
             components: this.gameParams[id].components,

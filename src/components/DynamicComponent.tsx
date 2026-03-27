@@ -20,6 +20,9 @@ export const DynamicComponent = ({ type, props, socket, roomId, containerRef }: 
   const commonProps = { socket, roomId };
 
   switch (type) {
+    case 'Deck':
+      return <Deck {...commonProps} {...props} />;
+
     case 'Draggable':
       return <Draggable {...commonProps} {...props} containerRef={containerRef} />;
 
@@ -36,9 +39,6 @@ export const DynamicComponent = ({ type, props, socket, roomId, containerRef }: 
 
     case 'Timer':
       return <Timer {...commonProps} {...props} />;
-
-    case 'Deck':
-      return <Deck {...commonProps} {...props} />;
 
     // 未定義のコンポーネントが来た場合
     default:
