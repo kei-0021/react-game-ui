@@ -1,10 +1,21 @@
 // src/components/ControlPanel.tsx
+import { DeckId, TokenStoreId } from '@/types/definition.js';
 import { ComponentInfo } from '@/types/server.js';
 import { GameCreateData, GameDeleteData, GameMeta, GameParamUpdateData } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import styles from './ControlPanel.module.css';
 
+/**
+ * ゲームの設定管理およびリアルタイム更新を行う。
+ * 新規ゲームの作成、既存ゲームのパラメータ（プレイヤー数、初期手札、トークン）、
+ * およびゲーム内コンポーネント（ダイスやボード等）の動的な追加・削除を管理する。
+ * @param {Object} props - コンポーネントのプロパティ
+ * @param {Socket} props.socket - サーバー通信用の Socket.io クライアントインスタンス
+ * @param {GameMeta[]} props.gameMeta - サーバーから取得した全ゲームのメタデータ配列
+ * @param {boolean} props.isOpen - パネルの開閉状態
+ * @param {function} props.onToggle - パネルの開閉状態を切り替えるコールバック関数
+ */
 export const ControlPanel = ({
   socket,
   gameMeta,
@@ -28,14 +39,15 @@ export const ControlPanel = ({
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState<Record<string, number>>({});
   const [initialTokens, setInitialTokens] = useState<Record<string, number>>({});
+
   // コンポーネントのローカル状態
   const [localComponents, setLocalComponents] = useState<ComponentInfo[]>([]);
 
   // 比較用の初期値保持
   const [initialValues, setInitialValues] = useState<{
     maxPlayers: number;
-    initialHand: Record<string, number>;
-    initialTokens: Record<string, number>;
+    initialHand: Record<DeckId, number>;
+    initialTokens: Record<TokenStoreId, number>;
     components: ComponentInfo[];
   }>({
     maxPlayers: 1,
