@@ -195,6 +195,7 @@ export function initGameServer(io, options) {
                 maxPlayers: gameParams[id].maxPlayers,
                 initialHand: gameParams[id].initialHand,
                 initialTokens: gameParams[id].initialTokens,
+                components: gameParams[id].components,
             }));
             const roomList = [];
             for (const [id, state] of activeRooms) {

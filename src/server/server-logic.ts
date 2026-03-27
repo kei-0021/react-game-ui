@@ -283,6 +283,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         maxPlayers: gameParams[id].maxPlayers,
         initialHand: gameParams[id].initialHand,
         initialTokens: gameParams[id].initialTokens,
+        components: gameParams[id].components,
       }));
 
       const roomList: RoomMeta[] = [];
