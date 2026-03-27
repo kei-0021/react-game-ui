@@ -44,7 +44,7 @@ export const sampleConfig: RoomConfig = {
           backColor: '#000000',
         },
       ],
-      draggable: draggables,
+      draggables: draggables,
       maxPlayers: 1,
       components: [
         {

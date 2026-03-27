@@ -1,4 +1,4 @@
-export const deepabyssData: any = {
+export const DeepabyssData: any = {
   "gameId": "deepabyss",
   "gameIcon": "🌊",
   "initialDecks": [
@@ -693,5 +693,14 @@ export const deepabyssData: any = {
   "pieceImage": "/hanabishi.svg",
   "initialPhase": {
     "name": "start"
-  }
+  },
+  "components": [
+    {
+      "id": "お",
+      "type": "Timer",
+      "props": {
+        "initialDuration": 30
+      }
+    }
+  ]
 };

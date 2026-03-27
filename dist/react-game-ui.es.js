@@ -3489,7 +3489,7 @@ const ControlPanel = ({
     switch (newCompType) {
       case "Draggable":
         initialProps = {
-          draggableId: "piece",
+          draggableId: "piece2",
           image: "/hanabishi.svg",
           mask: true,
           color: "red",
@@ -3517,17 +3517,29 @@ const ControlPanel = ({
       type: newCompType,
       props: initialProps
     };
-    setLocalComponents([...localComponents, newComponent]);
+    const updatedLocal = [...localComponents, newComponent];
+    setLocalComponents(updatedLocal);
     const currentComponents = selectedGame?.components || [];
     const updatedComponents = [...currentComponents, newComponent];
-    const updateData = {
-      newParam: {
-        components: updatedComponents
-      }
+    const newParam = {
+      components: updatedComponents
     };
+    if (newCompType == "Draggable") {
+      newParam.draggables = {
+        piece: {
+          id: "piece2",
+          coordinate: {
+            x: 500,
+            y: 500
+          },
+          zIndex: 100,
+          rotation: 0
+        }
+      };
+    }
     socket.emit("game-param:update", {
       gameId: selectedGameId,
-      newParam: updateData.newParam
+      newParam
     });
     setNewCompId("");
   };
@@ -3758,11 +3770,11 @@ const ControlPanel = ({
     ] }) })
   ] });
 };
-const DynamicComponent = ({ type, props, socket, roomId }) => {
+const DynamicComponent = ({ type, props, socket, roomId, containerRef }) => {
   const commonProps = { socket, roomId };
   switch (type) {
     case "Draggable":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Draggable, { ...commonProps, ...props });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Draggable, { ...commonProps, ...props, containerRef });
     case "Dice":
       const processedProps = { ...props };
       if (Array.isArray(props.customFaces)) {

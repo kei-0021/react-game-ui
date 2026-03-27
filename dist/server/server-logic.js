@@ -63,8 +63,8 @@ function initializeRoom(roomId, param) {
         RoomManager.server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
     });
     let draggables = {};
-    if (param.draggable) {
-        draggables = structuredClone(param.draggable);
+    if (param.draggables) {
+        draggables = structuredClone(param.draggables);
         RoomManager.server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
         RoomManager.server_log('draggable', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(Object.values(draggables)[0], null, 2)}`);
     }
@@ -195,6 +195,7 @@ export function initGameServer(io, options) {
                 maxPlayers: gameParams[id].maxPlayers,
                 initialHand: gameParams[id].initialHand,
                 initialTokens: gameParams[id].initialTokens,
+                draggables: gameParams[id].draggables,
                 components: gameParams[id].components,
             }));
             const roomList = [];

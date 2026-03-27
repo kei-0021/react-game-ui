@@ -50,7 +50,7 @@ export type GameParam = {
   initialBoard?: Record<BoardId, CellData[]>;
   shuffleAndReconnectBoard?: Record<BoardId, (cells: CellData[]) => CellData[]>;
   pieceImage?: string;
-  draggable?: Record<DraggableId, DraggableData>;
+  draggables?: Record<DraggableId, DraggableData>;
   initialPhase?: Phase;
   cardEffects?: Record<string, any>;
   cellEffects?: Record<string, (manager: RoomManager, player: PlayerId) => void>;

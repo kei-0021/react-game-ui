@@ -163,7 +163,7 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
         switch (newCompType) {
             case 'Draggable':
                 initialProps = {
-                    draggableId: 'piece',
+                    draggableId: 'piece2',
                     image: '/hanabishi.svg',
                     mask: true,
                     color: 'red',
@@ -191,19 +191,31 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
             type: newCompType,
             props: initialProps,
         };
-        setLocalComponents([...localComponents, newComponent]);
+        const updatedLocal = [...localComponents, newComponent];
+        setLocalComponents(updatedLocal);
         // 既存のコンポーネント配列をコピーして新要素を追加
         const currentComponents = selectedGame?.components || [];
         const updatedComponents = [...currentComponents, newComponent];
-        const updateData = {
-            gameId: selectedGameId,
-            newParam: {
-                components: updatedComponents,
-            },
+        // draggablesが存在すれば含め、なければ含めない動的なオブジェクト作成
+        const newParam = {
+            components: updatedComponents,
         };
+        if (newCompType == 'Draggable') {
+            newParam.draggables = {
+                piece: {
+                    id: 'piece2',
+                    coordinate: {
+                        x: 500,
+                        y: 500,
+                    },
+                    zIndex: 100,
+                    rotation: 0,
+                },
+            };
+        }
         socket.emit('game-param:update', {
             gameId: selectedGameId,
-            newParam: updateData.newParam,
+            newParam,
         });
         setNewCompId('');
     };

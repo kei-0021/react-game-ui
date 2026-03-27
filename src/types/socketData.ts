@@ -1,6 +1,6 @@
 // src/types/socketData.ts
 
-import { CellData } from '@/index.js';
+import { CellData, DraggableData } from '@/index.js';
 import { ComponentInfo, RoomState } from '@/types/server.js';
 import { Card } from './card.js';
 import { CardLocation } from './cardLocation.js';
@@ -32,6 +32,7 @@ export type GameMeta = {
   maxPlayers?: number;
   initialHand?: Record<DeckId, number>;
   initialTokens?: Record<TokenStoreId, number>;
+  draggables?: Record<DraggableId, DraggableData>;
   components?: ComponentInfo[];
 };
 

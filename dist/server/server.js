@@ -137,6 +137,7 @@ export class GameServer {
             maxPlayers: this.gameParams[id].maxPlayers,
             initialHand: this.gameParams[id].initialHand,
             initialTokens: this.gameParams[id].initialTokens,
+            draggables: this.gameParams[id].draggables,
             components: this.gameParams[id].components,
         }));
         this.io.emit('lobby:game-list', {

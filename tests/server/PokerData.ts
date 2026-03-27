@@ -17,6 +17,18 @@ export const PokerData: any = {
   "components": [
     {
       "id": "1",
+      "type": "Draggable",
+      "props": {
+        "draggableId": "piece2",
+        "image": "/hanabishi.svg",
+        "mask": true,
+        "color": "red",
+        "size": 100,
+        "isDebug": true
+      }
+    },
+    {
+      "id": "2",
       "type": "Dice",
       "props": {
         "diceId": "天気",
@@ -33,22 +45,39 @@ export const PokerData: any = {
     },
     {
       "id": "3",
-      "type": "Timer",
+      "type": "Dice",
       "props": {
-        "initialDuration": 30
-      }
-    },
-    {
-      "id": "5",
-      "type": "Draggable",
-      "props": {
-        "draggableId": "piece",
-        "image": "/hanabishi.svg",
-        "mask": true,
-        "color": "red",
-        "size": 100,
-        "isDebug": true
+        "diceId": "天気",
+        "sides": 4,
+        "title": "天気ダイス",
+        "tooltipText": "快晴・曇り・風・雨",
+        "customFaces": [
+          "/weather_sunny.png",
+          "/weather_cloud.png",
+          "/weather_wind.png",
+          "/weather_rain.png"
+        ]
       }
     }
-  ]
+  ],
+  "draggables": {
+    "piece": {
+      "id": "piece",
+      "coordinate": {
+        "x": 500,
+        "y": 500
+      },
+      "zIndex": 100,
+      "rotation": 0
+    },
+    "piece2": {
+      "id": "piece2",
+      "coordinate": {
+        "x": 600,
+        "y": 600
+      },
+      "zIndex": 100,
+      "rotation": 0
+    }
+  }
 };

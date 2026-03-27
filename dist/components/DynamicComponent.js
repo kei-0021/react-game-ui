@@ -3,12 +3,12 @@ import { Deck } from '../components/Deck.js';
 import { Dice } from '../components/Dice.js';
 import { Timer } from '../components/Timer.js';
 import { Draggable } from './Draggable.js';
-export const DynamicComponent = ({ type, props, socket, roomId }) => {
+export const DynamicComponent = ({ type, props, socket, roomId, containerRef }) => {
     // 共通の Props をまとめておく
     const commonProps = { socket, roomId };
     switch (type) {
         case 'Draggable':
-            return _jsx(Draggable, { ...commonProps, ...props });
+            return _jsx(Draggable, { ...commonProps, ...props, containerRef: containerRef });
         case 'Dice':
             const processedProps = { ...props };
             if (Array.isArray(props.customFaces)) {

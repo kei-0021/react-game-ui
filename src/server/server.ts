@@ -46,7 +46,7 @@ export class GameServer {
   private clientDistPath: string;
   private corsOrigins: string[];
 
-  private gameParams: Record<string, GameParam>;
+  private gameParams: Record<GameId, GameParam>;
   private customEvents: any;
   private initialLogCategories: Partial<Record<LogCategory, boolean>> | null;
 
@@ -165,6 +165,7 @@ export class GameServer {
       maxPlayers: this.gameParams[id].maxPlayers,
       initialHand: this.gameParams[id].initialHand,
       initialTokens: this.gameParams[id].initialTokens,
+      draggables: this.gameParams[id].draggables,
       components: this.gameParams[id].components,
     }));
     this.io.emit('lobby:game-list', {

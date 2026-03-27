@@ -6,7 +6,8 @@ interface DynamicProps {
     props: any;
     socket: Socket;
     roomId: RoomId;
+    containerRef: any;
 }
-export declare const DynamicComponent: ({ type, props, socket, roomId }: DynamicProps) => import("react/jsx-runtime").JSX.Element | null;
+export declare const DynamicComponent: ({ type, props, socket, roomId, containerRef }: DynamicProps) => import("react/jsx-runtime").JSX.Element | null;
 export {};
 //# sourceMappingURL=DynamicComponent.d.ts.map

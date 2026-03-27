@@ -115,8 +115,8 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
   });
 
   let draggables: Record<DraggableId, DraggableData> = {};
-  if (param.draggable) {
-    draggables = structuredClone(param.draggable);
+  if (param.draggables) {
+    draggables = structuredClone(param.draggables);
 
     RoomManager.server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
     RoomManager.server_log(
@@ -283,6 +283,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         maxPlayers: gameParams[id].maxPlayers,
         initialHand: gameParams[id].initialHand,
         initialTokens: gameParams[id].initialTokens,
+        draggables: gameParams[id].draggables,
         components: gameParams[id].components,
       }));
 

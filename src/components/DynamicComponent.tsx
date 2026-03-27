@@ -12,15 +12,16 @@ interface DynamicProps {
   props: any;
   socket: Socket;
   roomId: RoomId;
+  containerRef: any;
 }
 
-export const DynamicComponent = ({ type, props, socket, roomId }: DynamicProps) => {
+export const DynamicComponent = ({ type, props, socket, roomId, containerRef }: DynamicProps) => {
   // 共通の Props をまとめておく
   const commonProps = { socket, roomId };
 
   switch (type) {
     case 'Draggable':
-      return <Draggable {...commonProps} {...props} />;
+      return <Draggable {...commonProps} {...props} containerRef={containerRef} />;
 
     case 'Dice':
       const processedProps = { ...props };
