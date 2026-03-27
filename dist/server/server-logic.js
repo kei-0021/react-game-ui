@@ -123,8 +123,11 @@ export function initGameServer(io, options) {
                 const targetPath = path.join(targetDir, `${data.gameId}Data.ts`);
                 // 現在のメモリ上の設定を取得
                 const currentParam = gameParams[data.gameId] || {};
-                console.log('現在のParam: ', JSON.stringify(currentParam, null, 2));
-                const mergedParam = deepMerge({ ...currentParam }, data.newParam);
+                // componentsだけはマージせず、新しいデータで上書きする
+                const mergedParam = {
+                    ...deepMerge({ ...currentParam }, data.newParam),
+                    ...(data.newParam.components ? { components: data.newParam.components } : {}),
+                };
                 delete mergedParam.cardEffects;
                 delete mergedParam.cellEffects;
                 delete mergedParam.shuffleAndReconnectBoard;

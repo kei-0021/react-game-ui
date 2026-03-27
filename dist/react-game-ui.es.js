@@ -3331,10 +3331,12 @@ const ControlPanel = ({
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState({});
   const [initialTokens, setInitialTokens] = useState({});
+  const [localComponents, setLocalComponents] = useState([]);
   const [initialValues, setInitialValues] = useState({
     maxPlayers: 1,
     initialHand: {},
-    initialTokens: {}
+    initialTokens: {},
+    components: []
   });
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -3345,24 +3347,30 @@ const ControlPanel = ({
     }
   }, [gameMeta, selectedGameId]);
   const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
-  useEffect(() => {
-    if (selectedGame) {
-      const configMaxPlayers = selectedGame.maxPlayers ?? 1;
-      const configInitialHand = selectedGame.initialHand ?? {};
-      const configInitialTokens = selectedGame.initialTokens ?? {};
-      setInitialValues({
-        maxPlayers: configMaxPlayers,
-        initialHand: { ...configInitialHand },
-        initialTokens: { ...configInitialTokens }
-      });
-      setMaxPlayers(configMaxPlayers);
-      setInitialHand({ ...configInitialHand });
-      setInitialTokens({ ...configInitialTokens });
-    }
-  }, [selectedGame]);
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
   const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
+  const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
+  useEffect(() => {
+    if (selectedGame && !isSaving) {
+      const configMaxPlayers = selectedGame.maxPlayers ?? 1;
+      const configInitialHand = selectedGame.initialHand ?? {};
+      const configInitialTokens = selectedGame.initialTokens ?? {};
+      const configComponents = selectedGame.components ?? [];
+      setInitialValues({
+        maxPlayers: configMaxPlayers,
+        initialHand: { ...configInitialHand },
+        initialTokens: { ...configInitialTokens },
+        components: [...configComponents]
+      });
+      if (!isComponentsDirty) {
+        setMaxPlayers(configMaxPlayers);
+        setInitialHand({ ...configInitialHand });
+        setInitialTokens({ ...configInitialTokens });
+        setLocalComponents([...configComponents]);
+      }
+    }
+  }, [selectedGame, isSaving, isComponentsDirty]);
   useEffect(() => {
     const onUpdated = (data) => {
       if (data.success) {
@@ -3371,7 +3379,8 @@ const ControlPanel = ({
         setInitialValues({
           maxPlayers,
           initialHand: { ...initialHand },
-          initialTokens: { ...initialTokens }
+          initialTokens: { ...initialTokens },
+          components: [...localComponents]
         });
         setTimeout(() => setShowSuccess(false), 2e3);
       }
@@ -3400,13 +3409,14 @@ const ControlPanel = ({
       socket.off("game:created", onCreated);
       socket.off("game:deleted", onDeleted);
     };
-  }, [socket, maxPlayers, initialHand, initialTokens, selectedGameId, gameMeta]);
+  }, [socket, maxPlayers, initialHand, initialTokens, localComponents, selectedGameId, gameMeta]);
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
     const newParam = {};
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
     if (isHandDirty) newParam.initialHand = initialHand;
     if (isTokensDirty) newParam.initialTokens = initialTokens;
+    if (isComponentsDirty) newParam.components = localComponents;
     if (Object.keys(newParam).length === 0) return;
     setIsSaving(true);
     socket.emit("game-param:update", {
@@ -3433,7 +3443,7 @@ const ControlPanel = ({
     }
   };
   const handleAddComponent = () => {
-    if (!newCompId || !socket.connected || !selectedGameId) return;
+    if (!newCompId || !selectedGameId) return;
     const newComponent = {
       id: newCompId,
       type: newCompType,
@@ -3445,20 +3455,29 @@ const ControlPanel = ({
         customFaces: ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"]
       }
     };
+    setLocalComponents([...localComponents, newComponent]);
     const currentComponents = selectedGame?.components || [];
     const updatedComponents = [...currentComponents, newComponent];
     const updateData = {
-      gameId: selectedGameId,
       newParam: {
         components: updatedComponents
       }
     };
-    console.log(updateData);
     socket.emit("game-param:update", {
       gameId: selectedGameId,
       newParam: updateData.newParam
     });
     setNewCompId("");
+  };
+  const handleDeleteComponent = (compId) => {
+    const updated = localComponents.filter((comp) => comp.id !== compId);
+    setLocalComponents(updated);
+    socket.emit("game-param:update", {
+      gameId: selectedGameId,
+      newParam: {
+        components: updated
+      }
+    });
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? "✕" : "☰" }),
@@ -3470,7 +3489,6 @@ const ControlPanel = ({
           maxHeight: "100vh",
           overflowY: "auto",
           paddingBottom: "60px"
-          // ボタンが隠れないよう余白
         },
         children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles.title, children: "コントロールパネル" }),
@@ -3614,6 +3632,49 @@ const ControlPanel = ({
               ]
             }
           ),
+          localComponents.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "10px" }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
+              "既存コンポーネント: ",
+              isComponentsDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "(変更あり)" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", flexDirection: "column", gap: "4px" }, children: localComponents.map((comp) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "div",
+              {
+                style: {
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  background: "#333",
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  fontSize: "12px"
+                },
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+                    comp.id,
+                    " (",
+                    comp.type,
+                    ")"
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      onClick: () => handleDeleteComponent(comp.id),
+                      style: {
+                        background: "none",
+                        border: "none",
+                        color: "#ff4444",
+                        cursor: "pointer",
+                        padding: "0 4px"
+                      },
+                      children: "✕"
+                    }
+                  )
+                ]
+              },
+              comp.id
+            )) })
+          ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: styles.divider, style: { margin: "20px 0", border: "none", borderTop: "1px solid #444" } }),
           selectedGame && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
             selectedGame.maxPlayers !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [
@@ -3700,7 +3761,7 @@ const ControlPanel = ({
             {
               className: styles.saveButton,
               onClick: handleSave,
-              disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty && !isTokensDirty,
+              disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isComponentsDirty,
               children: isSaving ? "保存中..." : showSuccess ? "完了" : "変更箇所のみ反映"
             }
           )

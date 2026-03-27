@@ -28,16 +28,20 @@ export const ControlPanel = ({
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState<Record<string, number>>({});
   const [initialTokens, setInitialTokens] = useState<Record<string, number>>({});
+  // コンポーネントのローカル状態
+  const [localComponents, setLocalComponents] = useState<ComponentInfo[]>([]);
 
   // 比較用の初期値保持
   const [initialValues, setInitialValues] = useState<{
     maxPlayers: number;
     initialHand: Record<string, number>;
     initialTokens: Record<string, number>;
+    components: ComponentInfo[];
   }>({
     maxPlayers: 1,
     initialHand: {},
     initialTokens: {},
+    components: [],
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -53,39 +57,51 @@ export const ControlPanel = ({
 
   const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
 
+  // 変更検知
+  const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
+  const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
+  const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
+  const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
+
   // 選択ゲームが変わった時にフォーム値を更新
   useEffect(() => {
-    if (selectedGame) {
+    if (selectedGame && !isSaving) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
       const configInitialHand = selectedGame.initialHand ?? {};
       const configInitialTokens = selectedGame.initialTokens ?? {};
+      const configComponents = selectedGame.components ?? [];
 
       setInitialValues({
         maxPlayers: configMaxPlayers,
         initialHand: { ...configInitialHand },
         initialTokens: { ...configInitialTokens },
+        components: [...configComponents],
       });
-      setMaxPlayers(configMaxPlayers);
-      setInitialHand({ ...configInitialHand });
-      setInitialTokens({ ...configInitialTokens });
-    }
-  }, [selectedGame]);
 
-  // 変更検知
-  const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
-  const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
-  const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
+      // 編集中（Dirty）でない場合のみ、外部の最新データを localComponents に反映する
+      if (!isComponentsDirty) {
+        setMaxPlayers(configMaxPlayers);
+        setInitialHand({ ...configInitialHand });
+        setInitialTokens({ ...configInitialTokens });
+        setLocalComponents([...configComponents]);
+      }
+    }
+  }, [selectedGame, isSaving, isComponentsDirty]);
 
   useEffect(() => {
     const onUpdated = (data: { success: boolean }) => {
       if (data.success) {
         setIsSaving(false);
         setShowSuccess(true);
+
+        // 保存成功時の「現在の値」を「初期値」として上書きし、Dirty判定をクリアする
         setInitialValues({
-          maxPlayers,
+          maxPlayers: maxPlayers,
           initialHand: { ...initialHand },
           initialTokens: { ...initialTokens },
+          components: [...localComponents],
         });
+
         setTimeout(() => setShowSuccess(false), 2000);
       }
     };
@@ -117,7 +133,7 @@ export const ControlPanel = ({
       socket.off('game:created', onCreated);
       socket.off('game:deleted', onDeleted);
     };
-  }, [socket, maxPlayers, initialHand, initialTokens, selectedGameId, gameMeta]);
+  }, [socket, maxPlayers, initialHand, initialTokens, localComponents, selectedGameId, gameMeta]);
 
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
@@ -126,6 +142,7 @@ export const ControlPanel = ({
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
     if (isHandDirty) newParam.initialHand = initialHand;
     if (isTokensDirty) newParam.initialTokens = initialTokens;
+    if (isComponentsDirty) newParam.components = localComponents;
 
     if (Object.keys(newParam).length === 0) return;
 
@@ -163,7 +180,7 @@ export const ControlPanel = ({
 
   // コンポーネント追加ハンドラ
   const handleAddComponent = () => {
-    if (!newCompId || !socket.connected || !selectedGameId) return;
+    if (!newCompId || !selectedGameId) return;
 
     const newComponent: ComponentInfo = {
       id: newCompId,
@@ -177,6 +194,9 @@ export const ControlPanel = ({
       },
     };
 
+    // ローカル状態のみ更新（保存ボタンを押すまで emit しないことで増殖を防ぐ）
+    setLocalComponents([...localComponents, newComponent]);
+
     // 既存のコンポーネント配列をコピーして新要素を追加
     const currentComponents = selectedGame?.components || [];
     const updatedComponents = [...currentComponents, newComponent];
@@ -188,14 +208,25 @@ export const ControlPanel = ({
       },
     };
 
-    console.log(updateData);
-
     socket.emit('game-param:update', {
       gameId: selectedGameId,
       newParam: updateData.newParam,
     } as GameParamUpdateData);
 
     setNewCompId('');
+  };
+
+  // コンポーネント削除ハンドラ
+  const handleDeleteComponent = (compId: string) => {
+    const updated = localComponents.filter((comp) => comp.id !== compId);
+    setLocalComponents(updated);
+
+    socket.emit('game-param:update', {
+      gameId: selectedGameId,
+      newParam: {
+        components: updated,
+      },
+    } as GameParamUpdateData);
   };
 
   return (
@@ -210,7 +241,7 @@ export const ControlPanel = ({
           style={{
             maxHeight: '100vh',
             overflowY: 'auto',
-            paddingBottom: '60px', // ボタンが隠れないよう余白
+            paddingBottom: '60px',
           }}
         >
           <h3 className={styles.title}>コントロールパネル</h3>
@@ -339,6 +370,45 @@ export const ControlPanel = ({
             </div>
           )}
 
+          {/* コンポーネントリスト表示 */}
+          {localComponents.length > 0 && (
+            <div style={{ marginTop: '10px' }}>
+              <div className={styles.label}>既存コンポーネント: {isComponentsDirty && <small>(変更あり)</small>}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {localComponents.map((comp) => (
+                  <div
+                    key={comp.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      background: '#333',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                    }}
+                  >
+                    <span>
+                      {comp.id} ({comp.type})
+                    </span>
+                    <button
+                      onClick={() => handleDeleteComponent(comp.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#ff4444',
+                        cursor: 'pointer',
+                        padding: '0 4px',
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <hr className={styles.divider} style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #444' }} />
 
           {selectedGame && (
@@ -422,7 +492,11 @@ export const ControlPanel = ({
           <button
             className={styles.saveButton}
             onClick={handleSave}
-            disabled={!socket.connected || isSaving || (!isMaxPlayersDirty && !isHandDirty && !isTokensDirty)}
+            disabled={
+              !socket.connected ||
+              isSaving ||
+              (!isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isComponentsDirty)
+            }
           >
             {isSaving ? '保存中...' : showSuccess ? '完了' : '変更箇所のみ反映'}
           </button>

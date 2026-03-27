@@ -156,7 +156,6 @@ export class GameServer {
       this.gameParams[gameId] = param;
       // 実行中の全ルームへ「最新ルール」をzs同期
       // reloadActiveRooms(this.io, gameId, param);
-      console.log(`[${gameId}] Paramを更新しました: ${JSON.stringify(param, null, 2)}`);
     }
 
     // クライアントにゲーム一覧を送信
@@ -166,6 +165,7 @@ export class GameServer {
       maxPlayers: this.gameParams[id].maxPlayers,
       initialHand: this.gameParams[id].initialHand,
       initialTokens: this.gameParams[id].initialTokens,
+      components: this.gameParams[id].components,
     }));
     this.io.emit('lobby:game-list', {
       games: gameList,

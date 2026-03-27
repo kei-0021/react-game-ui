@@ -81,7 +81,7 @@ export type GameParam = {
  * @param maxZIndex - フィールド上の全オブジェクト（カード、ピース等）で共有する 重ね順のグローバル・カウンタ
  * @param systemMessageHistory - 過去のシステムメッセージの履歴。
  */
-export interface RoomState {
+export type RoomState = {
     gameId: GameId;
     roomId: RoomId;
     createdAt: number;
@@ -100,12 +100,12 @@ export interface RoomState {
     timer: NodeJS.Timeout;
     maxZIndex: number;
     systemMessageHistory: string[];
-}
+};
 export type ComponentType = 'Deck' | 'PlayField' | 'ScoreBoard' | 'TokenStore' | 'GridBoard' | 'Draggable' | 'Dice' | 'Timer' | 'SystemMessage';
-export interface ComponentInfo {
+export type ComponentInfo = {
     id: string;
     type: ComponentType;
     props: Record<string, any>;
-}
+};
 export type { GameId };
 //# sourceMappingURL=server.d.ts.map
