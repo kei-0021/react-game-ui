@@ -248,25 +248,17 @@ export const ControlPanel = ({
       </button>
 
       <div className={`${styles.wrapper} ${isOpen ? styles.open : ''}`}>
-        <div
-          className={styles.container}
-          style={{
-            maxHeight: '100vh',
-            overflowY: 'auto',
-            paddingBottom: '60px',
-          }}
-        >
+        <div className={styles.scrollContainer}>
           <h3 className={styles.title}>コントロールパネル</h3>
 
           {/* 新規作成セクション */}
           <div className={styles.field}>
             <div className={styles.label}>新規ゲーム作成:</div>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div className={styles.createSection}>
               {/* アイコン入力 (幅を狭く) */}
               <input
                 type="text"
-                className={styles.select}
-                style={{ width: '45px', textAlign: 'center' }}
+                className={`${styles.select} ${styles.iconInput}`}
                 placeholder="Icon"
                 value={newGameIcon}
                 onChange={(e) => setNewGameIcon(e.target.value.slice(0, 5))}
@@ -274,16 +266,14 @@ export const ControlPanel = ({
               {/* 名前入力 */}
               <input
                 type="text"
-                className={styles.select}
-                style={{ flex: 1 }}
+                className={`${styles.select} ${styles.flexFill}`}
                 placeholder="GameName"
                 value={newGameName}
                 onChange={(e) => setNewGameName(e.target.value)}
               />
               <button
-                className={styles.saveButton}
+                className={`${styles.saveButton} ${styles.createButton}`}
                 onClick={handleCreateGame}
-                style={{ marginTop: 0, padding: '0 15px', whiteSpace: 'nowrap' }}
                 disabled={!newGameName}
               >
                 作成
@@ -291,32 +281,23 @@ export const ControlPanel = ({
             </div>
           </div>
 
-          <hr className={styles.divider} style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #444' }} />
+          <hr className={styles.divider} />
 
           {/* ゲーム選択セクション */}
           <div className={styles.field}>
-            <div
-              className={styles.label}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-            >
-              <span>対象ゲームを選択:</span>
+            <div className={styles.rangeHeader}>
+              <div className={styles.label}>対象ゲームを選択:</div>
               <button
                 onClick={() => setIsDeleteMode(!isDeleteMode)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: isDeleteMode ? '#ff4444' : '#888',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                }}
+                className={styles.deleteModeBtn}
+                style={{ color: isDeleteMode ? '#ff4444' : '#888' }}
               >
                 {isDeleteMode ? 'キャンセル' : '削除モード'}
               </button>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div className={styles.createSection}>
               <select
-                className={styles.select}
-                style={{ flex: 1 }}
+                className={`${styles.select} ${styles.flexFill}`}
                 value={selectedGameId}
                 onChange={(e) => setSelectedGameId(e.target.value)}
               >
@@ -331,13 +312,7 @@ export const ControlPanel = ({
                 <button
                   className={styles.saveButton}
                   onClick={handleDeleteGame}
-                  style={{
-                    marginTop: 0,
-                    padding: '0 15px',
-                    background: '#ff4444',
-                    border: 'none',
-                    whiteSpace: 'nowrap',
-                  }}
+                  style={{ background: '#ff4444', border: 'none' }}
                 >
                   削除
                 </button>
@@ -347,15 +322,11 @@ export const ControlPanel = ({
 
           {/* コンポーネント追加（座標固定） */}
           {selectedGame && (
-            <div
-              className={styles.field}
-              style={{ background: '#222', padding: '10px', borderRadius: '4px', marginTop: '10px' }}
-            >
+            <div className={styles.addComponentBox}>
               <div className={styles.label}>コンポーネント追加:</div>
-              <div style={{ display: 'flex', gap: '4px' }}>
+              <div className={styles.createSection}>
                 <select
-                  className={styles.select}
-                  style={{ width: '70px' }}
+                  className={`${styles.select} ${styles.compTypeSelect}`}
                   value={newCompType}
                   onChange={(e) => setNewCompType(e.target.value as any)}
                 >
@@ -364,18 +335,12 @@ export const ControlPanel = ({
                 </select>
                 <input
                   type="text"
-                  className={styles.select}
-                  style={{ flex: 1 }}
+                  className={`${styles.select} ${styles.flexFill}`}
                   placeholder="ID (例: dice-2)"
                   value={newCompId}
                   onChange={(e) => setNewCompId(e.target.value)}
                 />
-                <button
-                  className={styles.saveButton}
-                  onClick={handleAddComponent}
-                  style={{ marginTop: 0, padding: '0 10px' }}
-                  disabled={!newCompId}
-                >
+                <button className={styles.saveButton} onClick={handleAddComponent} disabled={!newCompId}>
                   追加
                 </button>
               </div>
@@ -385,34 +350,17 @@ export const ControlPanel = ({
           {/* コンポーネントリスト表示 */}
           {localComponents.length > 0 && (
             <div style={{ marginTop: '10px' }}>
-              <div className={styles.label}>既存コンポーネント: {isComponentsDirty && <small>(変更あり)</small>}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div className={styles.label}>
+                既存コンポーネント: {isComponentsDirty && <span className={styles.dirtyLabel}>(変更あり)</span>}
+              </div>
+              <div className={styles.componentList}>
                 {localComponents.map((comp) => (
-                  <div
-                    key={comp.id}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      background: '#333',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                    }}
-                  >
+                  <div key={comp.id} className={styles.componentItem}>
                     <span>
                       {comp.id} ({comp.type})
                     </span>
-                    <button
-                      onClick={() => handleDeleteComponent(comp.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#ff4444',
-                        cursor: 'pointer',
-                        padding: '0 4px',
-                      }}
-                    >
+                    {/* コンポーネント削除ハンドラ */}
+                    <button onClick={() => handleDeleteComponent(comp.id)} className={styles.deleteCompBtn}>
                       ✕
                     </button>
                   </div>
@@ -421,15 +369,18 @@ export const ControlPanel = ({
             </div>
           )}
 
-          <hr className={styles.divider} style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #444' }} />
+          <hr className={styles.divider} />
 
           {selectedGame && (
             <>
+              {/* 最大プレイヤー数設定 */}
               {selectedGame.maxPlayers !== undefined && (
                 <div className={styles.field}>
-                  <div className={styles.label}>
-                    <span>最大プレイヤー数: {isMaxPlayersDirty && <small>(変更あり)</small>}</span>
-                    <strong>{maxPlayers}</strong>
+                  <div className={styles.rangeHeader}>
+                    <div className={styles.label}>
+                      最大プレイヤー数: {isMaxPlayersDirty && <span className={styles.dirtyLabel}>(変更あり)</span>}
+                    </div>
+                    <span className={styles.rangeValue}>{maxPlayers}</span>
                   </div>
                   <input
                     type="range"
@@ -442,18 +393,17 @@ export const ControlPanel = ({
                 </div>
               )}
 
-              {/* 手札・トークン設定 */}
+              {/* 手札設定 */}
               {Object.entries(initialHand).map(([deckId, count]) => (
-                <div key={`hand-${deckId}`} className={styles.field}>
-                  <div className={styles.label}>
-                    <span>
+                <div key={`hand-${deckId}`} className={styles.rangeField}>
+                  <div className={styles.rangeHeader}>
+                    <div className={styles.label}>
                       <strong>Hand: {deckId}</strong>
-                    </span>
-                    {initialValues.initialHand[deckId] !== count && <small> (変更あり)</small>}
-                  </div>
-                  <div className={styles.label}>
-                    <span>枚数:</span>
-                    <strong>{count}</strong>
+                      {initialValues.initialHand[deckId as DeckId] !== count && (
+                        <span className={styles.dirtyLabel}>(変更あり)</span>
+                      )}
+                    </div>
+                    <span className={styles.rangeValue}>{count}</span>
                   </div>
                   <input
                     type="range"
@@ -471,17 +421,17 @@ export const ControlPanel = ({
                 </div>
               ))}
 
+              {/* トークン設定 */}
               {Object.entries(initialTokens).map(([tokenId, count]) => (
-                <div key={`token-${tokenId}`} className={styles.field}>
-                  <div className={styles.label}>
-                    <span>
+                <div key={`token-${tokenId}`} className={styles.rangeField}>
+                  <div className={styles.rangeHeader}>
+                    <div className={styles.label}>
                       <strong>Token: {tokenId}</strong>
-                    </span>
-                    {initialValues.initialTokens[tokenId] !== count && <small> (変更あり)</small>}
-                  </div>
-                  <div className={styles.label}>
-                    <span>個数:</span>
-                    <strong>{count}</strong>
+                      {initialValues.initialTokens[tokenId as TokenStoreId] !== count && (
+                        <span className={styles.dirtyLabel}>(変更あり)</span>
+                      )}
+                    </div>
+                    <span className={styles.rangeValue}>{count}</span>
                   </div>
                   <input
                     type="range"
@@ -501,6 +451,7 @@ export const ControlPanel = ({
             </>
           )}
 
+          {/* 保存・反映ボタン */}
           <button
             className={styles.saveButton}
             onClick={handleSave}
