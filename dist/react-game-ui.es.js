@@ -2863,9 +2863,9 @@ class RoomManager {
   emitDraggableUpdate = (draggableId) => {
     const updateData = {
       draggableId,
-      coordinate: this.state.draggable[draggableId].coordinate,
-      rotation: this.state.draggable[draggableId].rotation,
-      zIndex: this.state.draggable[draggableId].zIndex
+      coordinate: this.state.draggables[draggableId].coordinate,
+      rotation: this.state.draggables[draggableId].rotation,
+      zIndex: this.state.draggables[draggableId].zIndex
     };
     this.io.to(this.state.roomId).emit("draggable:update", updateData);
   };
@@ -3185,7 +3185,7 @@ class RoomManager {
           throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
         }
         this.server_log("draggable", "ドラッグ可能オブジェクトを最前面に移動");
-        const draggable2 = this.state.draggable[objectId];
+        const draggable2 = this.state.draggables[objectId];
         if (draggable2.zIndex < this.state.maxZIndex) {
           this.state.maxZIndex++;
           draggable2.zIndex = this.state.maxZIndex;
@@ -3210,7 +3210,7 @@ class RoomManager {
           throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
         }
         this.server_log("draggable", "ドラッグ可能オブジェクトを最背面に移動");
-        const draggable2 = this.state.draggable[objectId];
+        const draggable2 = this.state.draggables[objectId];
         draggable2.zIndex = 100 + draggable2.zIndex % 100;
         this.server_log("draggable", `新しいz-index: ${draggable2.zIndex}`);
         this.emitDraggableUpdate(objectId);
@@ -3489,7 +3489,7 @@ const ControlPanel = ({
     switch (newCompType) {
       case "Draggable":
         initialProps = {
-          draggableId: "piece2",
+          draggableId: `piece-${newCompId}`,
           image: "/hanabishi.svg",
           mask: true,
           color: "red",
@@ -3499,7 +3499,7 @@ const ControlPanel = ({
         break;
       case "Dice":
         initialProps = {
-          diceId: "天気",
+          diceId: `天気-${newCompId}`,
           sides: 4,
           title: "天気ダイス",
           tooltipText: "快晴・曇り・風・雨",
@@ -3527,7 +3527,7 @@ const ControlPanel = ({
     if (newCompType == "Draggable") {
       newParam.draggables = {
         piece: {
-          id: "piece2",
+          id: `piece-${newCompId}`,
           coordinate: {
             x: 500,
             y: 500

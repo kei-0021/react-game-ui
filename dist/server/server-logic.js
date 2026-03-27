@@ -66,7 +66,11 @@ function initializeRoom(roomId, param) {
     if (param.draggables) {
         draggables = structuredClone(param.draggables);
         RoomManager.server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
-        RoomManager.server_log('draggable', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(Object.values(draggables)[0], null, 2)}`);
+        const firstEntry = Object.entries(draggables)[0];
+        if (firstEntry) {
+            const [key, value] = firstEntry;
+            RoomManager.server_log('draggable', param.gameId, roomId, `サンプル:\n${key}: ${JSON.stringify(value, null, 2)}`);
+        }
     }
     const initialMaxZIndex = Object.values(draggables).reduce((max, d) => Math.max(max, d.zIndex || 0), 0);
     const state = {
@@ -84,7 +88,7 @@ function initializeRoom(roomId, param) {
         boards: Cells,
         exploredCells: [],
         tokenStores: tokenStores,
-        draggable: draggables,
+        draggables: draggables,
         timer: {},
         maxZIndex: initialMaxZIndex,
         systemMessageHistory: [],
@@ -321,7 +325,7 @@ export function initGameServer(io, options) {
             Object.entries(state.boards).forEach(([boardId, board]) => {
                 socket.emit('board:update', { boardId, board });
             });
-            Object.keys(state.draggable).forEach((id) => roomManager.emitDraggableUpdate(id));
+            Object.keys(state.draggables).forEach((id) => roomManager.emitDraggableUpdate(id));
             // 初回の一人のみターンを更新する
             if (state.players.length == 1) {
                 roomManager.updateRound();
@@ -579,7 +583,7 @@ export function initGameServer(io, options) {
                 return;
             const param = gameParams[state.gameId];
             const roomManager = new RoomManager(io, param, state);
-            const draggable = state.draggable[draggableId];
+            const draggable = state.draggables[draggableId];
             draggable.coordinate = coordinate;
             draggable.rotation = rotation;
             roomManager.emitDraggableUpdate(draggableId);

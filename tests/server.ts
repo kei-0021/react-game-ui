@@ -74,7 +74,6 @@ async function startServer() {
       lobby: true,
       room: false,
       deck: false,
-      draggable: false,
     },
   };
 

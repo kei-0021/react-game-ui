@@ -119,12 +119,12 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     draggables = structuredClone(param.draggables);
 
     RoomManager.server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
-    RoomManager.server_log(
-      'draggable',
-      param.gameId,
-      roomId,
-      `サンプル (0番目): ${JSON.stringify(Object.values(draggables)[0], null, 2)}`,
-    );
+
+    const firstEntry = Object.entries(draggables)[0];
+    if (firstEntry) {
+      const [key, value] = firstEntry;
+      RoomManager.server_log('draggable', param.gameId, roomId, `サンプル:\n${key}: ${JSON.stringify(value, null, 2)}`);
+    }
   }
 
   const initialMaxZIndex = Object.values(draggables).reduce((max, d) => Math.max(max, d.zIndex || 0), 0);
@@ -144,7 +144,7 @@ function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
     boards: Cells,
     exploredCells: [],
     tokenStores: tokenStores,
-    draggable: draggables,
+    draggables: draggables,
     timer: {} as NodeJS.Timeout,
     maxZIndex: initialMaxZIndex,
     systemMessageHistory: [],
@@ -422,7 +422,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       Object.entries(state.boards).forEach(([boardId, board]) => {
         socket.emit('board:update', { boardId, board } as BoardUpdateData);
       });
-      Object.keys(state.draggable).forEach((id) => roomManager.emitDraggableUpdate(id));
+      Object.keys(state.draggables).forEach((id) => roomManager.emitDraggableUpdate(id));
 
       // 初回の一人のみターンを更新する
       if (state.players.length == 1) {
@@ -705,7 +705,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const param = gameParams[state.gameId];
       const roomManager = new RoomManager(io, param, state);
 
-      const draggable = state.draggable[draggableId];
+      const draggable = state.draggables[draggableId];
       draggable.coordinate = coordinate;
       draggable.rotation = rotation;
 

@@ -202,7 +202,7 @@ export const ControlPanel = ({
     switch (newCompType) {
       case 'Draggable':
         initialProps = {
-          draggableId: 'piece2',
+          draggableId: `piece-${newCompId}`,
           image: '/hanabishi.svg',
           mask: true,
           color: 'red',
@@ -212,7 +212,7 @@ export const ControlPanel = ({
         break;
       case 'Dice':
         initialProps = {
-          diceId: '天気',
+          diceId: `天気-${newCompId}`,
           sides: 4,
           title: '天気ダイス',
           tooltipText: '快晴・曇り・風・雨',
@@ -247,7 +247,7 @@ export const ControlPanel = ({
     if (newCompType == 'Draggable') {
       newParam.draggables = {
         piece: {
-          id: 'piece2',
+          id: `piece-${newCompId}`,
           coordinate: {
             x: 500,
             y: 500,

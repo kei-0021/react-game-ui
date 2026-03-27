@@ -97,7 +97,7 @@ export const ${pascalName}Config: RoomConfig = {
       maxPlayers: 4,
       initialDecks: [],
       initialBoard: {},
-      draggable: initialDraggables,
+      draggables: initialDraggables,
       checkGameEnd: () => false,
       onGameEnd: () => ({ message: "終了" }),
       components: [],

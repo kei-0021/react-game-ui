@@ -99,7 +99,7 @@ export type RoomState = {
   boards: Record<BoardId, CellData[]>;
   exploredCells: Position[];
   tokenStores: Record<TokenStoreId, Token[]>;
-  draggable: Record<DraggableId, DraggableData>;
+  draggables: Record<DraggableId, DraggableData>;
   timer: NodeJS.Timeout;
   maxZIndex: number;
   systemMessageHistory: string[];

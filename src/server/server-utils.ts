@@ -214,9 +214,9 @@ export class RoomManager {
   emitDraggableUpdate = (draggableId: DraggableId) => {
     const updateData: DraggableUpdateData = {
       draggableId: draggableId,
-      coordinate: this.state.draggable[draggableId].coordinate,
-      rotation: this.state.draggable[draggableId].rotation,
-      zIndex: this.state.draggable[draggableId].zIndex,
+      coordinate: this.state.draggables[draggableId].coordinate,
+      rotation: this.state.draggables[draggableId].rotation,
+      zIndex: this.state.draggables[draggableId].zIndex,
     };
     this.io.to(this.state.roomId).emit('draggable:update', updateData);
   };
@@ -631,7 +631,7 @@ export class RoomManager {
           throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
         }
         this.server_log('draggable', 'ドラッグ可能オブジェクトを最前面に移動');
-        const draggable = this.state.draggable[objectId];
+        const draggable = this.state.draggables[objectId];
         if (draggable.zIndex < this.state.maxZIndex) {
           this.state.maxZIndex++;
           draggable.zIndex = this.state.maxZIndex;
@@ -657,7 +657,7 @@ export class RoomManager {
           throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
         }
         this.server_log('draggable', 'ドラッグ可能オブジェクトを最背面に移動');
-        const draggable = this.state.draggable[objectId];
+        const draggable = this.state.draggables[objectId];
         // 100枚規模の衝突を回避する正規化
         draggable.zIndex = 100 + (draggable.zIndex % 100);
         this.server_log('draggable', `新しいz-index: ${draggable.zIndex}`);
