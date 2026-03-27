@@ -3297,6 +3297,17 @@ class Phase {
     return this.name;
   }
 }
+const COMPONENT_TYPES = [
+  "Deck",
+  "PlayField",
+  "ScoreBoard",
+  "TokenStore",
+  "GridBoard",
+  "Draggable",
+  "Dice",
+  "Timer",
+  "SystemMessage"
+];
 const wrapper = "_wrapper_83tj2_3";
 const open = "_open_83tj2_18";
 const scrollContainer = "_scrollContainer_83tj2_22";
@@ -3499,7 +3510,7 @@ const ControlPanel = ({
       gameId: selectedGameId,
       newParam: updateData.newParam
     });
-    setNewCompId("");
+    setNewCompId("Dice");
   };
   const handleDeleteComponent = (compId) => {
     const updated = localComponents.filter((comp) => comp.id !== compId);
@@ -3590,16 +3601,13 @@ const ControlPanel = ({
       selectedGame && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.addComponentBox, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "コンポーネント追加:" }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.createSection, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
             "select",
             {
               className: `${styles.select} ${styles.compTypeSelect}`,
               value: newCompType,
               onChange: (e) => setNewCompType(e.target.value),
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "Dice", children: "Dice" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "Board", children: "Board" })
-              ]
+              children: COMPONENT_TYPES.map((type) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: type, children: type }, type))
             }
           ),
           /* @__PURE__ */ jsxRuntimeExports.jsx(

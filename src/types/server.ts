@@ -105,16 +105,25 @@ export type RoomState = {
   systemMessageHistory: string[];
 };
 
-export type ComponentType =
-  | 'Deck'
-  | 'PlayField'
-  | 'ScoreBoard'
-  | 'TokenStore'
-  | 'GridBoard'
-  | 'Draggable'
-  | 'Dice'
-  | 'Timer'
-  | 'SystemMessage';
+/**
+ * 利用可能なコンポーネントの種類一覧
+ */
+export const COMPONENT_TYPES = [
+  'Deck',
+  'PlayField',
+  'ScoreBoard',
+  'TokenStore',
+  'GridBoard',
+  'Draggable',
+  'Dice',
+  'Timer',
+  'SystemMessage',
+] as const;
+
+/**
+ * 利用可能なコンポーネントの種類一覧 (型)
+ */
+export type ComponentType = (typeof COMPONENT_TYPES)[number];
 
 export type ComponentInfo = {
   id: string;

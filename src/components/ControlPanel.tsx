@@ -1,6 +1,6 @@
 // src/components/ControlPanel.tsx
 import { DeckId, TokenStoreId } from '@/types/definition.js';
-import { ComponentInfo } from '@/types/server.js';
+import { COMPONENT_TYPES, ComponentInfo, ComponentType } from '@/types/server.js';
 import { GameCreateData, GameDeleteData, GameMeta, GameParamUpdateData } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';
@@ -32,8 +32,8 @@ export const ControlPanel = ({
   const [newGameIcon, setNewGameIcon] = useState('🎲');
 
   // 新規コンポーネント追加用の状態
-  const [newCompId, setNewCompId] = useState('');
-  const [newCompType, setNewCompType] = useState<'Dice'>('Dice');
+  const [newCompId, setNewCompId] = useState<string>('');
+  const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
 
   // 各種パラメータの状態
   const [maxPlayers, setMaxPlayers] = useState(1);
@@ -225,7 +225,7 @@ export const ControlPanel = ({
       newParam: updateData.newParam,
     } as GameParamUpdateData);
 
-    setNewCompId('');
+    setNewCompId('Dice');
   };
 
   // コンポーネント削除ハンドラ
@@ -328,17 +328,20 @@ export const ControlPanel = ({
                 <select
                   className={`${styles.select} ${styles.compTypeSelect}`}
                   value={newCompType}
-                  onChange={(e) => setNewCompType(e.target.value as any)}
+                  onChange={(e) => setNewCompType(e.target.value as ComponentType)}
                 >
-                  <option value="Dice">Dice</option>
-                  <option value="Board">Board</option>
+                  {COMPONENT_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
                 </select>
                 <input
                   type="text"
                   className={`${styles.select} ${styles.flexFill}`}
                   placeholder="ID (例: dice-2)"
                   value={newCompId}
-                  onChange={(e) => setNewCompId(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCompId(e.target.value)}
                 />
                 <button className={styles.saveButton} onClick={handleAddComponent} disabled={!newCompId}>
                   追加
