@@ -173,6 +173,9 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
                     title: 'sub',
                 };
                 break;
+            case 'ScoreBoard':
+                initialProps = {};
+                break;
             case 'TokenStore':
                 initialProps = {
                     tokenStoreId: 'ARTIFACT',

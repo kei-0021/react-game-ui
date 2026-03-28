@@ -8,9 +8,10 @@ interface DynamicProps {
     socket: Socket;
     roomId: RoomId;
     myPlayerId: PlayerId;
+    currentPlayerId: PlayerId;
     players: Player[];
     containerRef: any;
 }
-export declare const DynamicComponent: ({ type, props, socket, roomId, myPlayerId, players, containerRef }: DynamicProps) => import("react/jsx-runtime").JSX.Element | null;
+export declare const DynamicComponent: ({ type, props, socket, roomId, myPlayerId, currentPlayerId, players, containerRef, }: DynamicProps) => import("react/jsx-runtime").JSX.Element | null;
 export {};
 //# sourceMappingURL=DynamicComponent.d.ts.map

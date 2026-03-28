@@ -1,5 +1,5 @@
 // src/components/DynamicComponent.tsx
-import { Player } from '@/index.js';
+import { Player, ScoreBoard } from '@/index.js';
 import { PlayerId, RoomId } from '@/types/definition.js';
 import type { Socket } from 'socket.io-client';
 import { Deck } from '../components/Deck.js';
@@ -16,11 +16,21 @@ interface DynamicProps {
   socket: Socket;
   roomId: RoomId;
   myPlayerId: PlayerId;
+  currentPlayerId: PlayerId;
   players: Player[];
   containerRef: any;
 }
 
-export const DynamicComponent = ({ type, props, socket, roomId, myPlayerId, players, containerRef }: DynamicProps) => {
+export const DynamicComponent = ({
+  type,
+  props,
+  socket,
+  roomId,
+  myPlayerId,
+  currentPlayerId,
+  players,
+  containerRef,
+}: DynamicProps) => {
   // 共通の Props をまとめておく
   const commonProps = { socket, roomId };
 
@@ -30,6 +40,17 @@ export const DynamicComponent = ({ type, props, socket, roomId, myPlayerId, play
 
     case 'PlayField':
       return <PlayField {...commonProps} {...props} myPlayerId={myPlayerId} players={players} />;
+
+    case 'ScoreBoard':
+      return (
+        <ScoreBoard
+          {...commonProps}
+          {...props}
+          myPlayerId={myPlayerId}
+          currentPlayerId={currentPlayerId}
+          players={players}
+        />
+      );
 
     case 'TokenStore':
       return <TokenStore {...commonProps} {...props} />;

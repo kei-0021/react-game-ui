@@ -268,6 +268,10 @@ export function ${pascalName}Room() {
                  props={info.props} 
                  socket={socket!} 
                  roomId={roomId!} 
+                 myPlayerId={myPlayerId}
+                 currentPlayerId={currentPlayerId}
+                 players={players}
+                 containerRef={containerRef}
                />
              ))}
 

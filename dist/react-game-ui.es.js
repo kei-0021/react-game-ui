@@ -2445,9 +2445,9 @@ const PlayerListItem = React.memo(
 function ScoreBoard({
   socket,
   roomId,
-  players,
-  currentPlayerId,
   myPlayerId,
+  currentPlayerId,
+  players,
   playCardLimit,
   playCardButton = [true, true],
   holdButton = [false, true],
@@ -3499,6 +3499,9 @@ const ControlPanel = ({
           title: "sub"
         };
         break;
+      case "ScoreBoard":
+        initialProps = {};
+        break;
       case "TokenStore":
         initialProps = {
           tokenStoreId: "ARTIFACT",
@@ -3829,13 +3832,33 @@ const ControlPanel = ({
     ] }) })
   ] });
 };
-const DynamicComponent = ({ type, props, socket, roomId, myPlayerId, players, containerRef }) => {
+const DynamicComponent = ({
+  type,
+  props,
+  socket,
+  roomId,
+  myPlayerId,
+  currentPlayerId,
+  players,
+  containerRef
+}) => {
   const commonProps = { socket, roomId };
   switch (type) {
     case "Deck":
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props });
     case "PlayField":
       return /* @__PURE__ */ jsxRuntimeExports.jsx(PlayField, { ...commonProps, ...props, myPlayerId, players });
+    case "ScoreBoard":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        ScoreBoard,
+        {
+          ...commonProps,
+          ...props,
+          myPlayerId,
+          currentPlayerId,
+          players
+        }
+      );
     case "TokenStore":
       return /* @__PURE__ */ jsxRuntimeExports.jsx(TokenStore, { ...commonProps, ...props });
     case "Draggable":

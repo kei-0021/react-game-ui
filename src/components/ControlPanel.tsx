@@ -212,6 +212,9 @@ export const ControlPanel = ({
           title: 'sub',
         };
         break;
+      case 'ScoreBoard':
+        initialProps = {};
+        break;
       case 'TokenStore':
         initialProps = {
           tokenStoreId: 'ARTIFACT',
