@@ -164,6 +164,7 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
             case 'Deck':
                 initialProps = {
                     deckId: `deck-${newCompId}`,
+                    title: '山札',
                 };
                 break;
             case 'Draggable':
@@ -229,7 +230,7 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
                 ];
             case 'Draggable':
                 newParam.draggables = {
-                    piece: {
+                    [`piece-${newCompId}`]: {
                         id: `piece-${newCompId}`,
                         coordinate: {
                             x: 500,

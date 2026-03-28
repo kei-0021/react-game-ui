@@ -3489,7 +3489,8 @@ const ControlPanel = ({
     switch (newCompType) {
       case "Deck":
         initialProps = {
-          deckId: `deck-${newCompId}`
+          deckId: `deck-${newCompId}`,
+          title: "山札"
         };
         break;
       case "Draggable":
@@ -3553,7 +3554,7 @@ const ControlPanel = ({
         ];
       case "Draggable":
         newParam.draggables = {
-          piece: {
+          [`piece-${newCompId}`]: {
             id: `piece-${newCompId}`,
             coordinate: {
               x: 500,

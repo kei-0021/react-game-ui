@@ -49,8 +49,9 @@ function initializeRoom(roomId, param) {
         playFieldCards[deck.deckId] = [];
         discardPile[deck.deckId] = [];
         RoomManager.server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
-        if (cards.length > 0) {
-            RoomManager.server_log('deck', param.gameId, roomId, `サンプル (0番目): ${JSON.stringify(cards[0], null, 2)}`);
+        const firstEntry = cards[0];
+        if (firstEntry) {
+            RoomManager.server_log('deck', param.gameId, roomId, `サンプル:\n ${JSON.stringify(firstEntry, null, 2)}`);
         }
     });
     initialTokenStores.forEach((tokenStore) => {

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ComponentInfo, GameTurnUpdateData, Player, RoomJoinData } from 'react-game-ui';
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { GameTurnUpdateData, Player, RoomJoinData, ComponentInfo } from "react-game-ui";
 import {
   Deck,
   Dice,
@@ -10,11 +10,14 @@ import {
   ScoreBoard,
   TokenStore,
   useSocket,
-} from 'react-game-ui';
-import { useNavigate, useParams } from 'react-router-dom';
-import styles from './pokerRoom.module.css';
+} from "react-game-ui";
+import styles from "./pokerRoom.module.css";
+import { useNavigate, useParams } from "react-router-dom";
 
-const SERVER_URL = import.meta.env.MODE === 'development' ? 'http://localhost:4000' : 'https://bg-lab.onrender.com';
+const SERVER_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:4000"
+    : "https://bg-lab.onrender.com";
 
 const BASE_WIDTH = 1600;
 const BASE_HEIGHT = 900;
@@ -25,7 +28,7 @@ export function PokerRoom() {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [userName, setUserName] = useState<string>('');
+  const [userName, setUserName] = useState<string>("");
   const [isJoining, setIsJoining] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
@@ -44,30 +47,30 @@ export function PokerRoom() {
       const scaleY = window.innerHeight / BASE_HEIGHT;
       setScale(Math.min(scaleX, scaleY));
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
     handleResize();
-    return () => window.removeEventListener('resize', handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleJoinRoom = useCallback(() => {
-    if (!socket || userName.trim() === '' || isJoining) return;
+    if (!socket || userName.trim() === "" || isJoining) return;
     setIsJoining(true);
-    socket.emit('room:join', {
+    socket.emit("room:join", {
       roomId,
-      gameId: 'poker',
+      gameId: "poker",
       playerName: userName.trim(),
     } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);
 
   useEffect(() => {
     if (!socket) return;
-    const handleAssignId = (id: Player['id']) => {
+    const handleAssignId = (id: Player["id"]) => {
       setMyPlayerId(id);
       setHasJoined(true);
       setIsJoining(false);
     };
     const onClientReady = () => {
-      socket.emit('client:ready', roomId);
+      socket.emit("client:ready", roomId);
     };
     const handlePlayersUpdate = (updatedPlayers: Player[]) => setPlayers(updatedPlayers);
     const handleGameTurn = (data: GameTurnUpdateData) => {
@@ -80,18 +83,18 @@ export function PokerRoom() {
       setComponentInfo(data.components);
     };
 
-    socket.on('player:assign-id', handleAssignId);
-    socket.on('client:ready-to-sync', onClientReady);
-    socket.on('players:update', handlePlayersUpdate);
-    socket.on('game:turn', handleGameTurn);
-    socket.on('game:component', handleGameComponent);
+    socket.on("player:assign-id", handleAssignId);
+    socket.on("client:ready-to-sync", onClientReady);
+    socket.on("players:update", handlePlayersUpdate);
+    socket.on("game:turn", handleGameTurn);
+    socket.on("game:component", handleGameComponent);
 
     return () => {
-      socket.off('player:assign-id', handleAssignId);
-      socket.off('client:ready-to-sync', onClientReady);
-      socket.off('players:update', handlePlayersUpdate);
-      socket.off('game:turn', handleGameTurn);
-      socket.off('game:component', handleGameComponent);
+      socket.off("player:assign-id", handleAssignId);
+      socket.off("client:ready-to-sync", onClientReady);
+      socket.off("players:update", handlePlayersUpdate);
+      socket.off("game:turn", handleGameTurn);
+      socket.off("game:component", handleGameComponent);
     };
   }, [socket, roomId]);
 
@@ -108,15 +111,11 @@ export function PokerRoom() {
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
             placeholder="お名前"
-            onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
+            onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
             style={{ padding: '8px', borderRadius: '4px', border: 'none', color: '#000' }}
           />
-          <button
-            onClick={handleJoinRoom}
-            disabled={isJoining}
-            style={{ marginLeft: '8px', padding: '8px 16px', cursor: 'pointer' }}
-          >
-            {isJoining ? '入場中' : '入場'}
+          <button onClick={handleJoinRoom} disabled={isJoining} style={{ marginLeft: '8px', padding: '8px 16px', cursor: 'pointer' }}>
+            {isJoining ? "入場中" : "入場"}
           </button>
         </div>
       </div>
@@ -129,73 +128,43 @@ export function PokerRoom() {
         ref={containerRef}
         className={styles.gameCanvas}
         style={{
-          transform: `scale(${scale})`,
+          transform: `scale(${scale})`
         }}
       >
         <header className={styles.gameHeader}>
           <h1>🎲 poker</h1>
           <div>Round: {currentRound}</div>
-          <button onClick={() => navigate('/')}>ロビーへ</button>
+          <button onClick={() => navigate("/")}>ロビーへ</button>
         </header>
 
         <main className={styles.gameMain}>
           <aside className={styles.sidebarLeft}>
-            <Deck
-              socket={socket!}
-              roomId={roomId}
-              deckId="main"
-              title="山札"
-              currentPlayerId={currentPlayerId}
-              myPlayerId={myPlayerId}
-            />
+            <Deck socket={socket!} roomId={roomId} deckId="main" title="山札" currentPlayerId={currentPlayerId} myPlayerId={myPlayerId} />
             <Dice sides={6} socket={socket} diceId="move" roomId={roomId} onRoll={setCurrentDiceValue} />
           </aside>
 
           <div className={styles.playFieldContainer}>
-            {/* 動的コンポーネントのレンダリング */}
-            {componentInfo.map((info) => (
-              <DynamicComponent
-                key={info.id}
-                type={info.type}
-                props={info.props}
-                socket={socket!}
-                roomId={roomId!}
-                containerRef={containerRef}
-              />
-            ))}
+             {/* 動的コンポーネントのレンダリング */}
+             {componentInfo.map((info) => (
+               <DynamicComponent 
+                 key={info.id} 
+                 type={info.type} 
+                 props={info.props} 
+                 socket={socket!} 
+                 roomId={roomId!} 
+               />
+             ))}
 
-            <RemoteCursor
-              socket={socket!}
-              roomId={roomId}
-              myPlayerId={myPlayerId}
-              players={players.map((p) => ({ name: p.name, socketId: String(p.id), color: p.color }))}
-              scale={scale}
-              fixedContainerRef={containerRef}
-              visible={true}
-              isRelative={false}
-            />
-            <PlayField
-              socket={socket}
-              roomId={roomId}
-              deckId="main"
-              players={players}
-              myPlayerId={myPlayerId}
-              layoutMode="free"
-            />
-            <Draggable socket={socket} roomId={roomId} draggableId="piece" containerRef={containerRef} />
+             <RemoteCursor socket={socket!} roomId={roomId} myPlayerId={myPlayerId} players={players.map(p => ({ name: p.name, socketId: String(p.id), color: p.color }))} scale={scale} fixedContainerRef={containerRef} visible={true} isRelative={false} />
+             <PlayField socket={socket} roomId={roomId} deckId="main" players={players} myPlayerId={myPlayerId} layoutMode="free" />
+             <Draggable socket={socket} roomId={roomId} draggableId="piece" containerRef={containerRef}/>
           </div>
 
           <aside className={styles.sidebarRight}>
-            <ScoreBoard
-              socket={socket!}
-              roomId={roomId}
-              players={players}
-              currentPlayerId={currentPlayerId}
-              myPlayerId={myPlayerId}
-            />
+            <ScoreBoard socket={socket!} roomId={roomId} players={players} currentPlayerId={currentPlayerId} myPlayerId={myPlayerId} />
           </aside>
         </main>
-
+        
         <TokenStore socket={socket} roomId={roomId} tokenStoreId="chips" title="所持チップ" />
       </div>
     </div>

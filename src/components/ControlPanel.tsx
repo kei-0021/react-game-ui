@@ -203,6 +203,7 @@ export const ControlPanel = ({
       case 'Deck':
         initialProps = {
           deckId: `deck-${newCompId}`,
+          title: '山札',
         };
         break;
       case 'Draggable':
@@ -273,7 +274,7 @@ export const ControlPanel = ({
         ];
       case 'Draggable':
         newParam.draggables = {
-          piece: {
+          [`piece-${newCompId}`]: {
             id: `piece-${newCompId}`,
             coordinate: {
               x: 500,
