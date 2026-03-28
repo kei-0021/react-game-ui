@@ -13,7 +13,7 @@ export const generate = (gameName, gameIcon = '🎲') => {
     // 注入されたベースパスを優先し、なければプロジェクトルートの 'src' 固定
     const baseDir = process.env.RG_UI_BASE_DIR || path.join(process.cwd(), 'src');
     // --- CSS Module Template ---
-    const cssModuleTemplate = `/* src/rooms/${gameName}Room.module.css */
+    const cssModuleTemplate = `/* src/rooms/${pascalName}Room.module.css */
 .gameContainer {
   width: 100vw;
   height: 100vh;
@@ -120,7 +120,7 @@ import {
   TokenStore,
   useSocket,
 } from "react-game-ui";
-import styles from "./${gameName}Room.module.css";
+import styles from "./${pascalName}Room.module.css";
 import { useNavigate, useParams } from "react-router-dom";
 
 const SERVER_URL =
