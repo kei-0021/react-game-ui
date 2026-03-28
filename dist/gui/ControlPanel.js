@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
-import { COMPONENT_TYPES } from '@/types/server.js';
 import { useEffect, useMemo, useState } from 'react';
+import { ComponentFactory } from './ComponentFactory.js';
 import styles from './ControlPanel.module.css';
 /**
  * ゲームの設定管理およびリアルタイム更新を行う。
@@ -16,9 +16,6 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
     const [selectedGameId, setSelectedGameId] = useState('');
     const [newGameName, setNewGameName] = useState('');
     const [newGameIcon, setNewGameIcon] = useState('🎲');
-    // 新規コンポーネント追加用の状態
-    const [newCompId, setNewCompId] = useState('');
-    const [newCompType, setNewCompType] = useState('Dice');
     // 各種パラメータの状態
     const [maxPlayers, setMaxPlayers] = useState(1);
     const [initialHand, setInitialHand] = useState({});
@@ -48,8 +45,6 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
     const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
     const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
     const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
-    /** 入力中のIDが既存のコンポーネントと重複していないかチェック */
-    const isDuplicateId = localComponents.some((comp) => comp.id === newCompId);
     /** 選択ゲームが切り替わった際のフォーム値の同期 */
     useEffect(() => {
         if (selectedGame && !isSaving) {
@@ -126,8 +121,6 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
             newParam.initialTokens = initialTokens;
         if (isComponentsDirty)
             newParam.components = localComponents;
-        if (Object.keys(newParam).length === 0)
-            return;
         setIsSaving(true);
         socket.emit('game-param:update', {
             gameId: selectedGameId,
@@ -155,140 +148,18 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
         }
     };
     // コンポーネント追加ハンドラ
-    const handleAddComponent = () => {
-        if (!newCompId || !selectedGameId)
+    const handleAddComponent = (newComponent, additionalParams) => {
+        if (!selectedGameId)
             return;
-        let initialProps = {};
-        // タイプに応じた初期設定
-        switch (newCompType) {
-            case 'Deck':
-                initialProps = {
-                    deckId: `deck-${newCompId}`,
-                    title: '山札',
-                };
-                break;
-            case 'PlayField':
-                initialProps = {
-                    deckId: 'sub',
-                    title: 'sub',
-                };
-                break;
-            case 'ScoreBoard':
-                initialProps = {};
-                break;
-            case 'TokenStore':
-                initialProps = {
-                    tokenStoreId: 'ARTIFACT',
-                    title: '遺物トークン',
-                };
-                break;
-            case 'GridBoard':
-                initialProps = {
-                    boardId: `borad-${newCompId}`,
-                    allowPieceDrag: true,
-                };
-                break;
-            case 'Draggable':
-                initialProps = {
-                    draggableId: `piece-${newCompId}`,
-                    image: '/hanabishi.svg',
-                    mask: true,
-                    color: 'red',
-                    size: 100,
-                    isDebug: true,
-                };
-                break;
-            case 'Dice':
-                initialProps = {
-                    diceId: `天気-${newCompId}`,
-                    sides: 4,
-                    title: '天気ダイス',
-                    tooltipText: '快晴・曇り・風・雨',
-                    customFaces: ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png'],
-                };
-                break;
-            case 'Timer':
-                initialProps = { initialDuration: 30 };
-                break;
-            case 'SystemMessageWindow':
-                initialProps = {};
-                break;
-            default:
-                initialProps = {};
-        }
-        const newComponent = {
-            id: newCompId,
-            type: newCompType,
-            props: initialProps,
-        };
-        const updatedLocal = [...localComponents, newComponent];
-        setLocalComponents(updatedLocal);
-        // 既存のコンポーネント配列をコピーして新要素を追加
-        const currentComponents = selectedGame?.components || [];
-        const updatedComponents = [...currentComponents, newComponent];
-        // draggablesが存在すれば含め、なければ含めない動的なオブジェクト作成
-        const newParam = {
-            components: updatedComponents,
-        };
-        switch (newCompType) {
-            case 'Deck':
-                newParam.initialDecks = [
-                    {
-                        deckId: `deck-${newCompId}`,
-                        name: 'カード',
-                        backColor: 'black',
-                        cards: [
-                            {
-                                id: '1',
-                                deckId: `deck-${newCompId}`,
-                                name: '1',
-                                ownerId: null,
-                                location: 'deck',
-                                drawCondition: ['field', 'face'],
-                                playLocation: 'discard',
-                                isFaceUp: true,
-                                backColor: 'black',
-                            },
-                        ],
-                    },
-                ];
-            case 'TokenStore':
-                newParam.initialTokenStores = [
-                    {
-                        tokenStoreId: 'ARTIFACT',
-                        name: '遺物',
-                        tokens: [
-                            {
-                                id: 'ARTIFACT-s1',
-                                name: '💰',
-                                color: '#D4AF37',
-                            },
-                            {
-                                id: 'ARTIFACT-s2',
-                                name: '💰',
-                                color: '#D4AF37',
-                            },
-                        ],
-                    },
-                ];
-            case 'Draggable':
-                newParam.draggables = {
-                    [`piece-${newCompId}`]: {
-                        id: `piece-${newCompId}`,
-                        coordinate: {
-                            x: 500,
-                            y: 500,
-                        },
-                        zIndex: 100,
-                        rotation: 0,
-                    },
-                };
-        }
+        const updatedComponents = [...localComponents, newComponent];
+        setLocalComponents(updatedComponents);
         socket.emit('game-param:update', {
             gameId: selectedGameId,
-            newParam,
+            newParam: {
+                components: updatedComponents,
+                ...additionalParams,
+            },
         });
-        setNewCompId('');
     };
     // コンポーネント削除ハンドラ
     const handleDeleteComponent = (compId) => {
@@ -301,7 +172,7 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
             },
         });
     };
-    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.scrollContainer, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsxs("div", { className: styles.field, children: [_jsx("div", { className: styles.label, children: "\u65B0\u898F\u30B2\u30FC\u30E0\u4F5C\u6210:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("input", { type: "text", className: `${styles.select} ${styles.iconInput}`, placeholder: "Icon", value: newGameIcon, onChange: (e) => setNewGameIcon(e.target.value.slice(0, 5)) }), _jsx("input", { type: "text", className: `${styles.select} ${styles.flexFill}`, placeholder: "GameName", value: newGameName, onChange: (e) => setNewGameName(e.target.value) }), _jsx("button", { className: `${styles.saveButton} ${styles.createButton}`, onClick: handleCreateGame, disabled: !newGameName, children: "\u4F5C\u6210" })] })] }), _jsx("hr", { className: styles.divider }), _jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsx("div", { className: styles.label, children: "\u5BFE\u8C61\u30B2\u30FC\u30E0\u3092\u9078\u629E:" }), _jsx("button", { onClick: () => setIsDeleteMode(!isDeleteMode), className: styles.deleteModeBtn, style: { color: isDeleteMode ? '#ff4444' : '#888' }, children: isDeleteMode ? 'キャンセル' : '削除モード' })] }), _jsxs("div", { className: styles.createSection, children: [_jsxs("select", { className: `${styles.select} ${styles.flexFill}`, value: selectedGameId, onChange: (e) => setSelectedGameId(e.target.value), children: [gameMeta.length === 0 && _jsx("option", { value: "", children: "\u8AAD\u307F\u8FBC\u307F\u4E2D..." }), gameMeta.map((game) => (_jsx("option", { value: game.gameId, children: game.gameId }, game.gameId)))] }), isDeleteMode && selectedGameId && (_jsx("button", { className: styles.saveButton, onClick: handleDeleteGame, style: { background: '#ff4444', border: 'none' }, children: "\u524A\u9664" }))] })] }), selectedGame && (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: `${styles.select} ${styles.compTypeSelect}`, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: `${styles.select} ${styles.flexFill}`, style: { borderColor: isDuplicateId ? '#ff4444' : '' }, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: handleAddComponent, disabled: !newCompId || isDuplicateId, children: "\u8FFD\u52A0" })] }), isDuplicateId && (_jsx("div", { style: { color: '#ff4444', fontSize: '12px', marginTop: '-4px' }, children: "\u3053\u306EID\u306F\u65E2\u306B\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059" }))] })), localComponents.length > 0 && (_jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs("div", { className: styles.label, children: ["\u65E2\u5B58\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8: ", isComponentsDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("div", { className: styles.componentList, children: localComponents.map((comp) => (_jsxs("div", { className: styles.componentItem, children: [_jsxs("span", { children: [comp.id, " (", comp.type, ")"] }), _jsx("button", { onClick: () => handleDeleteComponent(comp.id), className: styles.deleteCompBtn, children: "\u2715" })] }, comp.id))) })] })), _jsx("hr", { className: styles.divider }), selectedGame && (_jsxs(_Fragment, { children: [selectedGame.maxPlayers !== undefined && (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: ["\u6700\u5927\u30D7\u30EC\u30A4\u30E4\u30FC\u6570: ", isMaxPlayersDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("span", { className: styles.rangeValue, children: maxPlayers })] }), _jsx("input", { type: "range", min: "1", max: "10", className: styles.slider, value: maxPlayers, onChange: (e) => setMaxPlayers(Number(e.target.value)) })] })), Object.entries(initialHand).map(([deckId, count]) => (_jsxs("div", { className: styles.rangeField, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: [_jsxs("strong", { children: ["Hand: ", deckId] }), initialValues.initialHand[deckId] !== count && (_jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" }))] }), _jsx("span", { className: styles.rangeValue, children: count })] }), _jsx("input", { type: "range", min: "0", max: "10", className: styles.slider, value: count, onChange: (e) => {
+    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.scrollContainer, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsxs("div", { className: styles.field, children: [_jsx("div", { className: styles.label, children: "\u65B0\u898F\u30B2\u30FC\u30E0\u4F5C\u6210:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("input", { type: "text", className: `${styles.select} ${styles.iconInput}`, placeholder: "Icon", value: newGameIcon, onChange: (e) => setNewGameIcon(e.target.value.slice(0, 5)) }), _jsx("input", { type: "text", className: `${styles.select} ${styles.flexFill}`, placeholder: "GameName", value: newGameName, onChange: (e) => setNewGameName(e.target.value) }), _jsx("button", { className: `${styles.saveButton} ${styles.createButton}`, onClick: handleCreateGame, disabled: !newGameName, children: "\u4F5C\u6210" })] })] }), _jsx("hr", { className: styles.divider }), _jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsx("div", { className: styles.label, children: "\u5BFE\u8C61\u30B2\u30FC\u30E0\u3092\u9078\u629E:" }), _jsx("button", { onClick: () => setIsDeleteMode(!isDeleteMode), className: styles.deleteModeBtn, style: { color: isDeleteMode ? '#ff4444' : '#888' }, children: isDeleteMode ? 'キャンセル' : '削除モード' })] }), _jsxs("div", { className: styles.createSection, children: [_jsxs("select", { className: `${styles.select} ${styles.flexFill}`, value: selectedGameId, onChange: (e) => setSelectedGameId(e.target.value), children: [gameMeta.length === 0 && _jsx("option", { value: "", children: "\u8AAD\u307F\u8FBC\u307F\u4E2D..." }), gameMeta.map((game) => (_jsx("option", { value: game.gameId, children: game.gameId }, game.gameId)))] }), isDeleteMode && selectedGameId && (_jsx("button", { className: styles.saveButton, onClick: handleDeleteGame, style: { background: '#ff4444', border: 'none' }, children: "\u524A\u9664" }))] })] }), _jsx(ComponentFactory, { onAdd: handleAddComponent, existingIds: localComponents.map((c) => c.id) }), localComponents.length > 0 && (_jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs("div", { className: styles.label, children: ["\u65E2\u5B58\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8: ", isComponentsDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("div", { className: styles.componentList, children: localComponents.map((comp) => (_jsxs("div", { className: styles.componentItem, children: [_jsxs("span", { children: [comp.id, " (", comp.type, ")"] }), _jsx("button", { onClick: () => handleDeleteComponent(comp.id), className: styles.deleteCompBtn, children: "\u2715" })] }, comp.id))) })] })), _jsx("hr", { className: styles.divider }), selectedGame && (_jsxs(_Fragment, { children: [selectedGame.maxPlayers !== undefined && (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: ["\u6700\u5927\u30D7\u30EC\u30A4\u30E4\u30FC\u6570: ", isMaxPlayersDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("span", { className: styles.rangeValue, children: maxPlayers })] }), _jsx("input", { type: "range", min: "1", max: "10", className: styles.slider, value: maxPlayers, onChange: (e) => setMaxPlayers(Number(e.target.value)) })] })), Object.entries(initialHand).map(([deckId, count]) => (_jsxs("div", { className: styles.rangeField, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: [_jsxs("strong", { children: ["Hand: ", deckId] }), initialValues.initialHand[deckId] !== count && (_jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" }))] }), _jsx("span", { className: styles.rangeValue, children: count })] }), _jsx("input", { type: "range", min: "0", max: "10", className: styles.slider, value: count, onChange: (e) => {
                                                 setInitialHand({
                                                     ...initialHand,
                                                     [deckId]: Number(e.target.value),

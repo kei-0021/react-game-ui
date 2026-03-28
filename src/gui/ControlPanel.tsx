@@ -1,9 +1,10 @@
 // src/gui/ControlPanel.tsx
-import { DeckId, TokenStoreId } from '@/types/definition.js';
-import { COMPONENT_TYPES, ComponentInfo, ComponentType } from '@/types/server.js';
+import { DeckId, TokenStoreId } from '@/index.js';
+import { ComponentInfo } from '@/types/server.js';
 import { GameCreateData, GameDeleteData, GameMeta, GameParamUpdateData } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';
+import { ComponentFactory } from './ComponentFactory.js';
 import styles from './ControlPanel.module.css';
 
 /**
@@ -31,10 +32,6 @@ export const ControlPanel = ({
   const [newGameName, setNewGameName] = useState('');
   const [newGameIcon, setNewGameIcon] = useState('🎲');
 
-  // 新規コンポーネント追加用の状態
-  const [newCompId, setNewCompId] = useState<string>('');
-  const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
-
   // 各種パラメータの状態
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState<Record<string, number>>({});
@@ -44,16 +41,11 @@ export const ControlPanel = ({
   const [localComponents, setLocalComponents] = useState<ComponentInfo[]>([]);
 
   // 比較用の初期値保持
-  const [initialValues, setInitialValues] = useState<{
-    maxPlayers: number;
-    initialHand: Record<DeckId, number>;
-    initialTokens: Record<TokenStoreId, number>;
-    components: ComponentInfo[];
-  }>({
+  const [initialValues, setInitialValues] = useState({
     maxPlayers: 1,
-    initialHand: {},
-    initialTokens: {},
-    components: [],
+    initialHand: {} as Record<string, number>,
+    initialTokens: {} as Record<string, number>,
+    components: [] as ComponentInfo[],
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -75,9 +67,6 @@ export const ControlPanel = ({
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
   const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
   const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
-
-  /** 入力中のIDが既存のコンポーネントと重複していないかチェック */
-  const isDuplicateId = localComponents.some((comp) => comp.id === newCompId);
 
   /** 選択ゲームが切り替わった際のフォーム値の同期 */
   useEffect(() => {
@@ -162,8 +151,6 @@ export const ControlPanel = ({
     if (isTokensDirty) newParam.initialTokens = initialTokens;
     if (isComponentsDirty) newParam.components = localComponents;
 
-    if (Object.keys(newParam).length === 0) return;
-
     setIsSaving(true);
     socket.emit('game-param:update', {
       gameId: selectedGameId,
@@ -193,148 +180,18 @@ export const ControlPanel = ({
   };
 
   // コンポーネント追加ハンドラ
-  const handleAddComponent = () => {
-    if (!newCompId || !selectedGameId) return;
-
-    let initialProps: Record<string, any> = {};
-
-    // タイプに応じた初期設定
-    switch (newCompType) {
-      case 'Deck':
-        initialProps = {
-          deckId: `deck-${newCompId}`,
-          title: '山札',
-        };
-        break;
-      case 'PlayField':
-        initialProps = {
-          deckId: 'sub',
-          title: 'sub',
-        };
-        break;
-      case 'ScoreBoard':
-        initialProps = {};
-        break;
-      case 'TokenStore':
-        initialProps = {
-          tokenStoreId: 'ARTIFACT',
-          title: '遺物トークン',
-        };
-        break;
-      case 'GridBoard':
-        initialProps = {
-          boardId: `borad-${newCompId}`,
-          allowPieceDrag: true,
-        };
-        break;
-      case 'Draggable':
-        initialProps = {
-          draggableId: `piece-${newCompId}`,
-          image: '/hanabishi.svg',
-          mask: true,
-          color: 'red',
-          size: 100,
-          isDebug: true,
-        };
-        break;
-      case 'Dice':
-        initialProps = {
-          diceId: `天気-${newCompId}`,
-          sides: 4,
-          title: '天気ダイス',
-          tooltipText: '快晴・曇り・風・雨',
-          customFaces: ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png'],
-        };
-        break;
-      case 'Timer':
-        initialProps = { initialDuration: 30 };
-        break;
-      case 'SystemMessageWindow':
-        initialProps = {};
-        break;
-      default:
-        initialProps = {};
-    }
-
-    const newComponent: ComponentInfo = {
-      id: newCompId,
-      type: newCompType,
-      props: initialProps,
-    };
-
-    const updatedLocal = [...localComponents, newComponent];
-    setLocalComponents(updatedLocal);
-
-    // 既存のコンポーネント配列をコピーして新要素を追加
-    const currentComponents = selectedGame?.components || [];
-    const updatedComponents = [...currentComponents, newComponent];
-
-    // draggablesが存在すれば含め、なければ含めない動的なオブジェクト作成
-    const newParam: Partial<GameMeta> = {
-      components: updatedComponents,
-    };
-
-    switch (newCompType) {
-      case 'Deck':
-        newParam.initialDecks = [
-          {
-            deckId: `deck-${newCompId}`,
-            name: 'カード',
-            backColor: 'black',
-            cards: [
-              {
-                id: '1',
-                deckId: `deck-${newCompId}`,
-                name: '1',
-                ownerId: null,
-                location: 'deck',
-                drawCondition: ['field', 'face'],
-                playLocation: 'discard',
-                isFaceUp: true,
-                backColor: 'black',
-              },
-            ],
-          },
-        ];
-      case 'TokenStore':
-        newParam.initialTokenStores = [
-          {
-            tokenStoreId: 'ARTIFACT',
-            name: '遺物',
-            tokens: [
-              {
-                id: 'ARTIFACT-s1',
-                name: '💰',
-                color: '#D4AF37',
-              },
-              {
-                id: 'ARTIFACT-s2',
-                name: '💰',
-                color: '#D4AF37',
-              },
-            ],
-          },
-        ];
-      case 'Draggable':
-        newParam.draggables = {
-          [`piece-${newCompId}`]: {
-            id: `piece-${newCompId}`,
-            coordinate: {
-              x: 500,
-              y: 500,
-            },
-            zIndex: 100,
-            rotation: 0,
-          },
-        };
-    }
+  const handleAddComponent = (newComponent: ComponentInfo, additionalParams?: any) => {
+    if (!selectedGameId) return;
+    const updatedComponents = [...localComponents, newComponent];
+    setLocalComponents(updatedComponents);
 
     socket.emit('game-param:update', {
       gameId: selectedGameId,
-      newParam,
+      newParam: {
+        components: updatedComponents,
+        ...additionalParams,
+      },
     } as GameParamUpdateData);
-
-    setNewCompId('');
   };
 
   // コンポーネント削除ハンドラ
@@ -429,45 +286,7 @@ export const ControlPanel = ({
             </div>
           </div>
 
-          {/* コンポーネント追加（座標固定） */}
-          {selectedGame && (
-            <div className={styles.addComponentBox}>
-              <div className={styles.label}>コンポーネント追加:</div>
-              <div className={styles.createSection}>
-                <select
-                  className={`${styles.select} ${styles.compTypeSelect}`}
-                  value={newCompType}
-                  onChange={(e) => setNewCompType(e.target.value as ComponentType)}
-                >
-                  {COMPONENT_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  className={`${styles.select} ${styles.flexFill}`}
-                  style={{ borderColor: isDuplicateId ? '#ff4444' : '' }}
-                  placeholder="ID (例: dice-2)"
-                  value={newCompId}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCompId(e.target.value)}
-                />
-                <button
-                  className={styles.saveButton}
-                  onClick={handleAddComponent}
-                  disabled={!newCompId || isDuplicateId}
-                >
-                  追加
-                </button>
-              </div>
-              {isDuplicateId && (
-                <div style={{ color: '#ff4444', fontSize: '12px', marginTop: '-4px' }}>
-                  このIDは既に使用されています
-                </div>
-              )}
-            </div>
-          )}
+          <ComponentFactory onAdd={handleAddComponent} existingIds={localComponents.map((c) => c.id)} />
 
           {/* コンポーネントリスト表示 */}
           {localComponents.length > 0 && (

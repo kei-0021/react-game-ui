@@ -2868,6 +2868,165 @@ const styles = {
   deleteCompBtn,
   divider
 };
+const ComponentFactory = ({ onAdd, existingIds }) => {
+  const [newCompId, setNewCompId] = useState("");
+  const [newCompType, setNewCompType] = useState("Dice");
+  const [uploadImage, setUploadImage] = useState(null);
+  const isDuplicateId = existingIds.includes(newCompId);
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setUploadImage(reader.result);
+    reader.readAsDataURL(file);
+  };
+  const handleAddClick = () => {
+    if (!newCompId || isDuplicateId) return;
+    let initialProps = {};
+    let additionalParams = {};
+    switch (newCompType) {
+      case "Deck":
+        initialProps = {
+          deckId: `deck-${newCompId}`,
+          title: "山札"
+        };
+        additionalParams.initialDecks = [
+          {
+            deckId: `deck-${newCompId}`,
+            name: "カード",
+            backColor: "black",
+            cards: [
+              {
+                id: "1",
+                deckId: `deck-${newCompId}`,
+                name: "1",
+                ownerId: null,
+                location: "deck",
+                drawCondition: ["field", "face"],
+                playLocation: "discard",
+                isFaceUp: true,
+                backColor: "black"
+              }
+            ]
+          }
+        ];
+        break;
+      case "PlayField":
+        initialProps = {
+          deckId: "sub",
+          title: "sub"
+        };
+        break;
+      case "ScoreBoard":
+        initialProps = {};
+        break;
+      case "TokenStore":
+        initialProps = {
+          tokenStoreId: "ARTIFACT",
+          title: "遺物トークン"
+        };
+        additionalParams.initialTokenStores = [
+          {
+            tokenStoreId: "ARTIFACT",
+            name: "遺物",
+            tokens: [
+              { id: "ARTIFACT-s1", name: "💰", color: "#D4AF37" },
+              { id: "ARTIFACT-s2", name: "💰", color: "#D4AF37" }
+            ]
+          }
+        ];
+        break;
+      case "GridBoard":
+        initialProps = {
+          boardId: `borad-${newCompId}`,
+          allowPieceDrag: true
+        };
+        break;
+      case "Draggable":
+        initialProps = {
+          draggableId: `piece-${newCompId}`,
+          image: uploadImage || "/hanabishi.svg",
+          mask: true,
+          color: "red",
+          size: 100,
+          isDebug: true
+        };
+        additionalParams.draggables = {
+          [`piece-${newCompId}`]: {
+            id: `piece-${newCompId}`,
+            coordinate: { x: 500, y: 500 },
+            zIndex: 100,
+            rotation: 0
+          }
+        };
+        break;
+      case "Dice":
+        initialProps = {
+          diceId: `天気-${newCompId}`,
+          sides: 4,
+          title: "天気ダイス",
+          tooltipText: "快晴・曇り・風・雨",
+          customFaces: ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"]
+        };
+        break;
+      case "Timer":
+        initialProps = { initialDuration: 30 };
+        break;
+      case "SystemMessageWindow":
+        initialProps = {};
+        break;
+      default:
+        initialProps = {};
+    }
+    const newComponent = {
+      id: newCompId,
+      type: newCompType,
+      props: initialProps
+    };
+    onAdd(newComponent, additionalParams);
+    setNewCompId("");
+    setUploadImage(null);
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.addComponentBox, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "コンポーネント追加:" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.createSection, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "select",
+        {
+          className: styles.compTypeSelect,
+          value: newCompType,
+          onChange: (e) => setNewCompType(e.target.value),
+          children: COMPONENT_TYPES.map((type) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: type, children: type }, type))
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "text",
+          className: styles.flexFill,
+          style: { borderColor: isDuplicateId ? "#ff4444" : "" },
+          placeholder: "ID (例: dice-2)",
+          value: newCompId,
+          onChange: (e) => setNewCompId(e.target.value)
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: () => handleAddClick(), disabled: !newCompId || isDuplicateId, children: "追加" })
+    ] }),
+    isDuplicateId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#ff4444", fontSize: "12px", marginTop: "-4px" }, children: "このIDは既に使用されています" }),
+    newCompType === "Draggable" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "画像アップロード:" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }),
+      uploadImage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "5px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "img",
+        {
+          src: uploadImage,
+          alt: "preview",
+          style: { width: "50px", height: "50px", objectFit: "contain", border: "1px solid #555" }
+        }
+      ) })
+    ] })
+  ] });
+};
 const ControlPanel = ({
   socket,
   gameMeta,
@@ -2877,8 +3036,6 @@ const ControlPanel = ({
   const [selectedGameId, setSelectedGameId] = useState("");
   const [newGameName, setNewGameName] = useState("");
   const [newGameIcon, setNewGameIcon] = useState("🎲");
-  const [newCompId, setNewCompId] = useState("");
-  const [newCompType, setNewCompType] = useState("Dice");
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState({});
   const [initialTokens, setInitialTokens] = useState({});
@@ -2902,7 +3059,6 @@ const ControlPanel = ({
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
   const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
   const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
-  const isDuplicateId = localComponents.some((comp) => comp.id === newCompId);
   useEffect(() => {
     if (selectedGame && !isSaving) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
@@ -2969,7 +3125,6 @@ const ControlPanel = ({
     if (isHandDirty) newParam.initialHand = initialHand;
     if (isTokensDirty) newParam.initialTokens = initialTokens;
     if (isComponentsDirty) newParam.components = localComponents;
-    if (Object.keys(newParam).length === 0) return;
     setIsSaving(true);
     socket.emit("game-param:update", {
       gameId: selectedGameId,
@@ -2991,136 +3146,17 @@ const ControlPanel = ({
       socket.emit("game:delete", { gameId: selectedGameId });
     }
   };
-  const handleAddComponent = () => {
-    if (!newCompId || !selectedGameId) return;
-    let initialProps = {};
-    switch (newCompType) {
-      case "Deck":
-        initialProps = {
-          deckId: `deck-${newCompId}`,
-          title: "山札"
-        };
-        break;
-      case "PlayField":
-        initialProps = {
-          deckId: "sub",
-          title: "sub"
-        };
-        break;
-      case "ScoreBoard":
-        initialProps = {};
-        break;
-      case "TokenStore":
-        initialProps = {
-          tokenStoreId: "ARTIFACT",
-          title: "遺物トークン"
-        };
-        break;
-      case "GridBoard":
-        initialProps = {
-          boardId: `borad-${newCompId}`,
-          allowPieceDrag: true
-        };
-        break;
-      case "Draggable":
-        initialProps = {
-          draggableId: `piece-${newCompId}`,
-          image: "/hanabishi.svg",
-          mask: true,
-          color: "red",
-          size: 100,
-          isDebug: true
-        };
-        break;
-      case "Dice":
-        initialProps = {
-          diceId: `天気-${newCompId}`,
-          sides: 4,
-          title: "天気ダイス",
-          tooltipText: "快晴・曇り・風・雨",
-          customFaces: ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"]
-        };
-        break;
-      case "Timer":
-        initialProps = { initialDuration: 30 };
-        break;
-      case "SystemMessageWindow":
-        initialProps = {};
-        break;
-      default:
-        initialProps = {};
-    }
-    const newComponent = {
-      id: newCompId,
-      type: newCompType,
-      props: initialProps
-    };
-    const updatedLocal = [...localComponents, newComponent];
-    setLocalComponents(updatedLocal);
-    const currentComponents = selectedGame?.components || [];
-    const updatedComponents = [...currentComponents, newComponent];
-    const newParam = {
-      components: updatedComponents
-    };
-    switch (newCompType) {
-      case "Deck":
-        newParam.initialDecks = [
-          {
-            deckId: `deck-${newCompId}`,
-            name: "カード",
-            backColor: "black",
-            cards: [
-              {
-                id: "1",
-                deckId: `deck-${newCompId}`,
-                name: "1",
-                ownerId: null,
-                location: "deck",
-                drawCondition: ["field", "face"],
-                playLocation: "discard",
-                isFaceUp: true,
-                backColor: "black"
-              }
-            ]
-          }
-        ];
-      case "TokenStore":
-        newParam.initialTokenStores = [
-          {
-            tokenStoreId: "ARTIFACT",
-            name: "遺物",
-            tokens: [
-              {
-                id: "ARTIFACT-s1",
-                name: "💰",
-                color: "#D4AF37"
-              },
-              {
-                id: "ARTIFACT-s2",
-                name: "💰",
-                color: "#D4AF37"
-              }
-            ]
-          }
-        ];
-      case "Draggable":
-        newParam.draggables = {
-          [`piece-${newCompId}`]: {
-            id: `piece-${newCompId}`,
-            coordinate: {
-              x: 500,
-              y: 500
-            },
-            zIndex: 100,
-            rotation: 0
-          }
-        };
-    }
+  const handleAddComponent = (newComponent, additionalParams) => {
+    if (!selectedGameId) return;
+    const updatedComponents = [...localComponents, newComponent];
+    setLocalComponents(updatedComponents);
     socket.emit("game-param:update", {
       gameId: selectedGameId,
-      newParam
+      newParam: {
+        components: updatedComponents,
+        ...additionalParams
+      }
     });
-    setNewCompId("");
   };
   const handleDeleteComponent = (compId) => {
     const updated = localComponents.filter((comp) => comp.id !== compId);
@@ -3208,41 +3244,7 @@ const ControlPanel = ({
           )
         ] })
       ] }),
-      selectedGame && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.addComponentBox, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "コンポーネント追加:" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.createSection, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "select",
-            {
-              className: `${styles.select} ${styles.compTypeSelect}`,
-              value: newCompType,
-              onChange: (e) => setNewCompType(e.target.value),
-              children: COMPONENT_TYPES.map((type) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: type, children: type }, type))
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "input",
-            {
-              type: "text",
-              className: `${styles.select} ${styles.flexFill}`,
-              style: { borderColor: isDuplicateId ? "#ff4444" : "" },
-              placeholder: "ID (例: dice-2)",
-              value: newCompId,
-              onChange: (e) => setNewCompId(e.target.value)
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "button",
-            {
-              className: styles.saveButton,
-              onClick: handleAddComponent,
-              disabled: !newCompId || isDuplicateId,
-              children: "追加"
-            }
-          )
-        ] }),
-        isDuplicateId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#ff4444", fontSize: "12px", marginTop: "-4px" }, children: "このIDは既に使用されています" })
-      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(ComponentFactory, { onAdd: handleAddComponent, existingIds: localComponents.map((c) => c.id) }),
       localComponents.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "10px" }, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
           "既存コンポーネント: ",
