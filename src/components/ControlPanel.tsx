@@ -200,6 +200,12 @@ export const ControlPanel = ({
 
     // タイプに応じた初期設定
     switch (newCompType) {
+      case 'TokenStore':
+        initialProps = {
+          tokenStoreId: 'ARTIFACT',
+          title: '遺物トークン',
+        };
+        break;
       case 'Deck':
         initialProps = {
           deckId: `deck-${newCompId}`,
@@ -268,6 +274,25 @@ export const ControlPanel = ({
                 playLocation: 'discard',
                 isFaceUp: true,
                 backColor: 'black',
+              },
+            ],
+          },
+        ];
+      case 'TokenStore':
+        newParam.initialTokenStores = [
+          {
+            tokenStoreId: 'ARTIFACT',
+            name: '遺物',
+            tokens: [
+              {
+                id: 'ARTIFACT-s1',
+                name: '💰',
+                color: '#D4AF37',
+              },
+              {
+                id: 'ARTIFACT-s2',
+                name: '💰',
+                color: '#D4AF37',
               },
             ],
           },

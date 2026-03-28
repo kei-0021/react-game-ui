@@ -21,6 +21,7 @@ import {
 } from './definition.js';
 import { Phase } from './phase.js';
 import { Token } from './token.js';
+import { TokenStore } from './tokenStore.js';
 
 /*
  * ===========================================
@@ -33,6 +34,7 @@ export type GameMeta = {
   maxPlayers?: number;
   initialHand?: Record<DeckId, number>;
   initialDecks?: Deck[];
+  initialTokenStores?: TokenStore[];
   initialTokens?: Record<TokenStoreId, number>;
   draggables?: Record<DraggableId, DraggableData>;
   components?: ComponentInfo[];

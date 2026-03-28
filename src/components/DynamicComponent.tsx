@@ -6,6 +6,7 @@ import { Dice } from '../components/Dice.js';
 import { Timer } from '../components/Timer.js';
 import type { ComponentInfo } from '../types/server.js';
 import { Draggable } from './Draggable.js';
+import { TokenStore } from './TokenStore.js';
 
 interface DynamicProps {
   type: ComponentInfo['type'];
@@ -22,6 +23,9 @@ export const DynamicComponent = ({ type, props, socket, roomId, containerRef }: 
   switch (type) {
     case 'Deck':
       return <Deck {...commonProps} {...props} />;
+
+    case 'TokenStore':
+      return <TokenStore {...commonProps} {...props} />;
 
     case 'Draggable':
       return <Draggable {...commonProps} {...props} containerRef={containerRef} />;
