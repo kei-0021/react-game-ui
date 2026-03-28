@@ -3487,16 +3487,22 @@ const ControlPanel = ({
     if (!newCompId || !selectedGameId) return;
     let initialProps = {};
     switch (newCompType) {
-      case "TokenStore":
-        initialProps = {
-          tokenStoreId: "ARTIFACT",
-          title: "遺物トークン"
-        };
-        break;
       case "Deck":
         initialProps = {
           deckId: `deck-${newCompId}`,
           title: "山札"
+        };
+        break;
+      case "PlayField":
+        initialProps = {
+          deckId: "sub",
+          title: "sub"
+        };
+        break;
+      case "TokenStore":
+        initialProps = {
+          tokenStoreId: "ARTIFACT",
+          title: "遺物トークン"
         };
         break;
       case "Draggable":
@@ -3823,11 +3829,13 @@ const ControlPanel = ({
     ] }) })
   ] });
 };
-const DynamicComponent = ({ type, props, socket, roomId, containerRef }) => {
+const DynamicComponent = ({ type, props, socket, roomId, myPlayerId, players, containerRef }) => {
   const commonProps = { socket, roomId };
   switch (type) {
     case "Deck":
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props });
+    case "PlayField":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(PlayField, { ...commonProps, ...props, myPlayerId, players });
     case "TokenStore":
       return /* @__PURE__ */ jsxRuntimeExports.jsx(TokenStore, { ...commonProps, ...props });
     case "Draggable":

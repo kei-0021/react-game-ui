@@ -1,11 +1,13 @@
 // src/components/DynamicComponent.tsx
-import { RoomId } from '@/types/definition.js';
+import { Player } from '@/index.js';
+import { PlayerId, RoomId } from '@/types/definition.js';
 import type { Socket } from 'socket.io-client';
 import { Deck } from '../components/Deck.js';
 import { Dice } from '../components/Dice.js';
 import { Timer } from '../components/Timer.js';
 import type { ComponentInfo } from '../types/server.js';
 import { Draggable } from './Draggable.js';
+import { PlayField } from './PlayField.js';
 import { TokenStore } from './TokenStore.js';
 
 interface DynamicProps {
@@ -13,16 +15,21 @@ interface DynamicProps {
   props: any;
   socket: Socket;
   roomId: RoomId;
+  myPlayerId: PlayerId;
+  players: Player[];
   containerRef: any;
 }
 
-export const DynamicComponent = ({ type, props, socket, roomId, containerRef }: DynamicProps) => {
+export const DynamicComponent = ({ type, props, socket, roomId, myPlayerId, players, containerRef }: DynamicProps) => {
   // 共通の Props をまとめておく
   const commonProps = { socket, roomId };
 
   switch (type) {
     case 'Deck':
       return <Deck {...commonProps} {...props} />;
+
+    case 'PlayField':
+      return <PlayField {...commonProps} {...props} myPlayerId={myPlayerId} players={players} />;
 
     case 'TokenStore':
       return <TokenStore {...commonProps} {...props} />;

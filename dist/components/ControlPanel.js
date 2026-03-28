@@ -161,16 +161,22 @@ export const ControlPanel = ({ socket, gameMeta, isOpen, onToggle, }) => {
         let initialProps = {};
         // タイプに応じた初期設定
         switch (newCompType) {
-            case 'TokenStore':
-                initialProps = {
-                    tokenStoreId: 'ARTIFACT',
-                    title: '遺物トークン',
-                };
-                break;
             case 'Deck':
                 initialProps = {
                     deckId: `deck-${newCompId}`,
                     title: '山札',
+                };
+                break;
+            case 'PlayField':
+                initialProps = {
+                    deckId: 'sub',
+                    title: 'sub',
+                };
+                break;
+            case 'TokenStore':
+                initialProps = {
+                    tokenStoreId: 'ARTIFACT',
+                    title: '遺物トークン',
                 };
                 break;
             case 'Draggable':

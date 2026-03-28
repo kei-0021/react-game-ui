@@ -1,4 +1,5 @@
-import { RoomId } from '@/types/definition.js';
+import { Player } from '@/index.js';
+import { PlayerId, RoomId } from '@/types/definition.js';
 import type { Socket } from 'socket.io-client';
 import type { ComponentInfo } from '../types/server.js';
 interface DynamicProps {
@@ -6,8 +7,10 @@ interface DynamicProps {
     props: any;
     socket: Socket;
     roomId: RoomId;
+    myPlayerId: PlayerId;
+    players: Player[];
     containerRef: any;
 }
-export declare const DynamicComponent: ({ type, props, socket, roomId, containerRef }: DynamicProps) => import("react/jsx-runtime").JSX.Element | null;
+export declare const DynamicComponent: ({ type, props, socket, roomId, myPlayerId, players, containerRef }: DynamicProps) => import("react/jsx-runtime").JSX.Element | null;
 export {};
 //# sourceMappingURL=DynamicComponent.d.ts.map

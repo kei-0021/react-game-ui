@@ -141,7 +141,16 @@ export function SampleRoom() {
 
       <div style={{ display: 'flex', gap: '16px' }}>
         {componentInfo.map((info) => (
-          <DynamicComponent key={info.id} type={info.type} props={info.props} socket={socket} roomId={roomId} />
+          <DynamicComponent
+            key={info.id}
+            type={info.type}
+            props={info.props}
+            socket={socket}
+            roomId={roomId}
+            myPlayerId={myPlayerId}
+            players={players}
+            containerRef={containerRef}
+          />
         ))}
         <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" onRoll={setCurrentValue} />
       </div>
