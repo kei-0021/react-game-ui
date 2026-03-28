@@ -221,6 +221,12 @@ export const ControlPanel = ({
           title: '遺物トークン',
         };
         break;
+      case 'GridBoard':
+        initialProps = {
+          boardId: `borad-${newCompId}`,
+          allowPieceDrag: true,
+        };
+        break;
       case 'Draggable':
         initialProps = {
           draggableId: `piece-${newCompId}`,
@@ -242,6 +248,9 @@ export const ControlPanel = ({
         break;
       case 'Timer':
         initialProps = { initialDuration: 30 };
+        break;
+      case 'SystemMessageWindow':
+        initialProps = {};
         break;
       default:
         initialProps = {};

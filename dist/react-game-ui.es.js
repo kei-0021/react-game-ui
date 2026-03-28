@@ -3306,7 +3306,7 @@ const COMPONENT_TYPES = [
   "Draggable",
   "Dice",
   "Timer",
-  "SystemMessage"
+  "SystemMessageWindow"
 ];
 const wrapper = "_wrapper_83tj2_3";
 const open = "_open_83tj2_18";
@@ -3508,6 +3508,12 @@ const ControlPanel = ({
           title: "遺物トークン"
         };
         break;
+      case "GridBoard":
+        initialProps = {
+          boardId: `borad-${newCompId}`,
+          allowPieceDrag: true
+        };
+        break;
       case "Draggable":
         initialProps = {
           draggableId: `piece-${newCompId}`,
@@ -3529,6 +3535,9 @@ const ControlPanel = ({
         break;
       case "Timer":
         initialProps = { initialDuration: 30 };
+        break;
+      case "SystemMessageWindow":
+        initialProps = {};
         break;
       default:
         initialProps = {};
@@ -3861,6 +3870,8 @@ const DynamicComponent = ({
       );
     case "TokenStore":
       return /* @__PURE__ */ jsxRuntimeExports.jsx(TokenStore, { ...commonProps, ...props });
+    case "GridBoard":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(GridBoard, { ...commonProps, ...props });
     case "Draggable":
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Draggable, { ...commonProps, ...props, containerRef });
     case "Dice":
@@ -3871,6 +3882,8 @@ const DynamicComponent = ({
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Dice, { ...commonProps, ...processedProps });
     case "Timer":
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Timer, { ...commonProps, ...props });
+    case "SystemMessageWindow":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(SystemMessageWindow, { ...commonProps });
     // 未定義のコンポーネントが来た場合
     default:
       console.warn(`Unknown component type: ${type}`);

@@ -104,7 +104,7 @@ export type RoomState = {
 /**
  * 利用可能なコンポーネントの種類一覧
  */
-export declare const COMPONENT_TYPES: readonly ["Deck", "PlayField", "ScoreBoard", "TokenStore", "GridBoard", "Draggable", "Dice", "Timer", "SystemMessage"];
+export declare const COMPONENT_TYPES: readonly ["Deck", "PlayField", "ScoreBoard", "TokenStore", "GridBoard", "Draggable", "Dice", "Timer", "SystemMessageWindow"];
 /**
  * 利用可能なコンポーネントの種類一覧 (型)
  */

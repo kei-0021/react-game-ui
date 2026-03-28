@@ -10,5 +10,5 @@ export const COMPONENT_TYPES = [
     'Draggable',
     'Dice',
     'Timer',
-    'SystemMessage',
+    'SystemMessageWindow',
 ];

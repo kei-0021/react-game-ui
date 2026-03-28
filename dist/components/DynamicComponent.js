@@ -1,6 +1,6 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 // src/components/DynamicComponent.tsx
-import { ScoreBoard } from '@/index.js';
+import { GridBoard, ScoreBoard, SystemMessageWindow } from '@/index.js';
 import { Deck } from '../components/Deck.js';
 import { Dice } from '../components/Dice.js';
 import { Timer } from '../components/Timer.js';
@@ -19,6 +19,8 @@ export const DynamicComponent = ({ type, props, socket, roomId, myPlayerId, curr
             return (_jsx(ScoreBoard, { ...commonProps, ...props, myPlayerId: myPlayerId, currentPlayerId: currentPlayerId, players: players }));
         case 'TokenStore':
             return _jsx(TokenStore, { ...commonProps, ...props });
+        case 'GridBoard':
+            return _jsx(GridBoard, { ...commonProps, ...props });
         case 'Draggable':
             return _jsx(Draggable, { ...commonProps, ...props, containerRef: containerRef });
         case 'Dice':
@@ -29,6 +31,8 @@ export const DynamicComponent = ({ type, props, socket, roomId, myPlayerId, curr
             return _jsx(Dice, { ...commonProps, ...processedProps });
         case 'Timer':
             return _jsx(Timer, { ...commonProps, ...props });
+        case 'SystemMessageWindow':
+            return _jsx(SystemMessageWindow, { ...commonProps });
         // 未定義のコンポーネントが来た場合
         default:
             console.warn(`Unknown component type: ${type}`);

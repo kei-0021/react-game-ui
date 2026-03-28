@@ -1,5 +1,5 @@
 // src/components/DynamicComponent.tsx
-import { Player, ScoreBoard } from '@/index.js';
+import { GridBoard, Player, ScoreBoard, SystemMessageWindow } from '@/index.js';
 import { PlayerId, RoomId } from '@/types/definition.js';
 import type { Socket } from 'socket.io-client';
 import { Deck } from '../components/Deck.js';
@@ -55,6 +55,9 @@ export const DynamicComponent = ({
     case 'TokenStore':
       return <TokenStore {...commonProps} {...props} />;
 
+    case 'GridBoard':
+      return <GridBoard {...commonProps} {...props} />;
+
     case 'Draggable':
       return <Draggable {...commonProps} {...props} containerRef={containerRef} />;
 
@@ -71,6 +74,9 @@ export const DynamicComponent = ({
 
     case 'Timer':
       return <Timer {...commonProps} {...props} />;
+
+    case 'SystemMessageWindow':
+      return <SystemMessageWindow {...commonProps} />;
 
     // 未定義のコンポーネントが来た場合
     default:
