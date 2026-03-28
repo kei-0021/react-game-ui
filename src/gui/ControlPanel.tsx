@@ -1,4 +1,4 @@
-// src/components/ControlPanel.tsx
+// src/gui/ControlPanel.tsx
 import { DeckId, TokenStoreId } from '@/types/definition.js';
 import { COMPONENT_TYPES, ComponentInfo, ComponentType } from '@/types/server.js';
 import { GameCreateData, GameDeleteData, GameMeta, GameParamUpdateData } from '@/types/socketData.js';

@@ -1533,298 +1533,79 @@ function Draggable({
     )
   ] });
 }
-const piece = "_piece_138ki_3";
-const styles$5 = {
-  piece
-};
-function Piece({
-  piece: piece2,
-  style,
-  onClick,
-  isDraggable,
-  isFilled = false,
-  onDragStart,
-  onDragEnd
-}) {
-  const handleClick = (e) => {
-    e.stopPropagation();
-    onClick(piece2.id);
+function Timer({ socket = null, roomId, initialDuration, onFinish }) {
+  const [timeLeft, setTimeLeft] = useState(initialDuration);
+  useEffect(() => {
+    if (!socket || !roomId) return;
+    const handleStart = (data) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(data.duration);
+    };
+    const handleUpdate = (data) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(data.remaining);
+    };
+    const handleFinish = (data) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(0);
+      onFinish?.();
+    };
+    socket.on("timer:start", handleStart);
+    socket.on("timer:update", handleUpdate);
+    socket.on("timer:finish", handleFinish);
+    return () => {
+      socket.off("timer:start", handleStart);
+      socket.off("timer:update", handleUpdate);
+      socket.off("timer:finish", handleFinish);
+    };
+  }, [socket, roomId, onFinish, initialDuration]);
+  const start = () => {
+    if (!socket || !roomId || initialDuration <= 0) return;
+    setTimeLeft(initialDuration);
+    socket.emit("timer:start", { duration: initialDuration, roomId });
   };
-  const handleDragStart = (e) => {
-    if (isDraggable) {
-      e.stopPropagation();
-      e.dataTransfer.setData("pieceId", piece2.id);
-      e.dataTransfer.effectAllowed = "move";
-      if (piece2.image) {
-        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
-      }
-      onDragStart(e, piece2);
-    }
-  };
-  const pieceClasses = [styles$5.piece, isDraggable ? styles$5.draggable : styles$5.clickable].join(" ");
-  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
-  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
-  const URL_FUNC = ["u", "r", "l"].join("");
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
-      className: pieceClasses,
       style: {
-        ...style,
-        backgroundColor: piece2.image ? "transparent" : piece2.color,
-        filter: "none",
-        border: "none",
-        outline: "none",
+        width: "300px",
+        height: "80px",
+        border: "2px solid #333",
+        borderRadius: "8px",
+        padding: "8px",
         display: "flex",
-        alignItems: "center",
+        flexDirection: "column",
         justifyContent: "center",
-        boxShadow: piece2.image ? "none" : "0 2px 4px rgba(0,0,0,0.2)"
+        alignItems: "center",
+        backgroundColor: "#f9f9f9",
+        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+        fontFamily: "sans-serif"
       },
-      onClick: handleClick,
-      draggable: isDraggable,
-      onDragStart: handleDragStart,
-      onDragEnd: (e) => onDragEnd(e, piece2),
-      children: piece2.image ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          style: {
-            width: "100%",
-            height: "100%",
-            position: "relative",
-            pointerEvents: "none"
-          },
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "img",
-              {
-                src: piece2.image,
-                alt: "",
-                style: {
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  display: "block"
-                }
-              }
-            ),
-            isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "div",
-              {
-                style: {
-                  position: "absolute",
-                  inset: 0,
-                  backgroundColor: piece2.color,
-                  [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
-                  [MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
-                  WebkitMaskSize: "contain",
-                  maskSize: "contain",
-                  WebkitMaskRepeat: "no-repeat",
-                  maskRepeat: "no-repeat",
-                  WebkitMaskPosition: "center",
-                  maskPosition: "center",
-                  mixBlendMode: "multiply",
-                  pointerEvents: "none"
-                }
-              }
-            )
-          ]
-        }
-      ) : piece2.name.substring(0, 1)
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            style: {
+              fontSize: "1.5rem",
+              fontWeight: "bold",
+              color: timeLeft <= 6 ? "red" : timeLeft <= 15 ? "orange" : "green",
+              transition: "color 0.5s ease"
+            },
+            children: [
+              "残り時間: ",
+              timeLeft,
+              "s"
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "6px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { onClick: start, style: { marginRight: "4px" }, children: [
+          "タイマー開始 (",
+          initialDuration,
+          "s)"
+        ] }) })
+      ]
     }
   );
-}
-function GridBoard({
-  socket,
-  roomId,
-  boardId,
-  players,
-  myPlayerId,
-  allowPieceDrag = false,
-  moveRange = 2,
-  isExact = true,
-  width = 800,
-  height = 800,
-  renderCell
-}) {
-  const [isBoardReady, setIsBoardReady] = React.useState(false);
-  const [cells, setCells] = React.useState([]);
-  const [changedCells, setChangedCells] = React.useState([]);
-  const [highlightedCells, setHighlightedCells] = React.useState([]);
-  const [draggingPieceId, setDraggingPieceId] = React.useState(null);
-  const [pieces, setPieces] = React.useState([]);
-  const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
-  const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
-  const handleCellClick = (celldata, loc) => {
-    console.log("クリックされました");
-  };
-  const handleCellDoubleClick = (celldata, loc) => {
-    if (!isBoardReady || !socket) return;
-    console.log("ダブルクリックされました");
-  };
-  const handleCellDrop = (e, targetRow, targetCol) => {
-    e.preventDefault();
-    if (!isBoardReady || !socket) return;
-    const draggedPieceId = e.dataTransfer.getData("pieceId");
-    if (draggedPieceId) {
-      setHighlightedCells([]);
-      socket.emit("board:move-player", {
-        roomId,
-        boardId,
-        playerId: draggedPieceId,
-        newLocation: { row: targetRow, col: targetCol }
-      });
-    }
-  };
-  const handlePieceClick = (pieceId) => {
-    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
-    const requestData = {
-      roomId,
-      boardId,
-      playerId: pieceId,
-      moveRange,
-      isExact
-    };
-    socket.emit("board:movable-range", requestData);
-  };
-  const handlePieceDragStart = (e, piece2) => {
-    e.dataTransfer.setData("pieceId", piece2.id);
-    e.dataTransfer.effectAllowed = "move";
-    setDraggingPieceId(piece2.id);
-    handlePieceClick(piece2.id);
-  };
-  const handlePieceDragEnd = () => {
-    setDraggingPieceId(null);
-  };
-  React.useEffect(() => {
-    const handleInitBoard = (data) => {
-      if (data.board && data.board.length > 0) {
-        setCells(data.board);
-        setIsBoardReady(true);
-      }
-    };
-    socket.on("board:update", handleInitBoard);
-    return () => {
-      socket.off("board:update", handleInitBoard);
-    };
-  }, [socket]);
-  React.useEffect(() => {
-    const handleCellUpdate = (updatedLocs) => {
-      setChangedCells(updatedLocs);
-    };
-    socket.on("cell:update", handleCellUpdate);
-    return () => {
-      socket.off("cell:update", handleCellUpdate);
-    };
-  }, [socket]);
-  React.useEffect(() => {
-    setPieces((prevPieces) => {
-      if (!players) return [];
-      return players.map((p) => {
-        const existingPiece = prevPieces.find((piece2) => piece2.id === p.id);
-        const location = p.position;
-        const playerColor = p.color || existingPiece?.color || "#aaaaaa";
-        const playerName2 = p.name || existingPiece?.name || `P?`;
-        const playerImage = p.pieceImage || existingPiece?.image;
-        return {
-          ...existingPiece,
-          id: p.id,
-          name: playerName2,
-          color: playerColor,
-          image: playerImage,
-          location
-        };
-      });
-    });
-  }, [players]);
-  const boardStyle = {
-    "--board-rows": rows,
-    "--board-cols": cols,
-    display: "grid",
-    gridTemplateRows: `repeat(${rows}, 1fr)`,
-    gridTemplateColumns: `repeat(${cols}, 1fr)`,
-    gap: "4px",
-    width,
-    height,
-    position: "relative"
-  };
-  if (!isBoardReady) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        style: {
-          padding: "40px",
-          textAlign: "center",
-          fontSize: "20px",
-          color: "#e0e0e0"
-        },
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "サーバーから盤面データをロード中..." })
-      }
-    );
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$7.boardContainer, style: boardStyle, children: [
-    cells.map((cell2) => {
-      const match = cell2.id.match(/r(\d+)c(\d+)/);
-      const r = match ? parseInt(match[1], 10) : 0;
-      const c = match ? parseInt(match[2], 10) : 0;
-      const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
-      const isHighlighted = players ? players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false : false;
-      const cellDataForRenderer = {
-        ...cell2,
-        content: isChanged ? cell2.changedContent : cell2.content
-      };
-      const loc = { row: r, col: c };
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Cell,
-        {
-          locationData: loc,
-          cellData: cellDataForRenderer,
-          onClick: () => handleCellClick(),
-          onDoubleClick: () => handleCellDoubleClick(),
-          onDrop: (e) => handleCellDrop(e, r, c),
-          onDragOver: (e) => e.preventDefault(),
-          highlighted: isHighlighted,
-          changed: isChanged,
-          children: renderCell(cellDataForRenderer, r, c)
-        },
-        cell2.id
-      );
-    }),
-    pieces.map((piece2) => {
-      const sameLocationPieces = pieces.filter(
-        (p) => p.location.row === piece2.location.row && p.location.col === piece2.location.col
-      );
-      const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece2.id);
-      const groupCount = sameLocationPieces.length;
-      let offsetX = 0;
-      let offsetY = 0;
-      if (groupCount > 1) {
-        const radius = 18;
-        const angle = 2 * Math.PI / groupCount * groupIndex;
-        offsetX = radius * Math.cos(angle);
-        offsetY = radius * Math.sin(angle);
-      }
-      const pieceStyle = {
-        gridArea: `${piece2.location.row + 1} / ${piece2.location.col + 1} / span 1 / span 1`,
-        alignSelf: "center",
-        justifySelf: "center",
-        transform: `translate(${offsetX}px, ${offsetY}px)`,
-        transition: "transform 0.3s ease-in-out"
-      };
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Piece,
-        {
-          piece: piece2,
-          style: pieceStyle,
-          onClick: handlePieceClick,
-          isDraggable: allowPieceDrag,
-          isFilled: true,
-          onDragStart: handlePieceDragStart,
-          onDragEnd: handlePieceDragEnd
-        },
-        piece2.id
-      );
-    })
-  ] });
 }
 const rgPlayFieldContainer = "_rgPlayFieldContainer_16v0u_14";
 const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_16v0u_22";
@@ -2156,11 +1937,425 @@ function PlayField({
     }
   );
 }
+const image = "_image_965of_2";
+const textWrapper = "_textWrapper_965of_10";
+const text = "_text_965of_10";
+const contentWrapper = "_contentWrapper_965of_26";
+const styles$5 = {
+  image,
+  textWrapper,
+  text,
+  contentWrapper
+};
+const TokenDisplayContent = React__default.memo(({ token }) => {
+  if (token.imageSrc) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$5.image }) });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$5.text, children: token.name }) }) });
+});
+const section = "_section_5m8u8_2";
+const title$2 = "_title_5m8u8_12";
+const list = "_list_5m8u8_17";
+const styles$4 = {
+  section,
+  title: title$2,
+  list
+};
+function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
+  const [tokenStoreTokens, setTokenStoreTokens] = useState([]);
+  useEffect(() => {
+    socket.on(`token-store:update:${tokenStoreId}`, (data) => {
+      const newTokens = data.tokenStore || [];
+      setTokenStoreTokens(newTokens);
+    });
+    return () => {
+      socket.off(`token-store:update:${tokenStoreId}`);
+    };
+  }, [socket]);
+  const getTokenById = useMemo(() => (id) => tokenStoreTokens.find((t) => t.id === id), [tokenStoreTokens]);
+  const handleClick = (id) => {
+    const token = getTokenById(id);
+    if (!token) return;
+    onSelect?.(token);
+  };
+  const handleDoubleClick = (tokenId) => {
+    const token = getTokenById(tokenId);
+    if (!token) return;
+    const data = { roomId, tokenStoreId, tokenId };
+    socket.emit("token:aquire", data);
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$4.section, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles$4.title, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.list, children: tokenStoreTokens.map((t, i) => {
+      const offsetX = i % 5 * 40 - 80;
+      const offsetY = i * 3 % 4 * 10 - 20;
+      const rotation = i * 13 % 30 - 15;
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          style: {
+            position: "absolute",
+            left: `calc(40% + ${offsetX}px)`,
+            top: `calc(50% + ${offsetY}px)`,
+            transform: `rotate(${rotation}deg)`,
+            zIndex: i
+          },
+          onClick: () => handleClick(t.id),
+          onDoubleClick: () => handleDoubleClick(t.id),
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t })
+        },
+        t.id
+      );
+    }) })
+  ] });
+}
+const DynamicComponent = ({
+  type,
+  props,
+  socket,
+  roomId,
+  myPlayerId,
+  currentPlayerId,
+  players,
+  containerRef
+}) => {
+  const commonProps = { socket, roomId };
+  switch (type) {
+    case "Deck":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props });
+    case "PlayField":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(PlayField, { ...commonProps, ...props, myPlayerId, players });
+    case "ScoreBoard":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        ScoreBoard,
+        {
+          ...commonProps,
+          ...props,
+          myPlayerId,
+          currentPlayerId,
+          players
+        }
+      );
+    case "TokenStore":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(TokenStore, { ...commonProps, ...props });
+    case "GridBoard":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(GridBoard, { ...commonProps, ...props });
+    case "Draggable":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Draggable, { ...commonProps, ...props, containerRef });
+    case "Dice":
+      const processedProps = { ...props };
+      if (Array.isArray(props.customFaces)) {
+        processedProps.customFaces = props.customFaces.map((src, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src, style: { width: "100%", height: "100%", objectFit: "contain" } }, `f${i}`));
+      }
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Dice, { ...commonProps, ...processedProps });
+    case "Timer":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Timer, { ...commonProps, ...props });
+    case "SystemMessageWindow":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(SystemMessageWindow, { ...commonProps });
+    // 未定義のコンポーネントが来た場合
+    default:
+      console.warn(`Unknown component type: ${type}`);
+      return null;
+  }
+};
+const piece = "_piece_138ki_3";
+const styles$3 = {
+  piece
+};
+function Piece({
+  piece: piece2,
+  style,
+  onClick,
+  isDraggable,
+  isFilled = false,
+  onDragStart,
+  onDragEnd
+}) {
+  const handleClick = (e) => {
+    e.stopPropagation();
+    onClick(piece2.id);
+  };
+  const handleDragStart = (e) => {
+    if (isDraggable) {
+      e.stopPropagation();
+      e.dataTransfer.setData("pieceId", piece2.id);
+      e.dataTransfer.effectAllowed = "move";
+      if (piece2.image) {
+        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
+      }
+      onDragStart(e, piece2);
+    }
+  };
+  const pieceClasses = [styles$3.piece, isDraggable ? styles$3.draggable : styles$3.clickable].join(" ");
+  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
+  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
+  const URL_FUNC = ["u", "r", "l"].join("");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: pieceClasses,
+      style: {
+        ...style,
+        backgroundColor: piece2.image ? "transparent" : piece2.color,
+        filter: "none",
+        border: "none",
+        outline: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: piece2.image ? "none" : "0 2px 4px rgba(0,0,0,0.2)"
+      },
+      onClick: handleClick,
+      draggable: isDraggable,
+      onDragStart: handleDragStart,
+      onDragEnd: (e) => onDragEnd(e, piece2),
+      children: piece2.image ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          style: {
+            width: "100%",
+            height: "100%",
+            position: "relative",
+            pointerEvents: "none"
+          },
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "img",
+              {
+                src: piece2.image,
+                alt: "",
+                style: {
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  display: "block"
+                }
+              }
+            ),
+            isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                style: {
+                  position: "absolute",
+                  inset: 0,
+                  backgroundColor: piece2.color,
+                  [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
+                  [MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskPosition: "center",
+                  maskPosition: "center",
+                  mixBlendMode: "multiply",
+                  pointerEvents: "none"
+                }
+              }
+            )
+          ]
+        }
+      ) : piece2.name.substring(0, 1)
+    }
+  );
+}
+function GridBoard({
+  socket,
+  roomId,
+  boardId,
+  players,
+  myPlayerId,
+  allowPieceDrag = false,
+  moveRange = 2,
+  isExact = true,
+  width = 800,
+  height = 800,
+  renderCell
+}) {
+  const [isBoardReady, setIsBoardReady] = React.useState(false);
+  const [cells, setCells] = React.useState([]);
+  const [changedCells, setChangedCells] = React.useState([]);
+  const [highlightedCells, setHighlightedCells] = React.useState([]);
+  const [draggingPieceId, setDraggingPieceId] = React.useState(null);
+  const [pieces, setPieces] = React.useState([]);
+  const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
+  const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
+  const handleCellClick = (celldata, loc) => {
+    console.log("クリックされました");
+  };
+  const handleCellDoubleClick = (celldata, loc) => {
+    if (!isBoardReady || !socket) return;
+    console.log("ダブルクリックされました");
+  };
+  const handleCellDrop = (e, targetRow, targetCol) => {
+    e.preventDefault();
+    if (!isBoardReady || !socket) return;
+    const draggedPieceId = e.dataTransfer.getData("pieceId");
+    if (draggedPieceId) {
+      setHighlightedCells([]);
+      socket.emit("board:move-player", {
+        roomId,
+        boardId,
+        playerId: draggedPieceId,
+        newLocation: { row: targetRow, col: targetCol }
+      });
+    }
+  };
+  const handlePieceClick = (pieceId) => {
+    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
+    const requestData = {
+      roomId,
+      boardId,
+      playerId: pieceId,
+      moveRange,
+      isExact
+    };
+    socket.emit("board:movable-range", requestData);
+  };
+  const handlePieceDragStart = (e, piece2) => {
+    e.dataTransfer.setData("pieceId", piece2.id);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggingPieceId(piece2.id);
+    handlePieceClick(piece2.id);
+  };
+  const handlePieceDragEnd = () => {
+    setDraggingPieceId(null);
+  };
+  React.useEffect(() => {
+    const handleInitBoard = (data) => {
+      if (data.board && data.board.length > 0) {
+        setCells(data.board);
+        setIsBoardReady(true);
+      }
+    };
+    socket.on("board:update", handleInitBoard);
+    return () => {
+      socket.off("board:update", handleInitBoard);
+    };
+  }, [socket]);
+  React.useEffect(() => {
+    const handleCellUpdate = (updatedLocs) => {
+      setChangedCells(updatedLocs);
+    };
+    socket.on("cell:update", handleCellUpdate);
+    return () => {
+      socket.off("cell:update", handleCellUpdate);
+    };
+  }, [socket]);
+  React.useEffect(() => {
+    setPieces((prevPieces) => {
+      if (!players) return [];
+      return players.map((p) => {
+        const existingPiece = prevPieces.find((piece2) => piece2.id === p.id);
+        const location = p.position;
+        const playerColor = p.color || existingPiece?.color || "#aaaaaa";
+        const playerName2 = p.name || existingPiece?.name || `P?`;
+        const playerImage = p.pieceImage || existingPiece?.image;
+        return {
+          ...existingPiece,
+          id: p.id,
+          name: playerName2,
+          color: playerColor,
+          image: playerImage,
+          location
+        };
+      });
+    });
+  }, [players]);
+  const boardStyle = {
+    "--board-rows": rows,
+    "--board-cols": cols,
+    display: "grid",
+    gridTemplateRows: `repeat(${rows}, 1fr)`,
+    gridTemplateColumns: `repeat(${cols}, 1fr)`,
+    gap: "4px",
+    width,
+    height,
+    position: "relative"
+  };
+  if (!isBoardReady) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        style: {
+          padding: "40px",
+          textAlign: "center",
+          fontSize: "20px",
+          color: "#e0e0e0"
+        },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "サーバーから盤面データをロード中..." })
+      }
+    );
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$7.boardContainer, style: boardStyle, children: [
+    cells.map((cell2) => {
+      const match = cell2.id.match(/r(\d+)c(\d+)/);
+      const r = match ? parseInt(match[1], 10) : 0;
+      const c = match ? parseInt(match[2], 10) : 0;
+      const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
+      const isHighlighted = players ? players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false : false;
+      const cellDataForRenderer = {
+        ...cell2,
+        content: isChanged ? cell2.changedContent : cell2.content
+      };
+      const loc = { row: r, col: c };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Cell,
+        {
+          locationData: loc,
+          cellData: cellDataForRenderer,
+          onClick: () => handleCellClick(),
+          onDoubleClick: () => handleCellDoubleClick(),
+          onDrop: (e) => handleCellDrop(e, r, c),
+          onDragOver: (e) => e.preventDefault(),
+          highlighted: isHighlighted,
+          changed: isChanged,
+          children: renderCell(cellDataForRenderer, r, c)
+        },
+        cell2.id
+      );
+    }),
+    pieces.map((piece2) => {
+      const sameLocationPieces = pieces.filter(
+        (p) => p.location.row === piece2.location.row && p.location.col === piece2.location.col
+      );
+      const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece2.id);
+      const groupCount = sameLocationPieces.length;
+      let offsetX = 0;
+      let offsetY = 0;
+      if (groupCount > 1) {
+        const radius = 18;
+        const angle = 2 * Math.PI / groupCount * groupIndex;
+        offsetX = radius * Math.cos(angle);
+        offsetY = radius * Math.sin(angle);
+      }
+      const pieceStyle = {
+        gridArea: `${piece2.location.row + 1} / ${piece2.location.col + 1} / span 1 / span 1`,
+        alignSelf: "center",
+        justifySelf: "center",
+        transform: `translate(${offsetX}px, ${offsetY}px)`,
+        transition: "transform 0.3s ease-in-out"
+      };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Piece,
+        {
+          piece: piece2,
+          style: pieceStyle,
+          onClick: handlePieceClick,
+          isDraggable: allowPieceDrag,
+          isFilled: true,
+          onDragStart: handlePieceDragStart,
+          onDragEnd: handlePieceDragEnd
+        },
+        piece2.id
+      );
+    })
+  ] });
+}
 const container$1 = "_container_17uio_2";
 const cursorWrapper = "_cursorWrapper_17uio_13";
 const icon = "_icon_17uio_21";
 const label$1 = "_label_17uio_29";
-const styles$4 = {
+const styles$2 = {
   container: container$1,
   cursorWrapper,
   icon,
@@ -2205,21 +2400,21 @@ const RemoteCursor = React__default.memo(
       return () => window.removeEventListener("mousemove", handleMove);
     }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
     if (!visible) return null;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
       const player = players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
       const name = player ? player.name : "接続中...";
       const color = player?.color || "#000000";
       const left = isRelative ? `${coords.x * 100}%` : coords.x;
       const top = isRelative ? `${coords.y * 100}%` : coords.y;
-      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.cursorWrapper, style: { left, top }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.icon, style: { color }, children: "👆" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.label, style: { backgroundColor: color }, children: name })
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.cursorWrapper, style: { left, top }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.icon, style: { color }, children: "👆" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.label, style: { backgroundColor: color }, children: name })
       ] }, id);
     }) });
   }
 );
 const container = "_container_k18kw_7";
-const title$2 = "_title_k18kw_19";
+const title$1 = "_title_k18kw_19";
 const playerList = "_playerList_k18kw_28";
 const playerItem = "_playerItem_k18kw_38";
 const activePlayer = "_activePlayer_k18kw_51";
@@ -2247,7 +2442,7 @@ const limitMessage = "_limitMessage_k18kw_319";
 const buttonGroup = "_buttonGroup_k18kw_326";
 const scoreBoardStyles = {
   container,
-  title: title$2,
+  title: title$1,
   playerList,
   playerItem,
   activePlayer,
@@ -2274,22 +2469,6 @@ const scoreBoardStyles = {
   limitMessage,
   buttonGroup
 };
-const image = "_image_965of_2";
-const textWrapper = "_textWrapper_965of_10";
-const text = "_text_965of_10";
-const contentWrapper = "_contentWrapper_965of_26";
-const styles$3 = {
-  image,
-  textWrapper,
-  text,
-  contentWrapper
-};
-const TokenDisplayContent = React__default.memo(({ token }) => {
-  if (token.imageSrc) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$3.image }) });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$3.text, children: token.name }) }) });
-});
 const PlayerListItem = React.memo(
   ({
     socket,
@@ -2578,7 +2757,7 @@ function ScoreBoard({
 const messageContainer = "_messageContainer_1akhg_3";
 const messageList = "_messageList_1akhg_29";
 const messageItemActive = "_messageItemActive_1akhg_38";
-const styles$2 = {
+const styles$1 = {
   messageContainer,
   messageList,
   messageItemActive
@@ -2624,679 +2803,8 @@ const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
       clearTimeout(timer);
     };
   }, [isProcessing, currentData, displayDuration]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$2.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageItemActive, children: displayMessage }, msgKey) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$1.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageItemActive, children: displayMessage }, msgKey) }) });
 };
-function Timer({ socket = null, roomId, initialDuration, onFinish }) {
-  const [timeLeft, setTimeLeft] = useState(initialDuration);
-  useEffect(() => {
-    if (!socket || !roomId) return;
-    const handleStart = (data) => {
-      if (data.roomId !== roomId) return;
-      setTimeLeft(data.duration);
-    };
-    const handleUpdate = (data) => {
-      if (data.roomId !== roomId) return;
-      setTimeLeft(data.remaining);
-    };
-    const handleFinish = (data) => {
-      if (data.roomId !== roomId) return;
-      setTimeLeft(0);
-      onFinish?.();
-    };
-    socket.on("timer:start", handleStart);
-    socket.on("timer:update", handleUpdate);
-    socket.on("timer:finish", handleFinish);
-    return () => {
-      socket.off("timer:start", handleStart);
-      socket.off("timer:update", handleUpdate);
-      socket.off("timer:finish", handleFinish);
-    };
-  }, [socket, roomId, onFinish, initialDuration]);
-  const start = () => {
-    if (!socket || !roomId || initialDuration <= 0) return;
-    setTimeLeft(initialDuration);
-    socket.emit("timer:start", { duration: initialDuration, roomId });
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "div",
-    {
-      style: {
-        width: "300px",
-        height: "80px",
-        border: "2px solid #333",
-        borderRadius: "8px",
-        padding: "8px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#f9f9f9",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-        fontFamily: "sans-serif"
-      },
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            style: {
-              fontSize: "1.5rem",
-              fontWeight: "bold",
-              color: timeLeft <= 6 ? "red" : timeLeft <= 15 ? "orange" : "green",
-              transition: "color 0.5s ease"
-            },
-            children: [
-              "残り時間: ",
-              timeLeft,
-              "s"
-            ]
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "6px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { onClick: start, style: { marginRight: "4px" }, children: [
-          "タイマー開始 (",
-          initialDuration,
-          "s)"
-        ] }) })
-      ]
-    }
-  );
-}
-const section = "_section_5m8u8_2";
-const title$1 = "_title_5m8u8_12";
-const list = "_list_5m8u8_17";
-const styles$1 = {
-  section,
-  title: title$1,
-  list
-};
-function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
-  const [tokenStoreTokens, setTokenStoreTokens] = useState([]);
-  useEffect(() => {
-    socket.on(`token-store:update:${tokenStoreId}`, (data) => {
-      const newTokens = data.tokenStore || [];
-      setTokenStoreTokens(newTokens);
-    });
-    return () => {
-      socket.off(`token-store:update:${tokenStoreId}`);
-    };
-  }, [socket]);
-  const getTokenById = useMemo(() => (id) => tokenStoreTokens.find((t) => t.id === id), [tokenStoreTokens]);
-  const handleClick = (id) => {
-    const token = getTokenById(id);
-    if (!token) return;
-    onSelect?.(token);
-  };
-  const handleDoubleClick = (tokenId) => {
-    const token = getTokenById(tokenId);
-    if (!token) return;
-    const data = { roomId, tokenStoreId, tokenId };
-    socket.emit("token:aquire", data);
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$1.section, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles$1.title, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.list, children: tokenStoreTokens.map((t, i) => {
-      const offsetX = i % 5 * 40 - 80;
-      const offsetY = i * 3 % 4 * 10 - 20;
-      const rotation = i * 13 % 30 - 15;
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          style: {
-            position: "absolute",
-            left: `calc(40% + ${offsetX}px)`,
-            top: `calc(50% + ${offsetY}px)`,
-            transform: `rotate(${rotation}deg)`,
-            zIndex: i
-          },
-          onClick: () => handleClick(t.id),
-          onDoubleClick: () => handleDoubleClick(t.id),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t })
-        },
-        t.id
-      );
-    }) })
-  ] });
-}
-let LOG_CATEGORIES = {
-  connection: true,
-  lobby: true,
-  game: true,
-  room: true,
-  deck: true,
-  card: true,
-  cell: true,
-  dice: true,
-  timer: true,
-  addScore: true,
-  resource: true,
-  token: true,
-  draggable: true,
-  warn: true,
-  popup: true,
-  custom_event: true,
-  disconnect: true
-};
-const ANSI_RED = "\x1B[31m";
-const ANSI_RESET = "\x1B[0m";
-const isExplored = (roomState, position) => {
-  return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
-};
-class RoomManager {
-  constructor(io2, param, state) {
-    this.io = io2;
-    this.param = param;
-    this.state = state;
-  }
-  static server_log(tag, gameId, roomId, msg) {
-    if (!(tag in LOG_CATEGORIES)) {
-      throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
-    }
-    if (!LOG_CATEGORIES[tag]) {
-      return;
-    }
-    const time = new Intl.DateTimeFormat("ja-JP", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-      timeZone: "Asia/Tokyo"
-    }).format(/* @__PURE__ */ new Date());
-    const header = `[${time}] [${tag}] [${gameId} (${roomId})]`;
-    if (tag === "warn") {
-      console.warn(ANSI_RED + header + ANSI_RESET + ` ${msg}`);
-    } else {
-      console.log(`${header} ${msg}`);
-    }
-  }
-  /**
-   * サーバーの実行ログを出力する
-   * @param tag - ログのカテゴリ
-   * @param gameId - 対象のゲームプリセットID
-   * @param roomId - 対象のルームID
-   * @param msg - ログのメイン内容
-   */
-  server_log(tag, msg) {
-    RoomManager.server_log(tag, this.state.gameId, this.state.roomId, msg);
-  }
-  /**
-   * 一定時間待機する
-   * @param ms - 待機時間 (ms)
-   */
-  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  /**
-   * プレイヤー更新を通知する
-   */
-  emitPlayerUpdate = () => {
-    this.io.to(this.state.roomId).emit("players:update", this.state.players);
-  };
-  shuffleDeck = (deckId) => {
-    if (!this.state.decks[deckId]) return;
-    this.server_log("deck", `${deckId} をシャッフル`);
-    const currentDeck = this.state.decks[deckId].filter((c) => c.location === "deck");
-    const otherCards = this.state.decks[deckId].filter((c) => c.location !== "deck");
-    for (let i = currentDeck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
-    }
-    this.state.decks[deckId] = currentDeck.concat(otherCards);
-  };
-  /**
-   * デッキ更新を通知する
-   */
-  emitDeckUpdate = (deckId) => {
-    const updateData = {
-      currentDeck: this.state.decks[deckId].filter((c) => c.location === "deck"),
-      playFieldCards: this.state.playFieldCards[deckId],
-      discardPile: this.state.discardPile[deckId]
-    };
-    this.io.to(this.state.roomId).emit(`deck:update:${deckId}`, updateData);
-  };
-  /**
-   * トークン置き場更新を通知する
-   */
-  emitTokenStoreUpdate = (tokenStoreId) => {
-    const updateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
-    this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
-  };
-  /**
-   * ドラッグ可能オブジェクトの更新を通知する
-   */
-  emitDraggableUpdate = (draggableId) => {
-    const updateData = {
-      draggableId,
-      coordinate: this.state.draggables[draggableId].coordinate,
-      rotation: this.state.draggables[draggableId].rotation,
-      zIndex: this.state.draggables[draggableId].zIndex
-    };
-    this.io.to(this.state.roomId).emit("draggable:update", updateData);
-  };
-  /**
-   * SystemMessageWindowコンポーネントにシステムメッセージを出力する
-   * @param message - メッセージ内容
-   * @param ms=0 - メッセージ表示時間 (ms)
-   * @param isPersistent=false - 次のメッセージが出るまで表示し続けるかどうかのフラグ
-   * @returns 待機が完了した時に解決されるPromise
-   */
-  emitSystemMessage = async (message, ms = 0, isPersistent = false) => {
-    if (!this.state.systemMessageHistory.includes(message)) {
-      this.state.systemMessageHistory = [...this.state.systemMessageHistory.slice(-9), message];
-    }
-    this.io.to(this.state.roomId).emit("system:message", { message, isPersistent });
-    await this.sleep(ms);
-  };
-  /**
-   * カードをデッキから引く
-   */
-  drawCard(deckId, condition, playerId) {
-    const [targetLocation, targetState] = condition;
-    const currentDeck = this.state.decks[deckId].filter((c) => c.location === "deck");
-    if (!currentDeck.length) return false;
-    const card2 = currentDeck[0];
-    card2.isFaceUp = targetState === "face";
-    let destination = "";
-    this.server_log("deck", `DRAW: ${card2.name} (ID:${card2.id}) (deck -> ${destination}, state: ${targetState})`);
-    if (targetLocation === "discard") {
-      card2.location = "discard";
-      card2.ownerId = null;
-      this.state.discardPile[deckId].push(card2);
-      destination = "discard";
-    } else if (playerId && targetLocation === "hand") {
-      const player = this.state.players.find((p) => p.id === playerId);
-      if (player) {
-        card2.location = "hand";
-        card2.ownerId = playerId;
-        player.cards.push(card2);
-        destination = playerId;
-      }
-    } else {
-      card2.location = "field";
-      card2.ownerId = null;
-      this.state.playFieldCards[deckId].push(card2);
-      destination = "field";
-    }
-    this.emitDeckUpdate(deckId);
-    this.emitPlayerUpdate();
-    return true;
-  }
-  /**
-   * カードをプレイする
-   */
-  playCard(data) {
-    const { deckId, cardIds, playerId, playLocation = "field", coordinate } = data;
-    const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
-    const player = this.state.players.find((p) => p.id === playerId);
-    if (player?.isHolding) {
-      this.server_log("card", `${playerId} はカードをホールドしているので、カードをプレイできません`);
-      return;
-    }
-    ids.forEach((id) => {
-      const card2 = this.state.decks[deckId]?.find((c) => c.id === id);
-      if (!card2) return;
-      const p = this.state.players.find((p2) => p2.id === playerId);
-      if (p) p.cards = p.cards.filter((c) => c.id !== id);
-      card2.location = playLocation;
-      card2.coordinate = coordinate;
-      card2.isFaceUp = true;
-      this.state.playFieldCards[deckId] = this.state.playFieldCards[deckId].filter((c) => c.id !== id);
-      this.state.discardPile[deckId] = this.state.discardPile[deckId].filter((c) => c.id !== id);
-      if (playLocation === "discard") {
-        this.state.discardPile[deckId].push(card2);
-      } else {
-        this.state.playFieldCards[deckId].push(card2);
-      }
-      this.updateZIndex("card", [deckId, card2.id], true);
-      this.server_log("card", `"${card2.name}" をプレイした`);
-      const effect = this.param.cardEffects?.[card2.name];
-      if (effect) {
-        this.server_log("card", `カード効果発揮: ${card2.name} by ${playerId}`);
-        effect({
-          playerId,
-          updateResource: (resourceId, amount) => this.acquireResource(playerId, resourceId, amount),
-          updateToken: (tokenId) => this.acquireToken(this.state.roomId, playerId, tokenId)
-        });
-      }
-    });
-    const onCardPlay = this.param.onCardPlay;
-    if (onCardPlay) {
-      onCardPlay(this.state, this, data);
-    }
-    this.emitDeckUpdate(deckId);
-    this.emitPlayerUpdate();
-  }
-  /**
-   * ホールド状態を解除し、カードを出す
-   */
-  unholdCards() {
-    this.state.players.forEach((player) => {
-      player.isHolding = false;
-      const playerHoldData = this.state.holdCards[player.id];
-      if (!playerHoldData) return;
-      Object.entries(playerHoldData).forEach(([deckId, cardIds]) => {
-        const playData = {
-          roomId: this.state.roomId,
-          deckId,
-          cardIds,
-          playerId: player.id,
-          playLocation: "field",
-          coordinate: { x: 50, y: 50 }
-        };
-        this.playCard(playData);
-      });
-      delete this.state.holdCards[player.id];
-    });
-    this.server_log("card", `プレイヤー全員のホールド状態を解除しました`);
-  }
-  /**
-   * フィールドからカードを回収（手札に戻す or 捨て札へ）
-   */
-  moveFromField(deckId, cardId, playerId) {
-    const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
-    const fieldList = playFieldCards[deckId] || [];
-    const cardIndex = fieldList.findIndex((c) => c.id === cardId);
-    if (cardIndex === -1) return false;
-    const [card2] = fieldList.splice(cardIndex, 1);
-    card2.isFaceUp = card2.fieldBackCondition?.[1] === "face";
-    if (playerId) {
-      const player = players.find((p) => p.id === playerId);
-      if (!player) return false;
-      card2.location = "hand";
-      card2.ownerId = playerId;
-      player.cards = player.cards || [];
-      player.cards.push(card2);
-      this.server_log("card", `Return: ${card2.name} -> Player:${playerId}`);
-    } else {
-      card2.location = "discard";
-      card2.ownerId = null;
-      discardPile[deckId] = discardPile[deckId] || [];
-      discardPile[deckId].push(card2);
-      this.server_log("card", `Discard: ${card2.name} -> discard`);
-    }
-    this.emitDeckUpdate(deckId);
-    this.emitPlayerUpdate();
-    return true;
-  }
-  /**
-   * スコアを加算する
-   * @param playerId - 対象のプレイヤーのID
-   * @param points - 加算するスコア
-   */
-  addScore(playerId, points) {
-    const player = this.state.players.find((p) => p.id === playerId);
-    if (!player) return;
-    player.score = (player.score || 0) + points;
-    this.server_log("addScore", `${player.name} に ${points}pt 加算`);
-    this.emitPlayerUpdate();
-  }
-  /**
-   * リソースを取得する
-   * @param playerId - 対象のプレイヤーのID
-   * @param resourceId - 対象のリソースID
-   * @param amount - 加算する個数
-   */
-  acquireResource = (playerId, resourceId, amount) => {
-    const player = this.state.players.find((p) => p.id === playerId);
-    const resource = player?.resources?.find((r) => r.resourceId === resourceId);
-    if (resource) {
-      resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
-      this.server_log("resource", `${player.name}: ${resource.name} 更新`);
-      this.emitPlayerUpdate();
-    }
-  };
-  /**
-   * トークンを取得する
-   * @param tokenStoreId - トークン置き場ID
-   * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
-   * @param playerId - プレイヤーID
-   */
-  acquireToken(tokenStoreId, tokenId = null, playerId) {
-    const player = this.state.players.find((p) => p.id === playerId);
-    if (!player) return;
-    const tokens = this.state.tokenStores[tokenStoreId];
-    if (tokens.length === 0) return;
-    const index = tokenId !== null ? tokens.findIndex((t) => t.id === tokenId) : Math.floor(Math.random() * tokens.length);
-    if (index !== -1) {
-      const acquiredToken = tokens.splice(index, 1)[0];
-      if (!Array.isArray(player.tokens)) {
-        player.tokens = [];
-      }
-      player.tokens.push(acquiredToken);
-      this.server_log(
-        "token",
-        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${acquiredToken.id} を獲得しました。`
-      );
-      this.emitTokenStoreUpdate(tokenStoreId);
-    }
-  }
-  /**
-   * 特定のセルの探索状態を切り替える
-   * @param {Position} position - 操作対象の座標
-   * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
-   * @returns {boolean} 状態が実際に変化した場合は true
-   */
-  updateCellExploredStatus = (position, shouldMark) => {
-    const isCurrentlyExplored = isExplored(this.state, position);
-    if (shouldMark && !isCurrentlyExplored) {
-      this.state.exploredCells.push(position);
-      this.server_log("cell", `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
-      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
-      return;
-    }
-    if (!shouldMark && isCurrentlyExplored) {
-      this.state.exploredCells = this.state.exploredCells.filter(
-        (loc) => !(loc.row === position.row && loc.col === position.col)
-      );
-      this.server_log("cell", `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
-      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
-      return;
-    }
-    return;
-  };
-  /**
-   * 指定したセルから一定歩数で行けるセルIDをすべて取得する
-   * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
-   */
-  getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
-    const targetBoard = this.state.boards[boardId];
-    const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
-    const reachable = /* @__PURE__ */ new Set();
-    const queue = [{ id: startCellId, dist: 0 }];
-    const visited = /* @__PURE__ */ new Set([startCellId]);
-    while (queue.length > 0) {
-      const { id, dist } = queue.shift();
-      if (dist > 0) {
-        if (isExact) {
-          if (dist === moveRange) reachable.add(id);
-        } else {
-          reachable.add(id);
-        }
-      }
-      if (dist >= moveRange) continue;
-      const cell2 = boardMap.get(id);
-      cell2?.adjacentCellIds.forEach((nextId) => {
-        if (!visited.has(nextId)) {
-          visited.add(nextId);
-          queue.push({ id: nextId, dist: dist + 1 });
-        }
-      });
-    }
-    return Array.from(reachable);
-  };
-  /**
-   * セル効果を発動する
-   * @param boardId - ボードID
-   * @param playerId - 効果を発動させたプレイヤーのID
-   * @param position - 発動対象となるマスの座標
-   * @param cellEffects - 各セル名に対応する効果処理の定義集
-   */
-  applyCellEffect = (boardId, playerId, position, cellEffects) => {
-    const { row, col } = position;
-    const targetBoard = this.state.boards[boardId];
-    if (!targetBoard) {
-      this.server_log("warn", "applyCellEffect: ボードがありません。");
-      return;
-    }
-    const targetId = `r${row}c${col}`;
-    const cell2 = targetBoard.find((c) => c.id === targetId);
-    if (!cell2) {
-      this.server_log("warn", `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`);
-      return;
-    }
-    const effect = cellEffects[cell2.name];
-    if (effect) {
-      this.server_log("cell", `マス効果発動: ${cell2.name} by ${playerId}`);
-      try {
-        effect(this, playerId);
-      } catch (e) {
-        this.server_log("warn", `マス効果の実行中にエラーが発生しました: ${cell2.name}`);
-      }
-    } else {
-      this.server_log("cell", `マス効果なし: (${row}, ${col}) ${cell2.name}`);
-    }
-  };
-  /**
-   * タイマーを停止させる
-   */
-  stopTimer = () => {
-    const timer = this.state.timer;
-    if (timer) {
-      clearTimeout(timer);
-      this.server_log("timer", `タイマー停止`);
-    }
-  };
-  /**
-   * 重ね順を更新する
-   */
-  updateZIndex(type, objectId, isToFront) {
-    if (isToFront == true) {
-      if (type === "card") {
-        if (!Array.isArray(objectId)) {
-          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
-        }
-        this.server_log("deck", "カードのz-indexを最全面に移動");
-        const card2 = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
-        if (!card2) return;
-        if (!card2.zIndex || card2.zIndex < this.state.maxZIndex) {
-          this.state.maxZIndex++;
-          card2.zIndex = this.state.maxZIndex;
-          this.server_log("draggable", `新しいz-index: ${this.state.maxZIndex}`);
-          this.emitDeckUpdate(objectId[0]);
-        }
-      } else {
-        if (Array.isArray(objectId)) {
-          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
-        }
-        this.server_log("draggable", "ドラッグ可能オブジェクトを最前面に移動");
-        const draggable2 = this.state.draggables[objectId];
-        if (draggable2.zIndex < this.state.maxZIndex) {
-          this.state.maxZIndex++;
-          draggable2.zIndex = this.state.maxZIndex;
-          this.server_log("draggable", `新しいz-index: ${this.state.maxZIndex}`);
-          this.emitDraggableUpdate(objectId);
-        }
-      }
-    } else {
-      if (type === "card") {
-        if (!Array.isArray(objectId)) {
-          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
-        }
-        this.server_log("deck", "カードのを最背面に移動");
-        const card2 = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
-        if (!card2) return;
-        if (!card2.zIndex) card2.zIndex = 100;
-        card2.zIndex = 100 + card2.zIndex % 100;
-        this.server_log("draggable", `新しいz-index: ${card2.zIndex}`);
-        this.emitDeckUpdate(objectId[0]);
-      } else {
-        if (Array.isArray(objectId)) {
-          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
-        }
-        this.server_log("draggable", "ドラッグ可能オブジェクトを最背面に移動");
-        const draggable2 = this.state.draggables[objectId];
-        draggable2.zIndex = 100 + draggable2.zIndex % 100;
-        this.server_log("draggable", `新しいz-index: ${draggable2.zIndex}`);
-        this.emitDraggableUpdate(objectId);
-      }
-    }
-  }
-  /**
-   * ターンを更新する
-   */
-  updateTurn() {
-    if (this.state.players.length === 0) return;
-    const checkGameEnd = this.param?.checkGameEnd;
-    const onGameEnd = this.param?.onGameEnd;
-    if (checkGameEnd && checkGameEnd(this.state) && onGameEnd) {
-      const results = onGameEnd(this.state);
-      this.io.to(this.state.roomId).emit("game:end", results);
-      return;
-    }
-    const nextIndex = this.state.currentTurnIndex + 1;
-    const isRoundEnd = nextIndex % this.state.players.length === 0;
-    if (nextIndex > 0 && isRoundEnd) {
-      this.state.currentRoundIndex += 1;
-      const onNextRound = this.param?.onNextRound;
-      if (onNextRound) {
-        onNextRound(this.state, this);
-      }
-    }
-    this.state.currentTurnIndex = nextIndex;
-    const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
-    this.server_log(
-      "game",
-      `ターン更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`
-    );
-    this.io.to(this.state.roomId).emit("game:turn", {
-      currentPlayerId: currentPlayer?.id,
-      currentRoundIndex: this.state.currentRoundIndex,
-      currentTurnIndex: this.state.currentTurnIndex
-    });
-  }
-  /**
-   * ラウンドを更新する
-   */
-  updateRound() {
-    if (this.state.players.length === 0) return;
-    const checkGameEnd = this.param?.checkGameEnd;
-    const onGameEnd = this.param?.onGameEnd;
-    if (checkGameEnd && checkGameEnd(this.state) && onGameEnd) {
-      const results = onGameEnd(this.state);
-      this.io.to(this.state.roomId).emit("game:end", results);
-      return;
-    }
-    this.state.currentRoundIndex += 1;
-    const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
-    const onNextRound = this.param?.onNextRound;
-    if (onNextRound) {
-      onNextRound(this.state, this);
-    }
-    this.server_log(
-      "game",
-      `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`
-    );
-    this.io.to(this.state.roomId).emit("game:turn", {
-      currentPlayerId: currentPlayer?.id,
-      currentRoundIndex: this.state.currentRoundIndex,
-      currentTurnIndex: this.state.currentTurnIndex
-    });
-  }
-  /**
-   * フェーズを更新する
-   * @param newPhase - 新しいフェーズ
-   */
-  updatePhase(newPhase) {
-    if (this.state.currentPhase !== newPhase) {
-      this.state.currentPhase = newPhase;
-      this.server_log("game", `フェーズを更新しました: ${newPhase}`);
-      this.io.to(this.state.roomId).emit("game:phase:update", {
-        newPhase: this.state.currentPhase
-      });
-    }
-  }
-}
-class Phase {
-  toString() {
-    return this.name;
-  }
-}
 const COMPONENT_TYPES = [
   "Deck",
   "PlayField",
@@ -3841,55 +3349,547 @@ const ControlPanel = ({
     ] }) })
   ] });
 };
-const DynamicComponent = ({
-  type,
-  props,
-  socket,
-  roomId,
-  myPlayerId,
-  currentPlayerId,
-  players,
-  containerRef
-}) => {
-  const commonProps = { socket, roomId };
-  switch (type) {
-    case "Deck":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props });
-    case "PlayField":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(PlayField, { ...commonProps, ...props, myPlayerId, players });
-    case "ScoreBoard":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        ScoreBoard,
-        {
-          ...commonProps,
-          ...props,
-          myPlayerId,
-          currentPlayerId,
-          players
-        }
-      );
-    case "TokenStore":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(TokenStore, { ...commonProps, ...props });
-    case "GridBoard":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(GridBoard, { ...commonProps, ...props });
-    case "Draggable":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Draggable, { ...commonProps, ...props, containerRef });
-    case "Dice":
-      const processedProps = { ...props };
-      if (Array.isArray(props.customFaces)) {
-        processedProps.customFaces = props.customFaces.map((src, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src, style: { width: "100%", height: "100%", objectFit: "contain" } }, `f${i}`));
-      }
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Dice, { ...commonProps, ...processedProps });
-    case "Timer":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Timer, { ...commonProps, ...props });
-    case "SystemMessageWindow":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(SystemMessageWindow, { ...commonProps });
-    // 未定義のコンポーネントが来た場合
-    default:
-      console.warn(`Unknown component type: ${type}`);
-      return null;
-  }
+let LOG_CATEGORIES = {
+  connection: true,
+  lobby: true,
+  game: true,
+  room: true,
+  deck: true,
+  card: true,
+  cell: true,
+  dice: true,
+  timer: true,
+  addScore: true,
+  resource: true,
+  token: true,
+  draggable: true,
+  warn: true,
+  popup: true,
+  custom_event: true,
+  disconnect: true
 };
+const ANSI_RED = "\x1B[31m";
+const ANSI_RESET = "\x1B[0m";
+const isExplored = (roomState, position) => {
+  return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
+};
+class RoomManager {
+  constructor(io2, param, state) {
+    this.io = io2;
+    this.param = param;
+    this.state = state;
+  }
+  static server_log(tag, gameId, roomId, msg) {
+    if (!(tag in LOG_CATEGORIES)) {
+      throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
+    }
+    if (!LOG_CATEGORIES[tag]) {
+      return;
+    }
+    const time = new Intl.DateTimeFormat("ja-JP", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Tokyo"
+    }).format(/* @__PURE__ */ new Date());
+    const header = `[${time}] [${tag}] [${gameId} (${roomId})]`;
+    if (tag === "warn") {
+      console.warn(ANSI_RED + header + ANSI_RESET + ` ${msg}`);
+    } else {
+      console.log(`${header} ${msg}`);
+    }
+  }
+  /**
+   * サーバーの実行ログを出力する
+   * @param tag - ログのカテゴリ
+   * @param gameId - 対象のゲームプリセットID
+   * @param roomId - 対象のルームID
+   * @param msg - ログのメイン内容
+   */
+  server_log(tag, msg) {
+    RoomManager.server_log(tag, this.state.gameId, this.state.roomId, msg);
+  }
+  /**
+   * 一定時間待機する
+   * @param ms - 待機時間 (ms)
+   */
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  /**
+   * プレイヤー更新を通知する
+   */
+  emitPlayerUpdate = () => {
+    this.io.to(this.state.roomId).emit("players:update", this.state.players);
+  };
+  shuffleDeck = (deckId) => {
+    if (!this.state.decks[deckId]) return;
+    this.server_log("deck", `${deckId} をシャッフル`);
+    const currentDeck = this.state.decks[deckId].filter((c) => c.location === "deck");
+    const otherCards = this.state.decks[deckId].filter((c) => c.location !== "deck");
+    for (let i = currentDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
+    }
+    this.state.decks[deckId] = currentDeck.concat(otherCards);
+  };
+  /**
+   * デッキ更新を通知する
+   */
+  emitDeckUpdate = (deckId) => {
+    const updateData = {
+      currentDeck: this.state.decks[deckId].filter((c) => c.location === "deck"),
+      playFieldCards: this.state.playFieldCards[deckId],
+      discardPile: this.state.discardPile[deckId]
+    };
+    this.io.to(this.state.roomId).emit(`deck:update:${deckId}`, updateData);
+  };
+  /**
+   * トークン置き場更新を通知する
+   */
+  emitTokenStoreUpdate = (tokenStoreId) => {
+    const updateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
+    this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
+  };
+  /**
+   * ドラッグ可能オブジェクトの更新を通知する
+   */
+  emitDraggableUpdate = (draggableId) => {
+    const updateData = {
+      draggableId,
+      coordinate: this.state.draggables[draggableId].coordinate,
+      rotation: this.state.draggables[draggableId].rotation,
+      zIndex: this.state.draggables[draggableId].zIndex
+    };
+    this.io.to(this.state.roomId).emit("draggable:update", updateData);
+  };
+  /**
+   * SystemMessageWindowコンポーネントにシステムメッセージを出力する
+   * @param message - メッセージ内容
+   * @param ms=0 - メッセージ表示時間 (ms)
+   * @param isPersistent=false - 次のメッセージが出るまで表示し続けるかどうかのフラグ
+   * @returns 待機が完了した時に解決されるPromise
+   */
+  emitSystemMessage = async (message, ms = 0, isPersistent = false) => {
+    if (!this.state.systemMessageHistory.includes(message)) {
+      this.state.systemMessageHistory = [...this.state.systemMessageHistory.slice(-9), message];
+    }
+    this.io.to(this.state.roomId).emit("system:message", { message, isPersistent });
+    await this.sleep(ms);
+  };
+  /**
+   * カードをデッキから引く
+   */
+  drawCard(deckId, condition, playerId) {
+    const [targetLocation, targetState] = condition;
+    const currentDeck = this.state.decks[deckId].filter((c) => c.location === "deck");
+    if (!currentDeck.length) return false;
+    const card2 = currentDeck[0];
+    card2.isFaceUp = targetState === "face";
+    let destination = "";
+    this.server_log("deck", `DRAW: ${card2.name} (ID:${card2.id}) (deck -> ${destination}, state: ${targetState})`);
+    if (targetLocation === "discard") {
+      card2.location = "discard";
+      card2.ownerId = null;
+      this.state.discardPile[deckId].push(card2);
+      destination = "discard";
+    } else if (playerId && targetLocation === "hand") {
+      const player = this.state.players.find((p) => p.id === playerId);
+      if (player) {
+        card2.location = "hand";
+        card2.ownerId = playerId;
+        player.cards.push(card2);
+        destination = playerId;
+      }
+    } else {
+      card2.location = "field";
+      card2.ownerId = null;
+      this.state.playFieldCards[deckId].push(card2);
+      destination = "field";
+    }
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+    return true;
+  }
+  /**
+   * カードをプレイする
+   */
+  playCard(data) {
+    const { deckId, cardIds, playerId, playLocation = "field", coordinate } = data;
+    const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (player?.isHolding) {
+      this.server_log("card", `${playerId} はカードをホールドしているので、カードをプレイできません`);
+      return;
+    }
+    ids.forEach((id) => {
+      const card2 = this.state.decks[deckId]?.find((c) => c.id === id);
+      if (!card2) return;
+      const p = this.state.players.find((p2) => p2.id === playerId);
+      if (p) p.cards = p.cards.filter((c) => c.id !== id);
+      card2.location = playLocation;
+      card2.coordinate = coordinate;
+      card2.isFaceUp = true;
+      this.state.playFieldCards[deckId] = this.state.playFieldCards[deckId].filter((c) => c.id !== id);
+      this.state.discardPile[deckId] = this.state.discardPile[deckId].filter((c) => c.id !== id);
+      if (playLocation === "discard") {
+        this.state.discardPile[deckId].push(card2);
+      } else {
+        this.state.playFieldCards[deckId].push(card2);
+      }
+      this.updateZIndex("card", [deckId, card2.id], true);
+      this.server_log("card", `"${card2.name}" をプレイした`);
+      const effect = this.param.cardEffects?.[card2.name];
+      if (effect) {
+        this.server_log("card", `カード効果発揮: ${card2.name} by ${playerId}`);
+        effect({
+          playerId,
+          updateResource: (resourceId, amount) => this.acquireResource(playerId, resourceId, amount),
+          updateToken: (tokenId) => this.acquireToken(this.state.roomId, playerId, tokenId)
+        });
+      }
+    });
+    const onCardPlay = this.param.onCardPlay;
+    if (onCardPlay) {
+      onCardPlay(this.state, this, data);
+    }
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+  }
+  /**
+   * ホールド状態を解除し、カードを出す
+   */
+  unholdCards() {
+    this.state.players.forEach((player) => {
+      player.isHolding = false;
+      const playerHoldData = this.state.holdCards[player.id];
+      if (!playerHoldData) return;
+      Object.entries(playerHoldData).forEach(([deckId, cardIds]) => {
+        const playData = {
+          roomId: this.state.roomId,
+          deckId,
+          cardIds,
+          playerId: player.id,
+          playLocation: "field",
+          coordinate: { x: 50, y: 50 }
+        };
+        this.playCard(playData);
+      });
+      delete this.state.holdCards[player.id];
+    });
+    this.server_log("card", `プレイヤー全員のホールド状態を解除しました`);
+  }
+  /**
+   * フィールドからカードを回収（手札に戻す or 捨て札へ）
+   */
+  moveFromField(deckId, cardId, playerId) {
+    const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
+    const fieldList = playFieldCards[deckId] || [];
+    const cardIndex = fieldList.findIndex((c) => c.id === cardId);
+    if (cardIndex === -1) return false;
+    const [card2] = fieldList.splice(cardIndex, 1);
+    card2.isFaceUp = card2.fieldBackCondition?.[1] === "face";
+    if (playerId) {
+      const player = players.find((p) => p.id === playerId);
+      if (!player) return false;
+      card2.location = "hand";
+      card2.ownerId = playerId;
+      player.cards = player.cards || [];
+      player.cards.push(card2);
+      this.server_log("card", `Return: ${card2.name} -> Player:${playerId}`);
+    } else {
+      card2.location = "discard";
+      card2.ownerId = null;
+      discardPile[deckId] = discardPile[deckId] || [];
+      discardPile[deckId].push(card2);
+      this.server_log("card", `Discard: ${card2.name} -> discard`);
+    }
+    this.emitDeckUpdate(deckId);
+    this.emitPlayerUpdate();
+    return true;
+  }
+  /**
+   * スコアを加算する
+   * @param playerId - 対象のプレイヤーのID
+   * @param points - 加算するスコア
+   */
+  addScore(playerId, points) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return;
+    player.score = (player.score || 0) + points;
+    this.server_log("addScore", `${player.name} に ${points}pt 加算`);
+    this.emitPlayerUpdate();
+  }
+  /**
+   * リソースを取得する
+   * @param playerId - 対象のプレイヤーのID
+   * @param resourceId - 対象のリソースID
+   * @param amount - 加算する個数
+   */
+  acquireResource = (playerId, resourceId, amount) => {
+    const player = this.state.players.find((p) => p.id === playerId);
+    const resource = player?.resources?.find((r) => r.resourceId === resourceId);
+    if (resource) {
+      resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
+      this.server_log("resource", `${player.name}: ${resource.name} 更新`);
+      this.emitPlayerUpdate();
+    }
+  };
+  /**
+   * トークンを取得する
+   * @param tokenStoreId - トークン置き場ID
+   * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
+   * @param playerId - プレイヤーID
+   */
+  acquireToken(tokenStoreId, tokenId = null, playerId) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return;
+    const tokens = this.state.tokenStores[tokenStoreId];
+    if (tokens.length === 0) return;
+    const index = tokenId !== null ? tokens.findIndex((t) => t.id === tokenId) : Math.floor(Math.random() * tokens.length);
+    if (index !== -1) {
+      const acquiredToken = tokens.splice(index, 1)[0];
+      if (!Array.isArray(player.tokens)) {
+        player.tokens = [];
+      }
+      player.tokens.push(acquiredToken);
+      this.server_log(
+        "token",
+        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${acquiredToken.id} を獲得しました。`
+      );
+      this.emitTokenStoreUpdate(tokenStoreId);
+    }
+  }
+  /**
+   * 特定のセルの探索状態を切り替える
+   * @param {Position} position - 操作対象の座標
+   * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
+   * @returns {boolean} 状態が実際に変化した場合は true
+   */
+  updateCellExploredStatus = (position, shouldMark) => {
+    const isCurrentlyExplored = isExplored(this.state, position);
+    if (shouldMark && !isCurrentlyExplored) {
+      this.state.exploredCells.push(position);
+      this.server_log("cell", `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
+      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
+      return;
+    }
+    if (!shouldMark && isCurrentlyExplored) {
+      this.state.exploredCells = this.state.exploredCells.filter(
+        (loc) => !(loc.row === position.row && loc.col === position.col)
+      );
+      this.server_log("cell", `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
+      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
+      return;
+    }
+    return;
+  };
+  /**
+   * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+   * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
+   */
+  getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
+    const targetBoard = this.state.boards[boardId];
+    const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
+    const reachable = /* @__PURE__ */ new Set();
+    const queue = [{ id: startCellId, dist: 0 }];
+    const visited = /* @__PURE__ */ new Set([startCellId]);
+    while (queue.length > 0) {
+      const { id, dist } = queue.shift();
+      if (dist > 0) {
+        if (isExact) {
+          if (dist === moveRange) reachable.add(id);
+        } else {
+          reachable.add(id);
+        }
+      }
+      if (dist >= moveRange) continue;
+      const cell2 = boardMap.get(id);
+      cell2?.adjacentCellIds.forEach((nextId) => {
+        if (!visited.has(nextId)) {
+          visited.add(nextId);
+          queue.push({ id: nextId, dist: dist + 1 });
+        }
+      });
+    }
+    return Array.from(reachable);
+  };
+  /**
+   * セル効果を発動する
+   * @param boardId - ボードID
+   * @param playerId - 効果を発動させたプレイヤーのID
+   * @param position - 発動対象となるマスの座標
+   * @param cellEffects - 各セル名に対応する効果処理の定義集
+   */
+  applyCellEffect = (boardId, playerId, position, cellEffects) => {
+    const { row, col } = position;
+    const targetBoard = this.state.boards[boardId];
+    if (!targetBoard) {
+      this.server_log("warn", "applyCellEffect: ボードがありません。");
+      return;
+    }
+    const targetId = `r${row}c${col}`;
+    const cell2 = targetBoard.find((c) => c.id === targetId);
+    if (!cell2) {
+      this.server_log("warn", `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`);
+      return;
+    }
+    const effect = cellEffects[cell2.name];
+    if (effect) {
+      this.server_log("cell", `マス効果発動: ${cell2.name} by ${playerId}`);
+      try {
+        effect(this, playerId);
+      } catch (e) {
+        this.server_log("warn", `マス効果の実行中にエラーが発生しました: ${cell2.name}`);
+      }
+    } else {
+      this.server_log("cell", `マス効果なし: (${row}, ${col}) ${cell2.name}`);
+    }
+  };
+  /**
+   * タイマーを停止させる
+   */
+  stopTimer = () => {
+    const timer = this.state.timer;
+    if (timer) {
+      clearTimeout(timer);
+      this.server_log("timer", `タイマー停止`);
+    }
+  };
+  /**
+   * 重ね順を更新する
+   */
+  updateZIndex(type, objectId, isToFront) {
+    if (isToFront == true) {
+      if (type === "card") {
+        if (!Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
+        }
+        this.server_log("deck", "カードのz-indexを最全面に移動");
+        const card2 = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+        if (!card2) return;
+        if (!card2.zIndex || card2.zIndex < this.state.maxZIndex) {
+          this.state.maxZIndex++;
+          card2.zIndex = this.state.maxZIndex;
+          this.server_log("draggable", `新しいz-index: ${this.state.maxZIndex}`);
+          this.emitDeckUpdate(objectId[0]);
+        }
+      } else {
+        if (Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
+        }
+        this.server_log("draggable", "ドラッグ可能オブジェクトを最前面に移動");
+        const draggable2 = this.state.draggables[objectId];
+        if (draggable2.zIndex < this.state.maxZIndex) {
+          this.state.maxZIndex++;
+          draggable2.zIndex = this.state.maxZIndex;
+          this.server_log("draggable", `新しいz-index: ${this.state.maxZIndex}`);
+          this.emitDraggableUpdate(objectId);
+        }
+      }
+    } else {
+      if (type === "card") {
+        if (!Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'card': expected a tuple [DeckId, CardId]");
+        }
+        this.server_log("deck", "カードのを最背面に移動");
+        const card2 = this.state.playFieldCards[objectId[0]]?.find((c) => c.id === objectId[1]);
+        if (!card2) return;
+        if (!card2.zIndex) card2.zIndex = 100;
+        card2.zIndex = 100 + card2.zIndex % 100;
+        this.server_log("draggable", `新しいz-index: ${card2.zIndex}`);
+        this.emitDeckUpdate(objectId[0]);
+      } else {
+        if (Array.isArray(objectId)) {
+          throw new Error("Invalid objectId for type 'draggable': expected a string, but received a tuple");
+        }
+        this.server_log("draggable", "ドラッグ可能オブジェクトを最背面に移動");
+        const draggable2 = this.state.draggables[objectId];
+        draggable2.zIndex = 100 + draggable2.zIndex % 100;
+        this.server_log("draggable", `新しいz-index: ${draggable2.zIndex}`);
+        this.emitDraggableUpdate(objectId);
+      }
+    }
+  }
+  /**
+   * ターンを更新する
+   */
+  updateTurn() {
+    if (this.state.players.length === 0) return;
+    const checkGameEnd = this.param?.checkGameEnd;
+    const onGameEnd = this.param?.onGameEnd;
+    if (checkGameEnd && checkGameEnd(this.state) && onGameEnd) {
+      const results = onGameEnd(this.state);
+      this.io.to(this.state.roomId).emit("game:end", results);
+      return;
+    }
+    const nextIndex = this.state.currentTurnIndex + 1;
+    const isRoundEnd = nextIndex % this.state.players.length === 0;
+    if (nextIndex > 0 && isRoundEnd) {
+      this.state.currentRoundIndex += 1;
+      const onNextRound = this.param?.onNextRound;
+      if (onNextRound) {
+        onNextRound(this.state, this);
+      }
+    }
+    this.state.currentTurnIndex = nextIndex;
+    const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
+    this.server_log(
+      "game",
+      `ターン更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`
+    );
+    this.io.to(this.state.roomId).emit("game:turn", {
+      currentPlayerId: currentPlayer?.id,
+      currentRoundIndex: this.state.currentRoundIndex,
+      currentTurnIndex: this.state.currentTurnIndex
+    });
+  }
+  /**
+   * ラウンドを更新する
+   */
+  updateRound() {
+    if (this.state.players.length === 0) return;
+    const checkGameEnd = this.param?.checkGameEnd;
+    const onGameEnd = this.param?.onGameEnd;
+    if (checkGameEnd && checkGameEnd(this.state) && onGameEnd) {
+      const results = onGameEnd(this.state);
+      this.io.to(this.state.roomId).emit("game:end", results);
+      return;
+    }
+    this.state.currentRoundIndex += 1;
+    const currentPlayer = this.state.players[this.state.currentTurnIndex % this.state.players.length];
+    const onNextRound = this.param?.onNextRound;
+    if (onNextRound) {
+      onNextRound(this.state, this);
+    }
+    this.server_log(
+      "game",
+      `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`
+    );
+    this.io.to(this.state.roomId).emit("game:turn", {
+      currentPlayerId: currentPlayer?.id,
+      currentRoundIndex: this.state.currentRoundIndex,
+      currentTurnIndex: this.state.currentTurnIndex
+    });
+  }
+  /**
+   * フェーズを更新する
+   * @param newPhase - 新しいフェーズ
+   */
+  updatePhase(newPhase) {
+    if (this.state.currentPhase !== newPhase) {
+      this.state.currentPhase = newPhase;
+      this.server_log("game", `フェーズを更新しました: ${newPhase}`);
+      this.io.to(this.state.roomId).emit("game:phase:update", {
+        newPhase: this.state.currentPhase
+      });
+    }
+  }
+}
+class Phase {
+  toString() {
+    return this.name;
+  }
+}
 function useSocket(url) {
   const [socket, setSocket] = useState(null);
   useEffect(() => {
