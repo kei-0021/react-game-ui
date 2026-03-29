@@ -23,7 +23,7 @@ export * from './types/definition.js';
 /* @ts-ignore */
 export * from './types/player.js';
 /* @ts-ignore */
-export { RoomManager } from './server/server-utils.js';
+export { RoomManager } from './server/room-manager.js';
 /* @ts-ignore */
 export { Phase } from './types/phase.js';
 /* @ts-ignore */

@@ -1,7 +1,7 @@
 import { RoomState } from '@/types/server.js';
 import { BoardUpdateData, GameTurnUpdateData } from '@/types/socketData.js';
 import { Server } from 'socket.io';
-import { RoomManager } from '../server-utils.js';
+import { RoomManager } from '../room-manager.js';
 
 /**
  * 準備のできたプレイヤーに対してルームの状態を配信する

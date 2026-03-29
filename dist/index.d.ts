@@ -19,7 +19,7 @@ export * from './types/player.js';
 export { type PieceData } from './types/piece.js';
 export { type DraggableData } from './types/draggable.js';
 export { type ComponentInfo } from './types/server.js';
-export { RoomManager } from './server/server-utils.js';
+export { RoomManager } from './server/room-manager.js';
 export { type GameParam, type RoomState } from './types/server.js';
 export { type CellData } from './types/cell.js';
 export { Phase } from './types/phase.js';

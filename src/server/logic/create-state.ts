@@ -18,7 +18,7 @@ import type {
 import { Deck } from '@/types/deck.js';
 import { Token } from '@/types/token.js';
 import { TokenStore } from '@/types/tokenStore.js';
-import { generateColorFromId, RoomManager } from '../server-utils.js';
+import { generateColorFromId, RoomManager } from '../room-manager.js';
 
 /**
  * GameParamからRoomStateを作成する

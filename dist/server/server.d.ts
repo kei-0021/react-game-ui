@@ -2,7 +2,7 @@ import { GameId, GameParam } from '@/types/server.js';
 import express from 'express';
 import { Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import { LogCategory } from './server-utils.js';
+import { LogCategory } from './room-manager.js';
 /**
  * サーバー設定の型定義
  */

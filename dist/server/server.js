@@ -7,8 +7,8 @@ import { fileURLToPath } from 'url';
 import { createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';
 import { updateState } from './logic/update-state.js';
+import { RoomManager } from './room-manager.js';
 import { activeRooms, initGameServer } from './server-logic.js';
-import { RoomManager } from './server-utils.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 /**

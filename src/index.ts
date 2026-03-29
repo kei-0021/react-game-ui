@@ -33,7 +33,7 @@ export { type DraggableData } from './types/draggable.js';
 /* @ts-ignore */
 export { type ComponentInfo } from './types/server.js';
 /* @ts-ignore */
-export { RoomManager } from './server/server-utils.js';
+export { RoomManager } from './server/room-manager.js';
 /* @ts-ignore */
 export { type GameParam, type RoomState } from './types/server.js';
 /* @ts-ignore */

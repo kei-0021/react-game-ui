@@ -11,7 +11,6 @@ export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
 export declare const isExplored: (roomState: RoomState, position: Position) => boolean;
 export declare const generateColorFromId: (id: string) => string;
 export declare const shuffleArray: <T>(array: T[]) => T[];
-export declare const deepMerge: (target: any, source: any) => any;
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
  */
@@ -137,4 +136,4 @@ export declare class RoomManager {
      */
     updatePhase(newPhase: Phase): void;
 }
-//# sourceMappingURL=server-utils.d.ts.map
+//# sourceMappingURL=room-manager.d.ts.map

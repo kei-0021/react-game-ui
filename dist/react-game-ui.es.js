@@ -2816,31 +2816,30 @@ const COMPONENT_TYPES = [
   "Timer",
   "SystemMessageWindow"
 ];
-const wrapper = "_wrapper_83tj2_3";
-const open = "_open_83tj2_18";
-const scrollContainer = "_scrollContainer_83tj2_22";
-const title = "_title_83tj2_32";
-const field = "_field_83tj2_41";
-const label = "_label_83tj2_47";
-const slider = "_slider_83tj2_55";
-const hamburger = "_hamburger_83tj2_61";
-const saveButton = "_saveButton_83tj2_80";
-const select = "_select_83tj2_92";
-const createSection = "_createSection_83tj2_111";
-const iconInput = "_iconInput_83tj2_117";
-const flexFill = "_flexFill_83tj2_122";
-const createButton = "_createButton_83tj2_126";
-const deleteModeBtn = "_deleteModeBtn_83tj2_137";
-const addComponentBox = "_addComponentBox_83tj2_145";
-const compTypeSelect = "_compTypeSelect_83tj2_155";
-const dirtyLabel = "_dirtyLabel_83tj2_160";
-const rangeField = "_rangeField_83tj2_167";
-const rangeHeader = "_rangeHeader_83tj2_171";
-const rangeValue = "_rangeValue_83tj2_178";
-const componentList = "_componentList_83tj2_184";
-const componentItem = "_componentItem_83tj2_191";
-const deleteCompBtn = "_deleteCompBtn_83tj2_202";
-const divider = "_divider_83tj2_210";
+const wrapper = "_wrapper_7lrup_3";
+const open = "_open_7lrup_18";
+const scrollContainer = "_scrollContainer_7lrup_22";
+const title = "_title_7lrup_32";
+const field = "_field_7lrup_41";
+const label = "_label_7lrup_47";
+const slider = "_slider_7lrup_55";
+const hamburger = "_hamburger_7lrup_61";
+const saveButton = "_saveButton_7lrup_80";
+const select = "_select_7lrup_92";
+const createSection = "_createSection_7lrup_111";
+const iconInput = "_iconInput_7lrup_117";
+const createButton = "_createButton_7lrup_122";
+const deleteModeBtn = "_deleteModeBtn_7lrup_133";
+const addComponentBox = "_addComponentBox_7lrup_141";
+const compTypeSelect = "_compTypeSelect_7lrup_151";
+const dirtyLabel = "_dirtyLabel_7lrup_156";
+const rangeField = "_rangeField_7lrup_163";
+const rangeHeader = "_rangeHeader_7lrup_167";
+const rangeValue = "_rangeValue_7lrup_174";
+const componentList = "_componentList_7lrup_180";
+const componentItem = "_componentItem_7lrup_187";
+const deleteCompBtn = "_deleteCompBtn_7lrup_198";
+const divider = "_divider_7lrup_206";
 const styles = {
   wrapper,
   open,
@@ -2854,7 +2853,6 @@ const styles = {
   select,
   createSection,
   iconInput,
-  flexFill,
   createButton,
   deleteModeBtn,
   addComponentBox,

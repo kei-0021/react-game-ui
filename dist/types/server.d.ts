@@ -1,5 +1,5 @@
 import { CellData, Player } from '@/index.js';
-import { RoomManager } from '@/server/server-utils.js';
+import { RoomManager } from '@/server/room-manager.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
 import { BoardId, CardId, ComponentId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';

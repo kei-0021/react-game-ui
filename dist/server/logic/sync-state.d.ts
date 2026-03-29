@@ -1,6 +1,6 @@
 import { RoomState } from '@/types/server.js';
 import { Server } from 'socket.io';
-import { RoomManager } from '../server-utils.js';
+import { RoomManager } from '../room-manager.js';
 /**
  * 準備のできたプレイヤーに対してルームの状態を配信する
  * @param state - 初期化済みのルームの状態

@@ -4,7 +4,8 @@ import * as path from 'node:path';
 import util from 'util';
 import { createPlayer, createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';
-import { deepMerge, LOG_CATEGORIES, RoomManager } from './server-utils.js';
+import { deepMerge } from './logic/utils.js';
+import { LOG_CATEGORIES, RoomManager } from './room-manager.js';
 export const activeRooms = new Map();
 const execPromise = util.promisify(exec);
 export function initGameServer(io, options) {

@@ -94,26 +94,6 @@ export const shuffleArray = <T>(array: T[]): T[] => {
   return array;
 };
 
-export const deepMerge = (target: any, source: any) => {
-  const output = { ...target };
-
-  for (const key in source) {
-    if (source[key] instanceof Object && key in target) {
-      if (Array.isArray(source[key]) && Array.isArray(target[key])) {
-        // 配列の場合は結合する
-        output[key] = [...target[key], ...source[key]];
-      } else {
-        // オブジェクトの場合は再帰的にマージ
-        output[key] = deepMerge(target[key], source[key]);
-      }
-    } else {
-      // ターゲット側にキーがない、またはプリミティブ値の場合は単純代入
-      output[key] = source[key];
-    }
-  }
-  return output;
-};
-
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
  */

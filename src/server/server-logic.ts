@@ -34,7 +34,8 @@ import { Server, Socket } from 'socket.io';
 import util from 'util';
 import { createPlayer, createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';
-import { deepMerge, LOG_CATEGORIES, RoomManager } from './server-utils.js';
+import { deepMerge } from './logic/utils.js';
+import { LOG_CATEGORIES, RoomManager } from './room-manager.js';
 import type { GameServerOptions } from './server.js';
 
 export const activeRooms = new Map<RoomId, RoomState>();

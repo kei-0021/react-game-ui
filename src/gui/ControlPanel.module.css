@@ -119,10 +119,6 @@
   text-align: center;
 }
 
-.flexFill {
-  flex: 1;
-}
-
 .createButton {
   height: 28px;
   margin-top: 0;
@@ -153,7 +149,7 @@
 }
 
 .compTypeSelect {
-  width: 80px;
+  width: 100px;
   flex-shrink: 0;
 }
 
