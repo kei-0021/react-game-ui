@@ -1,8 +1,5 @@
 // src/server/server.ts
-import { CellData } from '@/index.js';
-import { BoardId, CardId, DeckId, DraggableId, PlayerId, RoomId, TokenStoreId } from '@/types/definition.js';
-import { DraggableData } from '@/types/draggable.js';
-import { GameParam, RoomState } from '@/types/server.js';
+import { RoomState } from '@/types/server.js';
 import {
   BaordMovePlayerData,
   BoardMovableRangeData,
@@ -31,131 +28,17 @@ import {
   RoomMeta,
   TokenAcquireData,
 } from '@/types/socketData.js';
-import { Token } from '@/types/token.js';
-import { TokenStore } from '@/types/tokenStore.js';
 import { exec } from 'child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Server, Socket } from 'socket.io';
 import util from 'util';
-import type { Card } from '../types/card.js';
-import type { Deck } from '../types/deck.js';
+import { createState } from './server-create-state.js';
 import { deepMerge, generateColorFromId, LOG_CATEGORIES, RoomManager } from './server-utils.js';
 import type { GameServerOptions } from './server.js';
 
 const activeRooms = new Map<string, RoomState>();
 const execPromise = util.promisify(exec);
-
-/**
- * 新しいゲームルームの状態を初期化し、実行中のルーム管理（activeRooms）に追加する。
- * @param roomId - ルームID
- * @param param - ゲーム開始時に必要な初期パラメータ
- * @returns 初期化が完了した {@link RoomState} オブジェクト
- */
-function initializeRoom(roomId: RoomId, param: GameParam): RoomState {
-  const initialDecks = param.initialDecks || [];
-  const initialTokenStores = param.initialTokenStores || [];
-  const initialBoard = param.initialBoard || {};
-
-  let Cells: Record<BoardId, CellData[]> = {};
-  const boardEntries = Object.entries(initialBoard);
-
-  if (param.maxPlayers) {
-    RoomManager.server_log('game', param.gameId, roomId, `参加可能人数: ${param.maxPlayers}人`);
-  }
-
-  boardEntries.forEach(([boardId, boardData]) => {
-    Cells[boardId] = boardData;
-
-    // カスタムの再配置・接続関数があるか確認
-    const shuffleAndReconnector = param.shuffleAndReconnectBoard?.[boardId];
-
-    if (typeof shuffleAndReconnector === 'function') {
-      RoomManager.server_log('cell', param.gameId, roomId, `ボード "${boardId}" をカスタム戦略で再配置・接続します`);
-      Cells[boardId] = shuffleAndReconnector(boardData);
-    }
-
-    RoomManager.server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
-  });
-
-  const decks: Record<DeckId, Card[]> = {};
-  const playFieldCards: Record<DeckId, Card[]> = {};
-  const discardPile: Record<DeckId, Card[]> = {};
-  const holdCards: Record<PlayerId, Record<DeckId, CardId[]>> = {};
-
-  const tokenStores: Record<TokenStoreId, Token[]> = {};
-
-  initialDecks.forEach((deck: Deck) => {
-    const cards: Card[] = (deck.cards || []).map((c, index) => ({
-      ...c,
-      deckId: deck.deckId,
-      backColor: deck.backColor,
-      instanceId: `${roomId}_${deck.deckId}_${index}`,
-      location: 'deck',
-      ownerId: null,
-      coordinate: { x: 50, y: 50 },
-    }));
-    decks[deck.deckId] = cards;
-    playFieldCards[deck.deckId] = [];
-    discardPile[deck.deckId] = [];
-    RoomManager.server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
-
-    const firstEntry = cards[0];
-    if (firstEntry) {
-      RoomManager.server_log('deck', param.gameId, roomId, `サンプル:\n ${JSON.stringify(firstEntry, null, 2)}`);
-    }
-  });
-
-  initialTokenStores.forEach((tokenStore: TokenStore) => {
-    const tokens: Token[] = (tokenStore.tokens || []).map((t, index) => ({
-      ...t,
-      tokenStoreId: tokenStore.tokenStoreId,
-      instanceId: `${roomId}_${tokenStore.tokenStoreId}_${index}`,
-    }));
-    tokenStores[tokenStore.tokenStoreId] = tokens;
-    RoomManager.server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
-  });
-
-  let draggables: Record<DraggableId, DraggableData> = {};
-  if (param.draggables) {
-    draggables = structuredClone(param.draggables);
-
-    RoomManager.server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
-
-    const firstEntry = Object.entries(draggables)[0];
-    if (firstEntry) {
-      const [key, value] = firstEntry;
-      RoomManager.server_log('draggable', param.gameId, roomId, `サンプル:\n${key}: ${JSON.stringify(value, null, 2)}`);
-    }
-  }
-
-  const initialMaxZIndex = Object.values(draggables).reduce((max, d) => Math.max(max, d.zIndex || 0), 0);
-
-  const state: RoomState = {
-    roomId: roomId,
-    gameId: param.gameId || '不明なゲーム',
-    createdAt: Date.now(),
-    currentTurnIndex: 0,
-    currentRoundIndex: -1,
-    currentPhase: param.initialPhase,
-    players: [],
-    decks: decks,
-    playFieldCards: playFieldCards,
-    discardPile: discardPile,
-    holdCards: holdCards,
-    boards: Cells,
-    exploredCells: [],
-    tokenStores: tokenStores,
-    draggables: draggables,
-    timer: {} as NodeJS.Timeout,
-    maxZIndex: initialMaxZIndex,
-    systemMessageHistory: [],
-  };
-
-  activeRooms.set(roomId, state);
-  RoomManager.server_log('room', state.gameId, roomId, `ルーム初期化完了`);
-  return state;
-}
 
 export function initGameServer(io: Server, options: GameServerOptions) {
   const gameParams = options.gameParams || {};
@@ -317,7 +200,8 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
       // 初回は状態の初期化を行う
       if (!state) {
-        state = initializeRoom(roomId, { ...param, gameId: gameId });
+        state = createState(roomId, { ...param, gameId: gameId });
+        activeRooms.set(roomId, state);
         const roomManager = new RoomManager(io, param, state);
         Object.keys(state.decks).forEach((deckId) => roomManager.shuffleDeck(deckId));
         io.emit('room-ready');
