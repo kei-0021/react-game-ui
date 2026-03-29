@@ -1,5 +1,5 @@
 // src/server/server-create-state.ts
-import { generateColorFromId, RoomManager } from './server-utils.js';
+import { generateColorFromId, RoomManager } from '../server-utils.js';
 /**
  * GameParamからRoomStateを作成する
  * @param roomId - ルームID

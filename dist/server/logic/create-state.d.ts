@@ -15,4 +15,4 @@ export declare function createState(roomId: RoomId, param: GameParam): RoomState
  * @returns 初期化完了済みのプレイヤーオブジェクト
  */
 export declare function createPlayer(param: GameParam, state: RoomState, playerName: string, socketId: string): Player;
-//# sourceMappingURL=server-create-state.d.ts.map
+//# sourceMappingURL=create-state.d.ts.map

@@ -23,7 +23,7 @@ export type GameServerOptions = {
  * @property {string} libDistPath - /lib パスで提供されるビルド済みライブラリ資産のパス
  * @property {string} clientDistPath - ルートパスで提供されるクライアント側静的ファイルのパス
  * @property {string[]} corsOrigins - CORSを許可するオリジンのリスト
- * @property {Record<string, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
+ * @property {Record<gameId, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
  * @property {any} customEvents - ユーザー定義のカスタムイベントハンドラ
  * @property {Partial<Record<LogCategory, boolean>> | null} initialLogCategories - ログ出力の制御設定
  * @property {express.Application} app - Expressアプリケーションインスタンス
@@ -61,6 +61,6 @@ export declare class GameServer {
     /**
      * 指定したGameIdのパラメータを安全に更新し通知する
      */
-    updateGameParam(gameId: string, param: GameParam): void;
+    updateGameParam(gameId: GameId, param: GameParam): void;
 }
 //# sourceMappingURL=server.d.ts.map

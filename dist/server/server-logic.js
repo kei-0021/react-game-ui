@@ -2,7 +2,8 @@ import { exec } from 'child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import util from 'util';
-import { createPlayer, createState } from './server-create-state.js';
+import { createPlayer, createState } from './logic/create-state.js';
+import { syncState } from './logic/sync-state.js';
 import { deepMerge, LOG_CATEGORIES, RoomManager } from './server-utils.js';
 const activeRooms = new Map();
 const execPromise = util.promisify(exec);
@@ -171,31 +172,7 @@ export function initGameServer(io, options) {
                 return;
             const param = gameParams[state.gameId];
             const roomManager = new RoomManager(io, param, state);
-            // 全ての初期同期をここで実行
-            const lastMessage = state.systemMessageHistory.at(-1);
-            if (lastMessage)
-                roomManager.emitSystemMessage(lastMessage, 0, true);
-            // プレイヤー, デッキ, トークン置き場, ボード, ドラッグ可能オブジェクト の初期状態を配信
-            roomManager.emitPlayerUpdate();
-            Object.keys(state.decks).forEach((id) => roomManager.emitDeckUpdate(id));
-            Object.keys(state.tokenStores).forEach((id) => roomManager.emitTokenStoreUpdate(id));
-            if (state.exploredCells.length > 0)
-                socket.emit('cell:update', state.exploredCells);
-            Object.entries(state.boards).forEach(([boardId, board]) => {
-                socket.emit('board:update', { boardId, board });
-            });
-            Object.keys(state.draggables).forEach((id) => roomManager.emitDraggableUpdate(id));
-            // 初回の一人のみターンを更新する
-            if (state.players.length == 1) {
-                roomManager.updateRound();
-            }
-            else {
-                io.to(state.roomId).emit('game:turn', {
-                    currentPlayerId: state.players[state.currentTurnIndex % state.players.length].id,
-                    currentRoundIndex: state.currentRoundIndex,
-                    currentTurnIndex: state.currentTurnIndex,
-                });
-            }
+            syncState(state, roomManager, io);
         });
         // カードを引く
         socket.on('deck:draw', (data) => {

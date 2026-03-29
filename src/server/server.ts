@@ -9,6 +9,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { initGameServer } from './server-logic.js';
 import { LogCategory } from './server-utils.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -33,7 +34,7 @@ export type GameServerOptions = {
  * @property {string} libDistPath - /lib パスで提供されるビルド済みライブラリ資産のパス
  * @property {string} clientDistPath - ルートパスで提供されるクライアント側静的ファイルのパス
  * @property {string[]} corsOrigins - CORSを許可するオリジンのリスト
- * @property {Record<string, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
+ * @property {Record<gameId, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
  * @property {any} customEvents - ユーザー定義のカスタムイベントハンドラ
  * @property {Partial<Record<LogCategory, boolean>> | null} initialLogCategories - ログ出力の制御設定
  * @property {express.Application} app - Expressアプリケーションインスタンス
@@ -142,7 +143,7 @@ export class GameServer {
   /**
    * 指定したGameIdのパラメータを安全に更新し通知する
    */
-  public updateGameParam(gameId: string, param: GameParam): void {
+  public updateGameParam(gameId: GameId, param: GameParam): void {
     if (!this.gameParams[gameId]) {
       console.warn(`[Server] 未登録のGameIdです: ${gameId}`);
     }
@@ -154,7 +155,7 @@ export class GameServer {
     } else {
       // GameParamの更新
       this.gameParams[gameId] = param;
-      // 実行中の全ルームへ「最新ルール」をzs同期
+      // 実行中の全ルームへ「最新ルール」を同期
       // reloadActiveRooms(this.io, gameId, param);
     }
 
