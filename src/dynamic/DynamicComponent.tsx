@@ -1,16 +1,16 @@
-// src/components/DynamicComponent.tsx
+// src/dynamic/DynamicComponent.tsx
 import { GridBoard, Player, ScoreBoard, SystemMessageWindow } from '@/index.js';
 import { PlayerId, RoomId } from '@/types/definition.js';
 import type { Socket } from 'socket.io-client';
 import { Deck } from '../components/Deck.js';
 import { Dice } from '../components/Dice.js';
+import { Draggable } from '../components/Draggable.js';
+import { PlayField } from '../components/PlayField.js';
 import { Timer } from '../components/Timer.js';
+import { TokenStore } from '../components/TokenStore.js';
 import type { ComponentInfo } from '../types/server.js';
-import { Draggable } from './Draggable.js';
-import { PlayField } from './PlayField.js';
-import { TokenStore } from './TokenStore.js';
 
-interface DynamicProps {
+interface DynamicComponentProps {
   type: ComponentInfo['type'];
   props: any;
   socket: Socket;
@@ -30,7 +30,7 @@ export const DynamicComponent = ({
   currentPlayerId,
   players,
   containerRef,
-}: DynamicProps) => {
+}: DynamicComponentProps) => {
   // 共通の Props をまとめておく
   const commonProps = { socket, roomId };
 

@@ -1532,79 +1532,298 @@ function Draggable({
     )
   ] });
 }
-function Timer({ socket = null, roomId, initialDuration, onFinish }) {
-  const [timeLeft, setTimeLeft] = useState(initialDuration);
-  useEffect(() => {
-    if (!socket || !roomId) return;
-    const handleStart = (data) => {
-      if (data.roomId !== roomId) return;
-      setTimeLeft(data.duration);
-    };
-    const handleUpdate = (data) => {
-      if (data.roomId !== roomId) return;
-      setTimeLeft(data.remaining);
-    };
-    const handleFinish = (data) => {
-      if (data.roomId !== roomId) return;
-      setTimeLeft(0);
-      onFinish?.();
-    };
-    socket.on("timer:start", handleStart);
-    socket.on("timer:update", handleUpdate);
-    socket.on("timer:finish", handleFinish);
-    return () => {
-      socket.off("timer:start", handleStart);
-      socket.off("timer:update", handleUpdate);
-      socket.off("timer:finish", handleFinish);
-    };
-  }, [socket, roomId, onFinish, initialDuration]);
-  const start = () => {
-    if (!socket || !roomId || initialDuration <= 0) return;
-    setTimeLeft(initialDuration);
-    socket.emit("timer:start", { duration: initialDuration, roomId });
+const piece = "_piece_138ki_3";
+const styles$5 = {
+  piece
+};
+function Piece({
+  piece: piece2,
+  style,
+  onClick,
+  isDraggable,
+  isFilled = false,
+  onDragStart,
+  onDragEnd
+}) {
+  const handleClick = (e) => {
+    e.stopPropagation();
+    onClick(piece2.id);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+  const handleDragStart = (e) => {
+    if (isDraggable) {
+      e.stopPropagation();
+      e.dataTransfer.setData("pieceId", piece2.id);
+      e.dataTransfer.effectAllowed = "move";
+      if (piece2.image) {
+        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
+      }
+      onDragStart(e, piece2);
+    }
+  };
+  const pieceClasses = [styles$5.piece, isDraggable ? styles$5.draggable : styles$5.clickable].join(" ");
+  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
+  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
+  const URL_FUNC = ["u", "r", "l"].join("");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
+      className: pieceClasses,
       style: {
-        width: "300px",
-        height: "80px",
-        border: "2px solid #333",
-        borderRadius: "8px",
-        padding: "8px",
+        ...style,
+        backgroundColor: piece2.image ? "transparent" : piece2.color,
+        filter: "none",
+        border: "none",
+        outline: "none",
         display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#f9f9f9",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-        fontFamily: "sans-serif"
+        justifyContent: "center",
+        boxShadow: piece2.image ? "none" : "0 2px 4px rgba(0,0,0,0.2)"
       },
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            style: {
-              fontSize: "1.5rem",
-              fontWeight: "bold",
-              color: timeLeft <= 6 ? "red" : timeLeft <= 15 ? "orange" : "green",
-              transition: "color 0.5s ease"
-            },
-            children: [
-              "残り時間: ",
-              timeLeft,
-              "s"
-            ]
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "6px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { onClick: start, style: { marginRight: "4px" }, children: [
-          "タイマー開始 (",
-          initialDuration,
-          "s)"
-        ] }) })
-      ]
+      onClick: handleClick,
+      draggable: isDraggable,
+      onDragStart: handleDragStart,
+      onDragEnd: (e) => onDragEnd(e, piece2),
+      children: piece2.image ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          style: {
+            width: "100%",
+            height: "100%",
+            position: "relative",
+            pointerEvents: "none"
+          },
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "img",
+              {
+                src: piece2.image,
+                alt: "",
+                style: {
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  display: "block"
+                }
+              }
+            ),
+            isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                style: {
+                  position: "absolute",
+                  inset: 0,
+                  backgroundColor: piece2.color,
+                  [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
+                  [MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskPosition: "center",
+                  maskPosition: "center",
+                  mixBlendMode: "multiply",
+                  pointerEvents: "none"
+                }
+              }
+            )
+          ]
+        }
+      ) : piece2.name.substring(0, 1)
     }
   );
+}
+function GridBoard({
+  socket,
+  roomId,
+  boardId,
+  players,
+  myPlayerId,
+  allowPieceDrag = false,
+  moveRange = 2,
+  isExact = true,
+  width = 800,
+  height = 800,
+  renderCell
+}) {
+  const [isBoardReady, setIsBoardReady] = React.useState(false);
+  const [cells, setCells] = React.useState([]);
+  const [changedCells, setChangedCells] = React.useState([]);
+  const [highlightedCells, setHighlightedCells] = React.useState([]);
+  const [draggingPieceId, setDraggingPieceId] = React.useState(null);
+  const [pieces, setPieces] = React.useState([]);
+  const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
+  const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
+  const handleCellClick = (celldata, loc) => {
+    console.log("クリックされました");
+  };
+  const handleCellDoubleClick = (celldata, loc) => {
+    if (!isBoardReady || !socket) return;
+    console.log("ダブルクリックされました");
+  };
+  const handleCellDrop = (e, targetRow, targetCol) => {
+    e.preventDefault();
+    if (!isBoardReady || !socket) return;
+    const draggedPieceId = e.dataTransfer.getData("pieceId");
+    if (draggedPieceId) {
+      setHighlightedCells([]);
+      socket.emit("board:move-player", {
+        roomId,
+        boardId,
+        playerId: draggedPieceId,
+        newLocation: { row: targetRow, col: targetCol }
+      });
+    }
+  };
+  const handlePieceClick = (pieceId) => {
+    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
+    const requestData = {
+      roomId,
+      boardId,
+      playerId: pieceId,
+      moveRange,
+      isExact
+    };
+    socket.emit("board:movable-range", requestData);
+  };
+  const handlePieceDragStart = (e, piece2) => {
+    e.dataTransfer.setData("pieceId", piece2.id);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggingPieceId(piece2.id);
+    handlePieceClick(piece2.id);
+  };
+  const handlePieceDragEnd = () => {
+    setDraggingPieceId(null);
+  };
+  React.useEffect(() => {
+    const handleInitBoard = (data) => {
+      if (data.board && data.board.length > 0) {
+        setCells(data.board);
+        setIsBoardReady(true);
+      }
+    };
+    socket.on("board:update", handleInitBoard);
+    return () => {
+      socket.off("board:update", handleInitBoard);
+    };
+  }, [socket]);
+  React.useEffect(() => {
+    const handleCellUpdate = (updatedLocs) => {
+      setChangedCells(updatedLocs);
+    };
+    socket.on("cell:update", handleCellUpdate);
+    return () => {
+      socket.off("cell:update", handleCellUpdate);
+    };
+  }, [socket]);
+  React.useEffect(() => {
+    setPieces((prevPieces) => {
+      if (!players) return [];
+      return players.map((p) => {
+        const existingPiece = prevPieces.find((piece2) => piece2.id === p.id);
+        const location = p.position;
+        const playerColor = p.color || existingPiece?.color || "#aaaaaa";
+        const playerName2 = p.name || existingPiece?.name || `P?`;
+        const playerImage = p.pieceImage || existingPiece?.image;
+        return {
+          ...existingPiece,
+          id: p.id,
+          name: playerName2,
+          color: playerColor,
+          image: playerImage,
+          location
+        };
+      });
+    });
+  }, [players]);
+  const boardStyle = {
+    "--board-rows": rows,
+    "--board-cols": cols,
+    display: "grid",
+    gridTemplateRows: `repeat(${rows}, 1fr)`,
+    gridTemplateColumns: `repeat(${cols}, 1fr)`,
+    gap: "4px",
+    width,
+    height,
+    position: "relative"
+  };
+  if (!isBoardReady) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        style: {
+          padding: "40px",
+          textAlign: "center",
+          fontSize: "20px",
+          color: "#e0e0e0"
+        },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "サーバーから盤面データをロード中..." })
+      }
+    );
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$7.boardContainer, style: boardStyle, children: [
+    cells.map((cell2) => {
+      const match = cell2.id.match(/r(\d+)c(\d+)/);
+      const r = match ? parseInt(match[1], 10) : 0;
+      const c = match ? parseInt(match[2], 10) : 0;
+      const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
+      const isHighlighted = players ? players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false : false;
+      const cellDataForRenderer = {
+        ...cell2,
+        content: isChanged ? cell2.changedContent : cell2.content
+      };
+      const loc = { row: r, col: c };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Cell,
+        {
+          locationData: loc,
+          cellData: cellDataForRenderer,
+          onClick: () => handleCellClick(),
+          onDoubleClick: () => handleCellDoubleClick(),
+          onDrop: (e) => handleCellDrop(e, r, c),
+          onDragOver: (e) => e.preventDefault(),
+          highlighted: isHighlighted,
+          changed: isChanged,
+          children: renderCell(cellDataForRenderer, r, c)
+        },
+        cell2.id
+      );
+    }),
+    pieces.map((piece2) => {
+      const sameLocationPieces = pieces.filter(
+        (p) => p.location.row === piece2.location.row && p.location.col === piece2.location.col
+      );
+      const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece2.id);
+      const groupCount = sameLocationPieces.length;
+      let offsetX = 0;
+      let offsetY = 0;
+      if (groupCount > 1) {
+        const radius = 18;
+        const angle = 2 * Math.PI / groupCount * groupIndex;
+        offsetX = radius * Math.cos(angle);
+        offsetY = radius * Math.sin(angle);
+      }
+      const pieceStyle = {
+        gridArea: `${piece2.location.row + 1} / ${piece2.location.col + 1} / span 1 / span 1`,
+        alignSelf: "center",
+        justifySelf: "center",
+        transform: `translate(${offsetX}px, ${offsetY}px)`,
+        transition: "transform 0.3s ease-in-out"
+      };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Piece,
+        {
+          piece: piece2,
+          style: pieceStyle,
+          onClick: handlePieceClick,
+          isDraggable: allowPieceDrag,
+          isFilled: true,
+          onDragStart: handlePieceDragStart,
+          onDragEnd: handlePieceDragEnd
+        },
+        piece2.id
+      );
+    })
+  ] });
 }
 const rgPlayFieldContainer = "_rgPlayFieldContainer_16v0u_14";
 const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_16v0u_22";
@@ -1936,425 +2155,11 @@ function PlayField({
     }
   );
 }
-const image = "_image_965of_2";
-const textWrapper = "_textWrapper_965of_10";
-const text = "_text_965of_10";
-const contentWrapper = "_contentWrapper_965of_26";
-const styles$5 = {
-  image,
-  textWrapper,
-  text,
-  contentWrapper
-};
-const TokenDisplayContent = React__default.memo(({ token }) => {
-  if (token.imageSrc) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$5.image }) });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$5.text, children: token.name }) }) });
-});
-const section = "_section_5m8u8_2";
-const title$2 = "_title_5m8u8_12";
-const list = "_list_5m8u8_17";
-const styles$4 = {
-  section,
-  title: title$2,
-  list
-};
-function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
-  const [tokenStoreTokens, setTokenStoreTokens] = useState([]);
-  useEffect(() => {
-    socket.on(`token-store:update:${tokenStoreId}`, (data) => {
-      const newTokens = data.tokenStore || [];
-      setTokenStoreTokens(newTokens);
-    });
-    return () => {
-      socket.off(`token-store:update:${tokenStoreId}`);
-    };
-  }, [socket]);
-  const getTokenById = useMemo(() => (id) => tokenStoreTokens.find((t) => t.id === id), [tokenStoreTokens]);
-  const handleClick = (id) => {
-    const token = getTokenById(id);
-    if (!token) return;
-    onSelect?.(token);
-  };
-  const handleDoubleClick = (tokenId) => {
-    const token = getTokenById(tokenId);
-    if (!token) return;
-    const data = { roomId, tokenStoreId, tokenId };
-    socket.emit("token:aquire", data);
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$4.section, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles$4.title, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.list, children: tokenStoreTokens.map((t, i) => {
-      const offsetX = i % 5 * 40 - 80;
-      const offsetY = i * 3 % 4 * 10 - 20;
-      const rotation = i * 13 % 30 - 15;
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          style: {
-            position: "absolute",
-            left: `calc(40% + ${offsetX}px)`,
-            top: `calc(50% + ${offsetY}px)`,
-            transform: `rotate(${rotation}deg)`,
-            zIndex: i
-          },
-          onClick: () => handleClick(t.id),
-          onDoubleClick: () => handleDoubleClick(t.id),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t })
-        },
-        t.id
-      );
-    }) })
-  ] });
-}
-const DynamicComponent = ({
-  type,
-  props,
-  socket,
-  roomId,
-  myPlayerId,
-  currentPlayerId,
-  players,
-  containerRef
-}) => {
-  const commonProps = { socket, roomId };
-  switch (type) {
-    case "Deck":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props, myPlayerId, currentPlayerId });
-    case "PlayField":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(PlayField, { ...commonProps, ...props, myPlayerId, players, isDebug: true });
-    case "ScoreBoard":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        ScoreBoard,
-        {
-          ...commonProps,
-          ...props,
-          myPlayerId,
-          currentPlayerId,
-          players
-        }
-      );
-    case "TokenStore":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(TokenStore, { ...commonProps, ...props });
-    case "GridBoard":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(GridBoard, { ...commonProps, ...props });
-    case "Draggable":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Draggable, { ...commonProps, ...props, containerRef });
-    case "Dice":
-      const processedProps = { ...props };
-      if (Array.isArray(props.customFaces)) {
-        processedProps.customFaces = props.customFaces.map((src, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src, style: { width: "100%", height: "100%", objectFit: "contain" } }, `f${i}`));
-      }
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Dice, { ...commonProps, ...processedProps });
-    case "Timer":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Timer, { ...commonProps, ...props });
-    case "SystemMessageWindow":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(SystemMessageWindow, { ...commonProps });
-    // 未定義のコンポーネントが来た場合
-    default:
-      console.warn(`Unknown component type: ${type}`);
-      return null;
-  }
-};
-const piece = "_piece_138ki_3";
-const styles$3 = {
-  piece
-};
-function Piece({
-  piece: piece2,
-  style,
-  onClick,
-  isDraggable,
-  isFilled = false,
-  onDragStart,
-  onDragEnd
-}) {
-  const handleClick = (e) => {
-    e.stopPropagation();
-    onClick(piece2.id);
-  };
-  const handleDragStart = (e) => {
-    if (isDraggable) {
-      e.stopPropagation();
-      e.dataTransfer.setData("pieceId", piece2.id);
-      e.dataTransfer.effectAllowed = "move";
-      if (piece2.image) {
-        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
-      }
-      onDragStart(e, piece2);
-    }
-  };
-  const pieceClasses = [styles$3.piece, isDraggable ? styles$3.draggable : styles$3.clickable].join(" ");
-  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
-  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
-  const URL_FUNC = ["u", "r", "l"].join("");
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      className: pieceClasses,
-      style: {
-        ...style,
-        backgroundColor: piece2.image ? "transparent" : piece2.color,
-        filter: "none",
-        border: "none",
-        outline: "none",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: piece2.image ? "none" : "0 2px 4px rgba(0,0,0,0.2)"
-      },
-      onClick: handleClick,
-      draggable: isDraggable,
-      onDragStart: handleDragStart,
-      onDragEnd: (e) => onDragEnd(e, piece2),
-      children: piece2.image ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          style: {
-            width: "100%",
-            height: "100%",
-            position: "relative",
-            pointerEvents: "none"
-          },
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "img",
-              {
-                src: piece2.image,
-                alt: "",
-                style: {
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  display: "block"
-                }
-              }
-            ),
-            isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "div",
-              {
-                style: {
-                  position: "absolute",
-                  inset: 0,
-                  backgroundColor: piece2.color,
-                  [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
-                  [MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
-                  WebkitMaskSize: "contain",
-                  maskSize: "contain",
-                  WebkitMaskRepeat: "no-repeat",
-                  maskRepeat: "no-repeat",
-                  WebkitMaskPosition: "center",
-                  maskPosition: "center",
-                  mixBlendMode: "multiply",
-                  pointerEvents: "none"
-                }
-              }
-            )
-          ]
-        }
-      ) : piece2.name.substring(0, 1)
-    }
-  );
-}
-function GridBoard({
-  socket,
-  roomId,
-  boardId,
-  players,
-  myPlayerId,
-  allowPieceDrag = false,
-  moveRange = 2,
-  isExact = true,
-  width = 800,
-  height = 800,
-  renderCell
-}) {
-  const [isBoardReady, setIsBoardReady] = React.useState(false);
-  const [cells, setCells] = React.useState([]);
-  const [changedCells, setChangedCells] = React.useState([]);
-  const [highlightedCells, setHighlightedCells] = React.useState([]);
-  const [draggingPieceId, setDraggingPieceId] = React.useState(null);
-  const [pieces, setPieces] = React.useState([]);
-  const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
-  const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
-  const handleCellClick = (celldata, loc) => {
-    console.log("クリックされました");
-  };
-  const handleCellDoubleClick = (celldata, loc) => {
-    if (!isBoardReady || !socket) return;
-    console.log("ダブルクリックされました");
-  };
-  const handleCellDrop = (e, targetRow, targetCol) => {
-    e.preventDefault();
-    if (!isBoardReady || !socket) return;
-    const draggedPieceId = e.dataTransfer.getData("pieceId");
-    if (draggedPieceId) {
-      setHighlightedCells([]);
-      socket.emit("board:move-player", {
-        roomId,
-        boardId,
-        playerId: draggedPieceId,
-        newLocation: { row: targetRow, col: targetCol }
-      });
-    }
-  };
-  const handlePieceClick = (pieceId) => {
-    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
-    const requestData = {
-      roomId,
-      boardId,
-      playerId: pieceId,
-      moveRange,
-      isExact
-    };
-    socket.emit("board:movable-range", requestData);
-  };
-  const handlePieceDragStart = (e, piece2) => {
-    e.dataTransfer.setData("pieceId", piece2.id);
-    e.dataTransfer.effectAllowed = "move";
-    setDraggingPieceId(piece2.id);
-    handlePieceClick(piece2.id);
-  };
-  const handlePieceDragEnd = () => {
-    setDraggingPieceId(null);
-  };
-  React.useEffect(() => {
-    const handleInitBoard = (data) => {
-      if (data.board && data.board.length > 0) {
-        setCells(data.board);
-        setIsBoardReady(true);
-      }
-    };
-    socket.on("board:update", handleInitBoard);
-    return () => {
-      socket.off("board:update", handleInitBoard);
-    };
-  }, [socket]);
-  React.useEffect(() => {
-    const handleCellUpdate = (updatedLocs) => {
-      setChangedCells(updatedLocs);
-    };
-    socket.on("cell:update", handleCellUpdate);
-    return () => {
-      socket.off("cell:update", handleCellUpdate);
-    };
-  }, [socket]);
-  React.useEffect(() => {
-    setPieces((prevPieces) => {
-      if (!players) return [];
-      return players.map((p) => {
-        const existingPiece = prevPieces.find((piece2) => piece2.id === p.id);
-        const location = p.position;
-        const playerColor = p.color || existingPiece?.color || "#aaaaaa";
-        const playerName2 = p.name || existingPiece?.name || `P?`;
-        const playerImage = p.pieceImage || existingPiece?.image;
-        return {
-          ...existingPiece,
-          id: p.id,
-          name: playerName2,
-          color: playerColor,
-          image: playerImage,
-          location
-        };
-      });
-    });
-  }, [players]);
-  const boardStyle = {
-    "--board-rows": rows,
-    "--board-cols": cols,
-    display: "grid",
-    gridTemplateRows: `repeat(${rows}, 1fr)`,
-    gridTemplateColumns: `repeat(${cols}, 1fr)`,
-    gap: "4px",
-    width,
-    height,
-    position: "relative"
-  };
-  if (!isBoardReady) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        style: {
-          padding: "40px",
-          textAlign: "center",
-          fontSize: "20px",
-          color: "#e0e0e0"
-        },
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "サーバーから盤面データをロード中..." })
-      }
-    );
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$7.boardContainer, style: boardStyle, children: [
-    cells.map((cell2) => {
-      const match = cell2.id.match(/r(\d+)c(\d+)/);
-      const r = match ? parseInt(match[1], 10) : 0;
-      const c = match ? parseInt(match[2], 10) : 0;
-      const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
-      const isHighlighted = players ? players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false : false;
-      const cellDataForRenderer = {
-        ...cell2,
-        content: isChanged ? cell2.changedContent : cell2.content
-      };
-      const loc = { row: r, col: c };
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Cell,
-        {
-          locationData: loc,
-          cellData: cellDataForRenderer,
-          onClick: () => handleCellClick(),
-          onDoubleClick: () => handleCellDoubleClick(),
-          onDrop: (e) => handleCellDrop(e, r, c),
-          onDragOver: (e) => e.preventDefault(),
-          highlighted: isHighlighted,
-          changed: isChanged,
-          children: renderCell(cellDataForRenderer, r, c)
-        },
-        cell2.id
-      );
-    }),
-    pieces.map((piece2) => {
-      const sameLocationPieces = pieces.filter(
-        (p) => p.location.row === piece2.location.row && p.location.col === piece2.location.col
-      );
-      const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece2.id);
-      const groupCount = sameLocationPieces.length;
-      let offsetX = 0;
-      let offsetY = 0;
-      if (groupCount > 1) {
-        const radius = 18;
-        const angle = 2 * Math.PI / groupCount * groupIndex;
-        offsetX = radius * Math.cos(angle);
-        offsetY = radius * Math.sin(angle);
-      }
-      const pieceStyle = {
-        gridArea: `${piece2.location.row + 1} / ${piece2.location.col + 1} / span 1 / span 1`,
-        alignSelf: "center",
-        justifySelf: "center",
-        transform: `translate(${offsetX}px, ${offsetY}px)`,
-        transition: "transform 0.3s ease-in-out"
-      };
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Piece,
-        {
-          piece: piece2,
-          style: pieceStyle,
-          onClick: handlePieceClick,
-          isDraggable: allowPieceDrag,
-          isFilled: true,
-          onDragStart: handlePieceDragStart,
-          onDragEnd: handlePieceDragEnd
-        },
-        piece2.id
-      );
-    })
-  ] });
-}
 const container$1 = "_container_17uio_2";
 const cursorWrapper = "_cursorWrapper_17uio_13";
 const icon = "_icon_17uio_21";
 const label$1 = "_label_17uio_29";
-const styles$2 = {
+const styles$4 = {
   container: container$1,
   cursorWrapper,
   icon,
@@ -2399,21 +2204,21 @@ const RemoteCursor = React__default.memo(
       return () => window.removeEventListener("mousemove", handleMove);
     }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
     if (!visible) return null;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
       const player = players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
       const name = player ? player.name : "接続中...";
       const color = player?.color || "#000000";
       const left = isRelative ? `${coords.x * 100}%` : coords.x;
       const top = isRelative ? `${coords.y * 100}%` : coords.y;
-      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$2.cursorWrapper, style: { left, top }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.icon, style: { color }, children: "👆" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.label, style: { backgroundColor: color }, children: name })
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.cursorWrapper, style: { left, top }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.icon, style: { color }, children: "👆" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.label, style: { backgroundColor: color }, children: name })
       ] }, id);
     }) });
   }
 );
 const container = "_container_k18kw_7";
-const title$1 = "_title_k18kw_19";
+const title$2 = "_title_k18kw_19";
 const playerList = "_playerList_k18kw_28";
 const playerItem = "_playerItem_k18kw_38";
 const activePlayer = "_activePlayer_k18kw_51";
@@ -2441,7 +2246,7 @@ const limitMessage = "_limitMessage_k18kw_319";
 const buttonGroup = "_buttonGroup_k18kw_326";
 const scoreBoardStyles = {
   container,
-  title: title$1,
+  title: title$2,
   playerList,
   playerItem,
   activePlayer,
@@ -2468,6 +2273,22 @@ const scoreBoardStyles = {
   limitMessage,
   buttonGroup
 };
+const image = "_image_965of_2";
+const textWrapper = "_textWrapper_965of_10";
+const text = "_text_965of_10";
+const contentWrapper = "_contentWrapper_965of_26";
+const styles$3 = {
+  image,
+  textWrapper,
+  text,
+  contentWrapper
+};
+const TokenDisplayContent = React__default.memo(({ token }) => {
+  if (token.imageSrc) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$3.image }) });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$3.text, children: token.name }) }) });
+});
 const PlayerListItem = React.memo(
   ({
     socket,
@@ -2756,7 +2577,7 @@ function ScoreBoard({
 const messageContainer = "_messageContainer_1akhg_3";
 const messageList = "_messageList_1akhg_29";
 const messageItemActive = "_messageItemActive_1akhg_38";
-const styles$1 = {
+const styles$2 = {
   messageContainer,
   messageList,
   messageItemActive
@@ -2802,7 +2623,186 @@ const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
       clearTimeout(timer);
     };
   }, [isProcessing, currentData, displayDuration]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$1.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.messageItemActive, children: displayMessage }, msgKey) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$2.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageItemActive, children: displayMessage }, msgKey) }) });
+};
+function Timer({ socket = null, roomId, initialDuration, onFinish }) {
+  const [timeLeft, setTimeLeft] = useState(initialDuration);
+  useEffect(() => {
+    if (!socket || !roomId) return;
+    const handleStart = (data) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(data.duration);
+    };
+    const handleUpdate = (data) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(data.remaining);
+    };
+    const handleFinish = (data) => {
+      if (data.roomId !== roomId) return;
+      setTimeLeft(0);
+      onFinish?.();
+    };
+    socket.on("timer:start", handleStart);
+    socket.on("timer:update", handleUpdate);
+    socket.on("timer:finish", handleFinish);
+    return () => {
+      socket.off("timer:start", handleStart);
+      socket.off("timer:update", handleUpdate);
+      socket.off("timer:finish", handleFinish);
+    };
+  }, [socket, roomId, onFinish, initialDuration]);
+  const start = () => {
+    if (!socket || !roomId || initialDuration <= 0) return;
+    setTimeLeft(initialDuration);
+    socket.emit("timer:start", { duration: initialDuration, roomId });
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      style: {
+        width: "300px",
+        height: "80px",
+        border: "2px solid #333",
+        borderRadius: "8px",
+        padding: "8px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#f9f9f9",
+        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+        fontFamily: "sans-serif"
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            style: {
+              fontSize: "1.5rem",
+              fontWeight: "bold",
+              color: timeLeft <= 6 ? "red" : timeLeft <= 15 ? "orange" : "green",
+              transition: "color 0.5s ease"
+            },
+            children: [
+              "残り時間: ",
+              timeLeft,
+              "s"
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "6px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { onClick: start, style: { marginRight: "4px" }, children: [
+          "タイマー開始 (",
+          initialDuration,
+          "s)"
+        ] }) })
+      ]
+    }
+  );
+}
+const section = "_section_5m8u8_2";
+const title$1 = "_title_5m8u8_12";
+const list = "_list_5m8u8_17";
+const styles$1 = {
+  section,
+  title: title$1,
+  list
+};
+function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
+  const [tokenStoreTokens, setTokenStoreTokens] = useState([]);
+  useEffect(() => {
+    socket.on(`token-store:update:${tokenStoreId}`, (data) => {
+      const newTokens = data.tokenStore || [];
+      setTokenStoreTokens(newTokens);
+    });
+    return () => {
+      socket.off(`token-store:update:${tokenStoreId}`);
+    };
+  }, [socket]);
+  const getTokenById = useMemo(() => (id) => tokenStoreTokens.find((t) => t.id === id), [tokenStoreTokens]);
+  const handleClick = (id) => {
+    const token = getTokenById(id);
+    if (!token) return;
+    onSelect?.(token);
+  };
+  const handleDoubleClick = (tokenId) => {
+    const token = getTokenById(tokenId);
+    if (!token) return;
+    const data = { roomId, tokenStoreId, tokenId };
+    socket.emit("token:aquire", data);
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$1.section, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles$1.title, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.list, children: tokenStoreTokens.map((t, i) => {
+      const offsetX = i % 5 * 40 - 80;
+      const offsetY = i * 3 % 4 * 10 - 20;
+      const rotation = i * 13 % 30 - 15;
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          style: {
+            position: "absolute",
+            left: `calc(40% + ${offsetX}px)`,
+            top: `calc(50% + ${offsetY}px)`,
+            transform: `rotate(${rotation}deg)`,
+            zIndex: i
+          },
+          onClick: () => handleClick(t.id),
+          onDoubleClick: () => handleDoubleClick(t.id),
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t })
+        },
+        t.id
+      );
+    }) })
+  ] });
+}
+const DynamicComponent = ({
+  type,
+  props,
+  socket,
+  roomId,
+  myPlayerId,
+  currentPlayerId,
+  players,
+  containerRef
+}) => {
+  const commonProps = { socket, roomId };
+  switch (type) {
+    case "Deck":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props, myPlayerId, currentPlayerId });
+    case "PlayField":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(PlayField, { ...commonProps, ...props, myPlayerId, players, isDebug: true });
+    case "ScoreBoard":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        ScoreBoard,
+        {
+          ...commonProps,
+          ...props,
+          myPlayerId,
+          currentPlayerId,
+          players
+        }
+      );
+    case "TokenStore":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(TokenStore, { ...commonProps, ...props });
+    case "GridBoard":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(GridBoard, { ...commonProps, ...props });
+    case "Draggable":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Draggable, { ...commonProps, ...props, containerRef });
+    case "Dice":
+      const processedProps = { ...props };
+      if (Array.isArray(props.customFaces)) {
+        processedProps.customFaces = props.customFaces.map((src, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src, style: { width: "100%", height: "100%", objectFit: "contain" } }, `f${i}`));
+      }
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Dice, { ...commonProps, ...processedProps });
+    case "Timer":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Timer, { ...commonProps, ...props });
+    case "SystemMessageWindow":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(SystemMessageWindow, { ...commonProps });
+    // 未定義のコンポーネントが来た場合
+    default:
+      console.warn(`Unknown component type: ${type}`);
+      return null;
+  }
 };
 const COMPONENT_TYPES = [
   "Deck",
