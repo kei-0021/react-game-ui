@@ -12,9 +12,9 @@ export const DynamicComponent = ({ type, props, socket, roomId, myPlayerId, curr
     const commonProps = { socket, roomId };
     switch (type) {
         case 'Deck':
-            return _jsx(Deck, { ...commonProps, ...props });
+            return _jsx(Deck, { ...commonProps, ...props, myPlayerId: myPlayerId, currentPlayerId: currentPlayerId });
         case 'PlayField':
-            return _jsx(PlayField, { ...commonProps, ...props, myPlayerId: myPlayerId, players: players });
+            return _jsx(PlayField, { ...commonProps, ...props, myPlayerId: myPlayerId, players: players, isDebug: true });
         case 'ScoreBoard':
             return (_jsx(ScoreBoard, { ...commonProps, ...props, myPlayerId: myPlayerId, currentPlayerId: currentPlayerId, players: players }));
         case 'TokenStore':

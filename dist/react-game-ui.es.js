@@ -1067,8 +1067,8 @@ function Deck({
   roomId,
   deckId,
   title: title2,
-  currentPlayerId,
   myPlayerId,
+  currentPlayerId,
   alwaysDraw = false,
   enabled = true
 }) {
@@ -2022,9 +2022,9 @@ const DynamicComponent = ({
   const commonProps = { socket, roomId };
   switch (type) {
     case "Deck":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props, myPlayerId, currentPlayerId });
     case "PlayField":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(PlayField, { ...commonProps, ...props, myPlayerId, players });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(PlayField, { ...commonProps, ...props, myPlayerId, players, isDebug: true });
     case "ScoreBoard":
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
         ScoreBoard,
@@ -2889,23 +2889,24 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
     switch (newCompType) {
       case "Deck":
         initialProps = {
-          deckId: `deck-${newCompId}`,
+          deckId: `deck`,
           title: "山札"
         };
         additionalParams.initialDecks = [
           {
-            deckId: `deck-${newCompId}`,
+            deckId: `deck`,
             name: "カード",
             backColor: "black",
             cards: [
               {
                 id: "1",
-                deckId: `deck-${newCompId}`,
+                deckId: `deck`,
                 name: "1",
                 ownerId: null,
                 location: "deck",
-                drawCondition: ["field", "face"],
-                playLocation: "discard",
+                drawCondition: ["hand", "back"],
+                fieldBackCondition: ["discard", "face"],
+                playLocation: "field",
                 isFaceUp: true,
                 backColor: "black"
               }
@@ -2915,8 +2916,8 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
         break;
       case "PlayField":
         initialProps = {
-          deckId: "sub",
-          title: "sub"
+          deckId: `deck`,
+          title: `deck`
         };
         break;
       case "ScoreBoard":

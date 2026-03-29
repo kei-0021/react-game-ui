@@ -11,12 +11,12 @@ import deckStyles from './Deck.module.css';
  * @param roomId - 対象のルームID
  * @param deckId - 山札を識別する一意のID
  * @param title - 山札の表示名
- * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
+ * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
  * @param enabled=true - 各種操作が有効かどうかのフラグ。
  */
-export function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerId, alwaysDraw = false, enabled = true, }) {
+export function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerId, alwaysDraw = false, enabled = true, }) {
     const [deckCards, setDeckCards] = React.useState([]);
     const [discardPile, setDiscardPile] = React.useState([]);
     const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);

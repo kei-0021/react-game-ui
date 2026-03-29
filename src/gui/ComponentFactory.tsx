@@ -41,23 +41,24 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
     switch (newCompType) {
       case 'Deck':
         initialProps = {
-          deckId: `deck-${newCompId}`,
+          deckId: `deck`,
           title: '山札',
         };
         additionalParams.initialDecks = [
           {
-            deckId: `deck-${newCompId}`,
+            deckId: `deck`,
             name: 'カード',
             backColor: 'black',
             cards: [
               {
                 id: '1',
-                deckId: `deck-${newCompId}`,
+                deckId: `deck`,
                 name: '1',
                 ownerId: null,
                 location: 'deck',
-                drawCondition: ['field', 'face'],
-                playLocation: 'discard',
+                drawCondition: ['hand', 'back'],
+                fieldBackCondition: ['discard', 'face'],
+                playLocation: 'field',
                 isFaceUp: true,
                 backColor: 'black',
               },
@@ -67,8 +68,8 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
         break;
       case 'PlayField':
         initialProps = {
-          deckId: 'sub',
-          title: 'sub',
+          deckId: `deck`,
+          title: `deck`,
         };
         break;
       case 'ScoreBoard':

@@ -36,10 +36,10 @@ export const DynamicComponent = ({
 
   switch (type) {
     case 'Deck':
-      return <Deck {...commonProps} {...props} />;
+      return <Deck {...commonProps} {...props} myPlayerId={myPlayerId} currentPlayerId={currentPlayerId} />;
 
     case 'PlayField':
-      return <PlayField {...commonProps} {...props} myPlayerId={myPlayerId} players={players} />;
+      return <PlayField {...commonProps} {...props} myPlayerId={myPlayerId} players={players} isDebug={true} />;
 
     case 'ScoreBoard':
       return (
