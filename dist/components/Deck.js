@@ -19,7 +19,6 @@ import deckStyles from './Deck.module.css';
 export function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerId, alwaysDraw = false, enabled = true, }) {
     const [deckCards, setDeckCards] = React.useState([]);
     const [discardPile, setDiscardPile] = React.useState([]);
-    const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
     useEffect(() => {
         socket.on(`deck:update:${deckId}`, (data) => {
             setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));

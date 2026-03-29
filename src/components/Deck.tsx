@@ -1,5 +1,5 @@
 // src/components/Deck.tsx
-import { DeckDrawData, DeckUpdateData } from '@/types/socketData.js';
+import { DeckDrawData, DeckResetData, DeckShuffleData, DeckUpdateData } from '@/types/socketData.js';
 import * as React from 'react';
 import { useEffect } from 'react';
 import { Socket } from 'socket.io-client';
@@ -44,7 +44,6 @@ export function Deck({
 }: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
   const [discardPile, setDiscardPile] = React.useState<Card[]>([]);
-  const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
 
   useEffect(() => {
     socket.on(`deck:update:${deckId}`, (data: DeckUpdateData) => {
@@ -84,8 +83,8 @@ export function Deck({
     socket.emit('deck:draw', requestData);
   };
 
-  const shuffle = () => socket.emit('deck:shuffle', { roomId, deckId });
-  const resetDeck = () => socket.emit('deck:reset', { roomId, deckId });
+  const shuffle = () => socket.emit('deck:shuffle', { roomId, deckId } as DeckShuffleData);
+  const resetDeck = () => socket.emit('deck:reset', { roomId, deckId } as DeckResetData);
 
   return (
     <section className={deckStyles.deckSection}>

@@ -1052,10 +1052,10 @@ const CardPreview = ({ card: card2, children }) => {
     ] }) })
   ] });
 };
-const deckSection = "_deckSection_190vd_3";
-const deckTitle = "_deckTitle_190vd_13";
-const deckWrapperFlex = "_deckWrapperFlex_190vd_18";
-const deckControls = "_deckControls_190vd_32";
+const deckSection = "_deckSection_1e8ta_3";
+const deckTitle = "_deckTitle_1e8ta_15";
+const deckWrapperFlex = "_deckWrapperFlex_1e8ta_20";
+const deckControls = "_deckControls_1e8ta_34";
 const deckStyles = {
   deckSection,
   deckTitle,
@@ -1074,7 +1074,6 @@ function Deck({
 }) {
   const [deckCards, setDeckCards] = React.useState([]);
   const [discardPile, setDiscardPile] = React.useState([]);
-  const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
   useEffect(() => {
     socket.on(`deck:update:${deckId}`, (data) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));

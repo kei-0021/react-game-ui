@@ -98,6 +98,16 @@ export type DeckDrawData = {
   drawCondition: [CardLocation, CardState];
 };
 
+export type DeckShuffleData = {
+  roomId: RoomId;
+  deckId: DeckId;
+};
+
+export type DeckResetData = {
+  roomId: RoomId;
+  deckId: DeckId;
+};
+
 export type DeckUpdateData = {
   currentDeck: Card[];
   playFieldCards: Card[];
