@@ -1,4 +1,5 @@
 // src/gui/ComponentFactory.tsx
+import { ComponentId } from '@/types/definition.js';
 import { COMPONENT_TYPES, ComponentInfo, ComponentType } from '@/types/server.js';
 import { GameMeta } from '@/types/socketData.js';
 import { useState } from 'react';
@@ -6,7 +7,7 @@ import styles from './ControlPanel.module.css';
 
 interface ComponentFactoryProps {
   onAdd: (newComponent: ComponentInfo, additionalParams?: any) => void;
-  existingIds: string[];
+  existingIds: ComponentId[];
 }
 
 export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) => {
@@ -14,7 +15,12 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
   const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
 
   const [newDiceSides, setNewDiceSides] = useState<number>(6);
+
+  // 初期位置State
   const [uploadImage, setUploadImage] = useState<string | null>(null);
+  const [newDraggableX, setNewDraggableX] = useState<number>(500);
+  const [newDraggableY, setNewDraggableY] = useState<number>(500);
+  const [isDraggingPreview, setIsDraggingPreview] = useState(false);
 
   const isDuplicateId = existingIds.includes(newCompId);
 
@@ -102,7 +108,7 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
         additionalParams.draggables = {
           [`piece-${newCompId}`]: {
             id: `piece-${newCompId}`,
-            coordinate: { x: 500, y: 500 },
+            coordinate: { x: newDraggableX, y: newDraggableY },
             zIndex: 100,
             rotation: 0,
           },
@@ -198,15 +204,55 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
             画像アップロード:
           </div>
           <input type="file" accept="image/*" className={styles.select} onChange={handleFileChange} />
-          {uploadImage && (
-            <div style={{ marginTop: '5px' }}>
-              <img
-                src={uploadImage}
-                alt="preview"
-                style={{ width: '50px', height: '50px', objectFit: 'contain', border: '1px solid #555' }}
-              />
-            </div>
-          )}
+
+          <div style={{ marginTop: '10px', fontSize: '11px', color: '#aaa' }}>
+            ※画面上の赤いプレビューをドラッグして初期位置を決めてください
+          </div>
+
+          {/* プレビュー用の簡易D&D要素 (本来はPortal等で盤面上に表示するのが理想) */}
+          <div
+            style={{
+              position: 'fixed',
+              left: `${newDraggableX}px`,
+              top: `${newDraggableY}px`,
+              width: '50px',
+              height: '50px',
+              border: '2px dashed #ff4444',
+              backgroundColor: 'rgba(255, 68, 68, 0.3)',
+              cursor: 'move',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'auto',
+            }}
+            onMouseDown={(e) => {
+              setIsDraggingPreview(true);
+              const startX = e.clientX - newDraggableX;
+              const startY = e.clientY - newDraggableY;
+
+              const onMouseMove = (moveEvent: MouseEvent) => {
+                setNewDraggableX(moveEvent.clientX - startX);
+                setNewDraggableY(moveEvent.clientY - startY);
+              };
+
+              const onMouseUp = () => {
+                setIsDraggingPreview(false);
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+              };
+
+              document.addEventListener('mousemove', onMouseMove);
+              document.addEventListener('mouseup', onMouseUp);
+            }}
+          >
+            <span style={{ fontSize: '10px', color: 'white', userSelect: 'none' }}>Preview</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', marginTop: '10px', fontSize: '11px' }}>
+            <span>X: {Math.round(newDraggableX)}</span>
+            <span>Y: {Math.round(newDraggableY)}</span>
+          </div>
         </div>
       )}
     </div>

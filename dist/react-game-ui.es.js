@@ -2873,6 +2873,9 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
   const [newCompType, setNewCompType] = useState("Dice");
   const [newDiceSides, setNewDiceSides] = useState(6);
   const [uploadImage, setUploadImage] = useState(null);
+  const [newDraggableX, setNewDraggableX] = useState(500);
+  const [newDraggableY, setNewDraggableY] = useState(500);
+  const [isDraggingPreview, setIsDraggingPreview] = useState(false);
   const isDuplicateId = existingIds.includes(newCompId);
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -2955,7 +2958,7 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
         additionalParams.draggables = {
           [`piece-${newCompId}`]: {
             id: `piece-${newCompId}`,
-            coordinate: { x: 500, y: 500 },
+            coordinate: { x: newDraggableX, y: newDraggableY },
             zIndex: 100,
             rotation: 0
           }
@@ -3032,14 +3035,54 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
     newCompType === "Draggable" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "画像アップロード:" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }),
-      uploadImage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "5px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "img",
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "10px", fontSize: "11px", color: "#aaa" }, children: "※画面上の赤いプレビューをドラッグして初期位置を決めてください" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
         {
-          src: uploadImage,
-          alt: "preview",
-          style: { width: "50px", height: "50px", objectFit: "contain", border: "1px solid #555" }
+          style: {
+            position: "fixed",
+            left: `${newDraggableX}px`,
+            top: `${newDraggableY}px`,
+            width: "50px",
+            height: "50px",
+            border: "2px dashed #ff4444",
+            backgroundColor: "rgba(255, 68, 68, 0.3)",
+            cursor: "move",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            pointerEvents: "auto"
+          },
+          onMouseDown: (e) => {
+            setIsDraggingPreview(true);
+            const startX = e.clientX - newDraggableX;
+            const startY = e.clientY - newDraggableY;
+            const onMouseMove = (moveEvent) => {
+              setNewDraggableX(moveEvent.clientX - startX);
+              setNewDraggableY(moveEvent.clientY - startY);
+            };
+            const onMouseUp = () => {
+              setIsDraggingPreview(false);
+              document.removeEventListener("mousemove", onMouseMove);
+              document.removeEventListener("mouseup", onMouseUp);
+            };
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
+          },
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "10px", color: "white", userSelect: "none" }, children: "Preview" })
         }
-      ) })
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "10px", marginTop: "10px", fontSize: "11px" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+          "X: ",
+          Math.round(newDraggableX)
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+          "Y: ",
+          Math.round(newDraggableY)
+        ] })
+      ] })
     ] })
   ] });
 };

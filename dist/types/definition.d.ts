@@ -11,4 +11,5 @@ export type DiceId = string;
 export type TokenStoreId = string;
 export type TokenId = string;
 export type DraggableId = string;
+export type ComponentId = string;
 //# sourceMappingURL=definition.d.ts.map

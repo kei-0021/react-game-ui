@@ -3,7 +3,18 @@ import { CellData, Player } from '@/index.js';
 import { RoomManager } from '@/server/server-utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
-import { BoardId, CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
+import {
+  BoardId,
+  CardId,
+  ComponentId,
+  DeckId,
+  DraggableId,
+  GameId,
+  PlayerId,
+  RoomId,
+  TokenId,
+  TokenStoreId,
+} from './definition.js';
 import { DraggableData } from './draggable.js';
 import { Phase } from './phase.js';
 import { Position } from './position.js';
@@ -126,7 +137,7 @@ export const COMPONENT_TYPES = [
 export type ComponentType = (typeof COMPONENT_TYPES)[number];
 
 export type ComponentInfo = {
-  id: string;
+  id: ComponentId;
   type: ComponentType;
   props: Record<string, any>;
 };
