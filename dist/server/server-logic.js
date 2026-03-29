@@ -2,8 +2,8 @@ import { exec } from 'child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import util from 'util';
-import { createState } from './server-create-state.js';
-import { deepMerge, generateColorFromId, LOG_CATEGORIES, RoomManager } from './server-utils.js';
+import { createPlayer, createState } from './server-create-state.js';
+import { deepMerge, LOG_CATEGORIES, RoomManager } from './server-utils.js';
 const activeRooms = new Map();
 const execPromise = util.promisify(exec);
 export function initGameServer(io, options) {
@@ -145,75 +145,26 @@ export function initGameServer(io, options) {
             }
             const roomManager = new RoomManager(io, param, state);
             await socket.join(roomId);
-            let player = state.players.find((p) => p.socketId === socket.id);
             // プレイヤークラスの初期化
-            if (!player) {
-                const playerId = `${roomId}_p${state.players.length + 1}`;
-                player = {
-                    id: playerId,
-                    name: playerName?.trim() || `Player ${state.players.length + 1}`,
-                    color: generateColorFromId(playerId),
-                    socketId: socket.id,
-                    cards: [],
-                    isHolding: false,
-                    score: 0,
-                    resources: JSON.parse(JSON.stringify(param.initialResources || [])),
-                    tokens: [],
-                    position: { row: 0, col: 0 },
-                    movableCells: [],
-                    pieceImage: param.pieceImage,
-                };
-                state.players.push(player);
-                roomManager.server_log('room', `${player.name} (${player.id})が参加しました`);
-                // 初期手札配布処理
-                const initialHand = param.initialHand;
-                if (initialHand) {
-                    // initialHand に含まれるすべてのデッキ（deckId）をループ
-                    for (const [deckId, count] of Object.entries(initialHand)) {
-                        const target = state.decks[deckId];
-                        if (!target)
-                            continue;
-                        for (let i = 0; i < count; i++) {
-                            const idx = target.findIndex((c) => c.location === 'deck');
-                            if (idx === -1)
-                                break;
-                            const card = target[idx];
-                            card.location = 'hand';
-                            card.ownerId = player.id;
-                            card.isFaceUp = card.drawCondition[1] === 'face';
-                            player.cards.push(card);
-                        }
-                    }
-                }
-                // 初期トークンの配布処理
-                const initialTokens = param.initialTokens;
-                if (initialTokens) {
-                    for (const [tokenId, count] of Object.entries(initialTokens)) {
-                        const masterTokenList = state.tokenStores[tokenId];
-                        if (masterTokenList && masterTokenList.length > 0) {
-                            // 配列の最初の要素（Tokenオブジェクト）を取り出す
-                            const masterToken = masterTokenList[0];
-                            for (let i = 0; i < count; i++) {
-                                // オブジェクトをコピーして push
-                                player.tokens.push(masterToken);
-                            }
-                        }
-                    }
-                }
+            let newPlayer = state.players.find((p) => p.socketId === socket.id);
+            if (!newPlayer) {
+                newPlayer = createPlayer(param, state, playerName, socket.id);
+                state.players.push(newPlayer);
+                roomManager.server_log('room', `${newPlayer.name} (${newPlayer.id})が参加しました`);
             }
             else {
-                player.socketId = socket.id;
+                newPlayer.socketId = socket.id;
             }
             // 各種コンポーネントの準備
-            socket.emit('player:assign-id', player.id);
+            socket.emit('player:assign-id', newPlayer.id);
             // コンポーネント情報を伝える
             const data = {
                 state: state,
                 components: param.components,
             };
             socket.emit('game:component', data);
-            // ここで準備完了を促す
-            socket.emit('client:ready-to-sync', player.id);
+            // 準備完了を促す
+            socket.emit('client:ready-to-sync', newPlayer.id);
         });
         // 準備完了を受けた同期処理
         socket.on('client:ready', (roomId) => {
