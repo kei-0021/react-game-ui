@@ -16,6 +16,8 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
 
   const [newDiceSides, setNewDiceSides] = useState<number>(6);
 
+  const [newTokenCount, setNewTokenCount] = useState<number>(10);
+
   // 初期位置State
   const [uploadImage, setUploadImage] = useState<string | null>(null);
   const [newDraggableX, setNewDraggableX] = useState<number>(500);
@@ -77,17 +79,21 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
         break;
       case 'TokenStore':
         initialProps = {
-          tokenStoreId: 'ARTIFACT',
-          title: '遺物トークン',
+          tokenStoreId: newCompId,
+          title: `トークン置き場`,
         };
+
+        const generatedTokens = Array.from({ length: newTokenCount }, (_, i) => ({
+          id: `${newCompId}-s${i + 1}`,
+          name: '💰',
+          color: '#D4AF37',
+        }));
+
         additionalParams.initialTokenStores = [
           {
-            tokenStoreId: 'ARTIFACT',
-            name: '遺物',
-            tokens: [
-              { id: 'ARTIFACT-s1', name: '💰', color: '#D4AF37' },
-              { id: 'ARTIFACT-s2', name: '💰', color: '#D4AF37' },
-            ],
+            tokenStoreId: newCompId,
+            name: newCompId,
+            tokens: generatedTokens,
           },
         ];
         break;
@@ -177,6 +183,26 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
       </div>
       {isDuplicateId && (
         <div style={{ color: '#ff4444', fontSize: '12px', marginTop: '-4px' }}>このIDは既に使用されています</div>
+      )}
+
+      {/* トークン専用の設定項目 */}
+      {newCompType === 'TokenStore' && (
+        <div className={styles.field} style={{ marginTop: '10px' }}>
+          <div className={styles.label} style={{ fontSize: '11px' }}>
+            初期個数:
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="range"
+              min="1"
+              max="50"
+              value={newTokenCount}
+              onChange={(e) => setNewTokenCount(Number(e.target.value))}
+              className={styles.slider}
+            />
+            <span style={{ fontSize: '12px', color: '#fff', minWidth: '30px' }}>{newTokenCount}</span>
+          </div>
+        </div>
       )}
 
       {/* ダイス専用の設定項目 */}

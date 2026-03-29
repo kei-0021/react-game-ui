@@ -2869,6 +2869,7 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
   const [newCompId, setNewCompId] = useState("");
   const [newCompType, setNewCompType] = useState("Dice");
   const [newDiceSides, setNewDiceSides] = useState(6);
+  const [newTokenCount, setNewTokenCount] = useState(10);
   const [uploadImage, setUploadImage] = useState(null);
   const [newDraggableX, setNewDraggableX] = useState(500);
   const [newDraggableY, setNewDraggableY] = useState(500);
@@ -2924,17 +2925,19 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
         break;
       case "TokenStore":
         initialProps = {
-          tokenStoreId: "ARTIFACT",
-          title: "遺物トークン"
+          tokenStoreId: newCompId,
+          title: `トークン置き場`
         };
+        const generatedTokens = Array.from({ length: newTokenCount }, (_, i) => ({
+          id: `${newCompId}-s${i + 1}`,
+          name: "💰",
+          color: "#D4AF37"
+        }));
         additionalParams.initialTokenStores = [
           {
-            tokenStoreId: "ARTIFACT",
-            name: "遺物",
-            tokens: [
-              { id: "ARTIFACT-s1", name: "💰", color: "#D4AF37" },
-              { id: "ARTIFACT-s2", name: "💰", color: "#D4AF37" }
-            ]
+            tokenStoreId: newCompId,
+            name: newCompId,
+            tokens: generatedTokens
           }
         ];
         break;
@@ -3015,6 +3018,23 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: () => handleAddClick(), disabled: !newCompId || isDuplicateId, children: "追加" })
     ] }),
     isDuplicateId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#ff4444", fontSize: "12px", marginTop: "-4px" }, children: "このIDは既に使用されています" }),
+    newCompType === "TokenStore" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "初期個数:" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", alignItems: "center", gap: "8px" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "range",
+            min: "1",
+            max: "50",
+            value: newTokenCount,
+            onChange: (e) => setNewTokenCount(Number(e.target.value)),
+            className: styles.slider
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "12px", color: "#fff", minWidth: "30px" }, children: newTokenCount })
+      ] })
+    ] }),
     newCompType === "Dice" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "面数を選択:" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(

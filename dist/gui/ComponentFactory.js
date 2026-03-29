@@ -6,6 +6,7 @@ export const ComponentFactory = ({ onAdd, existingIds }) => {
     const [newCompId, setNewCompId] = useState('');
     const [newCompType, setNewCompType] = useState('Dice');
     const [newDiceSides, setNewDiceSides] = useState(6);
+    const [newTokenCount, setNewTokenCount] = useState(10);
     // 初期位置State
     const [uploadImage, setUploadImage] = useState(null);
     const [newDraggableX, setNewDraggableX] = useState(500);
@@ -64,17 +65,19 @@ export const ComponentFactory = ({ onAdd, existingIds }) => {
                 break;
             case 'TokenStore':
                 initialProps = {
-                    tokenStoreId: 'ARTIFACT',
-                    title: '遺物トークン',
+                    tokenStoreId: newCompId,
+                    title: `トークン置き場`,
                 };
+                const generatedTokens = Array.from({ length: newTokenCount }, (_, i) => ({
+                    id: `${newCompId}-s${i + 1}`,
+                    name: '💰',
+                    color: '#D4AF37',
+                }));
                 additionalParams.initialTokenStores = [
                     {
-                        tokenStoreId: 'ARTIFACT',
-                        name: '遺物',
-                        tokens: [
-                            { id: 'ARTIFACT-s1', name: '💰', color: '#D4AF37' },
-                            { id: 'ARTIFACT-s2', name: '💰', color: '#D4AF37' },
-                        ],
+                        tokenStoreId: newCompId,
+                        name: newCompId,
+                        tokens: generatedTokens,
                     },
                 ];
                 break;
@@ -131,7 +134,7 @@ export const ComponentFactory = ({ onAdd, existingIds }) => {
         setNewCompId('');
         setUploadImage(null);
     };
-    return (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: styles.compTypeSelect, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: styles.flexFill, style: { borderColor: isDuplicateId ? '#ff4444' : '' }, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: () => handleAddClick(), disabled: !newCompId || isDuplicateId, children: "\u8FFD\u52A0" })] }), isDuplicateId && (_jsx("div", { style: { color: '#ff4444', fontSize: '12px', marginTop: '-4px' }, children: "\u3053\u306EID\u306F\u65E2\u306B\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059" })), newCompType === 'Dice' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u9762\u6570\u3092\u9078\u629E:" }), _jsx("select", { className: styles.compTypeSelect, value: newDiceSides, onChange: (e) => setNewDiceSides(Number(e.target.value)), children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => (_jsxs("option", { value: n, children: [n, "\u9762"] }, n))) })] })), newCompType === 'Draggable' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u753B\u50CF\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9:" }), _jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }), _jsx("div", { style: { marginTop: '10px', fontSize: '11px', color: '#aaa' }, children: "\u203B\u753B\u9762\u4E0A\u306E\u8D64\u3044\u30D7\u30EC\u30D3\u30E5\u30FC\u3092\u30C9\u30E9\u30C3\u30B0\u3057\u3066\u521D\u671F\u4F4D\u7F6E\u3092\u6C7A\u3081\u3066\u304F\u3060\u3055\u3044" }), _jsx("div", { style: {
+    return (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: styles.compTypeSelect, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: styles.flexFill, style: { borderColor: isDuplicateId ? '#ff4444' : '' }, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: () => handleAddClick(), disabled: !newCompId || isDuplicateId, children: "\u8FFD\u52A0" })] }), isDuplicateId && (_jsx("div", { style: { color: '#ff4444', fontSize: '12px', marginTop: '-4px' }, children: "\u3053\u306EID\u306F\u65E2\u306B\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059" })), newCompType === 'TokenStore' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u521D\u671F\u500B\u6570:" }), _jsxs("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' }, children: [_jsx("input", { type: "range", min: "1", max: "50", value: newTokenCount, onChange: (e) => setNewTokenCount(Number(e.target.value)), className: styles.slider }), _jsx("span", { style: { fontSize: '12px', color: '#fff', minWidth: '30px' }, children: newTokenCount })] })] })), newCompType === 'Dice' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u9762\u6570\u3092\u9078\u629E:" }), _jsx("select", { className: styles.compTypeSelect, value: newDiceSides, onChange: (e) => setNewDiceSides(Number(e.target.value)), children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => (_jsxs("option", { value: n, children: [n, "\u9762"] }, n))) })] })), newCompType === 'Draggable' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u753B\u50CF\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9:" }), _jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }), _jsx("div", { style: { marginTop: '10px', fontSize: '11px', color: '#aaa' }, children: "\u203B\u753B\u9762\u4E0A\u306E\u8D64\u3044\u30D7\u30EC\u30D3\u30E5\u30FC\u3092\u30C9\u30E9\u30C3\u30B0\u3057\u3066\u521D\u671F\u4F4D\u7F6E\u3092\u6C7A\u3081\u3066\u304F\u3060\u3055\u3044" }), _jsx("div", { style: {
                             position: 'fixed',
                             left: `${newDraggableX}px`,
                             top: `${newDraggableY}px`,
