@@ -12,6 +12,8 @@ interface ComponentFactoryProps {
 export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) => {
   const [newCompId, setNewCompId] = useState('');
   const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
+
+  const [newDiceSides, setNewDiceSides] = useState<number>(6);
   const [uploadImage, setUploadImage] = useState<string | null>(null);
 
   const isDuplicateId = existingIds.includes(newCompId);
@@ -108,11 +110,14 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
         break;
       case 'Dice':
         initialProps = {
-          diceId: `天気-${newCompId}`,
-          sides: 4,
-          title: '天気ダイス',
-          tooltipText: '快晴・曇り・風・雨',
-          customFaces: ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png'],
+          diceId: `dice-${newCompId}`,
+          sides: newDiceSides,
+          title: `${newDiceSides}面ダイス`,
+          // 4面の場合は天気ダイス
+          customFaces:
+            newDiceSides === 4
+              ? ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png']
+              : [],
         };
         break;
       case 'Timer':
@@ -165,6 +170,26 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
       </div>
       {isDuplicateId && (
         <div style={{ color: '#ff4444', fontSize: '12px', marginTop: '-4px' }}>このIDは既に使用されています</div>
+      )}
+
+      {/* ダイス専用の設定項目 */}
+      {newCompType === 'Dice' && (
+        <div className={styles.field} style={{ marginTop: '10px' }}>
+          <div className={styles.label} style={{ fontSize: '11px' }}>
+            面数を選択:
+          </div>
+          <select
+            className={styles.compTypeSelect}
+            value={newDiceSides}
+            onChange={(e) => setNewDiceSides(Number(e.target.value))}
+          >
+            {[2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => (
+              <option key={n} value={n}>
+                {n}面
+              </option>
+            ))}
+          </select>
+        </div>
       )}
 
       {newCompType === 'Draggable' && (

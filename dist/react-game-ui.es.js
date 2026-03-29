@@ -2871,6 +2871,7 @@ const styles = {
 const ComponentFactory = ({ onAdd, existingIds }) => {
   const [newCompId, setNewCompId] = useState("");
   const [newCompType, setNewCompType] = useState("Dice");
+  const [newDiceSides, setNewDiceSides] = useState(6);
   const [uploadImage, setUploadImage] = useState(null);
   const isDuplicateId = existingIds.includes(newCompId);
   const handleFileChange = (e) => {
@@ -2962,11 +2963,11 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
         break;
       case "Dice":
         initialProps = {
-          diceId: `天気-${newCompId}`,
-          sides: 4,
-          title: "天気ダイス",
-          tooltipText: "快晴・曇り・風・雨",
-          customFaces: ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"]
+          diceId: `dice-${newCompId}`,
+          sides: newDiceSides,
+          title: `${newDiceSides}面ダイス`,
+          // 4面の場合は天気ダイス
+          customFaces: newDiceSides === 4 ? ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"] : []
         };
         break;
       case "Timer":
@@ -3013,6 +3014,21 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: () => handleAddClick(), disabled: !newCompId || isDuplicateId, children: "追加" })
     ] }),
     isDuplicateId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#ff4444", fontSize: "12px", marginTop: "-4px" }, children: "このIDは既に使用されています" }),
+    newCompType === "Dice" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "面数を選択:" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "select",
+        {
+          className: styles.compTypeSelect,
+          value: newDiceSides,
+          onChange: (e) => setNewDiceSides(Number(e.target.value)),
+          children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: n, children: [
+            n,
+            "面"
+          ] }, n))
+        }
+      )
+    ] }),
     newCompType === "Draggable" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "画像アップロード:" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }),
