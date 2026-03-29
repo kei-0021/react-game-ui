@@ -114,6 +114,7 @@ import {
   Dice,
   Draggable,
   DynamicComponent,
+  PlayerId,
   PlayField,
   RemoteCursor,
   ScoreBoard,
@@ -173,12 +174,10 @@ export function ${pascalName}Room() {
 
   useEffect(() => {
     if (!socket) return;
-    const handleAssignId = (id: Player["id"]) => {
+    const onClientReady = (id: PlayerId) => {
       setMyPlayerId(id);
       setHasJoined(true);
       setIsJoining(false);
-    };
-    const onClientReady = () => {
       socket.emit("client:ready", roomId);
     };
     const handlePlayersUpdate = (updatedPlayers: Player[]) => setPlayers(updatedPlayers);
@@ -192,14 +191,12 @@ export function ${pascalName}Room() {
       setComponentInfo(data.components);
     };
 
-    socket.on("player:assign-id", handleAssignId);
     socket.on("client:ready-to-sync", onClientReady);
     socket.on("players:update", handlePlayersUpdate);
     socket.on("game:turn", handleGameTurn);
     socket.on("game:component", handleGameComponent);
 
     return () => {
-      socket.off("player:assign-id", handleAssignId);
       socket.off("client:ready-to-sync", onClientReady);
       socket.off("players:update", handlePlayersUpdate);
       socket.off("game:turn", handleGameTurn);

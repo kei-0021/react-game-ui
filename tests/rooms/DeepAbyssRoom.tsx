@@ -10,6 +10,7 @@ import {
   GameTurnUpdateData,
   GridBoard,
   Player,
+  PlayerId,
   PlayField,
   RoomJoinData,
   ScoreBoard,
@@ -93,13 +94,10 @@ export function DeepAbyssRoom() {
   useEffect(() => {
     if (!socket || !roomId) return;
 
-    const handleAssignId = (id: Player['id']) => {
+    const onClientReady = (id: PlayerId) => {
       setMyPlayerId(id);
       setHasJoined(true);
       setIsJoining(false);
-    };
-
-    const onClientReady = () => {
       socket.emit('client:ready', roomId);
     };
 
@@ -120,7 +118,6 @@ export function DeepAbyssRoom() {
       setGameResult(result);
     };
 
-    socket.on('player:assign-id', handleAssignId);
     socket.on('client:ready-to-sync', onClientReady);
     socket.on('players:update', handlePlayersUpdate);
     socket.on('game:turn', handleGameTurn);
@@ -128,7 +125,6 @@ export function DeepAbyssRoom() {
     socket.on('game:end', handleGameEnd);
 
     return () => {
-      socket.off('player:assign-id', handleAssignId);
       socket.off('client:ready-to-sync', onClientReady);
       socket.off('players:update', handlePlayersUpdate);
       socket.off('game:turn', handleGameTurn);

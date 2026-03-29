@@ -155,8 +155,6 @@ export function initGameServer(io, options) {
             else {
                 newPlayer.socketId = socket.id;
             }
-            // 各種コンポーネントの準備
-            socket.emit('player:assign-id', newPlayer.id);
             // コンポーネント情報を伝える
             const data = {
                 state: state,

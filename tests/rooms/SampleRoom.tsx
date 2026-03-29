@@ -13,6 +13,7 @@ import {
   DynamicComponent,
   GameTurnUpdateData,
   Player,
+  PlayerId,
   PlayField,
   RemoteCursor,
   RoomJoinData,
@@ -62,17 +63,16 @@ export function SampleRoom() {
   useEffect(() => {
     if (!socket || !roomId) return;
 
-    const handleAssignId = (id: string) => {
-      setMyPlayerId(id);
-      setHasJoined(true);
-      setIsJoining(false);
-    };
+    const handleAssignId = (id: string) => {};
 
     const handleGameComponent = (data: { components: ComponentInfo[] }) => {
       setComponentInfo(data.components);
     };
 
-    const onClientReady = () => {
+    const onClientReady = (id: PlayerId) => {
+      setMyPlayerId(id);
+      setHasJoined(true);
+      setIsJoining(false);
       socket.emit('client:ready', roomId);
     };
 
@@ -87,14 +87,12 @@ export function SampleRoom() {
       }
     };
 
-    socket.on('player:assign-id', handleAssignId);
     socket.on('client:ready-to-sync', onClientReady);
     socket.on('game:component', handleGameComponent);
     socket.on('players:update', handlePlayersUpdate);
     socket.on('game:turn', handleGameTurn);
 
     return () => {
-      socket.off('player:assign-id', handleAssignId);
       socket.off('client:ready-to-sync', onClientReady);
       socket.off('room_init_success', handleGameComponent);
       socket.off('players:update', handlePlayersUpdate);
@@ -148,6 +146,7 @@ export function SampleRoom() {
             socket={socket}
             roomId={roomId}
             myPlayerId={myPlayerId}
+            currentPlayerId={currentPlayerId}
             players={players}
             containerRef={containerRef}
           />
