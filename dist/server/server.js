@@ -4,7 +4,11 @@ import { createServer } from 'http';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
-import { initGameServer } from './server-logic.js';
+import { createState } from './logic/create-state.js';
+import { syncState } from './logic/sync-state.js';
+import { updateState } from './logic/update-state.js';
+import { activeRooms, initGameServer } from './server-logic.js';
+import { RoomManager } from './server-utils.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 /**
@@ -123,13 +127,27 @@ export class GameServer {
         if (param === undefined) {
             delete this.gameParams[gameId];
             console.log(`[Server] Removed: ${gameId}.`);
+            return;
         }
-        else {
-            // GameParamの更新
-            this.gameParams[gameId] = param;
-            // 実行中の全ルームへ「最新ルール」を同期
-            // reloadActiveRooms(this.io, gameId, param);
-        }
+        // GameParam・RoomStateの更新
+        this.gameParams[gameId] = param;
+        activeRooms.forEach((state, roomId) => {
+            if (state.gameId === gameId) {
+                const newState = createState(roomId, { ...param, gameId });
+                updateState(state, newState);
+                // プレイヤーがいない場合は、同期する必要がないためスキップ
+                if (!state.players || state.players.length === 0) {
+                    return;
+                }
+                // プレイヤーがいる場合のみ同期を実行
+                const roomManager = new RoomManager(this.io, param, state);
+                syncState(state, roomManager, this.io);
+                this.io.emit('game:component', {
+                    state: newState,
+                    components: param.components,
+                });
+            }
+        });
         // クライアントにゲーム一覧を送信
         const gameList = Object.keys(this.gameParams).map((id) => ({
             gameId: id,

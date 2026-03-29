@@ -5,7 +5,7 @@ import util from 'util';
 import { createPlayer, createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';
 import { deepMerge, LOG_CATEGORIES, RoomManager } from './server-utils.js';
-const activeRooms = new Map();
+export const activeRooms = new Map();
 const execPromise = util.promisify(exec);
 export function initGameServer(io, options) {
     const gameParams = options.gameParams || {};
@@ -132,10 +132,8 @@ export function initGameServer(io, options) {
         });
         // ルーム参加
         socket.on('room:join', async ({ roomId, playerName, gameId }) => {
-            if (!roomId)
-                return;
             let state = activeRooms.get(roomId);
-            const param = gameParams[gameId] || options;
+            const param = gameParams[gameId];
             // 初回は状態の初期化を行う
             if (!state) {
                 state = createState(roomId, { ...param, gameId: gameId });
@@ -144,24 +142,22 @@ export function initGameServer(io, options) {
                 Object.keys(state.decks).forEach((deckId) => roomManager.shuffleDeck(deckId));
                 io.emit('room-ready');
             }
-            const roomManager = new RoomManager(io, param, state);
             await socket.join(roomId);
             // プレイヤークラスの初期化
             let newPlayer = state.players.find((p) => p.socketId === socket.id);
             if (!newPlayer) {
                 newPlayer = createPlayer(param, state, playerName, socket.id);
                 state.players.push(newPlayer);
-                roomManager.server_log('room', `${newPlayer.name} (${newPlayer.id})が参加しました`);
+                RoomManager.server_log('room', gameId, roomId, `${newPlayer.name} (${newPlayer.id})が参加しました`);
             }
             else {
                 newPlayer.socketId = socket.id;
             }
             // コンポーネント情報を伝える
-            const data = {
+            socket.emit('game:component', {
                 state: state,
                 components: param.components,
-            };
-            socket.emit('game:component', data);
+            });
             // 準備完了を促す
             socket.emit('client:ready-to-sync', newPlayer.id);
         });
