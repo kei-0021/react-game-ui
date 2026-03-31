@@ -17,7 +17,7 @@ export const generate = (gameName, gameIcon = '🎲') => {
 .gameContainer {
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
+  overflow: auto;
   background: #222;
 }
 
@@ -250,6 +250,23 @@ export function ${pascalName}Room() {
           transform: \`scale(\${scale})\`
         }}
       >
+        {/* パネルが開いている時だけ背後に敷く透明なレイヤー */}
+        {isPanelOpen && (
+          <div
+            className="panel-overlay"
+            onClick={() => setIsPanelOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              zIndex: 998,
+              background: 'transparent',
+            }}
+          />
+        )}
+
         <header className={styles.gameHeader}>
           <h1>${gameIcon} ${gameName}</h1>
           <div>Round: {currentRound}</div>
