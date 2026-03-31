@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
+import { server_log } from './logger.js';
 import { createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';
 import { updateState } from './logic/update-state.js';
@@ -126,7 +127,7 @@ export class GameServer {
         // 削除時は param が undefined で渡ってくる
         if (param === undefined) {
             delete this.gameParams[gameId];
-            console.log(`[Server] Removed: ${gameId}.`);
+            server_log('game', gameId, null, `Removed: ${gameId}`);
             return;
         }
         // GameParam・RoomStateの更新

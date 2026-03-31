@@ -65,12 +65,12 @@ export function initGameServer(io, options) {
                 // プロジェクトルートにある CLI を実行
                 const cliPath = path.resolve(process.cwd(), 'src/cli/generate-new-game.ts');
                 const command = `npx tsx ${cliPath} ${gameName} ${gameIcon}`;
-                console.log(`[Admin] CLI実行中: ${command}`);
+                server_log('game', gameName, null, `CLI実行中": ${command}`);
                 const { stdout, stderr } = await execPromise(command);
                 if (stderr) {
                     console.warn(`[Admin] CLI警告: ${stderr}`);
                 }
-                console.log(`[Admin] CLI完了: ${stdout}`);
+                server_log('game', gameName, null, `CLI完了: ${stdout}`);
                 socket.emit('game:created', {
                     success: true,
                     gameId: gameName.toLowerCase(),
@@ -86,12 +86,12 @@ export function initGameServer(io, options) {
                 const { gameId } = data;
                 const cliPath = path.resolve(process.cwd(), 'src/cli/delete-game.ts');
                 const command = `npx tsx ${cliPath} ${gameId}`;
-                console.log(`[Admin] 削除CLI実行中: ${command}`);
+                server_log('game', gameId, null, `削除CLI実行中: ${command}`);
                 const { stdout, stderr } = await execPromise(command);
                 if (stderr) {
                     console.warn(`[Admin] 削除CLI警告: ${stderr}`);
                 }
-                console.log(`[Admin] 削除CLI完了: ${stdout}`);
+                server_log('game', gameId, null, `削除CLI完了: ${stdout}`);
                 // フロントに完了を通知
                 socket.emit('game:deleted', {
                     success: true,
