@@ -4,4 +4,6 @@
  */
 export declare const deepFill: (target: any, source: any, excludeKeys?: string[], path?: string) => void;
 export declare const deepMerge: (target: any, source: any) => any;
+export declare const generateColorFromId: (id: string) => string;
+export declare const shuffleArray: <T>(array: T[]) => T[];
 //# sourceMappingURL=utils.d.ts.map

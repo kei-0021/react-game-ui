@@ -1,3 +1,4 @@
+// src/server/logic/utils.ts
 /**
  * target に存在しないキーのみ source から補完する。
  * 既に値がある場合は、source 側の値が何であれ書き換えを行わない。
@@ -47,4 +48,22 @@ export const deepMerge = (target, source) => {
         }
     }
     return output;
+};
+export const generateColorFromId = (id) => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+        hash = (hash << 5) - hash + id.charCodeAt(i);
+        hash |= 0;
+    }
+    const goldenRatioConjugate = 0.618033988749895;
+    let hue = (Math.abs(hash) * goldenRatioConjugate) % 1;
+    const finalHue = Math.floor(hue * 360);
+    return `hsl(${finalHue}, 70%, 50%)`;
+};
+export const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
 };

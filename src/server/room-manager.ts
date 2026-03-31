@@ -1,4 +1,4 @@
-// src/server/server-utils.ts
+// src/server/room-manager.ts
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
 import {
@@ -72,26 +72,6 @@ const ANSI_RESET = '\x1b[0m';
 
 export const isExplored = (roomState: RoomState, position: Position): boolean => {
   return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
-};
-
-export const generateColorFromId = (id: string): string => {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash << 5) - hash + id.charCodeAt(i);
-    hash |= 0;
-  }
-  const goldenRatioConjugate = 0.618033988749895;
-  let hue = (Math.abs(hash) * goldenRatioConjugate) % 1;
-  const finalHue = Math.floor(hue * 360);
-  return `hsl(${finalHue}, 70%, 50%)`;
-};
-
-export const shuffleArray = <T>(array: T[]): T[] => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
 };
 
 /**

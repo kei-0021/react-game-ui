@@ -9,8 +9,6 @@ import { Server } from 'socket.io';
 export type LogCategory = 'connection' | 'lobby' | 'game' | 'room' | 'deck' | 'card' | 'cell' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'draggable' | 'warn' | 'popup' | 'custom_event' | 'disconnect';
 export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
 export declare const isExplored: (roomState: RoomState, position: Position) => boolean;
-export declare const generateColorFromId: (id: string) => string;
-export declare const shuffleArray: <T>(array: T[]) => T[];
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
  */

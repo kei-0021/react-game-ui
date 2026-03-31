@@ -47,7 +47,7 @@ export type GameCreateData = {
     gameIcon: string;
 };
 export type GameDeleteData = {
-    gameId: string;
+    gameId: GameId;
 };
 export type GameParamUpdateData = {
     gameId: GameId;
