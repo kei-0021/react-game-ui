@@ -2,10 +2,11 @@ import { exec } from 'child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import util from 'util';
+import { LOG_CATEGORIES, server_log } from './logger.js';
 import { createPlayer, createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';
 import { deepMerge } from './logic/utils.js';
-import { LOG_CATEGORIES, RoomManager } from './room-manager.js';
+import { RoomManager } from './room-manager.js';
 export const activeRooms = new Map();
 const execPromise = util.promisify(exec);
 export function initGameServer(io, options) {
@@ -149,7 +150,7 @@ export function initGameServer(io, options) {
             if (!newPlayer) {
                 newPlayer = createPlayer(param, state, playerName, socket.id);
                 state.players.push(newPlayer);
-                RoomManager.server_log('room', gameId, roomId, `${newPlayer.name} (${newPlayer.id})が参加しました`);
+                server_log('room', gameId, roomId, `${newPlayer.name} (${newPlayer.id})が参加しました`);
             }
             else {
                 newPlayer.socketId = socket.id;

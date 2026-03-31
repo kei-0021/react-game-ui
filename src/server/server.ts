@@ -7,10 +7,11 @@ import { createServer, Server as HttpServer } from 'http';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
+import { LogCategory } from './logger.js';
 import { createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';
 import { updateState } from './logic/update-state.js';
-import { LogCategory, RoomManager } from './room-manager.js';
+import { RoomManager } from './room-manager.js';
 import { activeRooms, initGameServer } from './server-logic.js';
 
 const __filename = fileURLToPath(import.meta.url);

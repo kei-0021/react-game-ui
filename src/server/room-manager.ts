@@ -7,10 +7,8 @@ import {
   CellId,
   DeckId,
   DraggableId,
-  GameId,
   PlayerId,
   ResourceId,
-  RoomId,
   TokenId,
   TokenStoreId,
 } from '@/types/definition.js';
@@ -27,48 +25,7 @@ import {
   TokenStoreUpdateData,
 } from '@/types/socketData.js';
 import { Server } from 'socket.io';
-
-export type LogCategory =
-  | 'connection'
-  | 'lobby'
-  | 'game'
-  | 'room'
-  | 'deck'
-  | 'card'
-  | 'cell'
-  | 'dice'
-  | 'timer'
-  | 'addScore'
-  | 'resource'
-  | 'token'
-  | 'draggable'
-  | 'warn'
-  | 'popup'
-  | 'custom_event'
-  | 'disconnect';
-
-export let LOG_CATEGORIES: Record<LogCategory, boolean> = {
-  connection: true,
-  lobby: true,
-  game: true,
-  room: true,
-  deck: true,
-  card: true,
-  cell: true,
-  dice: true,
-  timer: true,
-  addScore: true,
-  resource: true,
-  token: true,
-  draggable: true,
-  warn: true,
-  popup: true,
-  custom_event: true,
-  disconnect: true,
-};
-
-const ANSI_RED = '\x1b[31m';
-const ANSI_RESET = '\x1b[0m';
+import { LogCategory, server_log } from './logger.js';
 
 export const isExplored = (roomState: RoomState, position: Position): boolean => {
   return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
@@ -84,33 +41,6 @@ export class RoomManager {
     private state: RoomState,
   ) {}
 
-  static server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, msg: string): void {
-    if (!(tag in LOG_CATEGORIES)) {
-      throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
-    }
-
-    if (!LOG_CATEGORIES[tag]) {
-      return;
-    }
-
-    // 日本時間 (JST) で [HH:mm:ss] を生成
-    const time = new Intl.DateTimeFormat('ja-JP', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-      timeZone: 'Asia/Tokyo',
-    }).format(new Date());
-
-    const header = `[${time}] [${tag}] [${gameId} (${roomId})]`;
-
-    if (tag === 'warn') {
-      console.warn(ANSI_RED + header + ANSI_RESET + ` ${msg}`);
-    } else {
-      console.log(`${header} ${msg}`);
-    }
-  }
-
   /**
    * サーバーの実行ログを出力する
    * @param tag - ログのカテゴリ
@@ -119,7 +49,7 @@ export class RoomManager {
    * @param msg - ログのメイン内容
    */
   server_log(tag: LogCategory, msg: string): void {
-    RoomManager.server_log(tag, this.state.gameId, this.state.roomId, msg);
+    server_log(tag, this.state.gameId, this.state.roomId, msg);
   }
 
   /**

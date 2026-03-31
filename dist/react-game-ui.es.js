@@ -3449,6 +3449,27 @@ let LOG_CATEGORIES = {
 };
 const ANSI_RED = "\x1B[31m";
 const ANSI_RESET = "\x1B[0m";
+const server_log = (tag, gameId, roomId, msg) => {
+  if (!(tag in LOG_CATEGORIES)) {
+    throw new Error(`未定義のログカテゴリです: ${tag}`);
+  }
+  if (!LOG_CATEGORIES[tag]) return;
+  const time = new Intl.DateTimeFormat("ja-JP", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Tokyo"
+  }).format(/* @__PURE__ */ new Date());
+  const gDisplay = gameId || "SYSTEM";
+  const rDisplay = roomId || "GLOBAL";
+  const header = `[${time}] [${tag}] [${gDisplay} (${rDisplay})]`;
+  if (tag === "warn") {
+    console.warn(`${ANSI_RED}${header}${ANSI_RESET} ${msg}`);
+  } else {
+    console.log(`${header} ${msg}`);
+  }
+};
 const isExplored = (roomState, position) => {
   return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
@@ -3458,27 +3479,6 @@ class RoomManager {
     this.param = param;
     this.state = state;
   }
-  static server_log(tag, gameId, roomId, msg) {
-    if (!(tag in LOG_CATEGORIES)) {
-      throw new Error(`不正なログカテゴリで呼び出されました: ${tag}`);
-    }
-    if (!LOG_CATEGORIES[tag]) {
-      return;
-    }
-    const time = new Intl.DateTimeFormat("ja-JP", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-      timeZone: "Asia/Tokyo"
-    }).format(/* @__PURE__ */ new Date());
-    const header = `[${time}] [${tag}] [${gameId} (${roomId})]`;
-    if (tag === "warn") {
-      console.warn(ANSI_RED + header + ANSI_RESET + ` ${msg}`);
-    } else {
-      console.log(`${header} ${msg}`);
-    }
-  }
   /**
    * サーバーの実行ログを出力する
    * @param tag - ログのカテゴリ
@@ -3487,7 +3487,7 @@ class RoomManager {
    * @param msg - ログのメイン内容
    */
   server_log(tag, msg) {
-    RoomManager.server_log(tag, this.state.gameId, this.state.roomId, msg);
+    server_log(tag, this.state.gameId, this.state.roomId, msg);
   }
   /**
    * 一定時間待機する

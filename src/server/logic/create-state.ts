@@ -18,7 +18,7 @@ import type {
 import { Deck } from '@/types/deck.js';
 import { Token } from '@/types/token.js';
 import { TokenStore } from '@/types/tokenStore.js';
-import { RoomManager } from '../room-manager.js';
+import { server_log } from '../logger.js';
 import { generateColorFromId } from './utils.js';
 
 /**
@@ -36,7 +36,7 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
   const boardEntries = Object.entries(initialBoard);
 
   if (param.maxPlayers) {
-    RoomManager.server_log('game', param.gameId, roomId, `参加可能人数: ${param.maxPlayers}人`);
+    server_log('game', param.gameId, roomId, `参加可能人数: ${param.maxPlayers}人`);
   }
 
   boardEntries.forEach(([boardId, boardData]) => {
@@ -46,11 +46,11 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     const shuffleAndReconnector = param.shuffleAndReconnectBoard?.[boardId];
 
     if (typeof shuffleAndReconnector === 'function') {
-      RoomManager.server_log('cell', param.gameId, roomId, `ボード "${boardId}" をカスタム戦略で再配置・接続します`);
+      server_log('cell', param.gameId, roomId, `ボード "${boardId}" をカスタム戦略で再配置・接続します`);
       Cells[boardId] = shuffleAndReconnector(boardData);
     }
 
-    RoomManager.server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
+    server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
   });
 
   const decks: Record<DeckId, Card[]> = {};
@@ -73,11 +73,11 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     decks[deck.deckId] = cards;
     playFieldCards[deck.deckId] = [];
     discardPile[deck.deckId] = [];
-    RoomManager.server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
+    server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
 
     const firstEntry = cards[0];
     if (firstEntry) {
-      RoomManager.server_log('deck', param.gameId, roomId, `サンプル:\n ${JSON.stringify(firstEntry, null, 2)}`);
+      server_log('deck', param.gameId, roomId, `サンプル:\n ${JSON.stringify(firstEntry, null, 2)}`);
     }
   });
 
@@ -88,19 +88,19 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
       instanceId: `${roomId}_${tokenStore.tokenStoreId}_${index}`,
     }));
     tokenStores[tokenStore.tokenStoreId] = tokens;
-    RoomManager.server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
+    server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
   });
 
   let draggables: Record<DraggableId, DraggableData> = {};
   if (param.draggables) {
     draggables = structuredClone(param.draggables);
 
-    RoomManager.server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
+    server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトを初期化完了`);
 
     const firstEntry = Object.entries(draggables)[0];
     if (firstEntry) {
       const [key, value] = firstEntry;
-      RoomManager.server_log('draggable', param.gameId, roomId, `サンプル:\n${key}: ${JSON.stringify(value, null, 2)}`);
+      server_log('draggable', param.gameId, roomId, `サンプル:\n${key}: ${JSON.stringify(value, null, 2)}`);
     }
   }
 
@@ -127,7 +127,7 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     systemMessageHistory: [],
   };
 
-  RoomManager.server_log('room', state.gameId, roomId, `ルーム初期化完了`);
+  server_log('room', state.gameId, roomId, `ルーム初期化完了`);
   return state;
 }
 

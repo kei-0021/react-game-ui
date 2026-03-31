@@ -1,13 +1,12 @@
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
-import { BoardId, CardId, CellId, DeckId, DraggableId, GameId, PlayerId, ResourceId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { BoardId, CardId, CellId, DeckId, DraggableId, PlayerId, ResourceId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import { CardPlayData } from '@/types/socketData.js';
 import { Server } from 'socket.io';
-export type LogCategory = 'connection' | 'lobby' | 'game' | 'room' | 'deck' | 'card' | 'cell' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'draggable' | 'warn' | 'popup' | 'custom_event' | 'disconnect';
-export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
+import { LogCategory } from './logger.js';
 export declare const isExplored: (roomState: RoomState, position: Position) => boolean;
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
@@ -17,7 +16,6 @@ export declare class RoomManager {
     private param;
     private state;
     constructor(io: Server, param: GameParam, state: RoomState);
-    static server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, msg: string): void;
     /**
      * サーバーの実行ログを出力する
      * @param tag - ログのカテゴリ
