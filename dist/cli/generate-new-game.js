@@ -108,8 +108,9 @@ export const ${pascalName}Config: RoomConfig = {
 `;
     // --- Room Component Template ---
     const roomTemplate = `import { useCallback, useEffect, useRef, useState } from "react";
-import type { GameTurnUpdateData, Player, RoomJoinData, ComponentInfo } from "react-game-ui";
+import type { ComponentInfo, GameMeta, GameTurnUpdateData, LobbyGameList, Player, RoomJoinData } from 'react-game-ui';
 import {
+  ControlPanel,
   Deck,
   Dice,
   Draggable,
@@ -151,6 +152,9 @@ export function ${pascalName}Room() {
   // 動的コンポーネント情報の管理
   const [componentInfo, setComponentInfo] = useState<ComponentInfo[]>([]);
 
+  const [games, setGames] = useState<GameMeta[]>([]);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+
   useEffect(() => {
     const handleResize = () => {
       const scaleX = window.innerWidth / BASE_WIDTH;
@@ -179,6 +183,7 @@ export function ${pascalName}Room() {
       setHasJoined(true);
       setIsJoining(false);
       socket.emit("client:ready", roomId);
+      socket.emit('lobby:get-info');
     };
     const handlePlayersUpdate = (updatedPlayers: Player[]) => setPlayers(updatedPlayers);
     const handleGameTurn = (data: GameTurnUpdateData) => {
@@ -191,6 +196,13 @@ export function ${pascalName}Room() {
       setComponentInfo(data.components);
     };
 
+    // ゲームリスト受信
+    socket.on('lobby:game-list', (data: LobbyGameList) => {
+      if (!Array.isArray(data) && data.games) {
+        setGames(Object.values(data.games).filter((game) => game.gameId === "${lowerName}"));
+      }
+    });
+
     socket.on("client:ready-to-sync", onClientReady);
     socket.on("players:update", handlePlayersUpdate);
     socket.on("game:turn", handleGameTurn);
@@ -198,6 +210,7 @@ export function ${pascalName}Room() {
 
     return () => {
       socket.off("client:ready-to-sync", onClientReady);
+      socket.off('lobby:game-list');
       socket.off("players:update", handlePlayersUpdate);
       socket.off("game:turn", handleGameTurn);
       socket.off("game:component", handleGameComponent);
@@ -277,6 +290,12 @@ export function ${pascalName}Room() {
         
         <TokenStore socket={socket} roomId={roomId} tokenStoreId="chips" title="所持チップ" />
       </div>
+      <ControlPanel
+        socket={socket}
+        gameMeta={games}
+        isOpen={isPanelOpen}
+        onToggle={() => setIsPanelOpen(!isPanelOpen)}
+      />
     </div>
   );
 }
