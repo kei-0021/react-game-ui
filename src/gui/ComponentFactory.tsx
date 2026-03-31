@@ -14,11 +14,20 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
   const [newCompId, setNewCompId] = useState('');
   const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
 
-  const [newDiceSides, setNewDiceSides] = useState<number>(6);
+  // ScoreBoard関連
+  const [sbPlayCard, setSbPlayCard] = useState<boolean>(true);
+  const [sbHold, setSbHold] = useState<boolean>(false);
+  const [sbFlip, setSbFlip] = useState<boolean>(false);
+  const [sbTurnSkip, setSbTurnSkip] = useState<boolean>(true);
+  const [sbRoundSkip, setSbRoundSkip] = useState<boolean>(false);
 
+  // Token関連
   const [newTokenCount, setNewTokenCount] = useState<number>(10);
 
-  // 初期位置State
+  // Dice関連
+  const [newDiceSides, setNewDiceSides] = useState<number>(6);
+
+  // Draggable関連
   const [uploadImage, setUploadImage] = useState<string | null>(null);
   const [newDraggableX, setNewDraggableX] = useState<number>(500);
   const [newDraggableY, setNewDraggableY] = useState<number>(500);
@@ -75,7 +84,13 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
         };
         break;
       case 'ScoreBoard':
-        initialProps = {};
+        initialProps = {
+          playCardButton: [sbPlayCard, true],
+          holdButton: [sbHold, true],
+          flipButton: [sbFlip, true],
+          turnSkipButton: [sbTurnSkip, true],
+          roundSkipButton: [sbRoundSkip, true],
+        };
         break;
       case 'TokenStore':
         initialProps = {
@@ -183,6 +198,46 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
       </div>
       {isDuplicateId && (
         <div style={{ color: '#ff4444', fontSize: '12px', marginTop: '-4px' }}>このIDは既に使用されています</div>
+      )}
+
+      {/* ScoreBoard専用の設定項目 */}
+      {newCompType === 'ScoreBoard' && (
+        <div
+          className={styles.field}
+          style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }}
+        >
+          <div className={styles.label} style={{ fontSize: '11px' }}>
+            有効にするボタン:
+          </div>
+
+          {[
+            { label: 'カードプレイ', state: sbPlayCard, setter: setSbPlayCard },
+            { label: 'ホールド', state: sbHold, setter: setSbHold },
+            { label: 'フリップ', state: sbFlip, setter: setSbFlip },
+            { label: 'ターンスキップ', state: sbTurnSkip, setter: setSbTurnSkip },
+            { label: 'ラウンドスキップ', state: sbRoundSkip, setter: setSbRoundSkip },
+          ].map((item) => (
+            <label
+              key={item.label}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                color: '#fff',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={item.state}
+                onChange={(e) => item.setter(e.target.checked)}
+                style={{ cursor: 'pointer' }}
+              />
+              {item.label}
+            </label>
+          ))}
+        </div>
       )}
 
       {/* トークン専用の設定項目 */}

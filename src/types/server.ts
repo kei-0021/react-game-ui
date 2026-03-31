@@ -136,6 +136,9 @@ export const COMPONENT_TYPES = [
  */
 export type ComponentType = (typeof COMPONENT_TYPES)[number];
 
+/**
+ * コンポーネントに渡すpropsを格納する型
+ */
 export type ComponentInfo = {
   id: ComponentId;
   type: ComponentType;

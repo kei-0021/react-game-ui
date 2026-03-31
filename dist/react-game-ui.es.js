@@ -2868,8 +2868,13 @@ const styles = {
 const ComponentFactory = ({ onAdd, existingIds }) => {
   const [newCompId, setNewCompId] = useState("");
   const [newCompType, setNewCompType] = useState("Dice");
-  const [newDiceSides, setNewDiceSides] = useState(6);
+  const [sbPlayCard, setSbPlayCard] = useState(true);
+  const [sbHold, setSbHold] = useState(false);
+  const [sbFlip, setSbFlip] = useState(false);
+  const [sbTurnSkip, setSbTurnSkip] = useState(true);
+  const [sbRoundSkip, setSbRoundSkip] = useState(false);
   const [newTokenCount, setNewTokenCount] = useState(10);
+  const [newDiceSides, setNewDiceSides] = useState(6);
   const [uploadImage, setUploadImage] = useState(null);
   const [newDraggableX, setNewDraggableX] = useState(500);
   const [newDraggableY, setNewDraggableY] = useState(500);
@@ -2921,7 +2926,13 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
         };
         break;
       case "ScoreBoard":
-        initialProps = {};
+        initialProps = {
+          playCardButton: [sbPlayCard, true],
+          holdButton: [sbHold, true],
+          flipButton: [sbFlip, true],
+          turnSkipButton: [sbTurnSkip, true],
+          roundSkipButton: [sbRoundSkip, true]
+        };
         break;
       case "TokenStore":
         initialProps = {
@@ -3018,6 +3029,48 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: () => handleAddClick(), disabled: !newCompId || isDuplicateId, children: "追加" })
     ] }),
     isDuplicateId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#ff4444", fontSize: "12px", marginTop: "-4px" }, children: "このIDは既に使用されています" }),
+    newCompType === "ScoreBoard" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: styles.field,
+        style: { marginTop: "10px", display: "flex", flexDirection: "column", gap: "5px" },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "有効にするボタン:" }),
+          [
+            { label: "カードプレイ", state: sbPlayCard, setter: setSbPlayCard },
+            { label: "ホールド", state: sbHold, setter: setSbHold },
+            { label: "フリップ", state: sbFlip, setter: setSbFlip },
+            { label: "ターンスキップ", state: sbTurnSkip, setter: setSbTurnSkip },
+            { label: "ラウンドスキップ", state: sbRoundSkip, setter: setSbRoundSkip }
+          ].map((item) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "label",
+            {
+              style: {
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                cursor: "pointer",
+                fontSize: "12px",
+                color: "#fff"
+              },
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "input",
+                  {
+                    type: "checkbox",
+                    checked: item.state,
+                    onChange: (e) => item.setter(e.target.checked),
+                    style: { cursor: "pointer" }
+                  }
+                ),
+                item.label
+              ]
+            },
+            item.label
+          ))
+        ]
+      }
+    ),
     newCompType === "TokenStore" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "初期個数:" }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", alignItems: "center", gap: "8px" }, children: [

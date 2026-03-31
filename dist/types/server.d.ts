@@ -109,6 +109,9 @@ export declare const COMPONENT_TYPES: readonly ["Deck", "PlayField", "ScoreBoard
  * 利用可能なコンポーネントの種類一覧 (型)
  */
 export type ComponentType = (typeof COMPONENT_TYPES)[number];
+/**
+ * コンポーネントに渡すpropsを格納する型
+ */
 export type ComponentInfo = {
     id: ComponentId;
     type: ComponentType;
