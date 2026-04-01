@@ -2776,6 +2776,10 @@ const DynamicComponent = ({
   players,
   containerRef
 }) => {
+  useEffect(() => {
+    console.log("DynamicComponent: mount", props);
+    return () => console.log("DynamicComponent: unmount", props);
+  }, []);
   const commonProps = { socket, roomId };
   switch (type) {
     case "Deck":

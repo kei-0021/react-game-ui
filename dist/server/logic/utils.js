@@ -1,50 +1,53 @@
 // src/server/logic/utils.ts
 /**
- * target に存在しないキーのみ source から補完する。
- * 既に値がある場合は、source 側の値が何であれ書き換えを行わない。
+ * oldVal に存在しないキーのみ newVal から補完する。
+ * 既に値がある場合は、newVal 側の値が何であれ書き換えを行わない。
  */
-export const deepFill = (target, source, excludeKeys = [], path = '') => {
-    // source にあるキーをチェック
-    Object.keys(source).forEach((key) => {
+export const deepFill = (oldVal, newVal, excludeKeys = [], path = '') => {
+    // oldVal にあるキーをチェック
+    Object.keys(newVal).forEach((key) => {
         // 除外設定（トップレベルのみ）
         if (excludeKeys.includes(key) && path === '')
             return;
         const currentPath = path ? `${path}.${key}` : key;
-        const targetVal = target[key];
-        const sourceVal = source[key];
-        // target にキー自体がない場合のみ「追加」
-        if (!(key in target)) {
-            target[key] = sourceVal;
+        const currentOldVal = oldVal[key];
+        const currentNewVal = newVal[key];
+        // oldVal にキー自体がない場合のみ「追加」
+        if (!(key in oldVal)) {
+            oldVal[key] = currentNewVal;
             return;
         }
         // 両方がオブジェクトなら、さらに深い階層に「空き」がないか探しに行く
-        if (targetVal &&
-            sourceVal &&
-            typeof targetVal === 'object' &&
-            typeof sourceVal === 'object' &&
-            !Array.isArray(sourceVal)) {
-            deepFill(targetVal, sourceVal, excludeKeys, currentPath);
-        }
-        else {
+        if (currentOldVal &&
+            currentNewVal &&
+            typeof currentOldVal === 'object' &&
+            typeof currentNewVal === 'object' &&
+            !Array.isArray(currentNewVal)) {
+            deepFill(currentOldVal, currentNewVal, excludeKeys, currentPath);
         }
     });
 };
-export const deepMerge = (target, source) => {
-    const output = { ...target };
-    for (const key in source) {
-        if (source[key] instanceof Object && key in target) {
-            if (Array.isArray(source[key]) && Array.isArray(target[key])) {
+/**
+ * oldVal をベースに newVal の内容で上書き、または結合する。
+ */
+export const deepMerge = (oldVal, newVal) => {
+    const output = { ...oldVal };
+    for (const key in newVal) {
+        const currentOldVal = oldVal[key];
+        const currentNewVal = newVal[key];
+        if (currentNewVal instanceof Object && key in oldVal) {
+            if (Array.isArray(currentNewVal) && Array.isArray(currentOldVal)) {
                 // 配列の場合は結合する
-                output[key] = [...target[key], ...source[key]];
+                output[key] = [...currentOldVal, ...currentNewVal];
             }
             else {
                 // オブジェクトの場合は再帰的にマージ
-                output[key] = deepMerge(target[key], source[key]);
+                output[key] = deepMerge(currentOldVal, currentNewVal);
             }
         }
         else {
-            // ターゲット側にキーがない、またはプリミティブ値の場合は単純代入
-            output[key] = source[key];
+            // oldVal 側にキーがない、またはプリミティブ値の場合は単純代入（上書き）
+            output[key] = currentNewVal;
         }
     }
     return output;

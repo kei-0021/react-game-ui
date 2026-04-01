@@ -1,6 +1,7 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 // src/dynamic/DynamicComponent.tsx
 import { GridBoard, ScoreBoard, SystemMessageWindow } from '@/index.js';
+import { useEffect } from 'react';
 import { Deck } from '../components/Deck.js';
 import { Dice } from '../components/Dice.js';
 import { Draggable } from '../components/Draggable.js';
@@ -8,6 +9,10 @@ import { PlayField } from '../components/PlayField.js';
 import { Timer } from '../components/Timer.js';
 import { TokenStore } from '../components/TokenStore.js';
 export const DynamicComponent = ({ type, props, socket, roomId, myPlayerId, currentPlayerId, players, containerRef, }) => {
+    useEffect(() => {
+        console.log('DynamicComponent: mount', props);
+        return () => console.log('DynamicComponent: unmount', props);
+    }, []);
     // 共通の Props をまとめておく
     const commonProps = { socket, roomId };
     switch (type) {

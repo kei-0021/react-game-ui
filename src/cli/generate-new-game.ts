@@ -317,6 +317,7 @@ export function ${pascalName}Room() {
       <ControlPanel
         socket={socket}
         gameMeta={games}
+        containerRef={containerRef}
         isOpen={isPanelOpen}
         onToggle={() => setIsPanelOpen(!isPanelOpen)}
       />

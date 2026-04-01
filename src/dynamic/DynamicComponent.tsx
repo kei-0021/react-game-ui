@@ -1,6 +1,7 @@
 // src/dynamic/DynamicComponent.tsx
 import { GridBoard, Player, ScoreBoard, SystemMessageWindow } from '@/index.js';
 import { PlayerId, RoomId } from '@/types/definition.js';
+import { useEffect } from 'react';
 import type { Socket } from 'socket.io-client';
 import { Deck } from '../components/Deck.js';
 import { Dice } from '../components/Dice.js';
@@ -31,6 +32,11 @@ export const DynamicComponent = ({
   players,
   containerRef,
 }: DynamicComponentProps) => {
+  useEffect(() => {
+    console.log('DynamicComponent: mount', props);
+    return () => console.log('DynamicComponent: unmount', props);
+  }, []);
+
   // 共通の Props をまとめておく
   const commonProps = { socket, roomId };
 
