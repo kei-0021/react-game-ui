@@ -173,11 +173,13 @@ export class GameServer {
 
         // プレイヤーがいる場合のみ同期を実行
         const roomManager = new RoomManager(this.io, param, state);
-        syncState(state, roomManager, this.io);
         this.io.emit('game:component', {
           state: newState,
           components: param.components,
         } as GameComponentData);
+
+        // コンポーネントの同期が終わってからStateを更新する
+        syncState(state, roomManager, this.io);
       }
     });
 
