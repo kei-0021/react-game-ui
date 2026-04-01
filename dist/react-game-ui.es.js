@@ -3132,6 +3132,7 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
             top: `${(containerRef.current?.getBoundingClientRect().top || 0) + newDraggableY}px`,
             width: "50px",
             height: "50px",
+            transform: "translate(-50%, -50%)",
             border: "2px dashed #ff4444",
             backgroundColor: "rgba(255, 68, 68, 0.3)",
             cursor: "move",
@@ -3145,11 +3146,11 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
             setIsDraggingPreview(true);
             const rect = containerRef.current?.getBoundingClientRect();
             if (!rect) return;
-            const startX = e.clientX - newDraggableX - rect.left;
-            const startY = e.clientY - newDraggableY - rect.top;
+            const offsetX = e.clientX - (rect.left + newDraggableX);
+            const offsetY = e.clientY - (rect.top + newDraggableY);
             const onMouseMove = (moveEvent) => {
-              setNewDraggableX(moveEvent.clientX - rect.left - startX);
-              setNewDraggableY(moveEvent.clientY - rect.top - startY);
+              setNewDraggableX(moveEvent.clientX - rect.left - offsetX);
+              setNewDraggableY(moveEvent.clientY - rect.top - offsetY);
             };
             const onMouseUp = () => {
               setIsDraggingPreview(false);

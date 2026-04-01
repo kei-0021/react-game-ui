@@ -301,6 +301,7 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
               top: `${(containerRef.current?.getBoundingClientRect().top || 0) + newDraggableY}px`,
               width: '50px',
               height: '50px',
+              transform: 'translate(-50%, -50%)',
               border: '2px dashed #ff4444',
               backgroundColor: 'rgba(255, 68, 68, 0.3)',
               cursor: 'move',
@@ -315,13 +316,13 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
               const rect = containerRef.current?.getBoundingClientRect();
               if (!rect) return;
 
-              const startX = e.clientX - newDraggableX - rect.left;
-              const startY = e.clientY - newDraggableY - rect.top;
+              const offsetX = e.clientX - (rect.left + newDraggableX);
+              const offsetY = e.clientY - (rect.top + newDraggableY);
 
               const onMouseMove = (moveEvent: MouseEvent) => {
                 // 物理座標から「部屋の左上」と「最初のズレ」を引いて相対座標を出す
-                setNewDraggableX(moveEvent.clientX - rect.left - startX);
-                setNewDraggableY(moveEvent.clientY - rect.top - startY);
+                setNewDraggableX(moveEvent.clientX - rect.left - offsetX);
+                setNewDraggableY(moveEvent.clientY - rect.top - offsetY);
               };
 
               const onMouseUp = () => {

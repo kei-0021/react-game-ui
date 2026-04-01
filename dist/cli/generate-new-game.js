@@ -19,6 +19,7 @@ export const generate = (gameName, gameIcon = '🎲') => {
   height: 100vh;
   overflow: auto;
   background: #222;
+  user-select: none;
 }
 
 .roomCanvas {
@@ -280,21 +281,6 @@ export function ${pascalName}Room() {
           </aside>
 
           <div className={styles.playFieldContainer}>
-             {/* 動的コンポーネントのレンダリング */}
-             {componentInfo.map((info) => (
-               <DynamicComponent 
-                 key={info.id} 
-                 type={info.type} 
-                 props={info.props} 
-                 socket={socket!} 
-                 roomId={roomId!} 
-                 myPlayerId={myPlayerId}
-                 currentPlayerId={currentPlayerId}
-                 players={players}
-                 containerRef={containerRef}
-               />
-             ))}
-
              <RemoteCursor socket={socket!} roomId={roomId} myPlayerId={myPlayerId} players={players.map(p => ({ name: p.name, socketId: String(p.id), color: p.color }))} scale={scale} fixedContainerRef={containerRef} visible={true} isRelative={false} />
              <PlayField socket={socket} roomId={roomId} deckId="main" players={players} myPlayerId={myPlayerId} layoutMode="free" />
              <Draggable socket={socket} roomId={roomId} draggableId="piece" containerRef={containerRef}/>
@@ -314,6 +300,20 @@ export function ${pascalName}Room() {
         isOpen={isPanelOpen}
         onToggle={() => setIsPanelOpen(!isPanelOpen)}
       />
+      {/* 動的コンポーネントのレンダリング */}
+      {componentInfo.map((info) => (
+        <DynamicComponent 
+          key={info.id} 
+          type={info.type} 
+          props={info.props} 
+          socket={socket!} 
+          roomId={roomId!} 
+          myPlayerId={myPlayerId}
+          currentPlayerId={currentPlayerId}
+          players={players}
+          containerRef={containerRef}
+        />
+      ))}
     </div>
   );
 }
