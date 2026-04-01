@@ -189,9 +189,9 @@ export function Draggable({ socket, roomId, draggableId, image, mask = false, si
                         mixBlendMode: mask ? 'multiply' : 'normal',
                     } })) : (children) }), isDebug && (_jsxs("div", { className: draggableStyles.debugLabel, style: {
                     left: `${pos.x}px`,
-                    top: `${pos.y - height / 2 - 22}px`,
+                    top: `${pos.y - height / 2 - 35}px`,
                     transform: 'translateX(-50%)',
-                }, children: ["ID: ", draggableId, " | Z: ", currentZIndex] })), contextMenu && (_jsxs("div", { className: draggableStyles.contextMenu, style: {
+                }, children: [_jsxs("div", { children: ["ID: ", draggableId] }), _jsxs("div", { children: ["X: ", Math.round(pos.x), " | Y: ", Math.round(pos.y)] }), ' ', _jsxs("div", { children: ["Z: ", currentZIndex] })] })), contextMenu && (_jsxs("div", { className: draggableStyles.contextMenu, style: {
                     top: contextMenu.y,
                     left: contextMenu.x,
                 }, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: draggableStyles.menuItem, onClick: (e) => {

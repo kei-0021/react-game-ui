@@ -124,7 +124,7 @@ export function SampleRoom() {
   }
 
   return (
-    <div className="game-container" ref={containerRef}>
+    <div className="room-container" ref={containerRef}>
       <h1>Room ID: {roomId}</h1>
       <div className="round-display">ROUND: {currentRound}</div>
       <div>現在のダイスの目: {currentValue}</div>

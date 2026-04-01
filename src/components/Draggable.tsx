@@ -293,11 +293,16 @@ export function Draggable({
           className={draggableStyles.debugLabel}
           style={{
             left: `${pos.x}px`,
-            top: `${pos.y - height / 2 - 22}px`,
+            top: `${pos.y - height / 2 - 35}px`,
             transform: 'translateX(-50%)',
           }}
         >
-          ID: {draggableId} | Z: {currentZIndex}
+          <div>ID: {draggableId}</div>
+          {/* 相対座標を表示 */}
+          <div>
+            X: {Math.round(pos.x)} | Y: {Math.round(pos.y)}
+          </div>{' '}
+          <div>Z: {currentZIndex}</div>
         </div>
       )}
 

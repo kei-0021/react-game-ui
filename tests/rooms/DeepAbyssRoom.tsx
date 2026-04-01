@@ -133,12 +133,12 @@ export function DeepAbyssRoom() {
     };
   }, [socket, roomId, showPopup]);
 
-  if (!roomId) return <div className="deepsea-container">Room ID Not Found</div>;
-  if (!socket) return <div className="deepsea-container">Connecting...</div>;
+  if (!roomId) return <div className="room-container">Room ID Not Found</div>;
+  if (!socket) return <div className="room-container">Connecting...</div>;
 
   if (!hasJoined) {
     return (
-      <div className="deepsea-container">
+      <div className="room-container">
         <div className="join-form-wrapper">
           <h2 className="deepsea-title-center">ルーム参加</h2>
           <input
@@ -160,7 +160,7 @@ export function DeepAbyssRoom() {
 
   // ゲーム本編
   return (
-    <div className="deepsea-container" ref={containerRef}>
+    <div className="room-container" ref={containerRef}>
       {/* ゲーム終了リザルトモーダル */}
       {gameResult && (
         <div className="result-overlay">

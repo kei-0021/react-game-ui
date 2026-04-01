@@ -8,9 +8,10 @@ import styles from './ControlPanel.module.css';
 interface ComponentFactoryProps {
   onAdd: (newComponent: ComponentInfo, additionalParams?: any) => void;
   existingIds: ComponentId[];
+  containerRef: React.RefObject<HTMLElement | null>;
 }
 
-export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) => {
+export const ComponentFactory = ({ onAdd, existingIds, containerRef }: ComponentFactoryProps) => {
   const [newCompId, setNewCompId] = useState('');
   const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
 
@@ -295,8 +296,9 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
           <div
             style={{
               position: 'fixed',
-              left: `${newDraggableX}px`,
-              top: `${newDraggableY}px`,
+              // 保存されている「相対座標」に、「現在の盤面の物理位置」を足して描画する
+              left: `${(containerRef.current?.getBoundingClientRect().left || 0) + newDraggableX}px`,
+              top: `${(containerRef.current?.getBoundingClientRect().top || 0) + newDraggableY}px`,
               width: '50px',
               height: '50px',
               border: '2px dashed #ff4444',
@@ -310,12 +312,16 @@ export const ComponentFactory = ({ onAdd, existingIds }: ComponentFactoryProps) 
             }}
             onMouseDown={(e) => {
               setIsDraggingPreview(true);
-              const startX = e.clientX - newDraggableX;
-              const startY = e.clientY - newDraggableY;
+              const rect = containerRef.current?.getBoundingClientRect();
+              if (!rect) return;
+
+              const startX = e.clientX - newDraggableX - rect.left;
+              const startY = e.clientY - newDraggableY - rect.top;
 
               const onMouseMove = (moveEvent: MouseEvent) => {
-                setNewDraggableX(moveEvent.clientX - startX);
-                setNewDraggableY(moveEvent.clientY - startY);
+                // 物理座標から「部屋の左上」と「最初のズレ」を引いて相対座標を出す
+                setNewDraggableX(moveEvent.clientX - rect.left - startX);
+                setNewDraggableY(moveEvent.clientY - rect.top - startY);
               };
 
               const onMouseUp = () => {

@@ -14,14 +14,14 @@ export const generate = (gameName, gameIcon = '🎲') => {
     const baseDir = process.env.RG_UI_BASE_DIR || path.join(process.cwd(), 'src');
     // --- CSS Module Template ---
     const cssModuleTemplate = `/* src/rooms/${pascalName}Room.module.css */
-.gameContainer {
+.roomContainer {
   width: 100vw;
   height: 100vh;
   overflow: auto;
   background: #222;
 }
 
-.gameCanvas {
+.roomCanvas {
   width: 1600px;
   height: 900px;
   position: relative;
@@ -242,10 +242,10 @@ export function ${pascalName}Room() {
   }
 
   return (
-    <div className={styles.gameContainer}>
+    <div className={styles.roomContainer}>
       <div
         ref={containerRef}
-        className={styles.gameCanvas}
+        className={styles.roomCanvas}
         style={{
           transform: \`scale(\${scale})\`
         }}

@@ -1233,11 +1233,11 @@ function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll,
     ] })
   ] });
 }
-const draggable = "_draggable_1udwl_3";
-const contextMenu$1 = "_contextMenu_1udwl_28";
-const menuItem$1 = "_menuItem_1udwl_42";
-const separator = "_separator_1udwl_63";
-const debugLabel$1 = "_debugLabel_1udwl_85";
+const draggable = "_draggable_datou_3";
+const contextMenu$1 = "_contextMenu_datou_28";
+const menuItem$1 = "_menuItem_datou_42";
+const separator = "_separator_datou_63";
+const debugLabel$1 = "_debugLabel_datou_85";
 const draggableStyles = {
   draggable,
   contextMenu: contextMenu$1,
@@ -1431,14 +1431,25 @@ function Draggable({
         className: draggableStyles.debugLabel,
         style: {
           left: `${pos.x}px`,
-          top: `${pos.y - height / 2 - 22}px`,
+          top: `${pos.y - height / 2 - 35}px`,
           transform: "translateX(-50%)"
         },
         children: [
-          "ID: ",
-          draggableId,
-          " | Z: ",
-          currentZIndex
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            "ID: ",
+            draggableId
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            "X: ",
+            Math.round(pos.x),
+            " | Y: ",
+            Math.round(pos.y)
+          ] }),
+          " ",
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            "Z: ",
+            currentZIndex
+          ] })
         ]
       }
     ),
@@ -2865,7 +2876,7 @@ const styles = {
   deleteCompBtn,
   divider
 };
-const ComponentFactory = ({ onAdd, existingIds }) => {
+const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
   const [newCompId, setNewCompId] = useState("");
   const [newCompType, setNewCompType] = useState("Dice");
   const [sbPlayCard, setSbPlayCard] = useState(true);
@@ -3112,8 +3123,9 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
         {
           style: {
             position: "fixed",
-            left: `${newDraggableX}px`,
-            top: `${newDraggableY}px`,
+            // 保存されている「相対座標」に、「現在の盤面の物理位置」を足して描画する
+            left: `${(containerRef.current?.getBoundingClientRect().left || 0) + newDraggableX}px`,
+            top: `${(containerRef.current?.getBoundingClientRect().top || 0) + newDraggableY}px`,
             width: "50px",
             height: "50px",
             border: "2px dashed #ff4444",
@@ -3127,11 +3139,13 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
           },
           onMouseDown: (e) => {
             setIsDraggingPreview(true);
-            const startX = e.clientX - newDraggableX;
-            const startY = e.clientY - newDraggableY;
+            const rect = containerRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            const startX = e.clientX - newDraggableX - rect.left;
+            const startY = e.clientY - newDraggableY - rect.top;
             const onMouseMove = (moveEvent) => {
-              setNewDraggableX(moveEvent.clientX - startX);
-              setNewDraggableY(moveEvent.clientY - startY);
+              setNewDraggableX(moveEvent.clientX - rect.left - startX);
+              setNewDraggableY(moveEvent.clientY - rect.top - startY);
             };
             const onMouseUp = () => {
               setIsDraggingPreview(false);
@@ -3160,6 +3174,7 @@ const ComponentFactory = ({ onAdd, existingIds }) => {
 const ControlPanel = ({
   socket,
   gameMeta,
+  containerRef,
   isOpen,
   onToggle
 }) => {
@@ -3374,7 +3389,14 @@ const ControlPanel = ({
           )
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(ComponentFactory, { onAdd: handleAddComponent, existingIds: localComponents.map((c) => c.id) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        ComponentFactory,
+        {
+          onAdd: handleAddComponent,
+          existingIds: localComponents.map((c) => c.id),
+          containerRef
+        }
+      ),
       localComponents.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "10px" }, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
           "既存コンポーネント: ",
