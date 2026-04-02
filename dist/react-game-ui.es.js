@@ -2917,18 +2917,18 @@ const ComponentFactory = ({
     switch (newCompType) {
       case "Deck":
         initialProps = {
-          deckId: `deck`,
+          deckId: newCompId,
           title: "山札"
         };
         additionalParams.initialDecks = [
           {
-            deckId: `deck`,
+            deckId: newCompId,
             name: "カード",
             backColor: "black",
             cards: [
               {
-                id: "1",
-                deckId: `deck`,
+                id: `${newCompId}-c1`,
+                deckId: newCompId,
                 name: "1",
                 ownerId: null,
                 location: "deck",
@@ -2944,8 +2944,8 @@ const ComponentFactory = ({
         break;
       case "PlayField":
         initialProps = {
-          deckId: `deck`,
-          title: `deck`
+          deckId: newCompId,
+          title: newCompId
         };
         break;
       case "ScoreBoard":
@@ -2976,13 +2976,13 @@ const ComponentFactory = ({
         break;
       case "GridBoard":
         initialProps = {
-          boardId: `borad-${newCompId}`,
+          boardId: newCompId,
           allowPieceDrag: true
         };
         break;
       case "Draggable":
         initialProps = {
-          draggableId: `piece-${newCompId}`,
+          draggableId: newCompId,
           image: uploadImage || "/hanabishi.svg",
           mask: true,
           color: newDraggableColor,
@@ -2990,8 +2990,8 @@ const ComponentFactory = ({
           isDebug: true
         };
         additionalParams.draggables = {
-          [`piece-${newCompId}`]: {
-            id: `piece-${newCompId}`,
+          [newCompId]: {
+            id: newCompId,
             coordinate: { x: newDraggableX, y: newDraggableY },
             zIndex: 100,
             rotation: 0
@@ -3000,7 +3000,7 @@ const ComponentFactory = ({
         break;
       case "Dice":
         initialProps = {
-          diceId: `dice-${newCompId}`,
+          diceId: newCompId,
           sides: newDiceSides,
           title: `${newDiceSides}面ダイス`,
           // 4面の場合は天気ダイス
@@ -3029,6 +3029,7 @@ const ComponentFactory = ({
     const target = existingComponents.find((c) => c.id === compId);
     if (!target) return;
     let additionalParams = {};
+    console.log("消そうとする", compId);
     if (target.type === "Draggable") {
       const currentDraggables = { ...fullGameParam?.draggables || {} };
       delete currentDraggables[compId];
@@ -3039,6 +3040,7 @@ const ComponentFactory = ({
         (s) => s.tokenStoreId !== compId
       );
     }
+    console.log("消した結果", additionalParams);
     onDelete(compId, additionalParams);
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.addComponentBox, children: [

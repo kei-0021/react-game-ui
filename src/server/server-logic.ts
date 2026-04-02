@@ -82,11 +82,14 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         // 現在のメモリ上の設定を取得
         const currentParam = gameParams[data.gameId] || {};
 
-        // componentsだけはマージせず、新しいデータで上書きする
+        // draggable, components だけはマージせず、新しいデータで上書きする
+        console.log('変更前: ', JSON.stringify(data.newParam, null, 2));
         const mergedParam = {
           ...deepMerge({ ...currentParam }, data.newParam),
+          ...(data.newParam.draggables ? { draggables: data.newParam.draggables } : {}),
           ...(data.newParam.components ? { components: data.newParam.components } : {}),
         };
+        console.log('変更後: ', JSON.stringify(mergedParam, null, 2));
 
         delete mergedParam.cardEffects;
         delete mergedParam.cellEffects;

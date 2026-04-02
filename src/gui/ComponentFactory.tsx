@@ -63,18 +63,18 @@ export const ComponentFactory = ({
     switch (newCompType) {
       case 'Deck':
         initialProps = {
-          deckId: `deck`,
+          deckId: newCompId,
           title: '山札',
         };
         additionalParams.initialDecks = [
           {
-            deckId: `deck`,
+            deckId: newCompId,
             name: 'カード',
             backColor: 'black',
             cards: [
               {
-                id: '1',
-                deckId: `deck`,
+                id: `${newCompId}-c1`,
+                deckId: newCompId,
                 name: '1',
                 ownerId: null,
                 location: 'deck',
@@ -90,8 +90,8 @@ export const ComponentFactory = ({
         break;
       case 'PlayField':
         initialProps = {
-          deckId: `deck`,
-          title: `deck`,
+          deckId: newCompId,
+          title: newCompId,
         };
         break;
       case 'ScoreBoard':
@@ -122,13 +122,13 @@ export const ComponentFactory = ({
         break;
       case 'GridBoard':
         initialProps = {
-          boardId: `borad-${newCompId}`,
+          boardId: newCompId,
           allowPieceDrag: true,
         };
         break;
       case 'Draggable':
         initialProps = {
-          draggableId: `piece-${newCompId}`,
+          draggableId: newCompId,
           image: uploadImage || '/hanabishi.svg',
           mask: true,
           color: newDraggableColor,
@@ -136,8 +136,8 @@ export const ComponentFactory = ({
           isDebug: true,
         };
         additionalParams.draggables = {
-          [`piece-${newCompId}`]: {
-            id: `piece-${newCompId}`,
+          [newCompId]: {
+            id: newCompId,
             coordinate: { x: newDraggableX, y: newDraggableY },
             zIndex: 100,
             rotation: 0,
@@ -146,7 +146,7 @@ export const ComponentFactory = ({
         break;
       case 'Dice':
         initialProps = {
-          diceId: `dice-${newCompId}`,
+          diceId: newCompId,
           sides: newDiceSides,
           title: `${newDiceSides}面ダイス`,
           // 4面の場合は天気ダイス
@@ -183,6 +183,8 @@ export const ComponentFactory = ({
 
     let additionalParams: Partial<GameMeta> = {};
 
+    console.log('消そうとする', compId);
+
     // 削除対象のタイプに応じて、消すべき Record のキーを指定
     if (target.type === 'Draggable') {
       const currentDraggables = { ...(fullGameParam?.draggables || {}) };
@@ -197,6 +199,7 @@ export const ComponentFactory = ({
     }
 
     // 最終的な削除実行を親（ControlPanel）に伝える
+    console.log('消した結果', additionalParams);
     onDelete(compId, additionalParams);
   };
 
