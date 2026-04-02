@@ -2890,6 +2890,7 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
   const [sbRoundSkip, setSbRoundSkip] = useState(false);
   const [newTokenCount, setNewTokenCount] = useState(10);
   const [newDiceSides, setNewDiceSides] = useState(6);
+  const [newDraggableColor, setNewDraggableColor] = useState("#ff0000");
   const [uploadImage, setUploadImage] = useState(null);
   const [newDraggableX, setNewDraggableX] = useState(500);
   const [newDraggableY, setNewDraggableY] = useState(500);
@@ -2978,7 +2979,7 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
           draggableId: `piece-${newCompId}`,
           image: uploadImage || "/hanabishi.svg",
           mask: true,
-          color: "red",
+          color: newDraggableColor,
           size: 100,
           isDebug: true
         };
@@ -3119,9 +3120,20 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
       )
     ] }),
     newCompType === "Draggable" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px", margin: 0 }, children: "色:" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "color",
+            value: newDraggableColor,
+            onChange: (e) => setNewDraggableColor(e.target.value),
+            style: { cursor: "pointer", border: "none", background: "none", width: "30px", height: "24px" }
+          }
+        )
+      ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "画像アップロード:" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "10px", fontSize: "11px", color: "#aaa" }, children: "※画面上の赤いプレビューをドラッグして初期位置を決めてください" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
@@ -3133,8 +3145,9 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
             width: "50px",
             height: "50px",
             transform: "translate(-50%, -50%)",
-            border: "2px dashed #ff4444",
-            backgroundColor: "rgba(255, 68, 68, 0.3)",
+            border: `2px dashed ${newDraggableColor}`,
+            backgroundColor: `${newDraggableColor}4D`,
+            // 透明度30%（4D）を末尾に付与
             cursor: "move",
             zIndex: 9999,
             display: "flex",

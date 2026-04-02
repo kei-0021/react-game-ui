@@ -16,6 +16,7 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
     // Dice関連
     const [newDiceSides, setNewDiceSides] = useState(6);
     // Draggable関連
+    const [newDraggableColor, setNewDraggableColor] = useState('#ff0000');
     const [uploadImage, setUploadImage] = useState(null);
     const [newDraggableX, setNewDraggableX] = useState(500);
     const [newDraggableY, setNewDraggableY] = useState(500);
@@ -106,7 +107,7 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
                     draggableId: `piece-${newCompId}`,
                     image: uploadImage || '/hanabishi.svg',
                     mask: true,
-                    color: 'red',
+                    color: newDraggableColor,
                     size: 100,
                     isDebug: true,
                 };
@@ -161,7 +162,7 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
                             cursor: 'pointer',
                             fontSize: '12px',
                             color: '#fff',
-                        }, children: [_jsx("input", { type: "checkbox", checked: item.state, onChange: (e) => item.setter(e.target.checked), style: { cursor: 'pointer' } }), item.label] }, item.label)))] })), newCompType === 'TokenStore' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u521D\u671F\u500B\u6570:" }), _jsxs("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' }, children: [_jsx("input", { type: "range", min: "1", max: "50", value: newTokenCount, onChange: (e) => setNewTokenCount(Number(e.target.value)), className: styles.slider }), _jsx("span", { style: { fontSize: '12px', color: '#fff', minWidth: '30px' }, children: newTokenCount })] })] })), newCompType === 'Dice' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u9762\u6570\u3092\u9078\u629E:" }), _jsx("select", { className: styles.compTypeSelect, value: newDiceSides, onChange: (e) => setNewDiceSides(Number(e.target.value)), children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => (_jsxs("option", { value: n, children: [n, "\u9762"] }, n))) })] })), newCompType === 'Draggable' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u753B\u50CF\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9:" }), _jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }), _jsx("div", { style: { marginTop: '10px', fontSize: '11px', color: '#aaa' }, children: "\u203B\u753B\u9762\u4E0A\u306E\u8D64\u3044\u30D7\u30EC\u30D3\u30E5\u30FC\u3092\u30C9\u30E9\u30C3\u30B0\u3057\u3066\u521D\u671F\u4F4D\u7F6E\u3092\u6C7A\u3081\u3066\u304F\u3060\u3055\u3044" }), _jsx("div", { style: {
+                        }, children: [_jsx("input", { type: "checkbox", checked: item.state, onChange: (e) => item.setter(e.target.checked), style: { cursor: 'pointer' } }), item.label] }, item.label)))] })), newCompType === 'TokenStore' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u521D\u671F\u500B\u6570:" }), _jsxs("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' }, children: [_jsx("input", { type: "range", min: "1", max: "50", value: newTokenCount, onChange: (e) => setNewTokenCount(Number(e.target.value)), className: styles.slider }), _jsx("span", { style: { fontSize: '12px', color: '#fff', minWidth: '30px' }, children: newTokenCount })] })] })), newCompType === 'Dice' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u9762\u6570\u3092\u9078\u629E:" }), _jsx("select", { className: styles.compTypeSelect, value: newDiceSides, onChange: (e) => setNewDiceSides(Number(e.target.value)), children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => (_jsxs("option", { value: n, children: [n, "\u9762"] }, n))) })] })), newCompType === 'Draggable' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsxs("div", { style: { display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px', margin: 0 }, children: "\u8272:" }), _jsx("input", { type: "color", value: newDraggableColor, onChange: (e) => setNewDraggableColor(e.target.value), style: { cursor: 'pointer', border: 'none', background: 'none', width: '30px', height: '24px' } })] }), _jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u753B\u50CF\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9:" }), _jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }), _jsx("div", { style: {
                             position: 'fixed',
                             // 保存されている「相対座標」に、「現在の盤面の物理位置」を足して描画する
                             left: `${(containerRef.current?.getBoundingClientRect().left || 0) + newDraggableX}px`,
@@ -169,8 +170,8 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
                             width: '50px',
                             height: '50px',
                             transform: 'translate(-50%, -50%)',
-                            border: '2px dashed #ff4444',
-                            backgroundColor: 'rgba(255, 68, 68, 0.3)',
+                            border: `2px dashed ${newDraggableColor}`,
+                            backgroundColor: `${newDraggableColor}4D`, // 透明度30%（4D）を末尾に付与
                             cursor: 'move',
                             zIndex: 9999,
                             display: 'flex',

@@ -29,6 +29,7 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
   const [newDiceSides, setNewDiceSides] = useState<number>(6);
 
   // Draggable関連
+  const [newDraggableColor, setNewDraggableColor] = useState<string>('#ff0000');
   const [uploadImage, setUploadImage] = useState<string | null>(null);
   const [newDraggableX, setNewDraggableX] = useState<number>(500);
   const [newDraggableY, setNewDraggableY] = useState<number>(500);
@@ -124,7 +125,7 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
           draggableId: `piece-${newCompId}`,
           image: uploadImage || '/hanabishi.svg',
           mask: true,
-          color: 'red',
+          color: newDraggableColor,
           size: 100,
           isDebug: true,
         };
@@ -283,16 +284,24 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
 
       {newCompType === 'Draggable' && (
         <div className={styles.field} style={{ marginTop: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
+            <div className={styles.label} style={{ fontSize: '11px', margin: 0 }}>
+              色:
+            </div>
+            <input
+              type="color"
+              value={newDraggableColor}
+              onChange={(e) => setNewDraggableColor(e.target.value)}
+              style={{ cursor: 'pointer', border: 'none', background: 'none', width: '30px', height: '24px' }}
+            />
+          </div>
+
           <div className={styles.label} style={{ fontSize: '11px' }}>
             画像アップロード:
           </div>
           <input type="file" accept="image/*" className={styles.select} onChange={handleFileChange} />
 
-          <div style={{ marginTop: '10px', fontSize: '11px', color: '#aaa' }}>
-            ※画面上の赤いプレビューをドラッグして初期位置を決めてください
-          </div>
-
-          {/* プレビュー用の簡易D&D要素 (本来はPortal等で盤面上に表示するのが理想) */}
+          {/* プレビューの backgroundColor も newDraggableColor に合わせる */}
           <div
             style={{
               position: 'fixed',
@@ -302,8 +311,8 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
               width: '50px',
               height: '50px',
               transform: 'translate(-50%, -50%)',
-              border: '2px dashed #ff4444',
-              backgroundColor: 'rgba(255, 68, 68, 0.3)',
+              border: `2px dashed ${newDraggableColor}`,
+              backgroundColor: `${newDraggableColor}4D`, // 透明度30%（4D）を末尾に付与
               cursor: 'move',
               zIndex: 9999,
               display: 'flex',
