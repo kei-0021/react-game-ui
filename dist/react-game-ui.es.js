@@ -2880,7 +2880,13 @@ const styles = {
   deleteCompBtn,
   divider
 };
-const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
+const ComponentFactory = ({
+  onAdd,
+  onDelete,
+  existingComponents,
+  fullGameParam,
+  containerRef
+}) => {
   const [newCompId, setNewCompId] = useState("");
   const [newCompType, setNewCompType] = useState("Dice");
   const [sbPlayCard, setSbPlayCard] = useState(true);
@@ -2895,6 +2901,7 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
   const [newDraggableX, setNewDraggableX] = useState(500);
   const [newDraggableY, setNewDraggableY] = useState(500);
   const [isDraggingPreview, setIsDraggingPreview] = useState(false);
+  const existingIds = existingComponents.map((c) => c.id);
   const isDuplicateId = existingIds.includes(newCompId);
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -2955,16 +2962,15 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
           tokenStoreId: newCompId,
           title: `トークン置き場`
         };
-        const generatedTokens = Array.from({ length: newTokenCount }, (_, i) => ({
-          id: `${newCompId}-s${i + 1}`,
-          name: "💰",
-          color: "#D4AF37"
-        }));
         additionalParams.initialTokenStores = [
           {
             tokenStoreId: newCompId,
             name: newCompId,
-            tokens: generatedTokens
+            tokens: Array.from({ length: newTokenCount }, (_, i) => ({
+              id: `${newCompId}-s${i + 1}`,
+              name: "💰",
+              color: "#D4AF37"
+            }))
           }
         ];
         break;
@@ -3019,6 +3025,22 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
     setNewCompId("");
     setUploadImage(null);
   };
+  const handleDeleteClick = (compId) => {
+    const target = existingComponents.find((c) => c.id === compId);
+    if (!target) return;
+    let additionalParams = {};
+    if (target.type === "Draggable") {
+      const currentDraggables = { ...fullGameParam?.draggables || {} };
+      delete currentDraggables[compId];
+      additionalParams.draggables = currentDraggables;
+    }
+    if (target.type === "TokenStore") {
+      additionalParams.initialTokenStores = (fullGameParam?.initialTokenStores || []).filter(
+        (s) => s.tokenStoreId !== compId
+      );
+    }
+    onDelete(compId, additionalParams);
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.addComponentBox, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "コンポーネント追加:" }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.createSection, children: [
@@ -3042,7 +3064,7 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
           onChange: (e) => setNewCompId(e.target.value)
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: () => handleAddClick(), disabled: !newCompId || isDuplicateId, children: "追加" })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "追加" })
     ] }),
     isDuplicateId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#ff4444", fontSize: "12px", marginTop: "-4px" }, children: "このIDは既に使用されています" }),
     newCompType === "ScoreBoard" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -3147,7 +3169,6 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
             transform: "translate(-50%, -50%)",
             border: `2px dashed ${newDraggableColor}`,
             backgroundColor: `${newDraggableColor}4D`,
-            // 透明度30%（4D）を末尾に付与
             cursor: "move",
             zIndex: 9999,
             display: "flex",
@@ -3175,17 +3196,22 @@ const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
           },
           children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "10px", color: "white", userSelect: "none" }, children: "Preview" })
         }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "10px", marginTop: "10px", fontSize: "11px" }, children: [
+      )
+    ] }),
+    existingComponents.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "15px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "配置済みコンポーネント:" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.componentList, children: existingComponents.map((comp) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.componentItem, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-          "X: ",
-          Math.round(newDraggableX)
+          comp.id,
+          " ",
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("small", { children: [
+            "(",
+            comp.type,
+            ")"
+          ] })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-          "Y: ",
-          Math.round(newDraggableY)
-        ] })
-      ] })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleDeleteClick(comp.id), className: styles.deleteCompBtn, children: "✕" })
+      ] }, comp.id)) })
     ] })
   ] });
 };
@@ -3321,13 +3347,14 @@ const ControlPanel = ({
       }
     });
   };
-  const handleDeleteComponent = (compId) => {
-    const updated = localComponents.filter((comp) => comp.id !== compId);
-    setLocalComponents(updated);
+  const handleDeleteComponent = (compId, additionalParams) => {
+    const updatedComponents = localComponents.filter((comp) => comp.id !== compId);
+    setLocalComponents(updatedComponents);
     socket.emit("game-param:update", {
       gameId: selectedGameId,
       newParam: {
-        components: updated
+        components: updatedComponents,
+        ...additionalParams
       }
     });
   };
@@ -3411,25 +3438,12 @@ const ControlPanel = ({
         ComponentFactory,
         {
           onAdd: handleAddComponent,
-          existingIds: localComponents.map((c) => c.id),
+          onDelete: handleDeleteComponent,
+          existingComponents: localComponents,
+          fullGameParam: selectedGame,
           containerRef
         }
       ),
-      localComponents.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "10px" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.label, children: [
-          "既存コンポーネント: ",
-          isComponentsDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles.dirtyLabel, children: "(変更あり)" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.componentList, children: localComponents.map((comp) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.componentItem, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-            comp.id,
-            " (",
-            comp.type,
-            ")"
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleDeleteComponent(comp.id), className: styles.deleteCompBtn, children: "✕" })
-        ] }, comp.id)) })
-      ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: styles.divider }),
       selectedGame && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
         selectedGame.maxPlayers !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, children: [

@@ -1,5 +1,5 @@
 // src/gui/ControlPanel.tsx
-import { DeckId, TokenStoreId } from '@/index.js';
+import { ComponentId, DeckId, TokenStoreId } from '@/index.js';
 import { ComponentInfo } from '@/types/server.js';
 import { GameCreateData, GameDeleteData, GameMeta, GameParamUpdateData } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
@@ -197,18 +197,18 @@ export const ControlPanel = ({
   };
 
   // コンポーネント削除ハンドラ
-  const handleDeleteComponent = (compId: string) => {
-    const updated = localComponents.filter((comp) => comp.id !== compId);
-    setLocalComponents(updated);
+  const handleDeleteComponent = (compId: ComponentId, additionalParams?: any) => {
+    const updatedComponents = localComponents.filter((comp) => comp.id !== compId);
+    setLocalComponents(updatedComponents);
 
     socket.emit('game-param:update', {
       gameId: selectedGameId,
       newParam: {
-        components: updated,
+        components: updatedComponents,
+        ...additionalParams,
       },
     } as GameParamUpdateData);
   };
-
   return (
     <>
       <button className={styles.hamburger} onClick={onToggle}>
@@ -288,33 +288,14 @@ export const ControlPanel = ({
             </div>
           </div>
 
+          {/* Factoryにリスト管理と削除機能を集約 */}
           <ComponentFactory
             onAdd={handleAddComponent}
-            existingIds={localComponents.map((c) => c.id)}
+            onDelete={handleDeleteComponent}
+            existingComponents={localComponents}
+            fullGameParam={selectedGame}
             containerRef={containerRef}
           />
-
-          {/* コンポーネントリスト表示 */}
-          {localComponents.length > 0 && (
-            <div style={{ marginTop: '10px' }}>
-              <div className={styles.label}>
-                既存コンポーネント: {isComponentsDirty && <span className={styles.dirtyLabel}>(変更あり)</span>}
-              </div>
-              <div className={styles.componentList}>
-                {localComponents.map((comp) => (
-                  <div key={comp.id} className={styles.componentItem}>
-                    <span>
-                      {comp.id} ({comp.type})
-                    </span>
-                    {/* コンポーネント削除ハンドラ */}
-                    <button onClick={() => handleDeleteComponent(comp.id)} className={styles.deleteCompBtn}>
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <hr className={styles.divider} />
 

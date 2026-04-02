@@ -7,11 +7,19 @@ import styles from './ControlPanel.module.css';
 
 interface ComponentFactoryProps {
   onAdd: (newComponent: ComponentInfo, additionalParams?: any) => void;
-  existingIds: ComponentId[];
+  onDelete: (compId: ComponentId, additionalParams?: any) => void;
+  existingComponents: ComponentInfo[];
+  fullGameParam?: GameMeta;
   containerRef: React.RefObject<HTMLElement | null>;
 }
 
-export const ComponentFactory = ({ onAdd, existingIds, containerRef }: ComponentFactoryProps) => {
+export const ComponentFactory = ({
+  onAdd,
+  onDelete,
+  existingComponents,
+  fullGameParam,
+  containerRef,
+}: ComponentFactoryProps) => {
   const [newCompId, setNewCompId] = useState('');
   const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
 
@@ -35,6 +43,7 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
   const [newDraggableY, setNewDraggableY] = useState<number>(500);
   const [isDraggingPreview, setIsDraggingPreview] = useState(false);
 
+  const existingIds = existingComponents.map((c) => c.id);
   const isDuplicateId = existingIds.includes(newCompId);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,18 +108,15 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
           tokenStoreId: newCompId,
           title: `トークン置き場`,
         };
-
-        const generatedTokens = Array.from({ length: newTokenCount }, (_, i) => ({
-          id: `${newCompId}-s${i + 1}`,
-          name: '💰',
-          color: '#D4AF37',
-        }));
-
         additionalParams.initialTokenStores = [
           {
             tokenStoreId: newCompId,
             name: newCompId,
-            tokens: generatedTokens,
+            tokens: Array.from({ length: newTokenCount }, (_, i) => ({
+              id: `${newCompId}-s${i + 1}`,
+              name: '💰',
+              color: '#D4AF37',
+            })),
           },
         ];
         break;
@@ -171,6 +177,29 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
     setUploadImage(null);
   };
 
+  const handleDeleteClick = (compId: ComponentId) => {
+    const target = existingComponents.find((c) => c.id === compId);
+    if (!target) return;
+
+    let additionalParams: Partial<GameMeta> = {};
+
+    // 削除対象のタイプに応じて、消すべき Record のキーを指定
+    if (target.type === 'Draggable') {
+      const currentDraggables = { ...(fullGameParam?.draggables || {}) };
+      delete currentDraggables[compId];
+      additionalParams.draggables = currentDraggables;
+    }
+
+    if (target.type === 'TokenStore') {
+      additionalParams.initialTokenStores = (fullGameParam?.initialTokenStores || []).filter(
+        (s) => s.tokenStoreId !== compId,
+      );
+    }
+
+    // 最終的な削除実行を親（ControlPanel）に伝える
+    onDelete(compId, additionalParams);
+  };
+
   return (
     <div className={styles.addComponentBox}>
       <div className={styles.label}>コンポーネント追加:</div>
@@ -194,7 +223,7 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
           value={newCompId}
           onChange={(e) => setNewCompId(e.target.value)}
         />
-        <button className={styles.saveButton} onClick={() => handleAddClick()} disabled={!newCompId || isDuplicateId}>
+        <button className={styles.saveButton} onClick={handleAddClick} disabled={!newCompId || isDuplicateId}>
           追加
         </button>
       </div>
@@ -312,7 +341,7 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
               height: '50px',
               transform: 'translate(-50%, -50%)',
               border: `2px dashed ${newDraggableColor}`,
-              backgroundColor: `${newDraggableColor}4D`, // 透明度30%（4D）を末尾に付与
+              backgroundColor: `${newDraggableColor}4D`,
               cursor: 'move',
               zIndex: 9999,
               display: 'flex',
@@ -346,10 +375,25 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }: Component
           >
             <span style={{ fontSize: '10px', color: 'white', userSelect: 'none' }}>Preview</span>
           </div>
+        </div>
+      )}
 
-          <div style={{ display: 'flex', gap: '10px', marginTop: '10px', fontSize: '11px' }}>
-            <span>X: {Math.round(newDraggableX)}</span>
-            <span>Y: {Math.round(newDraggableY)}</span>
+      {/* --- 既存コンポーネントのリスト表示と削除ボタン --- */}
+      {existingComponents.length > 0 && (
+        <div style={{ marginTop: '15px' }}>
+          <div className={styles.label}>配置済みコンポーネント:</div>
+          <div className={styles.componentList}>
+            {existingComponents.map((comp) => (
+              <div key={comp.id} className={styles.componentItem}>
+                <span>
+                  {comp.id} <small>({comp.type})</small>
+                </span>
+                {/* Factory内部の削除ロジックを呼ぶ */}
+                <button onClick={() => handleDeleteClick(comp.id)} className={styles.deleteCompBtn}>
+                  ✕
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}

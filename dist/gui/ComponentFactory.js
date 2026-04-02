@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { COMPONENT_TYPES } from '@/types/server.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
-export const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
+export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam, containerRef, }) => {
     const [newCompId, setNewCompId] = useState('');
     const [newCompType, setNewCompType] = useState('Dice');
     // ScoreBoard関連
@@ -21,6 +21,7 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
     const [newDraggableX, setNewDraggableX] = useState(500);
     const [newDraggableY, setNewDraggableY] = useState(500);
     const [isDraggingPreview, setIsDraggingPreview] = useState(false);
+    const existingIds = existingComponents.map((c) => c.id);
     const isDuplicateId = existingIds.includes(newCompId);
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
@@ -83,16 +84,15 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
                     tokenStoreId: newCompId,
                     title: `トークン置き場`,
                 };
-                const generatedTokens = Array.from({ length: newTokenCount }, (_, i) => ({
-                    id: `${newCompId}-s${i + 1}`,
-                    name: '💰',
-                    color: '#D4AF37',
-                }));
                 additionalParams.initialTokenStores = [
                     {
                         tokenStoreId: newCompId,
                         name: newCompId,
-                        tokens: generatedTokens,
+                        tokens: Array.from({ length: newTokenCount }, (_, i) => ({
+                            id: `${newCompId}-s${i + 1}`,
+                            name: '💰',
+                            color: '#D4AF37',
+                        })),
                     },
                 ];
                 break;
@@ -149,7 +149,24 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
         setNewCompId('');
         setUploadImage(null);
     };
-    return (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: styles.compTypeSelect, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: styles.flexFill, style: { borderColor: isDuplicateId ? '#ff4444' : '' }, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: () => handleAddClick(), disabled: !newCompId || isDuplicateId, children: "\u8FFD\u52A0" })] }), isDuplicateId && (_jsx("div", { style: { color: '#ff4444', fontSize: '12px', marginTop: '-4px' }, children: "\u3053\u306EID\u306F\u65E2\u306B\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059" })), newCompType === 'ScoreBoard' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u6709\u52B9\u306B\u3059\u308B\u30DC\u30BF\u30F3:" }), [
+    const handleDeleteClick = (compId) => {
+        const target = existingComponents.find((c) => c.id === compId);
+        if (!target)
+            return;
+        let additionalParams = {};
+        // 削除対象のタイプに応じて、消すべき Record のキーを指定
+        if (target.type === 'Draggable') {
+            const currentDraggables = { ...(fullGameParam?.draggables || {}) };
+            delete currentDraggables[compId];
+            additionalParams.draggables = currentDraggables;
+        }
+        if (target.type === 'TokenStore') {
+            additionalParams.initialTokenStores = (fullGameParam?.initialTokenStores || []).filter((s) => s.tokenStoreId !== compId);
+        }
+        // 最終的な削除実行を親（ControlPanel）に伝える
+        onDelete(compId, additionalParams);
+    };
+    return (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: styles.compTypeSelect, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: styles.flexFill, style: { borderColor: isDuplicateId ? '#ff4444' : '' }, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "\u8FFD\u52A0" })] }), isDuplicateId && (_jsx("div", { style: { color: '#ff4444', fontSize: '12px', marginTop: '-4px' }, children: "\u3053\u306EID\u306F\u65E2\u306B\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059" })), newCompType === 'ScoreBoard' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u6709\u52B9\u306B\u3059\u308B\u30DC\u30BF\u30F3:" }), [
                         { label: 'カードプレイ', state: sbPlayCard, setter: setSbPlayCard },
                         { label: 'ホールド', state: sbHold, setter: setSbHold },
                         { label: 'フリップ', state: sbFlip, setter: setSbFlip },
@@ -171,7 +188,7 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
                             height: '50px',
                             transform: 'translate(-50%, -50%)',
                             border: `2px dashed ${newDraggableColor}`,
-                            backgroundColor: `${newDraggableColor}4D`, // 透明度30%（4D）を末尾に付与
+                            backgroundColor: `${newDraggableColor}4D`,
                             cursor: 'move',
                             zIndex: 9999,
                             display: 'flex',
@@ -197,5 +214,5 @@ export const ComponentFactory = ({ onAdd, existingIds, containerRef }) => {
                             };
                             document.addEventListener('mousemove', onMouseMove);
                             document.addEventListener('mouseup', onMouseUp);
-                        }, children: _jsx("span", { style: { fontSize: '10px', color: 'white', userSelect: 'none' }, children: "Preview" }) }), _jsxs("div", { style: { display: 'flex', gap: '10px', marginTop: '10px', fontSize: '11px' }, children: [_jsxs("span", { children: ["X: ", Math.round(newDraggableX)] }), _jsxs("span", { children: ["Y: ", Math.round(newDraggableY)] })] })] }))] }));
+                        }, children: _jsx("span", { style: { fontSize: '10px', color: 'white', userSelect: 'none' }, children: "Preview" }) })] })), existingComponents.length > 0 && (_jsxs("div", { style: { marginTop: '15px' }, children: [_jsx("div", { className: styles.label, children: "\u914D\u7F6E\u6E08\u307F\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8:" }), _jsx("div", { className: styles.componentList, children: existingComponents.map((comp) => (_jsxs("div", { className: styles.componentItem, children: [_jsxs("span", { children: [comp.id, " ", _jsxs("small", { children: ["(", comp.type, ")"] })] }), _jsx("button", { onClick: () => handleDeleteClick(comp.id), className: styles.deleteCompBtn, children: "\u2715" })] }, comp.id))) })] }))] }));
 };
