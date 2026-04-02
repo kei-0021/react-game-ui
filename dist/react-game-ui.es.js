@@ -3230,11 +3230,13 @@ const ControlPanel = ({
   const [maxPlayers, setMaxPlayers] = useState(1);
   const [initialHand, setInitialHand] = useState({});
   const [initialTokens, setInitialTokens] = useState({});
+  const [draggables, setDraggables] = useState({});
   const [localComponents, setLocalComponents] = useState([]);
   const [initialValues, setInitialValues] = useState({
     maxPlayers: 1,
     initialHand: {},
     initialTokens: {},
+    draggables: {},
     components: []
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -3250,26 +3252,30 @@ const ControlPanel = ({
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
   const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
   const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
+  const isDraggablesDirty = JSON.stringify(draggables) !== JSON.stringify(initialValues.draggables);
   useEffect(() => {
     if (selectedGame && !isSaving) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
       const configInitialHand = selectedGame.initialHand ?? {};
       const configInitialTokens = selectedGame.initialTokens ?? {};
       const configComponents = selectedGame.components ?? [];
+      const configDraggables = selectedGame.draggables ?? {};
       setInitialValues({
         maxPlayers: configMaxPlayers,
         initialHand: { ...configInitialHand },
         initialTokens: { ...configInitialTokens },
+        draggables: { ...configDraggables },
         components: [...configComponents]
       });
-      if (!isComponentsDirty && !isMaxPlayersDirty && !isHandDirty && !isTokensDirty) {
+      if (!isComponentsDirty && !isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isDraggablesDirty) {
         setMaxPlayers(configMaxPlayers);
         setInitialHand({ ...configInitialHand });
         setInitialTokens({ ...configInitialTokens });
         setLocalComponents([...configComponents]);
+        setDraggables({ ...configDraggables });
       }
     }
-  }, [selectedGame, isSaving, isComponentsDirty, isMaxPlayersDirty, isHandDirty, isTokensDirty]);
+  }, [selectedGame, isSaving, isComponentsDirty, isMaxPlayersDirty, isHandDirty, isTokensDirty, isDraggablesDirty]);
   useEffect(() => {
     const onUpdated = (data) => {
       if (data.success) {
@@ -3279,6 +3285,7 @@ const ControlPanel = ({
           maxPlayers,
           initialHand: { ...initialHand },
           initialTokens: { ...initialTokens },
+          draggables: { ...draggables },
           components: [...localComponents]
         });
         setTimeout(() => setShowSuccess(false), 2e3);
@@ -3308,7 +3315,7 @@ const ControlPanel = ({
       socket.off("game:created", onCreated);
       socket.off("game:deleted", onDeleted);
     };
-  }, [socket, maxPlayers, initialHand, initialTokens, localComponents, selectedGameId, gameMeta]);
+  }, [socket, maxPlayers, initialHand, initialTokens, localComponents, draggables]);
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
     const newParam = {};
@@ -3316,6 +3323,7 @@ const ControlPanel = ({
     if (isHandDirty) newParam.initialHand = initialHand;
     if (isTokensDirty) newParam.initialTokens = initialTokens;
     if (isComponentsDirty) newParam.components = localComponents;
+    if (isDraggablesDirty) newParam.draggables = draggables;
     setIsSaving(true);
     socket.emit("game-param:update", {
       gameId: selectedGameId,
@@ -3340,23 +3348,32 @@ const ControlPanel = ({
   const handleAddComponent = (newComponent, additionalParams) => {
     if (!selectedGameId) return;
     const updatedComponents = [...localComponents, newComponent];
+    const updatedDraggables = {
+      ...draggables,
+      ...additionalParams?.draggables || {}
+    };
     setLocalComponents(updatedComponents);
+    setDraggables(updatedDraggables);
     socket.emit("game-param:update", {
       gameId: selectedGameId,
       newParam: {
-        components: updatedComponents,
-        ...additionalParams
+        ...additionalParams,
+        draggables: updatedDraggables,
+        components: updatedComponents
       }
     });
   };
   const handleDeleteComponent = (compId, additionalParams) => {
     const updatedComponents = localComponents.filter((comp) => comp.id !== compId);
+    const updatedDraggables = additionalParams?.draggables ?? draggables;
     setLocalComponents(updatedComponents);
+    setDraggables(updatedDraggables);
     socket.emit("game-param:update", {
       gameId: selectedGameId,
       newParam: {
-        components: updatedComponents,
-        ...additionalParams
+        ...additionalParams,
+        draggables: updatedDraggables,
+        components: updatedComponents
       }
     });
   };

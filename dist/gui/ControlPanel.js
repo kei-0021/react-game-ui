@@ -20,13 +20,15 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
     const [maxPlayers, setMaxPlayers] = useState(1);
     const [initialHand, setInitialHand] = useState({});
     const [initialTokens, setInitialTokens] = useState({});
-    // コンポーネントのローカル状態
+    // 現在の座標状態を管理
+    const [draggables, setDraggables] = useState({});
     const [localComponents, setLocalComponents] = useState([]);
     // 比較用の初期値保持
     const [initialValues, setInitialValues] = useState({
         maxPlayers: 1,
         initialHand: {},
         initialTokens: {},
+        draggables: {},
         components: [],
     });
     const [isSaving, setIsSaving] = useState(false);
@@ -45,6 +47,7 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
     const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
     const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
     const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
+    const isDraggablesDirty = JSON.stringify(draggables) !== JSON.stringify(initialValues.draggables);
     /** 選択ゲームが切り替わった際のフォーム値の同期 */
     useEffect(() => {
         if (selectedGame && !isSaving) {
@@ -52,21 +55,24 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
             const configInitialHand = selectedGame.initialHand ?? {};
             const configInitialTokens = selectedGame.initialTokens ?? {};
             const configComponents = selectedGame.components ?? [];
+            const configDraggables = selectedGame.draggables ?? {};
             setInitialValues({
                 maxPlayers: configMaxPlayers,
                 initialHand: { ...configInitialHand },
                 initialTokens: { ...configInitialTokens },
+                draggables: { ...configDraggables },
                 components: [...configComponents],
             });
             // 他の項目も含め、未編集の場合のみ外部データを反映
-            if (!isComponentsDirty && !isMaxPlayersDirty && !isHandDirty && !isTokensDirty) {
+            if (!isComponentsDirty && !isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isDraggablesDirty) {
                 setMaxPlayers(configMaxPlayers);
                 setInitialHand({ ...configInitialHand });
                 setInitialTokens({ ...configInitialTokens });
                 setLocalComponents([...configComponents]);
+                setDraggables({ ...configDraggables });
             }
         }
-    }, [selectedGame, isSaving, isComponentsDirty, isMaxPlayersDirty, isHandDirty, isTokensDirty]);
+    }, [selectedGame, isSaving, isComponentsDirty, isMaxPlayersDirty, isHandDirty, isTokensDirty, isDraggablesDirty]);
     /** Socket通信のイベントリスナー設定 */
     useEffect(() => {
         const onUpdated = (data) => {
@@ -78,6 +84,7 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
                     maxPlayers,
                     initialHand: { ...initialHand },
                     initialTokens: { ...initialTokens },
+                    draggables: { ...draggables },
                     components: [...localComponents],
                 });
                 setTimeout(() => setShowSuccess(false), 2000);
@@ -107,7 +114,7 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
             socket.off('game:created', onCreated);
             socket.off('game:deleted', onDeleted);
         };
-    }, [socket, maxPlayers, initialHand, initialTokens, localComponents, selectedGameId, gameMeta]);
+    }, [socket, maxPlayers, initialHand, initialTokens, localComponents, draggables]);
     /** 変更箇所を抽出し、サーバーへ一括送信する */
     const handleSave = () => {
         if (!socket.connected || !selectedGameId)
@@ -121,6 +128,8 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
             newParam.initialTokens = initialTokens;
         if (isComponentsDirty)
             newParam.components = localComponents;
+        if (isDraggablesDirty)
+            newParam.draggables = draggables;
         setIsSaving(true);
         socket.emit('game-param:update', {
             gameId: selectedGameId,
@@ -152,24 +161,34 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
         if (!selectedGameId)
             return;
         const updatedComponents = [...localComponents, newComponent];
+        const updatedDraggables = {
+            ...draggables,
+            ...(additionalParams?.draggables || {}),
+        };
         setLocalComponents(updatedComponents);
+        setDraggables(updatedDraggables);
         socket.emit('game-param:update', {
             gameId: selectedGameId,
             newParam: {
-                components: updatedComponents,
                 ...additionalParams,
+                draggables: updatedDraggables,
+                components: updatedComponents,
             },
         });
     };
     // コンポーネント削除ハンドラ
     const handleDeleteComponent = (compId, additionalParams) => {
         const updatedComponents = localComponents.filter((comp) => comp.id !== compId);
+        // 削除時は Factory から渡された「削除済みリスト」でステートも上書き
+        const updatedDraggables = additionalParams?.draggables ?? draggables;
         setLocalComponents(updatedComponents);
+        setDraggables(updatedDraggables);
         socket.emit('game-param:update', {
             gameId: selectedGameId,
             newParam: {
-                components: updatedComponents,
                 ...additionalParams,
+                draggables: updatedDraggables,
+                components: updatedComponents,
             },
         });
     };
