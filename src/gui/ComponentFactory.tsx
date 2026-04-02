@@ -183,8 +183,6 @@ export const ComponentFactory = ({
 
     let additionalParams: Partial<GameMeta> = {};
 
-    console.log('消そうとする', compId);
-
     // 削除対象のタイプに応じて、消すべき Record のキーを指定
     if (target.type === 'Draggable') {
       const currentDraggables = { ...(fullGameParam?.draggables || {}) };
@@ -199,7 +197,6 @@ export const ComponentFactory = ({
     }
 
     // 最終的な削除実行を親（ControlPanel）に伝える
-    console.log('消した結果', additionalParams);
     onDelete(compId, additionalParams);
   };
 

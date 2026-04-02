@@ -3029,7 +3029,6 @@ const ComponentFactory = ({
     const target = existingComponents.find((c) => c.id === compId);
     if (!target) return;
     let additionalParams = {};
-    console.log("消そうとする", compId);
     if (target.type === "Draggable") {
       const currentDraggables = { ...fullGameParam?.draggables || {} };
       delete currentDraggables[compId];
@@ -3040,7 +3039,6 @@ const ComponentFactory = ({
         (s) => s.tokenStoreId !== compId
       );
     }
-    console.log("消した結果", additionalParams);
     onDelete(compId, additionalParams);
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.addComponentBox, children: [

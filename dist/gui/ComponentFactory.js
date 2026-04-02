@@ -154,7 +154,6 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
         if (!target)
             return;
         let additionalParams = {};
-        console.log('消そうとする', compId);
         // 削除対象のタイプに応じて、消すべき Record のキーを指定
         if (target.type === 'Draggable') {
             const currentDraggables = { ...(fullGameParam?.draggables || {}) };
@@ -165,7 +164,6 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
             additionalParams.initialTokenStores = (fullGameParam?.initialTokenStores || []).filter((s) => s.tokenStoreId !== compId);
         }
         // 最終的な削除実行を親（ControlPanel）に伝える
-        console.log('消した結果', additionalParams);
         onDelete(compId, additionalParams);
     };
     return (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: styles.compTypeSelect, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: styles.flexFill, style: { borderColor: isDuplicateId ? '#ff4444' : '' }, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "\u8FFD\u52A0" })] }), isDuplicateId && (_jsx("div", { style: { color: '#ff4444', fontSize: '12px', marginTop: '-4px' }, children: "\u3053\u306EID\u306F\u65E2\u306B\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059" })), newCompType === 'ScoreBoard' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u6709\u52B9\u306B\u3059\u308B\u30DC\u30BF\u30F3:" }), [
