@@ -1,6 +1,4 @@
 import { GameId, GameParam } from '@/types/server.js';
-import express from 'express';
-import { Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { LogCategory } from './logger.js';
 /**
@@ -31,15 +29,15 @@ export type GameServerOptions = {
  * @property {SocketIOServer} io - 通信を制御するSocket.IOサーバーインスタンス
  */
 export declare class GameServer {
-    private port;
+    protected port: number;
     private libDistPath;
     private clientDistPath;
     private corsOrigins;
-    private gameParams;
+    gameParams: Record<GameId, GameParam>;
     private customEvents;
     private initialLogCategories;
-    app: express.Application;
-    httpServer: HttpServer;
+    private app;
+    private httpServer;
     io: SocketIOServer;
     constructor(options: GameServerOptions);
     /**
@@ -58,9 +56,5 @@ export declare class GameServer {
      * 起動完了後、コンソールにアクセス可能なURL（http://localhost:{port}）を出力する。
      */
     start(): void;
-    /**
-     * 指定したGameIdのパラメータを安全に更新し通知する
-     */
-    updateGameParam(gameId: GameId, param: GameParam): void;
 }
 //# sourceMappingURL=server.d.ts.map

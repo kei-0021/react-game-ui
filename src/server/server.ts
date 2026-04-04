@@ -1,18 +1,13 @@
 // src/server.ts
 import { GameId, GameParam } from '@/types/server.js';
-import { GameComponentData, GameMeta, LobbyGameList } from '@/types/socketData.js';
 import express from 'express';
 import fs from 'fs';
 import { createServer, Server as HttpServer } from 'http';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
-import { LogCategory, server_log } from './logger.js';
-import { createState } from './logic/create-state.js';
-import { syncState } from './logic/sync-state.js';
-import { updateState } from './logic/update-state.js';
-import { RoomManager } from './room-manager.js';
-import { activeRooms, initGameServer } from './server-logic.js';
+import { LogCategory } from './logger.js';
+import { initGameServer } from './server-logic.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,17 +41,17 @@ export type GameServerOptions = {
  * @property {SocketIOServer} io - 通信を制御するSocket.IOサーバーインスタンス
  */
 export class GameServer {
-  private port: number;
+  protected port: number;
   private libDistPath: string;
   private clientDistPath: string;
   private corsOrigins: string[];
 
-  private gameParams: Record<GameId, GameParam>;
+  public gameParams: Record<GameId, GameParam>;
   private customEvents: any;
   private initialLogCategories: Partial<Record<LogCategory, boolean>> | null;
 
-  public app: express.Application;
-  public httpServer: HttpServer;
+  private app: express.Application;
+  private httpServer: HttpServer;
   public io: SocketIOServer;
 
   constructor(options: GameServerOptions) {
@@ -142,60 +137,5 @@ export class GameServer {
       const url = `http://localhost:${actualPort}`;
       console.log(`[Server] Server listening on ${url}`);
     });
-  }
-
-  /**
-   * 指定したGameIdのパラメータを安全に更新し通知する
-   */
-  public updateGameParam(gameId: GameId, param: GameParam): void {
-    if (!this.gameParams[gameId]) {
-      console.warn(`[Server] 未登録のGameIdです: ${gameId}`);
-    }
-
-    // 削除時は param が undefined で渡ってくる
-    if (param === undefined) {
-      delete this.gameParams[gameId];
-      server_log('game', gameId, null, `Removed: ${gameId}`);
-      return;
-    }
-
-    // GameParam・RoomStateの更新
-    this.gameParams[gameId] = param;
-    activeRooms.forEach((state, roomId) => {
-      if (state.gameId === gameId) {
-        const newState = createState(roomId, { ...param, gameId });
-        updateState(state, newState);
-
-        // プレイヤーがいない場合は、同期する必要がないためスキップ
-        if (!state.players || state.players.length === 0) {
-          return;
-        }
-
-        // プレイヤーがいる場合のみ同期を実行
-        const roomManager = new RoomManager(this.io, param, state);
-        this.io.emit('game:component', {
-          state: newState,
-          components: param.components,
-        } as GameComponentData);
-
-        // コンポーネントの同期が終わってからStateを更新する
-        syncState(state, roomManager, this.io);
-      }
-    });
-
-    // クライアントにゲーム一覧を送信
-    const gameList: GameMeta[] = Object.keys(this.gameParams).map((id) => ({
-      gameId: id,
-      gameIcon: this.gameParams[id].gameIcon,
-      maxPlayers: this.gameParams[id].maxPlayers,
-      initialHand: this.gameParams[id].initialHand,
-      initialDecks: this.gameParams[id].initialDecks,
-      initialTokens: this.gameParams[id].initialTokens,
-      draggables: this.gameParams[id].draggables,
-      components: this.gameParams[id].components,
-    }));
-    this.io.emit('lobby:game-list', {
-      games: gameList,
-    } as LobbyGameList);
   }
 }

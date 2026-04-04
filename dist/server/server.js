@@ -4,12 +4,7 @@ import { createServer } from 'http';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
-import { server_log } from './logger.js';
-import { createState } from './logic/create-state.js';
-import { syncState } from './logic/sync-state.js';
-import { updateState } from './logic/update-state.js';
-import { RoomManager } from './room-manager.js';
-import { activeRooms, initGameServer } from './server-logic.js';
+import { initGameServer } from './server-logic.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 /**
@@ -115,54 +110,6 @@ export class GameServer {
             const actualPort = typeof address === 'string' ? address : address?.port;
             const url = `http://localhost:${actualPort}`;
             console.log(`[Server] Server listening on ${url}`);
-        });
-    }
-    /**
-     * 指定したGameIdのパラメータを安全に更新し通知する
-     */
-    updateGameParam(gameId, param) {
-        if (!this.gameParams[gameId]) {
-            console.warn(`[Server] 未登録のGameIdです: ${gameId}`);
-        }
-        // 削除時は param が undefined で渡ってくる
-        if (param === undefined) {
-            delete this.gameParams[gameId];
-            server_log('game', gameId, null, `Removed: ${gameId}`);
-            return;
-        }
-        // GameParam・RoomStateの更新
-        this.gameParams[gameId] = param;
-        activeRooms.forEach((state, roomId) => {
-            if (state.gameId === gameId) {
-                const newState = createState(roomId, { ...param, gameId });
-                updateState(state, newState);
-                // プレイヤーがいない場合は、同期する必要がないためスキップ
-                if (!state.players || state.players.length === 0) {
-                    return;
-                }
-                // プレイヤーがいる場合のみ同期を実行
-                const roomManager = new RoomManager(this.io, param, state);
-                this.io.emit('game:component', {
-                    state: newState,
-                    components: param.components,
-                });
-                // コンポーネントの同期が終わってからStateを更新する
-                syncState(state, roomManager, this.io);
-            }
-        });
-        // クライアントにゲーム一覧を送信
-        const gameList = Object.keys(this.gameParams).map((id) => ({
-            gameId: id,
-            gameIcon: this.gameParams[id].gameIcon,
-            maxPlayers: this.gameParams[id].maxPlayers,
-            initialHand: this.gameParams[id].initialHand,
-            initialDecks: this.gameParams[id].initialDecks,
-            initialTokens: this.gameParams[id].initialTokens,
-            draggables: this.gameParams[id].draggables,
-            components: this.gameParams[id].components,
-        }));
-        this.io.emit('lobby:game-list', {
-            games: gameList,
         });
     }
 }

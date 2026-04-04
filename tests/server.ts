@@ -3,8 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import type { GameId, GameParam } from '../src/index.js';
+import { LiveGameServer } from '../src/server/live-server.js';
 import { loadJsonAssert, RoomConfig } from '../src/server/server-io-utils.js';
-import { GameServer, GameServerOptions } from '../src/server/server.js';
+import { GameServerOptions } from '../src/server/server.js';
 import { customEvents } from './data/customEvents.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -78,7 +79,7 @@ async function startServer() {
     },
   };
 
-  const gameServer = new GameServer(options);
+  const gameServer = new LiveGameServer(options);
   gameServer.start();
 
   const configDir = path.resolve(__dirname, 'server');
