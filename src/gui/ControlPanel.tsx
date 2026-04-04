@@ -1,11 +1,12 @@
 // src/gui/ControlPanel.tsx
 import { ComponentId, DeckId, DraggableData, DraggableId, TokenStoreId } from '@/index.js';
 import { ComponentInfo } from '@/types/server.js';
-import { GameCreateData, GameDeleteData, GameMeta, GameParamUpdateData } from '@/types/socketData.js';
+import { GameMeta, GameParamUpdateData } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import { ComponentFactory } from './ComponentFactory.js';
 import styles from './ControlPanel.module.css';
+import { GameFactory } from './GameFactory.js';
 
 /**
  * ゲームの設定管理およびリアルタイム更新を行う。
@@ -31,8 +32,6 @@ export const ControlPanel = ({
   onToggle: () => void;
 }) => {
   const [selectedGameId, setSelectedGameId] = useState<string>('');
-  const [newGameName, setNewGameName] = useState('');
-  const [newGameIcon, setNewGameIcon] = useState('🎲');
 
   // 各種パラメータの状態
   const [maxPlayers, setMaxPlayers] = useState(1);
@@ -54,7 +53,6 @@ export const ControlPanel = ({
 
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [isDeleteMode, setIsDeleteMode] = useState(false);
 
   // ゲーム選択の初期化
   useEffect(() => {
@@ -121,32 +119,9 @@ export const ControlPanel = ({
       }
     };
 
-    const onCreated = (data: { success: boolean; gameId: string }) => {
-      if (data.success) {
-        setSelectedGameId(data.gameId);
-        setNewGameName('');
-        setNewGameIcon('🎲');
-      }
-    };
-
-    const onDeleted = (data: { success: boolean; gameId: string }) => {
-      if (data.success) {
-        setIsDeleteMode(false);
-        if (selectedGameId === data.gameId) {
-          const nextGame = gameMeta.find((g) => g.gameId !== data.gameId);
-          setSelectedGameId(nextGame ? nextGame.gameId : '');
-        }
-      }
-    };
-
     socket.on('game-param:updated', onUpdated);
-    socket.on('game:created', onCreated);
-    socket.on('game:deleted', onDeleted);
-
     return () => {
       socket.off('game-param:updated', onUpdated);
-      socket.off('game:created', onCreated);
-      socket.off('game:deleted', onDeleted);
     };
   }, [socket, maxPlayers, initialHand, initialTokens, localComponents, draggables]);
 
@@ -168,28 +143,6 @@ export const ControlPanel = ({
     } as GameParamUpdateData);
   };
 
-  /** 新規ゲームの作成依頼を送信 */
-  const handleCreateGame = () => {
-    if (!newGameName || !socket.connected) return;
-
-    // アルファベット小文字のみを許容するID生成
-    const sanitizedGameId = newGameName.toLowerCase().replace(/[^a-z]/g, '');
-    if (!sanitizedGameId) return;
-
-    socket.emit('game:create', {
-      gameName: sanitizedGameId,
-      gameIcon: newGameIcon || '🎲',
-    } as GameCreateData);
-  };
-
-  const handleDeleteGame = () => {
-    if (!selectedGameId || !socket.connected) return;
-    if (window.confirm(`ゲーム「${selectedGameId}」を削除しますか？`)) {
-      socket.emit('game:delete', { gameId: selectedGameId } as GameDeleteData);
-    }
-  };
-
-  // コンポーネント追加ハンドラ
   const handleAddComponent = (newComponent: ComponentInfo, additionalParams?: any) => {
     if (!selectedGameId) return;
     const updatedComponents = [...localComponents, newComponent];
@@ -241,74 +194,15 @@ export const ControlPanel = ({
         <div className={styles.scrollContainer}>
           <h3 className={styles.title}>コントロールパネル</h3>
 
-          {/* 新規作成セクション */}
-          <div className={styles.field}>
-            <div className={styles.label}>新規ゲーム作成:</div>
-            <div className={styles.createSection}>
-              {/* アイコン入力 */}
-              <input
-                type="text"
-                className={`${styles.select} ${styles.iconInput}`}
-                placeholder="Icon"
-                value={newGameIcon}
-                onChange={(e) => setNewGameIcon(e.target.value.slice(0, 5))}
-              />
-              {/* 名前入力 */}
-              <input
-                type="text"
-                className={`${styles.select} ${styles.flexFill}`}
-                placeholder="GameName"
-                value={newGameName}
-                onChange={(e) => setNewGameName(e.target.value)}
-              />
-              <button
-                className={`${styles.saveButton} ${styles.createButton}`}
-                onClick={handleCreateGame}
-                disabled={!newGameName}
-              >
-                作成
-              </button>
-            </div>
-          </div>
-
+          {/* ゲームの箱（作成・選択・削除）を管理 */}
+          <GameFactory
+            socket={socket}
+            gameMeta={gameMeta}
+            selectedGameId={selectedGameId}
+            onSelect={setSelectedGameId}
+          />
+          {/* Factoryにリスト管理と削除機能を集約 */}
           <hr className={styles.divider} />
-
-          {/* ゲーム選択セクション */}
-          <div className={styles.field}>
-            <div className={styles.rangeHeader}>
-              <div className={styles.label}>対象ゲームを選択:</div>
-              <button
-                onClick={() => setIsDeleteMode(!isDeleteMode)}
-                className={styles.deleteModeBtn}
-                style={{ color: isDeleteMode ? '#ff4444' : '#888' }}
-              >
-                {isDeleteMode ? 'キャンセル' : '削除モード'}
-              </button>
-            </div>
-            <div className={styles.createSection}>
-              <select
-                className={`${styles.select} ${styles.flexFill}`}
-                value={selectedGameId}
-                onChange={(e) => setSelectedGameId(e.target.value)}
-              >
-                {gameMeta.length === 0 && <option value="">読み込み中...</option>}
-                {gameMeta.map((game) => (
-                  <option key={game.gameId} value={game.gameId}>
-                    {game.gameId}
-                  </option>
-                ))}
-              </select>
-              {isDeleteMode && selectedGameId && (
-                <button
-                  className={styles.saveButton}
-                  onClick={handleDeleteGame}
-                  style={{ background: '#ff4444', border: 'none' }}
-                >
-                  削除
-                </button>
-              )}
-            </div>
-          </div>
 
           {/* Factoryにリスト管理と削除機能を集約 */}
           <ComponentFactory

@@ -2,6 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import { useEffect, useMemo, useState } from 'react';
 import { ComponentFactory } from './ComponentFactory.js';
 import styles from './ControlPanel.module.css';
+import { GameFactory } from './GameFactory.js';
 /**
  * ゲームの設定管理およびリアルタイム更新を行う。
  * 新規ゲームの作成、既存ゲームのパラメータ（プレイヤー数、初期手札、トークン）、
@@ -14,8 +15,6 @@ import styles from './ControlPanel.module.css';
  */
 export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle, }) => {
     const [selectedGameId, setSelectedGameId] = useState('');
-    const [newGameName, setNewGameName] = useState('');
-    const [newGameIcon, setNewGameIcon] = useState('🎲');
     // 各種パラメータの状態
     const [maxPlayers, setMaxPlayers] = useState(1);
     const [initialHand, setInitialHand] = useState({});
@@ -33,7 +32,6 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
     });
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
-    const [isDeleteMode, setIsDeleteMode] = useState(false);
     // ゲーム選択の初期化
     useEffect(() => {
         if (gameMeta.length > 0 && !selectedGameId) {
@@ -90,29 +88,9 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
                 setTimeout(() => setShowSuccess(false), 2000);
             }
         };
-        const onCreated = (data) => {
-            if (data.success) {
-                setSelectedGameId(data.gameId);
-                setNewGameName('');
-                setNewGameIcon('🎲');
-            }
-        };
-        const onDeleted = (data) => {
-            if (data.success) {
-                setIsDeleteMode(false);
-                if (selectedGameId === data.gameId) {
-                    const nextGame = gameMeta.find((g) => g.gameId !== data.gameId);
-                    setSelectedGameId(nextGame ? nextGame.gameId : '');
-                }
-            }
-        };
         socket.on('game-param:updated', onUpdated);
-        socket.on('game:created', onCreated);
-        socket.on('game:deleted', onDeleted);
         return () => {
             socket.off('game-param:updated', onUpdated);
-            socket.off('game:created', onCreated);
-            socket.off('game:deleted', onDeleted);
         };
     }, [socket, maxPlayers, initialHand, initialTokens, localComponents, draggables]);
     /** 変更箇所を抽出し、サーバーへ一括送信する */
@@ -136,27 +114,6 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
             newParam,
         });
     };
-    /** 新規ゲームの作成依頼を送信 */
-    const handleCreateGame = () => {
-        if (!newGameName || !socket.connected)
-            return;
-        // アルファベット小文字のみを許容するID生成
-        const sanitizedGameId = newGameName.toLowerCase().replace(/[^a-z]/g, '');
-        if (!sanitizedGameId)
-            return;
-        socket.emit('game:create', {
-            gameName: sanitizedGameId,
-            gameIcon: newGameIcon || '🎲',
-        });
-    };
-    const handleDeleteGame = () => {
-        if (!selectedGameId || !socket.connected)
-            return;
-        if (window.confirm(`ゲーム「${selectedGameId}」を削除しますか？`)) {
-            socket.emit('game:delete', { gameId: selectedGameId });
-        }
-    };
-    // コンポーネント追加ハンドラ
     const handleAddComponent = (newComponent, additionalParams) => {
         if (!selectedGameId)
             return;
@@ -192,7 +149,7 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
             },
         });
     };
-    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.scrollContainer, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsxs("div", { className: styles.field, children: [_jsx("div", { className: styles.label, children: "\u65B0\u898F\u30B2\u30FC\u30E0\u4F5C\u6210:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("input", { type: "text", className: `${styles.select} ${styles.iconInput}`, placeholder: "Icon", value: newGameIcon, onChange: (e) => setNewGameIcon(e.target.value.slice(0, 5)) }), _jsx("input", { type: "text", className: `${styles.select} ${styles.flexFill}`, placeholder: "GameName", value: newGameName, onChange: (e) => setNewGameName(e.target.value) }), _jsx("button", { className: `${styles.saveButton} ${styles.createButton}`, onClick: handleCreateGame, disabled: !newGameName, children: "\u4F5C\u6210" })] })] }), _jsx("hr", { className: styles.divider }), _jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsx("div", { className: styles.label, children: "\u5BFE\u8C61\u30B2\u30FC\u30E0\u3092\u9078\u629E:" }), _jsx("button", { onClick: () => setIsDeleteMode(!isDeleteMode), className: styles.deleteModeBtn, style: { color: isDeleteMode ? '#ff4444' : '#888' }, children: isDeleteMode ? 'キャンセル' : '削除モード' })] }), _jsxs("div", { className: styles.createSection, children: [_jsxs("select", { className: `${styles.select} ${styles.flexFill}`, value: selectedGameId, onChange: (e) => setSelectedGameId(e.target.value), children: [gameMeta.length === 0 && _jsx("option", { value: "", children: "\u8AAD\u307F\u8FBC\u307F\u4E2D..." }), gameMeta.map((game) => (_jsx("option", { value: game.gameId, children: game.gameId }, game.gameId)))] }), isDeleteMode && selectedGameId && (_jsx("button", { className: styles.saveButton, onClick: handleDeleteGame, style: { background: '#ff4444', border: 'none' }, children: "\u524A\u9664" }))] })] }), _jsx(ComponentFactory, { onAdd: handleAddComponent, onDelete: handleDeleteComponent, existingComponents: localComponents, fullGameParam: selectedGame, containerRef: containerRef }), _jsx("hr", { className: styles.divider }), selectedGame && (_jsxs(_Fragment, { children: [selectedGame.maxPlayers !== undefined && (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: ["\u6700\u5927\u30D7\u30EC\u30A4\u30E4\u30FC\u6570: ", isMaxPlayersDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("span", { className: styles.rangeValue, children: maxPlayers })] }), _jsx("input", { type: "range", min: "1", max: "10", className: styles.slider, value: maxPlayers, onChange: (e) => setMaxPlayers(Number(e.target.value)) })] })), Object.entries(initialHand).map(([deckId, count]) => (_jsxs("div", { className: styles.rangeField, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: [_jsxs("strong", { children: ["Hand: ", deckId] }), initialValues.initialHand[deckId] !== count && (_jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" }))] }), _jsx("span", { className: styles.rangeValue, children: count })] }), _jsx("input", { type: "range", min: "0", max: "10", className: styles.slider, value: count, onChange: (e) => {
+    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.scrollContainer, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsx(GameFactory, { socket: socket, gameMeta: gameMeta, selectedGameId: selectedGameId, onSelect: setSelectedGameId }), _jsx("hr", { className: styles.divider }), _jsx(ComponentFactory, { onAdd: handleAddComponent, onDelete: handleDeleteComponent, existingComponents: localComponents, fullGameParam: selectedGame, containerRef: containerRef }), _jsx("hr", { className: styles.divider }), selectedGame && (_jsxs(_Fragment, { children: [selectedGame.maxPlayers !== undefined && (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: ["\u6700\u5927\u30D7\u30EC\u30A4\u30E4\u30FC\u6570: ", isMaxPlayersDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("span", { className: styles.rangeValue, children: maxPlayers })] }), _jsx("input", { type: "range", min: "1", max: "10", className: styles.slider, value: maxPlayers, onChange: (e) => setMaxPlayers(Number(e.target.value)) })] })), Object.entries(initialHand).map(([deckId, count]) => (_jsxs("div", { className: styles.rangeField, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: [_jsxs("strong", { children: ["Hand: ", deckId] }), initialValues.initialHand[deckId] !== count && (_jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" }))] }), _jsx("span", { className: styles.rangeValue, children: count })] }), _jsx("input", { type: "range", min: "0", max: "10", className: styles.slider, value: count, onChange: (e) => {
                                                 setInitialHand({
                                                     ...initialHand,
                                                     [deckId]: Number(e.target.value),
