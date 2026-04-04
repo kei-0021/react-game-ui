@@ -3156,7 +3156,8 @@ const ComponentFactory = ({
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "画像アップロード:" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px", marginTop: "10px" }, children: "プレビュー (これを盤面にドラッグ):" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {
           draggable: true,
@@ -3164,28 +3165,61 @@ const ComponentFactory = ({
             const dragData = {
               type: "Draggable",
               id: newCompId || `drag-${Date.now()}`,
-              // compId ではなく id に統一
               props: {
                 image: uploadImage || "/hanabishi.svg",
                 color: newDraggableColor,
-                size: 100
+                size: 80
               }
             };
             e.dataTransfer.setData("application/react-game-ui", JSON.stringify(dragData));
           },
           className: styles.dragSourcePreview,
           style: {
-            width: "60px",
-            height: "60px",
+            width: "80px",
+            height: "80px",
             border: `2px solid ${newDraggableColor}`,
-            backgroundColor: `${newDraggableColor}4D`,
+            backgroundColor: `${newDraggableColor}33`,
+            // 少し透明度を下げた背景
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             cursor: "grab",
-            borderRadius: "4px"
+            borderRadius: "8px",
+            overflow: "hidden",
+            position: "relative",
+            transition: "transform 0.1s ease"
           },
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "10px", color: "white" }, children: "DRAG ME" })
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "img",
+              {
+                src: uploadImage || "/hanabishi.svg",
+                alt: "preview",
+                style: {
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  pointerEvents: "none"
+                  // imgタグがドラッグイベントを邪魔しないように
+                }
+              }
+            ),
+            !newCompId && /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                style: {
+                  position: "absolute",
+                  bottom: 0,
+                  backgroundColor: "rgba(0,0,0,0.6)",
+                  color: "#fff",
+                  fontSize: "9px",
+                  width: "100%",
+                  textAlign: "center"
+                },
+                children: "ID未設定"
+              }
+            )
+          ]
         }
       )
     ] }),
