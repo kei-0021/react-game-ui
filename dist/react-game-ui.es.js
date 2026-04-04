@@ -3134,10 +3134,49 @@ const ComponentFactory = ({
           className: styles.compTypeSelect,
           value: newDiceSides,
           onChange: (e) => setNewDiceSides(Number(e.target.value)),
+          style: { marginBottom: "10px" },
           children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: n, children: [
             n,
             "面"
           ] }, n))
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          draggable: true,
+          onDragStart: (e) => {
+            const dragData = {
+              type: "Dice",
+              id: newCompId || `dice-${Date.now()}`,
+              props: {
+                diceId: newCompId || `dice-${Date.now()}`,
+                sides: newDiceSides,
+                title: `${newDiceSides}面ダイス`
+              }
+            };
+            e.dataTransfer.setData("application/react-game-ui", JSON.stringify(dragData));
+          },
+          className: styles.dragSourcePreview,
+          style: {
+            width: "60px",
+            height: "60px",
+            border: "2px dashed #888",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "grab",
+            borderRadius: "8px",
+            backgroundColor: "rgba(255,255,255,0.1)"
+          },
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "20px" }, children: "🎲" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontSize: "10px", color: "#ccc" }, children: [
+              newDiceSides,
+              "面"
+            ] })
+          ]
         }
       )
     ] }),

@@ -301,6 +301,7 @@ export const ComponentFactory = ({
             className={styles.compTypeSelect}
             value={newDiceSides}
             onChange={(e) => setNewDiceSides(Number(e.target.value))}
+            style={{ marginBottom: '10px' }}
           >
             {[2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => (
               <option key={n} value={n}>
@@ -308,6 +309,38 @@ export const ComponentFactory = ({
               </option>
             ))}
           </select>
+
+          <div
+            draggable
+            onDragStart={(e) => {
+              const dragData = {
+                type: 'Dice',
+                id: newCompId || `dice-${Date.now()}`,
+                props: {
+                  diceId: newCompId || `dice-${Date.now()}`,
+                  sides: newDiceSides,
+                  title: `${newDiceSides}面ダイス`,
+                },
+              };
+              e.dataTransfer.setData('application/react-game-ui', JSON.stringify(dragData));
+            }}
+            className={styles.dragSourcePreview}
+            style={{
+              width: '60px',
+              height: '60px',
+              border: '2px dashed #888',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'grab',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(255,255,255,0.1)',
+            }}
+          >
+            <span style={{ fontSize: '20px' }}>🎲</span>
+            <span style={{ fontSize: '10px', color: '#ccc' }}>{newDiceSides}面</span>
+          </div>
         </div>
       )}
 
