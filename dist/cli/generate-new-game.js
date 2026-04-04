@@ -108,7 +108,8 @@ export const ${pascalName}Config: RoomConfig = {
 };
 `;
     // --- Room Component Template ---
-    const roomTemplate = `import { useCallback, useEffect, useRef, useState } from "react";
+    const roomTemplate = `import { GameParamUpdateData } from '@/types/socketData';
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ComponentInfo, GameMeta, GameTurnUpdateData, LobbyGameList, Player, RoomJoinData } from 'react-game-ui';
 import {
   ControlPanel,
@@ -176,6 +177,61 @@ export function ${pascalName}Room() {
       playerName: userName.trim(),
     } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const rawData = e.dataTransfer.getData('application/react-game-ui');
+      if (!rawData || !socket || !roomId) return;
+
+      try {
+        const data = JSON.parse(rawData);
+        const targetId = data.id || data.compId;
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect || !targetId) return;
+
+        const x = (e.clientX - rect.left) / scale;
+        const y = (e.clientY - rect.top) / scale;
+
+        const newComponent: ComponentInfo = {
+          id: targetId,
+          type: data.type,
+          props: {
+            ...data.props,
+            draggableId: targetId,
+          },
+        };
+
+        const updatedComponents = [...componentInfo, newComponent];
+
+        const currentGame = games.find((g) => g.gameId === 'poker') || games[0];
+        const updatedDraggables = {
+          ...(currentGame?.draggables || {}),
+          [targetId]: {
+            id: targetId,
+            coordinate: { x, y },
+            zIndex: 100,
+            rotation: 0,
+          },
+        };
+
+        socket.emit('game-param:update', {
+          gameId: currentGame?.gameId || 'poker',
+          newParam: {
+            draggables: updatedDraggables,
+            components: updatedComponents,
+          },
+        } as GameParamUpdateData);
+
+        setComponentInfo(updatedComponents);
+      } catch (err) {
+        console.error('Drop error:', err);
+      }
+    },
+    [socket, roomId, scale, componentInfo, games],
+  );
 
   useEffect(() => {
     if (!socket) return;
@@ -250,6 +306,12 @@ export function ${pascalName}Room() {
         style={{
           transform: \`scale(\${scale})\`
         }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = 'move';
+        }}
+        onDrop={handleDrop}
       >
         {/* パネルが開いている時だけ背後に敷く透明なレイヤー */}
         {isPanelOpen && (

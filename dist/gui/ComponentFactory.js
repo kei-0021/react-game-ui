@@ -179,40 +179,27 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
                             cursor: 'pointer',
                             fontSize: '12px',
                             color: '#fff',
-                        }, children: [_jsx("input", { type: "checkbox", checked: item.state, onChange: (e) => item.setter(e.target.checked), style: { cursor: 'pointer' } }), item.label] }, item.label)))] })), newCompType === 'TokenStore' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u521D\u671F\u500B\u6570:" }), _jsxs("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' }, children: [_jsx("input", { type: "range", min: "1", max: "50", value: newTokenCount, onChange: (e) => setNewTokenCount(Number(e.target.value)), className: styles.slider }), _jsx("span", { style: { fontSize: '12px', color: '#fff', minWidth: '30px' }, children: newTokenCount })] })] })), newCompType === 'Dice' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u9762\u6570\u3092\u9078\u629E:" }), _jsx("select", { className: styles.compTypeSelect, value: newDiceSides, onChange: (e) => setNewDiceSides(Number(e.target.value)), children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => (_jsxs("option", { value: n, children: [n, "\u9762"] }, n))) })] })), newCompType === 'Draggable' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsxs("div", { style: { display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px', margin: 0 }, children: "\u8272:" }), _jsx("input", { type: "color", value: newDraggableColor, onChange: (e) => setNewDraggableColor(e.target.value), style: { cursor: 'pointer', border: 'none', background: 'none', width: '30px', height: '24px' } })] }), _jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u753B\u50CF\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9:" }), _jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }), _jsx("div", { style: {
-                            position: 'fixed',
-                            // 保存されている「相対座標」に、「現在の盤面の物理位置」を足して描画する
-                            left: `${(containerRef.current?.getBoundingClientRect().left || 0) + newDraggableX}px`,
-                            top: `${(containerRef.current?.getBoundingClientRect().top || 0) + newDraggableY}px`,
-                            width: '50px',
-                            height: '50px',
-                            transform: 'translate(-50%, -50%)',
-                            border: `2px dashed ${newDraggableColor}`,
+                        }, children: [_jsx("input", { type: "checkbox", checked: item.state, onChange: (e) => item.setter(e.target.checked), style: { cursor: 'pointer' } }), item.label] }, item.label)))] })), newCompType === 'TokenStore' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u521D\u671F\u500B\u6570:" }), _jsxs("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' }, children: [_jsx("input", { type: "range", min: "1", max: "50", value: newTokenCount, onChange: (e) => setNewTokenCount(Number(e.target.value)), className: styles.slider }), _jsx("span", { style: { fontSize: '12px', color: '#fff', minWidth: '30px' }, children: newTokenCount })] })] })), newCompType === 'Dice' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u9762\u6570\u3092\u9078\u629E:" }), _jsx("select", { className: styles.compTypeSelect, value: newDiceSides, onChange: (e) => setNewDiceSides(Number(e.target.value)), children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => (_jsxs("option", { value: n, children: [n, "\u9762"] }, n))) })] })), newCompType === 'Draggable' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsxs("div", { style: { display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px', margin: 0 }, children: "\u8272:" }), _jsx("input", { type: "color", value: newDraggableColor, onChange: (e) => setNewDraggableColor(e.target.value), style: { cursor: 'pointer', border: 'none', background: 'none', width: '30px', height: '24px' } })] }), _jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u753B\u50CF\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9:" }), _jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }), _jsx("div", { draggable // HTML5のドラッグ機能を有効化
+                        : true, onDragStart: (e) => {
+                            const dragData = {
+                                type: 'Draggable',
+                                id: newCompId || `drag-${Date.now()}`, // compId ではなく id に統一
+                                props: {
+                                    image: uploadImage || '/hanabishi.svg',
+                                    color: newDraggableColor,
+                                    size: 100,
+                                },
+                            };
+                            e.dataTransfer.setData('application/react-game-ui', JSON.stringify(dragData));
+                        }, className: styles.dragSourcePreview, style: {
+                            width: '60px',
+                            height: '60px',
+                            border: `2px solid ${newDraggableColor}`,
                             backgroundColor: `${newDraggableColor}4D`,
-                            cursor: 'move',
-                            zIndex: 9999,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            pointerEvents: 'auto',
-                        }, onMouseDown: (e) => {
-                            setIsDraggingPreview(true);
-                            const rect = containerRef.current?.getBoundingClientRect();
-                            if (!rect)
-                                return;
-                            const offsetX = e.clientX - (rect.left + newDraggableX);
-                            const offsetY = e.clientY - (rect.top + newDraggableY);
-                            const onMouseMove = (moveEvent) => {
-                                // 物理座標から「部屋の左上」と「最初のズレ」を引いて相対座標を出す
-                                setNewDraggableX(moveEvent.clientX - rect.left - offsetX);
-                                setNewDraggableY(moveEvent.clientY - rect.top - offsetY);
-                            };
-                            const onMouseUp = () => {
-                                setIsDraggingPreview(false);
-                                document.removeEventListener('mousemove', onMouseMove);
-                                document.removeEventListener('mouseup', onMouseUp);
-                            };
-                            document.addEventListener('mousemove', onMouseMove);
-                            document.addEventListener('mouseup', onMouseUp);
-                        }, children: _jsx("span", { style: { fontSize: '10px', color: 'white', userSelect: 'none' }, children: "Preview" }) })] })), existingComponents.length > 0 && (_jsxs("div", { style: { marginTop: '15px' }, children: [_jsx("div", { className: styles.label, children: "\u914D\u7F6E\u6E08\u307F\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8:" }), _jsx("div", { className: styles.componentList, children: existingComponents.map((comp) => (_jsxs("div", { className: styles.componentItem, children: [_jsxs("span", { children: [comp.id, " ", _jsxs("small", { children: ["(", comp.type, ")"] })] }), _jsx("button", { onClick: () => handleDeleteClick(comp.id), className: styles.deleteCompBtn, children: "\u2715" })] }, comp.id))) })] }))] }));
+                            cursor: 'grab',
+                            borderRadius: '4px',
+                        }, children: _jsx("span", { style: { fontSize: '10px', color: 'white' }, children: "DRAG ME" }) })] })), existingComponents.length > 0 && (_jsxs("div", { style: { marginTop: '15px' }, children: [_jsx("div", { className: styles.label, children: "\u914D\u7F6E\u6E08\u307F\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8:" }), _jsx("div", { className: styles.componentList, children: existingComponents.map((comp) => (_jsxs("div", { className: styles.componentItem, children: [_jsxs("span", { children: [comp.id, " ", _jsxs("small", { children: ["(", comp.type, ")"] })] }), _jsx("button", { onClick: () => handleDeleteClick(comp.id), className: styles.deleteCompBtn, children: "\u2715" })] }, comp.id))) })] }))] }));
 };

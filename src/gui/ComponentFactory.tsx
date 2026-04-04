@@ -330,50 +330,34 @@ export const ComponentFactory = ({
           </div>
           <input type="file" accept="image/*" className={styles.select} onChange={handleFileChange} />
 
-          {/* プレビューの backgroundColor も newDraggableColor に合わせる */}
           <div
+            draggable // HTML5のドラッグ機能を有効化
+            onDragStart={(e) => {
+              const dragData = {
+                type: 'Draggable',
+                id: newCompId || `drag-${Date.now()}`, // compId ではなく id に統一
+                props: {
+                  image: uploadImage || '/hanabishi.svg',
+                  color: newDraggableColor,
+                  size: 100,
+                },
+              };
+              e.dataTransfer.setData('application/react-game-ui', JSON.stringify(dragData));
+            }}
+            className={styles.dragSourcePreview}
             style={{
-              position: 'fixed',
-              // 保存されている「相対座標」に、「現在の盤面の物理位置」を足して描画する
-              left: `${(containerRef.current?.getBoundingClientRect().left || 0) + newDraggableX}px`,
-              top: `${(containerRef.current?.getBoundingClientRect().top || 0) + newDraggableY}px`,
-              width: '50px',
-              height: '50px',
-              transform: 'translate(-50%, -50%)',
-              border: `2px dashed ${newDraggableColor}`,
+              width: '60px',
+              height: '60px',
+              border: `2px solid ${newDraggableColor}`,
               backgroundColor: `${newDraggableColor}4D`,
-              cursor: 'move',
-              zIndex: 9999,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              pointerEvents: 'auto',
-            }}
-            onMouseDown={(e) => {
-              setIsDraggingPreview(true);
-              const rect = containerRef.current?.getBoundingClientRect();
-              if (!rect) return;
-
-              const offsetX = e.clientX - (rect.left + newDraggableX);
-              const offsetY = e.clientY - (rect.top + newDraggableY);
-
-              const onMouseMove = (moveEvent: MouseEvent) => {
-                // 物理座標から「部屋の左上」と「最初のズレ」を引いて相対座標を出す
-                setNewDraggableX(moveEvent.clientX - rect.left - offsetX);
-                setNewDraggableY(moveEvent.clientY - rect.top - offsetY);
-              };
-
-              const onMouseUp = () => {
-                setIsDraggingPreview(false);
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-              };
-
-              document.addEventListener('mousemove', onMouseMove);
-              document.addEventListener('mouseup', onMouseUp);
+              cursor: 'grab',
+              borderRadius: '4px',
             }}
           >
-            <span style={{ fontSize: '10px', color: 'white', userSelect: 'none' }}>Preview</span>
+            <span style={{ fontSize: '10px', color: 'white' }}>DRAG ME</span>
           </div>
         </div>
       )}
