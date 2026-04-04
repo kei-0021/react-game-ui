@@ -2336,7 +2336,7 @@ const PlayerListItem = React.memo(
       }
     }, [player.score]);
     const handleAddScore = (points) => {
-      socket.emit("room:player:add-score", {
+      socket.emit("player:add-score", {
         roomId,
         targetPlayerId: player.id,
         points

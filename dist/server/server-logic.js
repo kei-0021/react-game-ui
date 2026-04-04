@@ -1,5 +1,7 @@
+import { registerBoardListeners } from './listener/board-listener.js';
 import { registerDeckListeners } from './listener/deck-listenr.js';
 import { registerEditorListeners } from './listener/editor-listner.js';
+import { registerTokenListeners } from './listener/token-listener.js';
 import { LOG_CATEGORIES, server_log } from './logger.js';
 import { createPlayer, createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';
@@ -91,68 +93,10 @@ export function initGameServer(io, options) {
         });
         // デッキ関連
         registerDeckListeners(socket, io, gameParams, activeRooms);
-        // トークン
-        socket.on('token:aquire', ({ roomId, tokenStoreId, tokenId }) => {
-            const state = activeRooms.get(roomId);
-            if (!state)
-                return;
-            const param = gameParams[state.gameId];
-            const roomManager = new RoomManager(io, param, state);
-            const player = state?.players.find((p) => p.socketId === socket.id);
-            if (state && player) {
-                roomManager.acquireToken(tokenStoreId, tokenId, player.id);
-                roomManager.emitPlayerUpdate();
-            }
-        });
-        // 駒の移動
-        socket.on('board:move-player', ({ roomId, boardId, playerId, newLocation }) => {
-            const state = activeRooms.get(roomId);
-            if (!state)
-                return;
-            const param = gameParams[state.gameId];
-            const roomManager = new RoomManager(io, param, state);
-            const player = state?.players.find((p) => p.id === playerId);
-            if (player && state) {
-                player.position = newLocation;
-                // セル効果
-                const cellEffects = param.cellEffects;
-                if (cellEffects) {
-                    roomManager.applyCellEffect(boardId, playerId, newLocation, cellEffects);
-                }
-                // カスタムフック
-                const onPieceMove = param.onPieceMove;
-                if (onPieceMove) {
-                    onPieceMove(state, roomManager, newLocation);
-                }
-                roomManager.emitPlayerUpdate();
-            }
-        });
-        // プレイヤーの移動可能範囲リクエストを処理する
-        socket.on('board:movable-range', ({ roomId, boardId, playerId, moveRange, isExact }) => {
-            const state = activeRooms.get(roomId);
-            if (!state)
-                return;
-            const param = gameParams[state.gameId];
-            const roomManager = new RoomManager(io, param, state);
-            // プレイヤーの現在位置を取得
-            const player = state.players.find((p) => p.id === playerId);
-            if (!player)
-                return;
-            const { row, col } = player.position;
-            const startCellId = `r${row}c${col}`;
-            // 移動範囲を計算
-            const movableIds = roomManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
-            // セルIDをクライアントが解釈できる GridLocation[] 形式に変換
-            const movableLocs = movableIds.map((id) => {
-                const m = id.match(/r(\d+)c(\d+)/);
-                return {
-                    row: parseInt(m[1], 10),
-                    col: parseInt(m[2], 10),
-                };
-            });
-            player.movableCells = movableLocs;
-            roomManager.emitPlayerUpdate();
-        });
+        // トークン関連
+        registerTokenListeners(socket, io, gameParams, activeRooms);
+        // ボード関連
+        registerBoardListeners(socket, io, gameParams, activeRooms);
         // ダイス
         socket.on('dice:roll', ({ roomId, diceId, sides }) => {
             const state = activeRooms.get(roomId);
@@ -230,7 +174,7 @@ export function initGameServer(io, options) {
             roomManager.updateRound();
         });
         // スコア加算
-        socket.on('room:player:add-score', ({ roomId, targetPlayerId, points }) => {
+        socket.on('player:add-score', ({ roomId, targetPlayerId, points }) => {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;
@@ -239,7 +183,7 @@ export function initGameServer(io, options) {
             roomManager.addScore(targetPlayerId, points);
         });
         // リソース加算
-        socket.on('room:player:update-resource', ({ roomId, playerId, resourceId, amount }) => {
+        socket.on('player:update-resource', ({ roomId, playerId, resourceId, amount }) => {
             const state = activeRooms.get(roomId);
             if (!state)
                 return;

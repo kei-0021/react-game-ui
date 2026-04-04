@@ -69,7 +69,7 @@ const PlayerListItem = React.memo(
     // ----------------------------
 
     const handleAddScore = (points: number) => {
-      socket.emit('room:player:add-score', {
+      socket.emit('player:add-score', {
         roomId,
         targetPlayerId: player.id,
         points,
