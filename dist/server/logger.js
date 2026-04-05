@@ -1,4 +1,11 @@
 // src/server/logger.ts
+const LOG_LEVEL_PRIORITY = {
+    DEBUG: 0,
+    INFO: 1,
+    WARN: 2,
+    ERROR: 3,
+};
+const CURRENT_LOG_LEVEL = 'DEBUG';
 export let LOG_CATEGORIES = {
     connection: true,
     lobby: true,
@@ -18,23 +25,24 @@ export let LOG_CATEGORIES = {
     custom_event: true,
     disconnect: true,
 };
-const ANSI_RED = '\x1b[31m';
-const ANSI_RESET = '\x1b[0m';
 /**
  * サーバー全体のログを出力する共通関数
  * @param tag カテゴリ
  * @param gameId ゲームID (任意)
  * @param roomId ルームID (任意)
- * @param msg メッセージ内容 (最後)
+ * @param msg メッセージ内容
+ * @param level ログレベル (デフォルト: INFO)
  */
-export const server_log = (tag, gameId, roomId, msg) => {
+export const server_log = (tag, gameId, roomId, msg, level = 'INFO') => {
     if (!(tag in LOG_CATEGORIES)) {
         throw new Error(`未定義のログカテゴリです: ${tag}`);
     }
-    // カテゴリ別ログ設定を見て無効になっている場合、ログを出さないようにする
-    if (!LOG_CATEGORIES[tag])
+    if (LOG_LEVEL_PRIORITY[level] < LOG_LEVEL_PRIORITY[CURRENT_LOG_LEVEL]) {
         return;
-    // 日本時間 (JST) で [HH:mm:ss] を生成
+    }
+    if (!LOG_CATEGORIES[tag]) {
+        return;
+    }
     const time = new Intl.DateTimeFormat('ja-JP', {
         hour: '2-digit',
         minute: '2-digit',
@@ -44,11 +52,17 @@ export const server_log = (tag, gameId, roomId, msg) => {
     }).format(new Date());
     const gDisplay = gameId || 'SYSTEM';
     const rDisplay = roomId || 'GLOBAL';
-    const header = `[${time}] [${tag}] [${gDisplay} (${rDisplay})]`;
-    if (tag === 'warn') {
-        console.warn(`${ANSI_RED}${header}${ANSI_RESET} ${msg}`);
-    }
-    else {
-        console.log(`${header} ${msg}`);
+    const header = `[${time}] [${level}] [${tag}] [${gDisplay} (${rDisplay})]`;
+    const formattedLog = `${header} ${msg}`;
+    switch (level) {
+        case 'ERROR':
+            console.error(formattedLog);
+            break;
+        case 'WARN':
+            console.warn(formattedLog);
+            break;
+        default:
+            console.log(formattedLog);
+            break;
     }
 };

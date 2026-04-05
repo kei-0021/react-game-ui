@@ -77,7 +77,7 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
 
     const firstEntry = cards[0];
     if (firstEntry) {
-      server_log('deck', param.gameId, roomId, `サンプル:\n ${JSON.stringify(firstEntry, null, 2)}`);
+      server_log('deck', param.gameId, roomId, `デッキのサンプル:\n ${JSON.stringify(firstEntry, null, 2)}`, 'DEBUG');
     }
   });
 
@@ -100,7 +100,13 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     const firstEntry = Object.entries(draggables)[0];
     if (firstEntry) {
       const [key, value] = firstEntry;
-      server_log('draggable', param.gameId, roomId, `サンプル:\n${key}: ${JSON.stringify(value, null, 2)}`);
+      server_log(
+        'draggable',
+        param.gameId,
+        roomId,
+        `ドラッグ可能オブジェクトのサンプル:\n${key}: ${JSON.stringify(value, null, 2)}`,
+        'DEBUG',
+      );
     }
   }
 

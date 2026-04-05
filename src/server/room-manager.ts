@@ -626,7 +626,7 @@ export class RoomManager {
     }
 
     this.server_log(
-      'game',
+      'room',
       `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`,
     );
 
@@ -644,7 +644,7 @@ export class RoomManager {
   updatePhase(newPhase: Phase): void {
     if (this.state.currentPhase !== newPhase) {
       this.state.currentPhase = newPhase;
-      this.server_log('game', `フェーズを更新しました: ${newPhase}`);
+      this.server_log('room', `フェーズを更新しました: ${newPhase}`);
       this.io.to(this.state.roomId).emit('game:phase:update', {
         newPhase: this.state.currentPhase,
       } as GamePhaseUpdateData);

@@ -70,13 +70,7 @@ async function startServer() {
     corsOrigins: ['http://localhost:5173', 'http://localhost:4000'],
     gameParams: gameParams,
     customEvents,
-    initialLogCategories: {
-      connection: true,
-      lobby: true,
-      room: false,
-      deck: true,
-      draggable: true,
-    },
+    initialLogCategories: {},
   };
 
   const gameServer = new LiveGameServer(options);

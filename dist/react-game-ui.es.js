@@ -3643,6 +3643,13 @@ const ControlPanel = ({
     ] }) })
   ] });
 };
+const LOG_LEVEL_PRIORITY = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3
+};
+const CURRENT_LOG_LEVEL = "DEBUG";
 let LOG_CATEGORIES = {
   connection: true,
   lobby: true,
@@ -3662,13 +3669,16 @@ let LOG_CATEGORIES = {
   custom_event: true,
   disconnect: true
 };
-const ANSI_RED = "\x1B[31m";
-const ANSI_RESET = "\x1B[0m";
-const server_log = (tag, gameId, roomId, msg) => {
+const server_log = (tag, gameId, roomId, msg, level = "INFO") => {
   if (!(tag in LOG_CATEGORIES)) {
     throw new Error(`未定義のログカテゴリです: ${tag}`);
   }
-  if (!LOG_CATEGORIES[tag]) return;
+  if (LOG_LEVEL_PRIORITY[level] < LOG_LEVEL_PRIORITY[CURRENT_LOG_LEVEL]) {
+    return;
+  }
+  if (!LOG_CATEGORIES[tag]) {
+    return;
+  }
   const time = new Intl.DateTimeFormat("ja-JP", {
     hour: "2-digit",
     minute: "2-digit",
@@ -3678,11 +3688,18 @@ const server_log = (tag, gameId, roomId, msg) => {
   }).format(/* @__PURE__ */ new Date());
   const gDisplay = gameId || "SYSTEM";
   const rDisplay = roomId || "GLOBAL";
-  const header = `[${time}] [${tag}] [${gDisplay} (${rDisplay})]`;
-  if (tag === "warn") {
-    console.warn(`${ANSI_RED}${header}${ANSI_RESET} ${msg}`);
-  } else {
-    console.log(`${header} ${msg}`);
+  const header = `[${time}] [${level}] [${tag}] [${gDisplay} (${rDisplay})]`;
+  const formattedLog = `${header} ${msg}`;
+  switch (level) {
+    case "ERROR":
+      console.error(formattedLog);
+      break;
+    case "WARN":
+      console.warn(formattedLog);
+      break;
+    default:
+      console.log(formattedLog);
+      break;
   }
 };
 const isExplored = (roomState, position) => {
@@ -4156,7 +4173,7 @@ class RoomManager {
       onNextRound(this.state, this);
     }
     this.server_log(
-      "game",
+      "room",
       `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`
     );
     this.io.to(this.state.roomId).emit("game:turn", {
@@ -4172,7 +4189,7 @@ class RoomManager {
   updatePhase(newPhase) {
     if (this.state.currentPhase !== newPhase) {
       this.state.currentPhase = newPhase;
-      this.server_log("game", `フェーズを更新しました: ${newPhase}`);
+      this.server_log("room", `フェーズを更新しました: ${newPhase}`);
       this.io.to(this.state.roomId).emit("game:phase:update", {
         newPhase: this.state.currentPhase
       });

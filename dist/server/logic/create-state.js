@@ -47,7 +47,7 @@ export function createState(roomId, param) {
         server_log('deck', param.gameId, roomId, `デッキ "${deck.deckId}" を初期化完了`);
         const firstEntry = cards[0];
         if (firstEntry) {
-            server_log('deck', param.gameId, roomId, `サンプル:\n ${JSON.stringify(firstEntry, null, 2)}`);
+            server_log('deck', param.gameId, roomId, `デッキのサンプル:\n ${JSON.stringify(firstEntry, null, 2)}`, 'DEBUG');
         }
     });
     initialTokenStores.forEach((tokenStore) => {
@@ -66,7 +66,7 @@ export function createState(roomId, param) {
         const firstEntry = Object.entries(draggables)[0];
         if (firstEntry) {
             const [key, value] = firstEntry;
-            server_log('draggable', param.gameId, roomId, `サンプル:\n${key}: ${JSON.stringify(value, null, 2)}`);
+            server_log('draggable', param.gameId, roomId, `ドラッグ可能オブジェクトのサンプル:\n${key}: ${JSON.stringify(value, null, 2)}`, 'DEBUG');
         }
     }
     const initialMaxZIndex = Object.values(draggables).reduce((max, d) => Math.max(max, d.zIndex || 0), 0);

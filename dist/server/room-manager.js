@@ -527,7 +527,7 @@ export class RoomManager {
         if (onNextRound) {
             onNextRound(this.state, this);
         }
-        this.server_log('game', `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`);
+        this.server_log('room', `ラウンド更新 (Player: ${this.state.players[this.state.currentTurnIndex]?.name}, RoundIndex: ${this.state.currentRoundIndex})`);
         this.io.to(this.state.roomId).emit('game:turn', {
             currentPlayerId: currentPlayer?.id,
             currentRoundIndex: this.state.currentRoundIndex,
@@ -541,7 +541,7 @@ export class RoomManager {
     updatePhase(newPhase) {
         if (this.state.currentPhase !== newPhase) {
             this.state.currentPhase = newPhase;
-            this.server_log('game', `フェーズを更新しました: ${newPhase}`);
+            this.server_log('room', `フェーズを更新しました: ${newPhase}`);
             this.io.to(this.state.roomId).emit('game:phase:update', {
                 newPhase: this.state.currentPhase,
             });
