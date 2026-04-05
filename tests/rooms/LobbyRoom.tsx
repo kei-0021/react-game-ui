@@ -1,31 +1,15 @@
 // tests/rooms/LobbyRoom.tsx
 import { useEffect, useState } from 'react';
+import { ControlPanel, GameMeta, LobbyGameList, LobbyRoomList, RoomMeta } from 'react-game-ui';
 import { useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
-import { ControlPanel } from '../../src/components/ControlPanel';
-import type { LobbyRoomsList, RoomMeta } from '../../src/types/socketData';
 import './LobbyRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
 
-const GAME_PRESETS = [
-  {
-    id: 'sample',
-    name: 'サンプル',
-    pathSegment: 'sample',
-    buttonClass: 'primary-button',
-  },
-  {
-    id: 'deepabyss',
-    name: '深海大冒険',
-    pathSegment: 'deepabyss',
-    buttonClass: 'primary-button',
-  },
-];
-
 export function LobbyRoom() {
+  const [games, setGames] = useState<GameMeta[]>([]);
   const [rooms, setRooms] = useState<RoomMeta[]>([]);
-  const [availableIds, setAvailableIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -37,66 +21,84 @@ export function LobbyRoom() {
 
     lobbySocket.on('connect', () => {
       console.log('Lobby connected. Requesting room list.');
-      lobbySocket.emit('lobby:get-rooms');
+      lobbySocket.emit('lobby:get-info');
 
       // --- テストとして、カスタムイベント1を強制発動 ---
       lobbySocket.emit('custom:events:1');
     });
 
+    // ゲームリスト受信
+    lobbySocket.on('lobby:game-list', (data: LobbyGameList) => {
+      if (!Array.isArray(data) && data.games) {
+        setGames(data.games);
+      }
+    });
+
     // ルームリスト受信
-    lobbySocket.on('lobby:rooms-list', (data: LobbyRoomsList) => {
+    lobbySocket.on('lobby:room-list', (data: LobbyRoomList) => {
       const roomArray = Array.isArray(data) ? data : data.rooms || [];
       roomArray.sort((a, b) => b.createdAt - a.createdAt);
       setRooms(roomArray);
-
-      if (!Array.isArray(data) && data.availableGameIds) {
-        setAvailableIds(data.availableGameIds);
-      }
-
       setIsLoading(false);
     });
 
-    lobbySocket.on('lobby:room-update', () => {
-      lobbySocket.emit('lobby:get-rooms');
+    lobbySocket.on('room-ready', () => {
+      lobbySocket.emit('lobby:get-info');
     });
 
     return () => {
       lobbySocket.off('connect');
-      lobbySocket.off('lobby:rooms-list');
-      lobbySocket.off('lobby:room-update');
+      lobbySocket.off('lobby:game-list');
+      lobbySocket.off('lobby:room-list');
+      lobbySocket.off('room-ready');
       lobbySocket.disconnect();
     };
   }, []);
 
   // 既存ルームに参加
-  const handleJoinRoom = (roomMeta: RoomMeta) => {
-    const preset = GAME_PRESETS.find((p) => p.id === roomMeta.gameId || p.name === roomMeta.gameId);
-    const segment = preset ? preset.pathSegment : 'sample';
-
-    navigate(`/game/${segment}/${roomMeta.id}`);
+  const handleJoinRoom = (room: RoomMeta) => {
+    if (!room.id.trim()) return;
+    navigate(`/${room.gameId || 'unknown'}/${room.id.trim()}`);
   };
 
   // 新しいルームを作成
-  const handleCreateRoom = (preset: (typeof GAME_PRESETS)[0]) => {
+  const handleCreateRoom = (gameId: string) => {
     const newRoomId = Math.random().toString(36).substring(2, 8);
-    navigate(`/game/${preset.pathSegment}/${newRoomId}`);
+    navigate(`${gameId}/${newRoomId}`);
   };
 
   return (
     <div className="lobby-container">
+      {/* パネルが開いている時だけ背後に敷く透明なレイヤー */}
+      {isPanelOpen && (
+        <div
+          className="panel-overlay"
+          onClick={() => setIsPanelOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 998,
+            background: 'transparent',
+          }}
+        />
+      )}
+
       <h1 className="lobby-title">🎲 ゲームロビー 🤝</h1>
 
       <div className="section create-room-section">
         <h2 className="section-title">新しいゲームを始める</h2>
         <div className="preset-button-group" style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-          {GAME_PRESETS.map((preset) => (
+          {games.map((gameMeta) => (
             <button
-              key={preset.id}
-              onClick={() => handleCreateRoom(preset)}
-              className={`button ${preset.buttonClass}`}
+              key={gameMeta.gameId}
+              onClick={() => handleCreateRoom(gameMeta.gameId)}
+              className={`button primary-button`}
               disabled={!socket?.connected}
             >
-              {preset.name}
+              {gameMeta.gameIcon} {gameMeta.gameId}
             </button>
           ))}
         </div>
@@ -139,8 +141,15 @@ export function LobbyRoom() {
         )}
       </div>
 
-      <div className={`control-panel-wrapper ${isPanelOpen ? 'open' : ''}`}>
-        {socket && <ControlPanel socket={socket} gameIds={availableIds} />}
+      <div className={`control-panel-wrapper ${isPanelOpen ? 'open' : ''}`} style={{ zIndex: 999 }}>
+        {socket && (
+          <ControlPanel
+            socket={socket}
+            gameMeta={games}
+            isOpen={isPanelOpen}
+            onToggle={() => setIsPanelOpen(!isPanelOpen)}
+          />
+        )}
       </div>
     </div>
   );

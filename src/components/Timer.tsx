@@ -3,14 +3,12 @@ import { Socket } from 'socket.io-client';
 
 type TimerProps = {
   socket?: Socket | null;
+  roomId?: string;
   initialDuration: number;
   onFinish?: () => void;
-  roomId?: string; // ルーム対応用
 };
 
-export default function Timer({ socket = null, initialDuration, onFinish, roomId }: TimerProps) {
-  // 💡 修正1: 初期状態を null ではなく initialDuration の値に設定する。
-  // これにより、開始前は設定された秒数が表示される。
+export function Timer({ socket = null, roomId, initialDuration, onFinish }: TimerProps) {
   const [timeLeft, setTimeLeft] = useState<number>(initialDuration);
 
   useEffect(() => {
@@ -53,7 +51,7 @@ export default function Timer({ socket = null, initialDuration, onFinish, roomId
     socket.emit('timer:start', { duration: initialDuration, roomId }); // ルームIDと初期時間付き
   };
 
-  // 💡 修正2: timeLeft が null になる可能性がないため、null合体演算子 (??) を削除
+  // timeLeft が null になる可能性がないため、null合体演算子 (??) を削除
   return (
     <div
       style={{

@@ -2,4 +2,9 @@ node_modules/
 .pnpm-store/
 .DS_Store
 public/
-# src/data
+
+# GUIテストファイル
+tests/server/PokerData.ts
+tests/server/PokerConfig.ts
+tests/rooms/PokerRoom.tsx
+tests/rooms/PokerRoom.module.css

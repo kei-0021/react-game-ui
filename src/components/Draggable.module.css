@@ -100,4 +100,5 @@
   white-space: nowrap;
   pointer-events: none;
   text-transform: uppercase;
+  user-select: none;
 }

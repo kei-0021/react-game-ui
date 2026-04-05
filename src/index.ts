@@ -10,8 +10,10 @@ export { PlayField } from './components/PlayField.js';
 export { RemoteCursor } from './components/RemoteCursor.js';
 export { ScoreBoard } from './components/ScoreBoard.js';
 export { SystemMessageWindow } from './components/systemMessageWindow.js';
-export { default as Timer } from './components/Timer.js';
+export { Timer } from './components/Timer.js';
 export { TokenStore } from './components/TokenStore.js';
+export { DynamicComponent } from './dynamic/DynamicComponent.js';
+export { ControlPanel } from './gui/ControlPanel.js';
 
 // 型（警告を無視）
 /* @ts-ignore */
@@ -29,7 +31,9 @@ export { type PieceData } from './types/piece.js';
 /* @ts-ignore */
 export { type DraggableData } from './types/draggable.js';
 /* @ts-ignore */
-export { RoomManager } from './server/server-utils.js';
+export { type ComponentInfo } from './types/server.js';
+/* @ts-ignore */
+export { RoomManager } from './server/room-manager.js';
 /* @ts-ignore */
 export { type GameParam, type RoomState } from './types/server.js';
 /* @ts-ignore */
@@ -37,14 +41,16 @@ export { type CellData } from './types/cell.js';
 /* @ts-ignore */
 export { Phase } from './types/phase.js';
 /* @ts-ignore */
-export { ControlPanel } from './components/ControlPanel.js';
+export { useSocket } from './hooks/useSocket.js';
 /* @ts-ignore */
 export {
   type CardPlayData,
   type DeckDrawData,
+  type GameMeta,
   type GamePhaseUpdateData,
   type GameTurnUpdateData,
-  type LobbyRoomsList,
+  type LobbyGameList,
+  type LobbyRoomList,
   type RoomJoinData,
   type RoomMeta,
 } from './types/socketData.js';

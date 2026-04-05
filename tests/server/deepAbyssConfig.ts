@@ -1,9 +1,7 @@
 // src/server/deepAbyssConfig.ts
 
-import { Card, GameParam, Player, RoomState } from '../../src/index.js';
-import { RoomConfig, SetupHelper } from '../../src/server/server-io-utils.js';
-import { RoomManager } from '../../src/server/server-utils.js';
-import { CardPlayData } from '../../src/types/socketData.js';
+import { Card, CardPlayData, GameParam, Player, RoomManager, RoomState } from 'react-game-ui';
+import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
 import { DeepAbyssPhase } from '../types/phase.js';
 import { cellShuffleAndReconnector } from './cellShuffleAndReConnecter.js';
 
@@ -24,6 +22,8 @@ export const deepAbyssConfig: RoomConfig = {
     deepAbyssCells: './data/deepAbyssCells.json',
   },
   setup: async (loadedData: Record<string, any>): Promise<GameParam> => {
+    const { deepabyssData } = await import(`./deepabyssData.js?t=${Date.now()}`);
+
     const helper = new SetupHelper();
 
     const defaults: Partial<Card> = {
@@ -51,6 +51,7 @@ export const deepAbyssConfig: RoomConfig = {
 
     return {
       gameId: 'deepabyss',
+      gameIcon: '🌊',
       initialDecks: [
         {
           deckId: 'deepAbyssSpecies',
@@ -88,7 +89,8 @@ export const deepAbyssConfig: RoomConfig = {
           type: 'CONSUMABLE' as const,
         },
       ],
-      initialHand: { deckId: 'deepAbyssAction', count: 6 },
+      initialHand: { deepAbyssAction: 6 },
+      initialTokens: { ARTIFACT: 2, Hanabishi: 3 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
       shuffleAndReconnectBoard: { deepAbyssBoard: cellShuffleAndReconnector },
       pieceImage: '/hanabishi.svg',
@@ -127,6 +129,8 @@ export const deepAbyssConfig: RoomConfig = {
           .map((p, index) => ({ rank: index + 1, name: p.name, score: p.score }));
         return { message: '潜水任務完了', rankings, finalRound: state.currentRoundIndex };
       },
+      components: [],
+      ...deepabyssData,
     };
   },
 };

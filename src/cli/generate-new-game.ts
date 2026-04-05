@@ -17,33 +17,50 @@ export const generate = (gameName: string, gameIcon: string = '🎲') => {
   const baseDir = process.env.RG_UI_BASE_DIR || path.join(process.cwd(), 'src');
 
   // --- CSS Module Template ---
-  const cssModuleTemplate = `/* src/rooms/${gameName}Room.module.css */
-.gameContainer {
+  const cssModuleTemplate = `/* src/rooms/${pascalName}Room.module.css */
+.roomContainer {
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
+  overflow: auto;
   background: #222;
+  user-select: none;
 }
 
-.gameCanvas {
+.roomCanvas {
   width: 1600px;
   height: 900px;
   position: relative;
   background: #333;
   transform-origin: top left;
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  grid-template-rows: repeat(9, 1fr);
 }
 
 .gameHeader {
+  grid-column: 1 / -1;
+  grid-row: 1 / 2;
   display: flex;
   justify-content: space-between;
   padding: 10px;
   color: white;
   border-bottom: 1px solid #444;
+  z-index: 10;
+  background: rgba(34, 34, 34, 0.8);
 }
 
 .gameMain {
+  grid-column: 1 / -1;
+  grid-row: 2 / -1;
   display: flex;
-  height: calc(100% - 60px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.sidebarLeft,
+.sidebarRight,
+.playFieldContainer {
+  pointer-events: auto;
 }
 
 .sidebarLeft {
@@ -74,6 +91,11 @@ export const generate = (gameName: string, gameIcon: string = '🎲') => {
 `;
 
   // --- Server Config Template ---
+  const dataTemplate = `export const ${pascalName}Data: any = {
+  "gameId": "${lowerName}",
+  "gameIcon": "${gameIcon}",
+}`;
+
   const configTemplate = `import type { GameParam } from "react-game-ui";
 import { type RoomConfig } from "react-game-ui/server-io-utils";
 
@@ -81,6 +103,8 @@ export const ${pascalName}Config: RoomConfig = {
   gameId: "${lowerName}",
   dataFiles: [],
   setup: async (): Promise<GameParam> => {
+    const { ${pascalName}Data } = await import(\`./${pascalName}Data.ts?t=\${Date.now()}\`);
+
     const initialDraggables = {
       "piece": {
         id: "piece",
@@ -92,32 +116,39 @@ export const ${pascalName}Config: RoomConfig = {
 
     return {
       gameId: "${lowerName}",
+      gameIcon: "${gameIcon}",
+      maxPlayers: 4,
       initialDecks: [],
       initialBoard: {},
-      draggable: initialDraggables,
+      draggables: initialDraggables,
       checkGameEnd: () => false,
       onGameEnd: () => ({ message: "終了" }),
+      components: [],
+      ...${pascalName}Data
     };
   },
 };
 `;
 
   // --- Room Component Template ---
-  const roomTemplate = `import { useCallback, useEffect, useRef, useState } from "react";
-import type { GameTurnUpdateData, Player, RoomJoinData } from "react-game-ui";
+  const roomTemplate = `import { GameParamUpdateData } from '@/types/socketData';
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ComponentInfo, GameMeta, GameTurnUpdateData, LobbyGameList, Player, RoomJoinData } from 'react-game-ui';
 import {
+  ControlPanel,
   Deck,
   Dice,
   Draggable,
+  DynamicComponent,
+  PlayerId,
   PlayField,
   RemoteCursor,
   ScoreBoard,
   TokenStore,
-} from "react-game-ui";
-import "react-game-ui/dist/react-game-ui.css";
-import styles from "./${gameName}Room.module.css";
-import { useNavigate, useParams } from "react-router-dom";
-import { useSocket } from "../hooks/useSocket.js";
+  useSocket,
+} from 'react-game-ui';
+import styles from "./${pascalName}Room.module.css";
+import { useNavigate, useParams } from 'react-router-dom';
 
 const SERVER_URL =
   import.meta.env.MODE === "development"
@@ -143,6 +174,12 @@ export function ${pascalName}Room() {
   const [currentDiceValue, setCurrentDiceValue] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
 
+  // 動的コンポーネント情報の管理
+  const [componentInfo, setComponentInfo] = useState<ComponentInfo[]>([]);
+
+  const [games, setGames] = useState<GameMeta[]>([]);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+
   useEffect(() => {
     const handleResize = () => {
       const scaleX = window.innerWidth / BASE_WIDTH;
@@ -164,15 +201,79 @@ export function ${pascalName}Room() {
     } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);
 
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const rawData = e.dataTransfer.getData('application/react-game-ui');
+      if (!rawData || !socket || !roomId) return;
+
+      try {
+        const data = JSON.parse(rawData);
+        const targetId = data.id || data.compId;
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect || !targetId) return;
+
+        // マウス位置の座標（スケール補正後）
+        const x = (e.clientX - rect.left) / scale;
+        const y = (e.clientY - rect.top) / scale;
+
+        // 【スロット計算】100px単位で何番目か算出 (1始まり)
+        const slotX = Math.floor(x / 100) + 1;
+        const slotY = Math.floor(y / 100) + 1;
+
+        const newComponent: ComponentInfo = {
+          id: targetId,
+          type: data.type,
+          props: {
+            ...data.props,
+            draggableId: targetId,
+            // 座標ではなくスロット情報を優先してセット
+            slotX: slotX,
+            slotY: slotY,
+            // 必要なら coordinate は undefined にしてスロットに吸着させる
+            coordinate: undefined,
+          },
+        };
+
+        const updatedComponents = [...componentInfo, newComponent];
+
+        const currentGame = games.find((g) => g.gameId === 'poker') || games[0];
+        const updatedDraggables = {
+          ...(currentGame?.draggables || {}),
+          [targetId]: {
+            id: targetId,
+            coordinate: { x, y },
+            zIndex: 100,
+            rotation: 0,
+          },
+        };
+
+        socket.emit('game-param:update', {
+          gameId: currentGame?.gameId || 'poker',
+          newParam: {
+            draggables: updatedDraggables,
+            components: updatedComponents,
+          },
+        } as GameParamUpdateData);
+
+        setComponentInfo(updatedComponents);
+      } catch (err) {
+        console.error('Drop error:', err);
+      }
+    },
+    [socket, roomId, scale, componentInfo, games],
+  );
+
   useEffect(() => {
     if (!socket) return;
-    const handleAssignId = (id: Player["id"]) => {
+    const onClientReady = (id: PlayerId) => {
       setMyPlayerId(id);
       setHasJoined(true);
       setIsJoining(false);
-    };
-    const onClientReady = () => {
       socket.emit("client:ready", roomId);
+      socket.emit('lobby:get-info');
     };
     const handlePlayersUpdate = (updatedPlayers: Player[]) => setPlayers(updatedPlayers);
     const handleGameTurn = (data: GameTurnUpdateData) => {
@@ -180,15 +281,29 @@ export function ${pascalName}Room() {
       setCurrentRound(data.currentRoundIndex + 1);
     };
 
-    socket.on("player:assign-id", handleAssignId);
+    // コンポーネント情報の同期受信
+    const handleGameComponent = (data: { components: ComponentInfo[] }) => {
+      setComponentInfo(data.components);
+    };
+
+    // ゲームリスト受信
+    socket.on('lobby:game-list', (data: LobbyGameList) => {
+      if (!Array.isArray(data) && data.games) {
+        setGames(Object.values(data.games).filter((game) => game.gameId === "${lowerName}"));
+      }
+    });
+
     socket.on("client:ready-to-sync", onClientReady);
     socket.on("players:update", handlePlayersUpdate);
     socket.on("game:turn", handleGameTurn);
+    socket.on("game:component", handleGameComponent);
 
     return () => {
-      socket.off("player:assign-id", handleAssignId);
+      socket.off("client:ready-to-sync", onClientReady);
+      socket.off('lobby:game-list');
       socket.off("players:update", handlePlayersUpdate);
       socket.off("game:turn", handleGameTurn);
+      socket.off("game:component", handleGameComponent);
     };
   }, [socket, roomId]);
 
@@ -217,14 +332,37 @@ export function ${pascalName}Room() {
   }
 
   return (
-    <div className={styles.gameContainer}>
+    <div className={styles.roomContainer}>
       <div
         ref={containerRef}
-        className={styles.gameCanvas}
+        className={styles.roomCanvas}
         style={{
           transform: \`scale(\${scale})\`
         }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = 'move';
+        }}
+        onDrop={handleDrop}
       >
+        {/* パネルが開いている時だけ背後に敷く透明なレイヤー */}
+        {isPanelOpen && (
+          <div
+            className="panel-overlay"
+            onClick={() => setIsPanelOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              zIndex: 998,
+              background: 'transparent',
+            }}
+          />
+        )}
+
         <header className={styles.gameHeader}>
           <h1>${gameIcon} ${gameName}</h1>
           <div>Round: {currentRound}</div>
@@ -244,41 +382,63 @@ export function ${pascalName}Room() {
           </div>
 
           <aside className={styles.sidebarRight}>
-            <ScoreBoard socket={socket!} roomId={roomId} players={players} currentPlayerId={currentPlayerId} myPlayerId={myPlayerId} />
+            <ScoreBoard
+              socket={socket!}
+              roomId={roomId}
+              players={players}
+              currentPlayerId={currentPlayerId}
+              myPlayerId={myPlayerId}
+            />
           </aside>
         </main>
-        
+
         <TokenStore socket={socket} roomId={roomId} tokenStoreId="chips" title="所持チップ" />
+
+        {componentInfo.map((info) => (
+          <DynamicComponent
+            key={info.id}
+            type={info.type}
+            props={info.props}
+            socket={socket!}
+            roomId={roomId!}
+            myPlayerId={myPlayerId}
+            currentPlayerId={currentPlayerId}
+            players={players}
+            containerRef={containerRef}
+          />
+        ))}
       </div>
+
+      <ControlPanel
+        socket={socket}
+        gameMeta={games}
+        containerRef={containerRef}
+        isOpen={isPanelOpen}
+        onToggle={() => setIsPanelOpen(!isPanelOpen)}
+      />
     </div>
   );
 }
 `;
 
   const paths = {
+    data: path.join(baseDir, 'server', `${pascalName}Data.ts`),
     config: path.join(baseDir, 'server', `${pascalName}Config.ts`),
-    room: path.join(baseDir, 'rooms', `${gameName}Room.tsx`),
-    css: path.join(baseDir, 'rooms', `${gameName}Room.module.css`),
-    registry: path.join(baseDir, 'constants/games.ts'),
+    room: path.join(baseDir, 'rooms', `${pascalName}Room.tsx`),
+    css: path.join(baseDir, 'rooms', `${pascalName}Room.module.css`),
   };
 
-  [path.dirname(paths.config), path.dirname(paths.room), path.dirname(paths.registry)].forEach((dir) => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  Object.values(paths).forEach((p) => {
+    const dir = path.dirname(p);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
   });
 
+  fs.writeFileSync(paths.data, dataTemplate);
   fs.writeFileSync(paths.config, configTemplate);
   fs.writeFileSync(paths.room, roomTemplate);
   fs.writeFileSync(paths.css, cssModuleTemplate);
-
-  // Registryの更新
-  if (fs.existsSync(paths.registry)) {
-    let content = fs.readFileSync(paths.registry, 'utf-8');
-    if (!content.includes(`id: "${lowerName}"`)) {
-      const newEntry = `  { id: "${lowerName}", name: "${gameName}", icon: "${gameIcon}" },\n];`;
-      content = content.replace(/\];\s*$/, newEntry);
-      fs.writeFileSync(paths.registry, content);
-    }
-  }
 
   console.log(`✅ 生成完了: ${gameName} at ${baseDir}`);
 };

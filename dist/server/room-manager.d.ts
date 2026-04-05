@@ -1,25 +1,13 @@
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
-import { BoardId, CardId, CellId, DeckId, DraggableId, GameId, PlayerId, ResourceId, RoomId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { BoardId, CardId, CellId, DeckId, DraggableId, PlayerId, ResourceId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import { CardPlayData } from '@/types/socketData.js';
 import { Server } from 'socket.io';
-export type LogCategory = 'connection' | 'lobby' | 'game' | 'room' | 'deck' | 'card' | 'cell' | 'dice' | 'timer' | 'addScore' | 'resource' | 'token' | 'draggable' | 'warn' | 'popup' | 'custom_event' | 'disconnect';
-export declare let LOG_CATEGORIES: Record<LogCategory, boolean>;
-/**
- * サーバーの実行ログを出力する
- * @param tag - ログのカテゴリ
- * @param gameId - 対象のゲームプリセットID
- * @param roomId - 対象のルームID
- * @param firstArg - ログのメイン内容（1つ以上の引数が必須）
- * @param args - 追加のログ情報
- */
-export declare function server_log(tag: LogCategory, gameId: GameId, roomId: RoomId, firstArg: any, ...args: any[]): void;
+import { LogCategory, LogLevel } from './logger.js';
 export declare const isExplored: (roomState: RoomState, position: Position) => boolean;
-export declare const generateColorFromId: (id: string) => string;
-export declare const shuffleArray: <T>(array: T[]) => T[];
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
  */
@@ -29,6 +17,15 @@ export declare class RoomManager {
     private state;
     constructor(io: Server, param: GameParam, state: RoomState);
     /**
+     * サーバーの実行ログを出力する
+     * @param tag - ログのカテゴリ
+     * @param gameId - 対象のゲームプリセットID
+     * @param roomId - 対象のルームID
+     * @param msg - ログのメイン内容
+     * @param level - ログレベル (デフォルト: INFO)
+     */
+    server_log(tag: LogCategory, msg: string, level?: LogLevel): void;
+    /**
      * 一定時間待機する
      * @param ms - 待機時間 (ms)
      */
@@ -37,6 +34,7 @@ export declare class RoomManager {
      * プレイヤー更新を通知する
      */
     emitPlayerUpdate: () => void;
+    shuffleDeck: (deckId: DeckId) => void;
     /**
      * デッキ更新を通知する
      */
@@ -114,6 +112,10 @@ export declare class RoomManager {
      */
     applyCellEffect: (boardId: BoardId, playerId: PlayerId, position: Position, cellEffects: Record<string, (manager: RoomManager, playerId: PlayerId) => void>) => void;
     /**
+     * タイマーを停止させる
+     */
+    stopTimer: () => void;
+    /**
      * 重ね順を更新する
      */
     updateZIndex(type: 'card' | 'draggable', objectId: [DeckId, CardId] | DraggableId, isToFront: boolean): void;
@@ -131,4 +133,4 @@ export declare class RoomManager {
      */
     updatePhase(newPhase: Phase): void;
 }
-//# sourceMappingURL=server-utils.d.ts.map
+//# sourceMappingURL=room-manager.d.ts.map

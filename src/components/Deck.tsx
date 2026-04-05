@@ -1,5 +1,5 @@
 // src/components/Deck.tsx
-import { DeckDrawData, DeckUpdateData } from '@/types/socketData.js';
+import { DeckDrawData, DeckResetData, DeckShuffleData, DeckUpdateData } from '@/types/socketData.js';
 import * as React from 'react';
 import { useEffect } from 'react';
 import { Socket } from 'socket.io-client';
@@ -27,8 +27,8 @@ type DeckProps = {
  * @param roomId - 対象のルームID
  * @param deckId - 山札を識別する一意のID
  * @param title - 山札の表示名
- * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
+ * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
  * @param enabled=true - 各種操作が有効かどうかのフラグ。
  */
@@ -37,14 +37,13 @@ export function Deck({
   roomId,
   deckId,
   title,
-  currentPlayerId,
   myPlayerId,
+  currentPlayerId,
   alwaysDraw = false,
   enabled = true,
 }: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<Card[]>([]);
   const [discardPile, setDiscardPile] = React.useState<Card[]>([]);
-  const [isDiscardHovered, setIsDiscardHovered] = React.useState(false);
 
   useEffect(() => {
     socket.on(`deck:update:${deckId}`, (data: DeckUpdateData) => {
@@ -84,8 +83,8 @@ export function Deck({
     socket.emit('deck:draw', requestData);
   };
 
-  const shuffle = () => socket.emit('deck:shuffle', { roomId, deckId });
-  const resetDeck = () => socket.emit('deck:reset', { roomId, deckId });
+  const shuffle = () => socket.emit('deck:shuffle', { roomId, deckId } as DeckShuffleData);
+  const resetDeck = () => socket.emit('deck:reset', { roomId, deckId } as DeckResetData);
 
   return (
     <section className={deckStyles.deckSection}>

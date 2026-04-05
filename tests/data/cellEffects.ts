@@ -1,4 +1,4 @@
-import type { PlayerId, RoomManager } from '../../src/index';
+import type { PlayerId, RoomManager } from 'react-game-ui';
 
 /**
  * 盤面セルの着地効果定義

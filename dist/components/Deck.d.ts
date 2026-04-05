@@ -16,11 +16,11 @@ type DeckProps = {
  * @param roomId - 対象のルームID
  * @param deckId - 山札を識別する一意のID
  * @param title - 山札の表示名
- * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
+ * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
  * @param enabled=true - 各種操作が有効かどうかのフラグ。
  */
-export declare function Deck({ socket, roomId, deckId, title, currentPlayerId, myPlayerId, alwaysDraw, enabled, }: DeckProps): import("react/jsx-runtime").JSX.Element;
+export declare function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerId, alwaysDraw, enabled, }: DeckProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Deck.d.ts.map

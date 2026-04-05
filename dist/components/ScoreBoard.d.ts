@@ -8,9 +8,9 @@ import { PlayerId, RoomId } from '../types/definition.js';
  * 個別の有効フラグが `enabled` (全体設定) よりも優先して適用される。
  * @param {Socket} socket - Socket.ioのインスタンス
  * @param {RoomId} roomId - 現在のルームID
- * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
- * @param {PlayerId | null} [currentPlayerId] - 現在の手番のプレイヤーID
  * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
+ * @param {PlayerId | null} [currentPlayerId] - 現在の手番のプレイヤーID
+ * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
  * @param {number} [playCardLimit] - 1ターンにプレイ可能なカードの上限枚数
  * @param {[boolean, boolean]} [playCardButton=[true, true]] - カードプレイボタンの [表示, 有効]
  * @param {[boolean, boolean]} [holdButton=[false, true]] - カードホールドボタンの [表示, 有効]
@@ -20,7 +20,7 @@ import { PlayerId, RoomId } from '../types/definition.js';
  * @param {boolean} [isDebug=false] - スコアを手動で増減できるようにするかどうか (デバッグ用)
  * @param {boolean} [enabled=true] - 各種操作が全体的に有効かどうかのフラグ (個別設定がない場合のデフォルト)
  */
-export declare function ScoreBoard({ socket, roomId, players, currentPlayerId, myPlayerId, playCardLimit, playCardButton, holdButton, flipButton, turnSkipButton, roundSkipButton, isDebug, enabled, }: {
+export declare function ScoreBoard({ socket, roomId, myPlayerId, currentPlayerId, players, playCardLimit, playCardButton, holdButton, flipButton, turnSkipButton, roundSkipButton, isDebug, enabled, }: {
     socket: Socket;
     roomId: RoomId;
     players: Player[];

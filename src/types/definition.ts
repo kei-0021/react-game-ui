@@ -20,3 +20,5 @@ export type TokenStoreId = string;
 export type TokenId = string;
 
 export type DraggableId = string;
+
+export type ComponentId = string;

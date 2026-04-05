@@ -241,10 +241,9 @@ export function PlayField({
 
   return (
     <section
-      className={`rg-playfield mode-${layoutMode}`}
+      className={playFieldStyles['rg-playfield']}
       style={{
-        background: backgroundImage ? `url(${backgroundImage}) center/cover no-repeat` : undefined,
-        // 親の zIndex を消すことで、中のカードが Draggable と同じ階層で比較されるようにする
+        ...(backgroundImage ? { background: `url(${backgroundImage}) center/cover no-repeat` } : {}),
         position: 'relative',
       }}
     >

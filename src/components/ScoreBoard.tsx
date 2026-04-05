@@ -7,7 +7,6 @@ import { Socket } from 'socket.io-client';
 import { Card } from '../types/card.js';
 import { CardId, PlayerId, RoomId } from '../types/definition.js';
 import type { Resource } from '../types/resource.js';
-import { Token } from '../types/token.js';
 import { CardDisplayContent } from './Card.js';
 import scoreBoardStyles from './ScoreBoard.module.css';
 import { TokenDisplayContent } from './Token.js';
@@ -70,7 +69,7 @@ const PlayerListItem = React.memo(
     // ----------------------------
 
     const handleAddScore = (points: number) => {
-      socket.emit('room:player:add-score', {
+      socket.emit('player:add-score', {
         roomId,
         targetPlayerId: player.id,
         points,
@@ -136,14 +135,14 @@ const PlayerListItem = React.memo(
         )}
 
         <div className={scoreBoardStyles.tokenList}>
-          {player.tokens.map((token: Token) => (
+          {Object.entries(player.tokens || {}).map(([tokenId, token]) => (
             <div
-              key={token.id}
+              key={tokenId}
               onClick={() => {
                 socket.emit('token:reclaim', {
                   roomId,
                   playerId: myPlayerId,
-                  tokenId: token.id,
+                  tokenId: tokenId,
                 });
               }}
             >
@@ -218,9 +217,9 @@ const PlayerListItem = React.memo(
  * 個別の有効フラグが `enabled` (全体設定) よりも優先して適用される。
  * @param {Socket} socket - Socket.ioのインスタンス
  * @param {RoomId} roomId - 現在のルームID
- * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
- * @param {PlayerId | null} [currentPlayerId] - 現在の手番のプレイヤーID
  * @param {PlayerId | null} myPlayerId - ローカルプレイヤーのID
+ * @param {PlayerId | null} [currentPlayerId] - 現在の手番のプレイヤーID
+ * @param {Player[]} players - ルームに参加しているプレイヤーのリスト
  * @param {number} [playCardLimit] - 1ターンにプレイ可能なカードの上限枚数
  * @param {[boolean, boolean]} [playCardButton=[true, true]] - カードプレイボタンの [表示, 有効]
  * @param {[boolean, boolean]} [holdButton=[false, true]] - カードホールドボタンの [表示, 有効]
@@ -233,9 +232,9 @@ const PlayerListItem = React.memo(
 export function ScoreBoard({
   socket,
   roomId,
-  players,
-  currentPlayerId,
   myPlayerId,
+  currentPlayerId,
+  players,
   playCardLimit,
   playCardButton = [true, true],
   holdButton = [false, true],

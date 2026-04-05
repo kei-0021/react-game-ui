@@ -1,0 +1,17 @@
+import { Player } from '@/index.js';
+import { PlayerId, RoomId } from '@/types/definition.js';
+import type { Socket } from 'socket.io-client';
+import type { ComponentInfo } from '../types/server.js';
+interface DynamicComponentProps {
+    type: ComponentInfo['type'];
+    props: any;
+    socket: Socket;
+    roomId: RoomId;
+    myPlayerId: PlayerId;
+    currentPlayerId: PlayerId;
+    players: Player[];
+    containerRef: any;
+}
+export declare const DynamicComponent: ({ type, props, socket, roomId, myPlayerId, currentPlayerId, players, containerRef, }: DynamicComponentProps) => import("react/jsx-runtime").JSX.Element;
+export {};
+//# sourceMappingURL=DynamicComponent.d.ts.map

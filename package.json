@@ -12,17 +12,17 @@
       "import": "./dist/react-game-ui.es.js",
       "require": "./dist/react-game-ui.cjs.js"
     },
-    "./server": {
-      "types": "./dist/server/server.d.ts",
-      "import": "./dist/server/server.js"
+    "./live-server": {
+      "types": "./dist/server/live-server.d.ts",
+      "import": "./dist/server/live-server.js"
     },
     "./server-io-utils": {
       "types": "./dist/server/server-io-utils.d.ts",
       "import": "./dist/server/server-io-utils.js"
     },
-    "./server-utils": {
-      "types": "./dist/server/server-utils.d.ts",
-      "import": "./dist/server/server-utils.js"
+    "./room-manager": {
+      "types": "./dist/server/room-manager.d.ts",
+      "import": "./dist/server/room-manager.js"
     },
     "./dist/react-game-ui.css": "./dist/react-game-ui.css"
   },

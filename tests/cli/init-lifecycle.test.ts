@@ -5,7 +5,6 @@ import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const TEST_ROOT = path.join(process.cwd(), 'tests/tmp-init');
-const REGISTRY_RELATIVE_PATH = 'constants/games.ts';
 
 describe('CLI: プロジェクト初期化 (init) のテスト', () => {
   beforeAll(() => {
@@ -31,7 +30,6 @@ describe('CLI: プロジェクト初期化 (init) のテスト', () => {
       '', // TEST_ROOT 自体
       'rooms',
       'server',
-      'constants',
     ];
 
     expectedDirs.forEach((dir) => {
@@ -39,17 +37,5 @@ describe('CLI: プロジェクト初期化 (init) のテスト', () => {
       expect(fs.existsSync(p)).toBe(true);
       expect(fs.lstatSync(p).isDirectory()).toBe(true);
     });
-  });
-
-  it('init: レジストリファイル (games.ts) が初期状態で生成されること', () => {
-    const registryPath = path.join(TEST_ROOT, REGISTRY_RELATIVE_PATH);
-
-    expect(fs.existsSync(registryPath)).toBe(true);
-
-    const content = fs.readFileSync(registryPath, 'utf-8');
-
-    expect(content).toContain('export interface GameEntry');
-    expect(content).toContain('export const GAME_LIST: GameEntry[] = [');
-    expect(content).toContain('{ id: "sample", name: "Sample", icon: "⬛️" }');
   });
 });

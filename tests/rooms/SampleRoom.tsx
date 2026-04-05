@@ -5,17 +5,23 @@
 
 /// <reference types="vite/client" />
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ComponentInfo,
+  Deck,
+  Dice,
+  Draggable,
+  DynamicComponent,
+  GameTurnUpdateData,
+  Player,
+  PlayerId,
+  PlayField,
+  RemoteCursor,
+  RoomJoinData,
+  ScoreBoard,
+  Timer,
+  useSocket,
+} from 'react-game-ui';
 import { useParams } from 'react-router-dom';
-import { Deck } from '../../src/components/Deck';
-import { Dice } from '../../src/components/Dice';
-import { Draggable } from '../../src/components/Draggable';
-import { PlayField } from '../../src/components/PlayField';
-import { RemoteCursor } from '../../src/components/RemoteCursor';
-import { ScoreBoard } from '../../src/components/ScoreBoard';
-import Timer from '../../src/components/Timer';
-import { useSocket } from '../../src/hooks/useSocket';
-import { Player } from '../../src/types/player';
-import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
 import './SampleRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
@@ -28,6 +34,8 @@ export function SampleRoom() {
   const [userName, setUserName] = useState<string>('');
   const [isJoining, setIsJoining] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
+
+  const [componentInfo, setComponentInfo] = useState<ComponentInfo[]>([]);
 
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -55,13 +63,16 @@ export function SampleRoom() {
   useEffect(() => {
     if (!socket || !roomId) return;
 
-    const handleAssignId = (id: string) => {
+    const handleAssignId = (id: string) => {};
+
+    const handleGameComponent = (data: { components: ComponentInfo[] }) => {
+      setComponentInfo(data.components);
+    };
+
+    const onClientReady = (id: PlayerId) => {
       setMyPlayerId(id);
       setHasJoined(true);
       setIsJoining(false);
-    };
-
-    const onClientReady = () => {
       socket.emit('client:ready', roomId);
     };
 
@@ -76,14 +87,14 @@ export function SampleRoom() {
       }
     };
 
-    socket.on('player:assign-id', handleAssignId);
     socket.on('client:ready-to-sync', onClientReady);
+    socket.on('game:component', handleGameComponent);
     socket.on('players:update', handlePlayersUpdate);
     socket.on('game:turn', handleGameTurn);
 
     return () => {
-      socket.off('player:assign-id', handleAssignId);
       socket.off('client:ready-to-sync', onClientReady);
+      socket.off('room_init_success', handleGameComponent);
       socket.off('players:update', handlePlayersUpdate);
       socket.off('game:turn', handleGameTurn);
     };
@@ -113,7 +124,7 @@ export function SampleRoom() {
   }
 
   return (
-    <div className="game-container" ref={containerRef}>
+    <div className="room-container" ref={containerRef}>
       <h1>Room ID: {roomId}</h1>
       <div className="round-display">ROUND: {currentRound}</div>
       <div>現在のダイスの目: {currentValue}</div>
@@ -127,20 +138,19 @@ export function SampleRoom() {
       />
 
       <div style={{ display: 'flex', gap: '16px' }}>
-        <Dice
-          socket={socket}
-          diceId="天気"
-          roomId={roomId}
-          title="天気ダイス"
-          sides={4}
-          customFaces={[
-            <img key="f1" src="/weather_sunny.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-            <img key="f2" src="/weather_cloud.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-            <img key="f3" src="/weather_wind.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-            <img key="f4" src="/weather_rain.png" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />,
-          ]}
-          tooltipText="快晴・曇り・風・雨"
-        />
+        {componentInfo.map((info) => (
+          <DynamicComponent
+            key={info.id}
+            type={info.type}
+            props={info.props}
+            socket={socket}
+            roomId={roomId}
+            myPlayerId={myPlayerId}
+            currentPlayerId={currentPlayerId}
+            players={players}
+            containerRef={containerRef}
+          />
+        ))}
         <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" onRoll={setCurrentValue} />
       </div>
 

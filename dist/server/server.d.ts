@@ -1,8 +1,6 @@
 import { GameId, GameParam } from '@/types/server.js';
-import express from 'express';
-import { Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import { LogCategory } from './server-utils.js';
+import { LogCategory, LogLevel } from './logger.js';
 /**
  * サーバー設定の型定義
  */
@@ -14,6 +12,7 @@ export type GameServerOptions = {
     gameParams: Record<GameId, GameParam>;
     customEvents?: any;
     initialLogCategories?: Partial<Record<LogCategory, boolean>> | null;
+    initialLogLevel?: LogLevel | null;
 };
 /**
  * GameServer
@@ -23,23 +22,25 @@ export type GameServerOptions = {
  * @property {string} libDistPath - /lib パスで提供されるビルド済みライブラリ資産のパス
  * @property {string} clientDistPath - ルートパスで提供されるクライアント側静的ファイルのパス
  * @property {string[]} corsOrigins - CORSを許可するオリジンのリスト
- * @property {Record<string, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
+ * @property {Record<gameId, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
  * @property {any} customEvents - ユーザー定義のカスタムイベントハンドラ
  * @property {Partial<Record<LogCategory, boolean>> | null} initialLogCategories - ログ出力の制御設定
+ * @property {LogLevel | null} initialLogLevel - ログ出力のレベル
  * @property {express.Application} app - Expressアプリケーションインスタンス
  * @property {HttpServer} httpServer - Node.js HTTPサーバーインスタンス
  * @property {SocketIOServer} io - 通信を制御するSocket.IOサーバーインスタンス
  */
 export declare class GameServer {
-    private port;
+    protected port: number;
     private libDistPath;
     private clientDistPath;
     private corsOrigins;
-    private gameParams;
+    gameParams: Record<GameId, GameParam>;
     private customEvents;
     private initialLogCategories;
-    app: express.Application;
-    httpServer: HttpServer;
+    private initialLogLevel;
+    private app;
+    private httpServer;
     io: SocketIOServer;
     constructor(options: GameServerOptions);
     /**
@@ -58,9 +59,5 @@ export declare class GameServer {
      * 起動完了後、コンソールにアクセス可能なURL（http://localhost:{port}）を出力する。
      */
     start(): void;
-    /**
-     * 指定したGameIdのパラメータを安全に更新し通知する
-     */
-    updateGameParam(gameId: string, param: GameParam): void;
 }
 //# sourceMappingURL=server.d.ts.map

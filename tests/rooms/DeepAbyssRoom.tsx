@@ -5,16 +5,20 @@
 // スコアボードのボタンの動作確認
 // システムメッセージの動作確認
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Deck,
+  GameTurnUpdateData,
+  GridBoard,
+  Player,
+  PlayerId,
+  PlayField,
+  RoomJoinData,
+  ScoreBoard,
+  SystemMessageWindow,
+  TokenStore,
+  useSocket,
+} from 'react-game-ui';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Deck } from '../../src/components/Deck';
-import { GridBoard } from '../../src/components/GridBoard';
-import { PlayField } from '../../src/components/PlayField';
-import { ScoreBoard } from '../../src/components/ScoreBoard';
-import { SystemMessageWindow } from '../../src/components/systemMessageWindow';
-import { TokenStore } from '../../src/components/TokenStore';
-import { useSocket } from '../../src/hooks/useSocket';
-import type { Player } from '../../src/types/player';
-import type { GameTurnUpdateData, RoomJoinData } from '../../src/types/socketData';
 import { MyCustomCellRenderer } from '../components/MyCustomCellRenderer';
 import Popup from '../components/PopUp';
 import './DeepAbyssRoom.css';
@@ -90,13 +94,10 @@ export function DeepAbyssRoom() {
   useEffect(() => {
     if (!socket || !roomId) return;
 
-    const handleAssignId = (id: Player['id']) => {
+    const onClientReady = (id: PlayerId) => {
       setMyPlayerId(id);
       setHasJoined(true);
       setIsJoining(false);
-    };
-
-    const onClientReady = () => {
       socket.emit('client:ready', roomId);
     };
 
@@ -117,7 +118,6 @@ export function DeepAbyssRoom() {
       setGameResult(result);
     };
 
-    socket.on('player:assign-id', handleAssignId);
     socket.on('client:ready-to-sync', onClientReady);
     socket.on('players:update', handlePlayersUpdate);
     socket.on('game:turn', handleGameTurn);
@@ -125,7 +125,6 @@ export function DeepAbyssRoom() {
     socket.on('game:end', handleGameEnd);
 
     return () => {
-      socket.off('player:assign-id', handleAssignId);
       socket.off('client:ready-to-sync', onClientReady);
       socket.off('players:update', handlePlayersUpdate);
       socket.off('game:turn', handleGameTurn);
@@ -134,12 +133,12 @@ export function DeepAbyssRoom() {
     };
   }, [socket, roomId, showPopup]);
 
-  if (!roomId) return <div className="deepsea-container">Room ID Not Found</div>;
-  if (!socket) return <div className="deepsea-container">Connecting...</div>;
+  if (!roomId) return <div className="room-container">Room ID Not Found</div>;
+  if (!socket) return <div className="room-container">Connecting...</div>;
 
   if (!hasJoined) {
     return (
-      <div className="deepsea-container">
+      <div className="room-container">
         <div className="join-form-wrapper">
           <h2 className="deepsea-title-center">ルーム参加</h2>
           <input
@@ -161,7 +160,7 @@ export function DeepAbyssRoom() {
 
   // ゲーム本編
   return (
-    <div className="deepsea-container" ref={containerRef}>
+    <div className="room-container" ref={containerRef}>
       {/* ゲーム終了リザルトモーダル */}
       {gameResult && (
         <div className="result-overlay">

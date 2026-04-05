@@ -1,6 +1,6 @@
 // tests/components/MyCustomCellRenderer.tsx
 import * as React from 'react';
-import type { CellData } from '../../src/types/Cell';
+import { CellData } from 'react-game-ui';
 
 export const MyCustomCellRenderer = (celldata: CellData, row: number, col: number) => {
   const baseStyle: React.CSSProperties = {

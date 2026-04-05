@@ -1,8 +1,6 @@
 import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
 import { useEffect, useState } from 'react';
-export default function Timer({ socket = null, initialDuration, onFinish, roomId }) {
-    // 💡 修正1: 初期状態を null ではなく initialDuration の値に設定する。
-    // これにより、開始前は設定された秒数が表示される。
+export function Timer({ socket = null, roomId, initialDuration, onFinish }) {
     const [timeLeft, setTimeLeft] = useState(initialDuration);
     useEffect(() => {
         if (!socket || !roomId)
@@ -40,7 +38,7 @@ export default function Timer({ socket = null, initialDuration, onFinish, roomId
         // initialDuration をサーバーに送信
         socket.emit('timer:start', { duration: initialDuration, roomId }); // ルームIDと初期時間付き
     };
-    // 💡 修正2: timeLeft が null になる可能性がないため、null合体演算子 (??) を削除
+    // timeLeft が null になる可能性がないため、null合体演算子 (??) を削除
     return (_jsxs("div", { style: {
             width: '300px',
             height: '80px',

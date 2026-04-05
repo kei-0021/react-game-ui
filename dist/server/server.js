@@ -15,9 +15,10 @@ const __dirname = path.dirname(__filename);
  * @property {string} libDistPath - /lib パスで提供されるビルド済みライブラリ資産のパス
  * @property {string} clientDistPath - ルートパスで提供されるクライアント側静的ファイルのパス
  * @property {string[]} corsOrigins - CORSを許可するオリジンのリスト
- * @property {Record<string, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
+ * @property {Record<gameId, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
  * @property {any} customEvents - ユーザー定義のカスタムイベントハンドラ
  * @property {Partial<Record<LogCategory, boolean>> | null} initialLogCategories - ログ出力の制御設定
+ * @property {LogLevel | null} initialLogLevel - ログ出力のレベル
  * @property {express.Application} app - Expressアプリケーションインスタンス
  * @property {HttpServer} httpServer - Node.js HTTPサーバーインスタンス
  * @property {SocketIOServer} io - 通信を制御するSocket.IOサーバーインスタンス
@@ -30,6 +31,7 @@ export class GameServer {
     gameParams;
     customEvents;
     initialLogCategories;
+    initialLogLevel;
     app;
     httpServer;
     io;
@@ -43,6 +45,7 @@ export class GameServer {
         // サーバー全体のデフォルト設定
         this.customEvents = options.customEvents || {};
         this.initialLogCategories = options.initialLogCategories || null;
+        this.initialLogLevel = options.initialLogLevel || null;
         this.app = express();
         this.httpServer = createServer(this.app);
         this.io = new SocketIOServer(this.httpServer, {
@@ -94,6 +97,7 @@ export class GameServer {
                 gameParams: this.gameParams,
                 customEvents: this.customEvents,
                 initialLogCategories: this.initialLogCategories,
+                initialLogLevel: this.initialLogLevel,
             });
         }
         catch (err) {
@@ -111,21 +115,5 @@ export class GameServer {
             const url = `http://localhost:${actualPort}`;
             console.log(`[Server] Server listening on ${url}`);
         });
-    }
-    /**
-     * 指定したGameIdのパラメータを安全に更新し通知する
-     */
-    updateGameParam(gameId, param) {
-        if (!this.gameParams[gameId]) {
-            console.warn(`[Server] 未登録のGameIdです: ${gameId}`);
-        }
-        // 内部状態の更新
-        this.gameParams[gameId] = param;
-        // 実行中の全ルームへ「最新ルール」を強制同期
-        // server-logic.ts 側でエクスポートした同期関数を呼ぶ
-        // reloadActiveRooms(this.io, gameId, param);
-        console.log(`[Server] Hot Swapped: ${gameId}. All rooms synchronized.`);
-        // クライアント変更を一斉送信
-        this.io.emit('server:config_reloaded', { gameId });
     }
 }

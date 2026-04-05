@@ -1,10 +1,12 @@
 // src/types/socketData.ts
 
-import { CellData } from '@/index.js';
+import { CellData, DraggableData } from '@/index.js';
+import { ComponentInfo, RoomState } from '@/types/server.js';
 import { Card } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
+import { Deck } from './deck.js';
 import {
   BoardId,
   CardId,
@@ -19,12 +21,25 @@ import {
 } from './definition.js';
 import { Phase } from './phase.js';
 import { Token } from './token.js';
+import { TokenStore } from './tokenStore.js';
 
 /*
  * ===========================================
- * ルーム・接続関連
+ * ゲーム・ルーム情報
  * ===========================================
  */
+export type GameMeta = {
+  gameId: GameId;
+  gameIcon: string;
+  maxPlayers?: number;
+  initialHand?: Record<DeckId, number>;
+  initialDecks?: Deck[];
+  initialTokenStores?: TokenStore[];
+  initialTokens?: Record<TokenStoreId, number>;
+  draggables?: Record<DraggableId, DraggableData>;
+  components?: ComponentInfo[];
+};
+
 export type RoomMeta = {
   id: RoomId;
   gameId: GameId;
@@ -33,15 +48,42 @@ export type RoomMeta = {
   createdAt: number;
 };
 
-export type LobbyRoomsList = {
-  rooms: RoomMeta[];
-  availableGameIds: GameId[];
+export type LobbyGameList = {
+  games: GameMeta[];
 };
+
+export type LobbyRoomList = {
+  rooms: RoomMeta[];
+};
+
+export interface GameComponentData {
+  state: RoomState;
+  components: ComponentInfo[];
+}
 
 export type RoomJoinData = {
   roomId: RoomId;
   gameId: GameId;
   playerName: PlayerId;
+};
+
+/*
+ * ===========================================
+ * ゲーム追加・削除・更新
+ * ===========================================
+ */
+export type GameCreateData = {
+  gameName: string;
+  gameIcon: string;
+};
+
+export type GameDeleteData = {
+  gameId: GameId;
+};
+
+export type GameParamUpdateData = {
+  gameId: GameId;
+  newParam: Partial<GameMeta>;
 };
 
 /*
@@ -54,6 +96,16 @@ export type DeckDrawData = {
   deckId: DeckId;
   playerId?: PlayerId | null;
   drawCondition: [CardLocation, CardState];
+};
+
+export type DeckShuffleData = {
+  roomId: RoomId;
+  deckId: DeckId;
+};
+
+export type DeckResetData = {
+  roomId: RoomId;
+  deckId: DeckId;
 };
 
 export type DeckUpdateData = {

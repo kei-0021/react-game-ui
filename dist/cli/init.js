@@ -7,7 +7,7 @@ export const init = () => {
     const cwd = process.cwd();
     const baseDir = process.env.RG_UI_BASE_DIR || path.join(cwd, 'src');
     console.log(`🚀 Initializing react-game-ui project in: ${baseDir}`);
-    const dirs = [baseDir, path.join(baseDir, 'rooms'), path.join(baseDir, 'server'), path.join(baseDir, 'constants')];
+    const dirs = [baseDir, path.join(baseDir, 'rooms'), path.join(baseDir, 'server')];
     dirs.forEach((dir) => {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
@@ -71,7 +71,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 import type { RoomMeta } from "react-game-ui";
 import { useNavigate } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
-import { GAME_LIST } from "../constants/games";
 import "./LobbyRoom.css";
 
 const SERVER_URL =
@@ -98,7 +97,7 @@ export default function LobbyRoom() {
       lobbySocket.emit("lobby:get-rooms");
     });
 
-    lobbySocket.on("lobby:rooms-list", (fetchedRooms: RoomMeta[]) => {
+    lobbySocket.on("lobby:list", (fetchedRooms: RoomMeta[]) => {
       fetchedRooms.sort((a, b) => b.createdAt - a.createdAt);
       setRooms(fetchedRooms);
       setIsLoading(false);
@@ -365,10 +364,6 @@ body {
 }
 `;
     const files = {
-        registry: {
-            path: path.join(baseDir, 'constants', 'games.ts'),
-            content: gamesContent,
-        },
         main: {
             path: path.join(baseDir, 'main.tsx'),
             content: mainContent,

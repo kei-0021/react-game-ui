@@ -1,6 +1,8 @@
 /* src/components/Deck.module.css */
 
 .deckSection {
+  width: 280px;
+  height: 220px;
   padding: 10px 22px 10px 22px;
   border: 2px solid #888;
   border-radius: 8px;
