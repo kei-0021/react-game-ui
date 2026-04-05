@@ -1145,15 +1145,15 @@ function Deck({
     ] })
   ] });
 }
-const diceWrapper = "_diceWrapper_1gmf4_1";
-const diceTitle = "_diceTitle_1gmf4_9";
-const dice = "_dice_1gmf4_1";
-const tooltip$1 = "_tooltip_1gmf4_41";
-const diceRolling = "_diceRolling_1gmf4_69";
-const diceNotRolling = "_diceNotRolling_1gmf4_75";
-const faceImage = "_faceImage_1gmf4_79";
-const faceContainer = "_faceContainer_1gmf4_86";
-const defaultText = "_defaultText_1gmf4_94";
+const diceWrapper = "_diceWrapper_109vb_1";
+const diceTitle = "_diceTitle_109vb_9";
+const dice = "_dice_109vb_1";
+const tooltip$1 = "_tooltip_109vb_40";
+const diceRolling = "_diceRolling_109vb_68";
+const diceNotRolling = "_diceNotRolling_109vb_74";
+const faceImage = "_faceImage_109vb_78";
+const faceContainer = "_faceContainer_109vb_85";
+const defaultText = "_defaultText_109vb_93";
 const styles$6 = {
   diceWrapper,
   diceTitle,
