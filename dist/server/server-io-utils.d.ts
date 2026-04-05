@@ -3,7 +3,7 @@ import { Coordinate } from '@/types/coodinate.js';
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/server.js';
 import { Token } from '@/types/token.js';
-import { Card } from '../types/card.js';
+import { CardData } from '../types/card.js';
 import { Resource } from '../types/resource.js';
 export type RoomConfig = {
     gameId: GameId;
@@ -11,7 +11,7 @@ export type RoomConfig = {
     setup: (loadedData: Record<string, any>) => Promise<GameParam>;
 };
 export declare const Validators: {
-    isCardArray: (data: Card[]) => data is Card[];
+    isCardArray: (data: CardData[]) => data is CardData[];
     isResourceArray: (data: any) => data is Resource[];
     isCellArray: (data: any) => data is any[];
 };
@@ -26,15 +26,15 @@ export declare class SetupHelper {
     /**
      * カードデータのバリデーション
      */
-    assertCards(data: any): Card[];
+    assertCards(data: any): CardData[];
     /**
      * カードに共通のプロパティ（location, drawConditionなど）をセットする
      */
-    initializeCards(cards: any[], defaults: Partial<Card>): Card[];
+    initializeCards(cards: any[], defaults: Partial<CardData>): CardData[];
     /**
      * カードの複製（ユニーク化）
      */
-    createUniqueCards(cards: Card[], numSets: number): Card[];
+    createUniqueCards(cards: CardData[], numSets: number): CardData[];
     /**
      * トークンストアの生成。共通情報の初期化も可能。
      * @param tokens - 入力トークンデータ

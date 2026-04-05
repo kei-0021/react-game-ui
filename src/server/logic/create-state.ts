@@ -2,7 +2,7 @@
 
 import type {
   BoardId,
-  Card,
+  CardData,
   CardId,
   CellData,
   DeckId,
@@ -53,15 +53,15 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
   });
 
-  const decks: Record<DeckId, Card[]> = {};
-  const playFieldCards: Record<DeckId, Card[]> = {};
-  const discardPile: Record<DeckId, Card[]> = {};
+  const decks: Record<DeckId, CardData[]> = {};
+  const playFieldCards: Record<DeckId, CardData[]> = {};
+  const discardPile: Record<DeckId, CardData[]> = {};
   const holdCards: Record<PlayerId, Record<DeckId, CardId[]>> = {};
 
   const tokenStores: Record<TokenStoreId, Token[]> = {};
 
   initialDecks.forEach((deck: Deck) => {
-    const cards: Card[] = (deck.cards || []).map((c, index) => ({
+    const cards: CardData[] = (deck.cards || []).map((c, index) => ({
       ...c,
       deckId: deck.deckId,
       backColor: deck.backColor,

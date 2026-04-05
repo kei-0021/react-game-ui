@@ -1,6 +1,6 @@
 import { CellData, DraggableData } from '@/index.js';
 import { ComponentInfo, RoomState } from '@/types/server.js';
-import { Card } from './card.js';
+import { CardData } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
@@ -68,9 +68,9 @@ export type DeckResetData = {
     deckId: DeckId;
 };
 export type DeckUpdateData = {
-    currentDeck: Card[];
-    playFieldCards: Card[];
-    discardPile: Card[];
+    currentDeck: CardData[];
+    playFieldCards: CardData[];
+    discardPile: CardData[];
 };
 export type CardPlayData = {
     roomId: RoomId;

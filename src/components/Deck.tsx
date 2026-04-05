@@ -3,7 +3,7 @@ import { DeckDrawData, DeckResetData, DeckShuffleData, DeckUpdateData } from '@/
 import * as React from 'react';
 import { useEffect } from 'react';
 import { Socket } from 'socket.io-client';
-import type { Card } from '../types/card.js';
+import type { CardData } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
@@ -42,8 +42,8 @@ export function Deck({
   alwaysDraw = false,
   enabled = true,
 }: DeckProps) {
-  const [deckCards, setDeckCards] = React.useState<Card[]>([]);
-  const [discardPile, setDiscardPile] = React.useState<Card[]>([]);
+  const [deckCards, setDeckCards] = React.useState<CardData[]>([]);
+  const [discardPile, setDiscardPile] = React.useState<CardData[]>([]);
 
   useEffect(() => {
     socket.on(`deck:update:${deckId}`, (data: DeckUpdateData) => {

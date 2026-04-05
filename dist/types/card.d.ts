@@ -20,7 +20,7 @@ import { CardId, DeckId, PlayerId } from './definition.js';
  * @property {boolean} [freeShape] - trueの場合、カード標準の枠線や背景を排除し、画像の形状を活かす（透過PNG用）
  * @property {number} - 重なり順。
  */
-export type Card = {
+export type CardData = {
     id: CardId;
     deckId: DeckId;
     name: string;

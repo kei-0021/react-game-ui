@@ -1,9 +1,9 @@
 // src/components/Card.tsx
-import { Card } from '@/types/card.js';
+import { CardData } from '@/types/card.js';
 import React from 'react';
 import cardStyles from './Card.module.css';
 
-export const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: Card; canSeeFront: boolean }) => {
+export const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: CardData; canSeeFront: boolean }) => {
   // 裏向きの場合
   if (!canSeeFront) {
     return <div className={cardStyles.deckCard} style={{ backgroundColor: card.backColor || '#333' }} />;

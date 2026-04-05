@@ -1,7 +1,7 @@
 // src/types/server.ts
 import { CellData, Player } from '@/index.js';
 import { RoomManager } from '@/server/room-manager.js';
-import { Card } from './card.js';
+import { CardData } from './card.js';
 import { Deck } from './deck.js';
 import {
   BoardId,
@@ -103,9 +103,9 @@ export type RoomState = {
   currentTurnIndex: number;
   currentPhase?: Phase;
   players: Player[];
-  decks: Record<DeckId, Card[]>;
-  playFieldCards: Record<DeckId, Card[]>;
-  discardPile: Record<PlayerId, Card[]>;
+  decks: Record<DeckId, CardData[]>;
+  playFieldCards: Record<DeckId, CardData[]>;
+  discardPile: Record<PlayerId, CardData[]>;
   holdCards: Record<PlayerId, Record<DeckId, CardId[]>>;
   boards: Record<BoardId, CellData[]>;
   exploredCells: Position[];

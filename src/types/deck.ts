@@ -1,8 +1,8 @@
-import { Card } from './card.js';
+import { CardData } from './card.js';
 
 export interface Deck {
   deckId: string;
   name: string;
   backColor: string;
-  cards: Card[];
+  cards: CardData[];
 }

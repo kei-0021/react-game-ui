@@ -1,6 +1,6 @@
 // src/types/player.ts
 
-import type { Card } from './card.js';
+import type { CardData } from './card.js';
 import type { PlayerId } from './definition.js';
 import { Position } from './position.js';
 import type { Resource } from './resource.js';
@@ -26,7 +26,7 @@ export type Player = {
   name: string;
   socketId: string;
   color: string;
-  cards: Card[];
+  cards: CardData[];
   isHolding: boolean;
   tokens: Token[];
   resources: Resource[];

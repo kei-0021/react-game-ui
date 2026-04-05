@@ -10,7 +10,7 @@ import {
 } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
-import type { Card } from '../types/card.js';
+import type { CardData } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
@@ -72,7 +72,7 @@ export function PlayField({
   height = 600,
   isDebug = false,
 }: PlayFieldProps) {
-  const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
+  const [playedCards, setPlayedCards] = React.useState<CardData[]>([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(null);
 
   // フィールド内での最大zIndexを管理するステート
@@ -82,7 +82,7 @@ export function PlayField({
   const [dragPos, setDragPos] = React.useState<{ x: number; y: number } | null>(null);
 
   // 右クリックメニュー用のステート (Draggableの仕様に合わせる)
-  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; card: Card } | null>(null);
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; card: CardData } | null>(null);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const draggingIdRef = React.useRef<string | null>(null);
@@ -150,7 +150,7 @@ export function PlayField({
     [socket],
   );
 
-  const handlePointerDown = (e: React.PointerEvent, card: Card) => {
+  const handlePointerDown = (e: React.PointerEvent, card: CardData) => {
     if (layoutMode !== 'free') return;
     draggingIdRef.current = card.id;
     setActiveDraggingId(card.id);
@@ -162,7 +162,7 @@ export function PlayField({
   };
 
   // 右クリックハンドラ (Draggableの形式に合わせる)
-  const handleContextMenu = (e: React.MouseEvent, card: Card) => {
+  const handleContextMenu = (e: React.MouseEvent, card: CardData) => {
     e.preventDefault();
     e.stopPropagation();
     setContextMenu({ x: e.clientX, y: e.clientY, card });
@@ -228,7 +228,7 @@ export function PlayField({
     e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleCardBack = (card: Card) => {
+  const handleCardBack = (card: CardData) => {
     if (!myPlayerId || !card.fieldBackCondition) return;
 
     const backTo = card.fieldBackCondition[0] || 'discard';

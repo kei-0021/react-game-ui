@@ -4,7 +4,7 @@ import { Player } from '@/types/player.js';
 import { CardFlipData, CardHoldData, CardPlayData, GameNextRoundData, GameNextTrunData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
-import { Card } from '../types/card.js';
+import { CardData } from '../types/card.js';
 import { CardId, PlayerId, RoomId } from '../types/definition.js';
 import type { Resource } from '../types/resource.js';
 import { CardDisplayContent } from './Card.js';
@@ -153,7 +153,7 @@ const PlayerListItem = React.memo(
 
         {player.isHolding && <p className={scoreBoardStyles.isHoldMessage}>カードをホールドしています</p>}
         <div className={scoreBoardStyles.cardList}>
-          {player.cards.map((card: Card) => {
+          {player.cards.map((card: CardData) => {
             const isSelected = selectedCards.includes(card.id);
             const isHeld = heldCards.includes(card.id);
             const canSeeFront = !!card.isFaceUp || isOwner;
