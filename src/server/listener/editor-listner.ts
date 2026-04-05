@@ -42,13 +42,27 @@ export function registerEditorListeners(socket: Socket, gameParams: Record<GameI
       // 現在のメモリ上の設定を取得
       const currentParam = gameParams[data.gameId] || {};
 
-      // draggable, components だけはマージせず、新しいデータで上書きする
+      // components 内の各要素にスロット属性（slotX, slotY等）を「後付け」で確定させる
+      const processedComponents = data.newParam.components?.map((comp: any) => ({
+        ...comp,
+        props: {
+          ...comp.props,
+          slotX: comp.props?.slotX,
+          slotY: comp.props?.slotY,
+          cols: comp.props?.cols,
+          gap: comp.props?.gap,
+          padding: comp.props?.padding,
+        },
+      }));
+
+      // マージ処理：draggables と components は新しいスロット情報を含むデータで完全に上書きする
       const mergedParam = {
         ...deepMerge({ ...currentParam }, data.newParam),
         ...(data.newParam.draggables ? { draggables: data.newParam.draggables } : {}),
-        ...(data.newParam.components ? { components: data.newParam.components } : {}),
+        ...(processedComponents ? { components: processedComponents } : {}),
       };
 
+      // 不要な一時的プロパティを削除してクリーンなデータにする
       delete mergedParam.cardEffects;
       delete mergedParam.cellEffects;
       delete mergedParam.shuffleAndReconnectBoard;
@@ -60,6 +74,10 @@ export function registerEditorListeners(socket: Socket, gameParams: Record<GameI
       const content = `export const ${pascalName}Data: any = ${setupContent};`;
 
       await fs.promises.writeFile(targetPath, content, 'utf8');
+
+      // メモリ上のデータも更新（即時反映のため）
+      gameParams[data.gameId] = mergedParam;
+
       socket.emit('game-param:updated', { success: true });
     } catch (err) {
       console.error('[Admin] 書き換え失敗:', err);

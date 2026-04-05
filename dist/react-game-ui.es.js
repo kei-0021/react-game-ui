@@ -2781,43 +2781,69 @@ const DynamicComponent = ({
     return () => console.log("DynamicComponent: unmount", props);
   }, []);
   const commonProps = { socket, roomId };
-  switch (type) {
-    case "Deck":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props, myPlayerId, currentPlayerId });
-    case "PlayField":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(PlayField, { ...commonProps, ...props, myPlayerId, players, isDebug: true });
-    case "ScoreBoard":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        ScoreBoard,
-        {
-          ...commonProps,
-          ...props,
-          myPlayerId,
-          currentPlayerId,
-          players
+  const dynamicStyle = useMemo(() => {
+    const baseStyle = {
+      position: props.coordinate ? "absolute" : "relative",
+      left: props.coordinate?.x,
+      top: props.coordinate?.y,
+      zIndex: props.zIndex ?? 1,
+      transition: "all 0.2s ease-out",
+      gridColumn: props.slotX ? `${props.slotX}` : void 0,
+      gridRow: props.slotY ? `${props.slotY}` : void 0
+    };
+    if (props.isSlot) {
+      return {
+        ...baseStyle,
+        display: "grid",
+        gridTemplateColumns: `repeat(${props.cols || 1}, 1fr)`,
+        gap: `${props.gap || 0}px`,
+        padding: `${props.padding || 0}px`,
+        alignItems: "center",
+        justifyContent: "center"
+      };
+    }
+    return baseStyle;
+  }, [props.coordinate, props.zIndex, props.isSlot, props.cols, props.gap, props.padding, props.slotX, props.slotY]);
+  const renderCore = () => {
+    switch (type) {
+      case "Deck":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Deck, { ...commonProps, ...props, myPlayerId, currentPlayerId });
+      case "PlayField":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(PlayField, { ...commonProps, ...props, myPlayerId, players, isDebug: true });
+      case "ScoreBoard":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(
+          ScoreBoard,
+          {
+            ...commonProps,
+            ...props,
+            myPlayerId,
+            currentPlayerId,
+            players
+          }
+        );
+      case "TokenStore":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(TokenStore, { ...commonProps, ...props });
+      case "GridBoard":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(GridBoard, { ...commonProps, ...props });
+      case "Draggable":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Draggable, { ...commonProps, ...props, containerRef });
+      case "Dice":
+        const processedProps = { ...props };
+        if (Array.isArray(props.customFaces)) {
+          processedProps.customFaces = props.customFaces.map((src, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src, style: { width: "100%", height: "100%", objectFit: "contain" } }, `f${i}`));
         }
-      );
-    case "TokenStore":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(TokenStore, { ...commonProps, ...props });
-    case "GridBoard":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(GridBoard, { ...commonProps, ...props });
-    case "Draggable":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Draggable, { ...commonProps, ...props, containerRef });
-    case "Dice":
-      const processedProps = { ...props };
-      if (Array.isArray(props.customFaces)) {
-        processedProps.customFaces = props.customFaces.map((src, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src, style: { width: "100%", height: "100%", objectFit: "contain" } }, `f${i}`));
-      }
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Dice, { ...commonProps, ...processedProps });
-    case "Timer":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Timer, { ...commonProps, ...props });
-    case "SystemMessageWindow":
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(SystemMessageWindow, { ...commonProps });
-    // 未定義のコンポーネントが来た場合
-    default:
-      console.warn(`Unknown component type: ${type}`);
-      return null;
-  }
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Dice, { ...commonProps, ...processedProps });
+      case "Timer":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Timer, { ...commonProps, ...props });
+      case "SystemMessageWindow":
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(SystemMessageWindow, { ...commonProps });
+      // 未定義のコンポーネントが来た場合
+      default:
+        console.warn(`Unknown component type: ${type}`);
+        return null;
+    }
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "dynamic-wrapper", style: dynamicStyle, children: renderCore() });
 };
 const COMPONENT_TYPES = [
   "Deck",
@@ -2900,7 +2926,6 @@ const ComponentFactory = ({
   const [uploadImage, setUploadImage] = useState(null);
   const [newDraggableX, setNewDraggableX] = useState(500);
   const [newDraggableY, setNewDraggableY] = useState(500);
-  const [isDraggingPreview, setIsDraggingPreview] = useState(false);
   const existingIds = existingComponents.map((c) => c.id);
   const isDuplicateId = existingIds.includes(newCompId);
   const handleFileChange = (e) => {
@@ -3152,7 +3177,9 @@ const ComponentFactory = ({
               props: {
                 diceId: newCompId || `dice-${Date.now()}`,
                 sides: newDiceSides,
-                title: `${newDiceSides}面ダイス`
+                title: `${newDiceSides}面ダイス`,
+                slotX: 1,
+                slotY: 1
               }
             };
             e.dataTransfer.setData("application/react-game-ui", JSON.stringify(dragData));

@@ -41,7 +41,6 @@ export const ComponentFactory = ({
   const [uploadImage, setUploadImage] = useState<string | null>(null);
   const [newDraggableX, setNewDraggableX] = useState<number>(500);
   const [newDraggableY, setNewDraggableY] = useState<number>(500);
-  const [isDraggingPreview, setIsDraggingPreview] = useState(false);
 
   const existingIds = existingComponents.map((c) => c.id);
   const isDuplicateId = existingIds.includes(newCompId);
@@ -320,6 +319,8 @@ export const ComponentFactory = ({
                   diceId: newCompId || `dice-${Date.now()}`,
                   sides: newDiceSides,
                   title: `${newDiceSides}面ダイス`,
+                  slotX: 1,
+                  slotY: 1,
                 },
               };
               e.dataTransfer.setData('application/react-game-ui', JSON.stringify(dragData));
