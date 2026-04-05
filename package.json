@@ -12,6 +12,10 @@
       "import": "./dist/react-game-ui.es.js",
       "require": "./dist/react-game-ui.cjs.js"
     },
+    "./server": {
+      "types": "./dist/server/server.d.ts",
+      "import": "./dist/server/server.js"
+    },
     "./live-server": {
       "types": "./dist/server/live-server.d.ts",
       "import": "./dist/server/live-server.js"
