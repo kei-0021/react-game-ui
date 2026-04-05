@@ -1,6 +1,6 @@
 // src/server/deepAbyssConfig.ts
 
-import { Card, CardPlayData, GameParam, Player, RoomManager, RoomState } from 'react-game-ui';
+import { CardData, CardPlayData, GameParam, Player, RoomManager, RoomState } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
 import { DeepAbyssPhase } from '../types/phase.js';
 import { cellShuffleAndReconnector } from './cellShuffleAndReConnecter.js';
@@ -26,7 +26,7 @@ export const deepAbyssConfig: RoomConfig = {
 
     const helper = new SetupHelper();
 
-    const defaults: Partial<Card> = {
+    const defaults: Partial<CardData> = {
       location: 'deck',
       drawCondition: ['field', 'back'],
       playLocation: 'discard',
