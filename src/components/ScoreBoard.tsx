@@ -250,7 +250,6 @@ export function ScoreBoard({
   currentPlayerId?: PlayerId | null;
   myPlayerId: PlayerId | null;
   playCardLimit?: number;
-  autoNextTurnOnCardPlay?: boolean;
   playCardButton?: [boolean, boolean];
   holdButton?: [boolean, boolean];
   flipButton?: [boolean, boolean];

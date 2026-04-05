@@ -27,7 +27,6 @@ export declare function ScoreBoard({ socket, roomId, myPlayerId, currentPlayerId
     currentPlayerId?: PlayerId | null;
     myPlayerId: PlayerId | null;
     playCardLimit?: number;
-    autoNextTurnOnCardPlay?: boolean;
     playCardButton?: [boolean, boolean];
     holdButton?: [boolean, boolean];
     flipButton?: [boolean, boolean];

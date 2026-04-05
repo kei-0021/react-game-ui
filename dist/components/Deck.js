@@ -54,11 +54,11 @@ export function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerI
     };
     const shuffle = () => socket.emit('deck:shuffle', { roomId, deckId });
     const resetDeck = () => socket.emit('deck:reset', { roomId, deckId });
-    return (_jsxs("section", { className: deckStyles.deckSection, children: [_jsx("h3", { className: deckStyles.deckTitle, children: title }), _jsxs("div", { className: deckStyles.deckControls, children: [_jsx("button", { onClick: shuffle, disabled: !enabled, children: "\u30B7\u30E3\u30C3\u30D5\u30EB" }), _jsx("button", { onClick: resetDeck, disabled: !enabled, children: "\u5C71\u672D\u306B\u623B\u3059" })] }), _jsxs("div", { className: deckStyles.deckWrapperFlex, children: [_jsx("div", { className: `${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ''}`, onClick: () => enabled && draw(), children: deckCards.map((c, i) => (_jsx("div", { className: cardStyles.deckCard, style: {
-                                zIndex: deckCards.length - i,
-                                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                                backgroundColor: c.backColor,
-                            } }, c.id))) }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => (_jsx(CardPreview, { card: c, children: _jsx("div", { className: cardStyles.deckCardFront, style: {
+    return (_jsxs("section", { className: deckStyles.deckSection, children: [_jsx("h3", { className: deckStyles.deckTitle, children: title }), _jsxs("div", { className: deckStyles.deckControls, children: [_jsx("button", { onClick: shuffle, disabled: !enabled, children: "\u30B7\u30E3\u30C3\u30D5\u30EB" }), _jsx("button", { onClick: resetDeck, disabled: !enabled, children: "\u5C71\u672D\u306B\u623B\u3059" })] }), _jsxs("div", { className: deckStyles.deckWrapperFlex, children: [_jsxs("div", { className: `${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ''}`, onClick: () => enabled && draw(), children: [deckCards.length > 0 && _jsx("div", { className: deckStyles.deckCountBadge, children: deckCards.length }), deckCards.map((c, i) => (_jsx("div", { className: cardStyles.deckCard, style: {
+                                    zIndex: deckCards.length - i,
+                                    transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
+                                    backgroundColor: c.backColor,
+                                } }, c.id)))] }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => (_jsx(CardPreview, { card: c, children: _jsx("div", { className: cardStyles.deckCardFront, style: {
                                     zIndex: i + 1,
                                     transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
                                 }, children: _jsx(CardDisplayContent, { card: c, canSeeFront: true }) }) }, c.id))) })] })] }));

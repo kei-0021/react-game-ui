@@ -1052,15 +1052,17 @@ const CardPreview = ({ card: card2, children }) => {
     ] }) })
   ] });
 };
-const deckSection = "_deckSection_1e8ta_3";
-const deckTitle = "_deckTitle_1e8ta_15";
-const deckWrapperFlex = "_deckWrapperFlex_1e8ta_20";
-const deckControls = "_deckControls_1e8ta_34";
+const deckSection = "_deckSection_1e9bt_3";
+const deckTitle = "_deckTitle_1e9bt_15";
+const deckWrapperFlex = "_deckWrapperFlex_1e9bt_20";
+const deckControls = "_deckControls_1e9bt_34";
+const deckCountBadge = "_deckCountBadge_1e9bt_39";
 const deckStyles = {
   deckSection,
   deckTitle,
   deckWrapperFlex,
-  deckControls
+  deckControls,
+  deckCountBadge
 };
 function Deck({
   socket,
@@ -1112,23 +1114,26 @@ function Deck({
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, disabled: !enabled, children: "山札に戻す" })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.deckWrapperFlex, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {
           className: `${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ""}`,
           onClick: () => enabled && draw(),
-          children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              className: cardStyles.deckCard,
-              style: {
-                zIndex: deckCards.length - i,
-                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                backgroundColor: c.backColor
-              }
-            },
-            c.id
-          ))
+          children: [
+            deckCards.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.deckCountBadge, children: deckCards.length }),
+            deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                className: cardStyles.deckCard,
+                style: {
+                  zIndex: deckCards.length - i,
+                  transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
+                  backgroundColor: c.backColor
+                }
+              },
+              c.id
+            ))
+          ]
         }
       ),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: c, children: /* @__PURE__ */ jsxRuntimeExports.jsx(

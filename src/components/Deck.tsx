@@ -105,6 +105,9 @@ export function Deck({
           className={`${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ''}`}
           onClick={() => enabled && draw()}
         >
+          {/* 枚数バッジ */}
+          {deckCards.length > 0 && <div className={deckStyles.deckCountBadge}>{deckCards.length}</div>}
+
           {deckCards.map((c, i) => (
             <div
               key={c.id}
