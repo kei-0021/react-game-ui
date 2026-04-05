@@ -71,7 +71,7 @@ async function startServer() {
     gameParams: gameParams,
     customEvents,
     initialLogCategories: {},
-    initialLogLevel: 'DEBUG',
+    initialLogLevel: 'INFO',
   };
 
   const gameServer = new LiveGameServer(options);

@@ -166,9 +166,8 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         }
         socket.emit('card:move-from-field', requestData);
     };
-    return (_jsxs("section", { className: `rg-playfield mode-${layoutMode}`, style: {
-            background: backgroundImage ? `url(${backgroundImage}) center/cover no-repeat` : undefined,
-            // 親の zIndex を消すことで、中のカードが Draggable と同じ階層で比較されるようにする
+    return (_jsxs("section", { className: playFieldStyles['rg-playfield'], style: {
+            ...(backgroundImage ? { background: `url(${backgroundImage}) center/cover no-repeat` } : {}),
             position: 'relative',
         }, children: [_jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsxs("div", { ref: containerRef, className: playFieldStyles.rgPlayFieldContainer, onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
                     position: 'relative',

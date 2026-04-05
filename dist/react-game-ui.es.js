@@ -1836,14 +1836,15 @@ function GridBoard({
     })
   ] });
 }
-const rgPlayFieldContainer = "_rgPlayFieldContainer_16v0u_14";
-const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_16v0u_22";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_16v0u_31";
-const contextMenu = "_contextMenu_16v0u_55";
-const menuItem = "_menuItem_16v0u_70";
-const menuIcon = "_menuIcon_16v0u_87";
-const debugLabel = "_debugLabel_16v0u_123";
+const rgPlayFieldContainer = "_rgPlayFieldContainer_vpljf_13";
+const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_vpljf_21";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_vpljf_30";
+const contextMenu = "_contextMenu_vpljf_54";
+const menuItem = "_menuItem_vpljf_69";
+const menuIcon = "_menuIcon_vpljf_86";
+const debugLabel = "_debugLabel_vpljf_122";
 const playFieldStyles = {
+  "rg-playfield": "_rg-playfield_vpljf_3",
   rgPlayFieldContainer,
   rgPlayFieldCardWrapper,
   rgPlayFieldOwnerBadge,
@@ -1994,10 +1995,9 @@ function PlayField({
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "section",
     {
-      className: `rg-playfield mode-${layoutMode}`,
+      className: playFieldStyles["rg-playfield"],
       style: {
-        background: backgroundImage ? `url(${backgroundImage}) center/cover no-repeat` : void 0,
-        // 親の zIndex を消すことで、中のカードが Draggable と同じ階層で比較されるようにする
+        ...backgroundImage ? { background: `url(${backgroundImage}) center/cover no-repeat` } : {},
         position: "relative"
       },
       children: [
