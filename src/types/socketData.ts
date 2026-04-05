@@ -141,6 +141,7 @@ export type CardMoveOnFieldData = {
   cardId: string;
   coordinate?: Coordinate;
   zIndex?: number;
+  rotation?: number;
 };
 
 export type CardMoveFromFieldData = {

@@ -3,6 +3,7 @@ import { Coordinate } from '@/types/coodinate.js';
 import { DraggableId, RoomId } from '@/types/definition.js';
 import { DraggableMovedData, DraggableUpdateData, ObjectBringToData } from '@/types/socketData.js';
 import type { CSSProperties, ReactNode } from 'react';
+import * as React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import draggableStyles from './Draggable.module.css';

@@ -1236,13 +1236,13 @@ function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll,
 const draggable = "_draggable_datou_3";
 const contextMenu$1 = "_contextMenu_datou_28";
 const menuItem$1 = "_menuItem_datou_42";
-const separator = "_separator_datou_63";
+const separator$1 = "_separator_datou_63";
 const debugLabel$1 = "_debugLabel_datou_85";
 const draggableStyles = {
   draggable,
   contextMenu: contextMenu$1,
   menuItem: menuItem$1,
-  separator,
+  separator: separator$1,
   debugLabel: debugLabel$1
 };
 function Draggable({
@@ -1842,6 +1842,7 @@ const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_mzyzy_34";
 const contextMenu = "_contextMenu_mzyzy_58";
 const menuItem = "_menuItem_mzyzy_73";
 const menuIcon = "_menuIcon_mzyzy_90";
+const separator = "_separator_mzyzy_98";
 const debugLabel = "_debugLabel_mzyzy_126";
 const playFieldStyles = {
   "rg-playfield": "_rg-playfield_mzyzy_3",
@@ -1851,6 +1852,7 @@ const playFieldStyles = {
   contextMenu,
   menuItem,
   menuIcon,
+  separator,
   debugLabel
 };
 function throttle(func, limit) {
@@ -1912,20 +1914,24 @@ function PlayField({
     setMaxZ((prev) => prev === void 0 ? zIndex : Math.max(prev, zIndex));
   }, [zIndex]);
   const emitMove = React.useMemo(
-    () => throttle((cardId, clientX, clientY, rId, dId) => {
-      if (!containerRef.current || !rId || !dId) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      let x = (clientX - rect.left) / rect.width * 100;
-      let y = (clientY - rect.top) / rect.height * 100;
-      x = Math.max(0, Math.min(100, x));
-      y = Math.max(0, Math.min(100, y));
-      socket.emit("card:move-on-field", {
-        roomId: rId,
-        deckId: dId,
-        cardId,
-        coordinate: { x, y }
-      });
-    }, 30),
+    () => throttle(
+      (cardId, clientX, clientY, rId, dId, currentRotation) => {
+        if (!containerRef.current || !rId || !dId) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        let x = (clientX - rect.left) / rect.width * 100;
+        let y = (clientY - rect.top) / rect.height * 100;
+        x = Math.max(0, Math.min(100, x));
+        y = Math.max(0, Math.min(100, y));
+        socket.emit("card:move-on-field", {
+          roomId: rId,
+          deckId: dId,
+          cardId,
+          coordinate: { x, y },
+          rotation: currentRotation
+        });
+      },
+      30
+    ),
     [socket]
   );
   const handlePointerDown = (e, card2) => {
@@ -1943,14 +1949,18 @@ function PlayField({
   const handlePointerMove = (e) => {
     if (!draggingIdRef.current || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
+    const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+    const currentRot = draggingCard?.rotation ?? 0;
     const x = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
     const y = Math.max(0, Math.min(100, (e.clientY - rect.top) / rect.height * 100));
     setDragPos({ x, y });
-    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
   };
   const handlePointerUp = (e) => {
     if (!draggingIdRef.current) return;
-    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+    const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+    const currentRot = draggingCard?.rotation ?? 0;
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
     e.currentTarget.releasePointerCapture(e.pointerId);
     draggingIdRef.current = null;
     setActiveDraggingId(null);
@@ -2028,7 +2038,7 @@ function PlayField({
                   top: `${displayY}%`,
                   zIndex: currentZIndex,
                   // マウスの先端ではなく、カードの中心を掴むように補正
-                  transform: "translate(-50%, -50%)",
+                  transform: `translate(-50%, -50%) rotate(${card2.rotation || 0}deg)`,
                   // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                   transition: isDragging ? "none" : "left 0.2s ease, top 0.2s ease"
                 } : {};
@@ -2101,6 +2111,28 @@ function PlayField({
                         ]
                       }
                     ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "div",
+                      {
+                        className: playFieldStyles.menuItem,
+                        onClick: () => {
+                          const nextRot = (contextMenu2.card.rotation || 0) + 90;
+                          socket.emit("card:move-on-field", {
+                            roomId,
+                            deckId: contextMenu2.card.deckId || deckId,
+                            cardId: contextMenu2.card.id,
+                            rotation: nextRot,
+                            coordinate: contextMenu2.card.coordinate
+                          });
+                          setContextMenu(null);
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "🔄" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "90度回転" })
+                        ]
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.separator }),
                     /* @__PURE__ */ jsxRuntimeExports.jsxs(
                       "div",
                       {

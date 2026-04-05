@@ -140,7 +140,7 @@ export function registerDeckListeners(
   });
 
   // カード位置同期
-  socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate, zIndex }: CardMoveOnFieldData) => {
+  socket.on('card:move-on-field', ({ roomId, deckId, cardId, coordinate, zIndex, rotation }: CardMoveOnFieldData) => {
     const state = activeRooms.get(roomId);
     if (!state) return;
     const param = gameParams[state.gameId];
@@ -151,6 +151,9 @@ export function registerDeckListeners(
       card.coordinate = coordinate;
       if (zIndex) {
         card.zIndex = zIndex;
+      }
+      if (rotation) {
+        card.rotation = rotation;
       }
       roomManager.emitDeckUpdate(deckId);
     }

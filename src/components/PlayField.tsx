@@ -4,6 +4,7 @@ import { Player } from '@/types/player.js';
 import {
   CardFlipData,
   CardMoveFromFieldData,
+  CardMoveOnFieldData,
   CardPlayData,
   DeckUpdateData,
   ObjectBringToData,
@@ -11,7 +12,7 @@ import {
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { CardData } from '../types/card.js';
-import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
+import type { CardId, DeckId, PlayerId, RoomId } from '../types/definition.js';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
 import playFieldStyles from './PlayField.module.css';
@@ -119,6 +120,7 @@ export function PlayField({
       socket.off(`deck:update:${deckId}`);
     };
   }, [socket, deckId]);
+
   // propsのzIndexが変わったら同期
   React.useEffect(() => {
     setMaxZ((prev) => (prev === undefined ? zIndex : Math.max(prev, zIndex)));
@@ -128,25 +130,29 @@ export function PlayField({
   // 宛先をその都度書くスタイルにしてクロージャ問題を回避
   const emitMove = React.useMemo(
     () =>
-      throttle((cardId: string, clientX: number, clientY: number, rId: RoomId, dId: DeckId) => {
-        if (!containerRef.current || !rId || !dId) return;
+      throttle(
+        (cardId: CardId, clientX: number, clientY: number, rId: RoomId, dId: DeckId, currentRotation: number) => {
+          if (!containerRef.current || !rId || !dId) return;
 
-        const rect = containerRef.current.getBoundingClientRect();
+          const rect = containerRef.current.getBoundingClientRect();
 
-        // 座標計算 & 0-100% の範囲にクランプ
-        let x = ((clientX - rect.left) / rect.width) * 100;
-        let y = ((clientY - rect.top) / rect.height) * 100;
+          // 座標計算 & 0-100% の範囲にクランプ
+          let x = ((clientX - rect.left) / rect.width) * 100;
+          let y = ((clientY - rect.top) / rect.height) * 100;
 
-        x = Math.max(0, Math.min(100, x));
-        y = Math.max(0, Math.min(100, y));
+          x = Math.max(0, Math.min(100, x));
+          y = Math.max(0, Math.min(100, y));
 
-        socket.emit('card:move-on-field', {
-          roomId: rId,
-          deckId: dId,
-          cardId,
-          coordinate: { x, y },
-        });
-      }, 30),
+          socket.emit('card:move-on-field', {
+            roomId: rId,
+            deckId: dId,
+            cardId,
+            coordinate: { x, y },
+            rotation: currentRotation,
+          } as CardMoveOnFieldData);
+        },
+        30,
+      ),
     [socket],
   );
 
@@ -173,6 +179,9 @@ export function PlayField({
 
     const rect = containerRef.current.getBoundingClientRect();
 
+    const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+    const currentRot = draggingCard?.rotation ?? 0;
+
     // 画面更新用のローカル座標を計算
     const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
     const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
@@ -181,13 +190,17 @@ export function PlayField({
     setDragPos({ x, y });
 
     // Propsの最新値を引数として渡す
-    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (!draggingIdRef.current) return;
+
+    const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+    const currentRot = draggingCard?.rotation ?? 0;
+
     // 終了時も最新のIDを添えて送信
-    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     draggingIdRef.current = null;
     setActiveDraggingId(null);
@@ -285,7 +298,7 @@ export function PlayField({
                   top: `${displayY}%`,
                   zIndex: currentZIndex,
                   // マウスの先端ではなく、カードの中心を掴むように補正
-                  transform: 'translate(-50%, -50%)',
+                  transform: `translate(-50%, -50%) rotate(${card.rotation || 0}deg)`,
                   // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                   transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                 }
@@ -370,6 +383,26 @@ export function PlayField({
               <span className={playFieldStyles.menuIcon}>⬆️</span>
               <span>最前面へ移動</span>
             </div>
+
+            <div
+              className={playFieldStyles.menuItem}
+              onClick={() => {
+                const nextRot = (contextMenu.card.rotation || 0) + 90;
+                socket.emit('card:move-on-field', {
+                  roomId,
+                  deckId: contextMenu.card.deckId || deckId,
+                  cardId: contextMenu.card.id,
+                  rotation: nextRot,
+                  coordinate: contextMenu.card.coordinate,
+                } as CardMoveOnFieldData);
+                setContextMenu(null);
+              }}
+            >
+              <span className={playFieldStyles.menuIcon}>🔄</span>
+              <span>90度回転</span>
+            </div>
+
+            <div className={playFieldStyles.separator} />
 
             <div
               className={playFieldStyles.menuItem}

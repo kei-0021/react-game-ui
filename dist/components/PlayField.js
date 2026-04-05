@@ -73,7 +73,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
     }, [zIndex]);
     // リアルタイム送信ロジック（throttleを30msに短縮して追従性を向上）
     // 宛先をその都度書くスタイルにしてクロージャ問題を回避
-    const emitMove = React.useMemo(() => throttle((cardId, clientX, clientY, rId, dId) => {
+    const emitMove = React.useMemo(() => throttle((cardId, clientX, clientY, rId, dId, currentRotation) => {
         if (!containerRef.current || !rId || !dId)
             return;
         const rect = containerRef.current.getBoundingClientRect();
@@ -87,6 +87,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
             deckId: dId,
             cardId,
             coordinate: { x, y },
+            rotation: currentRotation,
         });
     }, 30), [socket]);
     const handlePointerDown = (e, card) => {
@@ -108,19 +109,23 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         if (!draggingIdRef.current || !containerRef.current)
             return;
         const rect = containerRef.current.getBoundingClientRect();
+        const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+        const currentRot = draggingCard?.rotation ?? 0;
         // 画面更新用のローカル座標を計算
         const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
         const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
         // 通信とは別に、自分の画面の表示を即座に更新する
         setDragPos({ x, y });
         // Propsの最新値を引数として渡す
-        emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+        emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
     };
     const handlePointerUp = (e) => {
         if (!draggingIdRef.current)
             return;
+        const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+        const currentRot = draggingCard?.rotation ?? 0;
         // 終了時も最新のIDを添えて送信
-        emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+        emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
         e.currentTarget.releasePointerCapture(e.pointerId);
         draggingIdRef.current = null;
         setActiveDraggingId(null);
@@ -189,7 +194,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                 top: `${displayY}%`,
                                 zIndex: currentZIndex,
                                 // マウスの先端ではなく、カードの中心を掴むように補正
-                                transform: 'translate(-50%, -50%)',
+                                transform: `translate(-50%, -50%) rotate(${card.rotation || 0}deg)`,
                                 // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                                 transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                             }
@@ -223,6 +228,16 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                     socket.emit('object:bring-to', requestData);
                                     setContextMenu(null);
                                 }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u2B06\uFE0F" }), _jsx("span", { children: "\u6700\u524D\u9762\u3078\u79FB\u52D5" })] }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
+                                    const nextRot = (contextMenu.card.rotation || 0) + 90;
+                                    socket.emit('card:move-on-field', {
+                                        roomId,
+                                        deckId: contextMenu.card.deckId || deckId,
+                                        cardId: contextMenu.card.id,
+                                        rotation: nextRot,
+                                        coordinate: contextMenu.card.coordinate,
+                                    });
+                                    setContextMenu(null);
+                                }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\uD83D\uDD04" }), _jsx("span", { children: "90\u5EA6\u56DE\u8EE2" })] }), _jsx("div", { className: playFieldStyles.separator }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
                                     const requestData = {
                                         roomId,
                                         objectId: [contextMenu.card.deckId, contextMenu.card.id],
