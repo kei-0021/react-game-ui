@@ -32,19 +32,35 @@ export const generate = (gameName: string, gameIcon: string = '🎲') => {
   position: relative;
   background: #333;
   transform-origin: top left;
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  grid-template-rows: repeat(9, 1fr);
 }
 
 .gameHeader {
+  grid-column: 1 / -1;
+  grid-row: 1 / 2;
   display: flex;
   justify-content: space-between;
   padding: 10px;
   color: white;
   border-bottom: 1px solid #444;
+  z-index: 10;
+  background: rgba(34, 34, 34, 0.8);
 }
 
 .gameMain {
+  grid-column: 1 / -1;
+  grid-row: 2 / -1;
   display: flex;
-  height: calc(100% - 60px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.sidebarLeft,
+.sidebarRight,
+.playFieldContainer {
+  pointer-events: auto;
 }
 
 .sidebarLeft {
@@ -130,9 +146,9 @@ import {
   ScoreBoard,
   TokenStore,
   useSocket,
-} from "react-game-ui";
+} from 'react-game-ui';
 import styles from "./${pascalName}Room.module.css";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from 'react-router-dom';
 
 const SERVER_URL =
   import.meta.env.MODE === "development"
@@ -199,8 +215,13 @@ export function ${pascalName}Room() {
         const rect = containerRef.current?.getBoundingClientRect();
         if (!rect || !targetId) return;
 
+        // マウス位置の座標（スケール補正後）
         const x = (e.clientX - rect.left) / scale;
         const y = (e.clientY - rect.top) / scale;
+
+        // 【スロット計算】100px単位で何番目か算出 (1始まり)
+        const slotX = Math.floor(x / 100) + 1;
+        const slotY = Math.floor(y / 100) + 1;
 
         const newComponent: ComponentInfo = {
           id: targetId,
@@ -208,6 +229,11 @@ export function ${pascalName}Room() {
           props: {
             ...data.props,
             draggableId: targetId,
+            // 座標ではなくスロット情報を優先してセット
+            slotX: slotX,
+            slotY: slotY,
+            // 必要なら coordinate は undefined にしてスロットに吸着させる
+            coordinate: undefined,
           },
         };
 
@@ -356,12 +382,33 @@ export function ${pascalName}Room() {
           </div>
 
           <aside className={styles.sidebarRight}>
-            <ScoreBoard socket={socket!} roomId={roomId} players={players} currentPlayerId={currentPlayerId} myPlayerId={myPlayerId} />
+            <ScoreBoard
+              socket={socket!}
+              roomId={roomId}
+              players={players}
+              currentPlayerId={currentPlayerId}
+              myPlayerId={myPlayerId}
+            />
           </aside>
         </main>
-        
+
         <TokenStore socket={socket} roomId={roomId} tokenStoreId="chips" title="所持チップ" />
+
+        {componentInfo.map((info) => (
+          <DynamicComponent
+            key={info.id}
+            type={info.type}
+            props={info.props}
+            socket={socket!}
+            roomId={roomId!}
+            myPlayerId={myPlayerId}
+            currentPlayerId={currentPlayerId}
+            players={players}
+            containerRef={containerRef}
+          />
+        ))}
       </div>
+
       <ControlPanel
         socket={socket}
         gameMeta={games}
@@ -369,20 +416,6 @@ export function ${pascalName}Room() {
         isOpen={isPanelOpen}
         onToggle={() => setIsPanelOpen(!isPanelOpen)}
       />
-      {/* 動的コンポーネントのレンダリング */}
-      {componentInfo.map((info) => (
-        <DynamicComponent 
-          key={info.id} 
-          type={info.type} 
-          props={info.props} 
-          socket={socket!} 
-          roomId={roomId!} 
-          myPlayerId={myPlayerId}
-          currentPlayerId={currentPlayerId}
-          players={players}
-          containerRef={containerRef}
-        />
-      ))}
     </div>
   );
 }
