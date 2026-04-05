@@ -38,6 +38,8 @@ type PlayFieldProps = {
   layoutMode?: 'grid' | 'free';
   backgroundImage?: string;
   zIndex?: number;
+  width?: number;
+  height?: number;
   isDebug?: boolean;
 };
 
@@ -52,6 +54,8 @@ type PlayFieldProps = {
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
  * @param {string} [zIndex] - カードの重ね順
+ * @param {number} [width=300] - 横幅
+ * @param {number} [height=600] - 縦幅
  * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  */
 export function PlayField({
@@ -64,6 +68,8 @@ export function PlayField({
   layoutMode = 'free',
   backgroundImage,
   zIndex = 100,
+  width = 300,
+  height = 600,
   isDebug = false,
 }: PlayFieldProps) {
   const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
@@ -245,6 +251,8 @@ export function PlayField({
       style={{
         ...(backgroundImage ? { background: `url(${backgroundImage}) center/cover no-repeat` } : {}),
         position: 'relative',
+        width: typeof width === 'number' ? `${width}px` : width,
+        height: typeof height === 'number' ? `${height}px` : height,
       }}
     >
       <h3 className={playFieldStyles.rgPlayfieldTitle}>
@@ -256,12 +264,6 @@ export function PlayField({
         onPointerMove={handlePointerMove}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        style={{
-          position: 'relative',
-          minHeight: '600px',
-          touchAction: 'none',
-          overflow: 'visible',
-        }}
       >
         {playedCards.map((card) => {
           const owner = players.find((p) => p.id === card.ownerId);

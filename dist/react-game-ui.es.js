@@ -1836,15 +1836,15 @@ function GridBoard({
     })
   ] });
 }
-const rgPlayFieldContainer = "_rgPlayFieldContainer_vpljf_13";
-const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_vpljf_21";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_vpljf_30";
-const contextMenu = "_contextMenu_vpljf_54";
-const menuItem = "_menuItem_vpljf_69";
-const menuIcon = "_menuIcon_vpljf_86";
-const debugLabel = "_debugLabel_vpljf_122";
+const rgPlayFieldContainer = "_rgPlayFieldContainer_173ln_13";
+const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_173ln_24";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_173ln_33";
+const contextMenu = "_contextMenu_173ln_57";
+const menuItem = "_menuItem_173ln_72";
+const menuIcon = "_menuIcon_173ln_89";
+const debugLabel = "_debugLabel_173ln_125";
 const playFieldStyles = {
-  "rg-playfield": "_rg-playfield_vpljf_3",
+  "rg-playfield": "_rg-playfield_173ln_3",
   rgPlayFieldContainer,
   rgPlayFieldCardWrapper,
   rgPlayFieldOwnerBadge,
@@ -1873,6 +1873,8 @@ function PlayField({
   layoutMode = "free",
   backgroundImage,
   zIndex = 100,
+  width = 300,
+  height = 600,
   isDebug = false
 }) {
   const [playedCards, setPlayedCards] = React.useState([]);
@@ -1998,7 +2000,9 @@ function PlayField({
       className: playFieldStyles["rg-playfield"],
       style: {
         ...backgroundImage ? { background: `url(${backgroundImage}) center/cover no-repeat` } : {},
-        position: "relative"
+        position: "relative",
+        width: typeof width === "number" ? `${width}px` : width,
+        height: typeof height === "number" ? `${height}px` : height
       },
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title2 !== void 0 && title2 !== null ? title2 : `プレイフィールド (deckId=${deckId})` }),
@@ -2010,12 +2014,6 @@ function PlayField({
             onPointerMove: handlePointerMove,
             onDrop: handleDrop,
             onDragOver: handleDragOver,
-            style: {
-              position: "relative",
-              minHeight: "600px",
-              touchAction: "none",
-              overflow: "visible"
-            },
             children: [
               playedCards.map((card2) => {
                 const owner = players.find((p) => p.id === card2.ownerId);

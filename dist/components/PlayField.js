@@ -25,9 +25,11 @@ function throttle(func, limit) {
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
  * @param {string} [zIndex] - カードの重ね順
+ * @param {number} [width=300] - 横幅
+ * @param {number} [height=600] - 縦幅
  * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  */
-export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', backgroundImage, zIndex = 100, isDebug = false, }) {
+export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', backgroundImage, zIndex = 100, width = 300, height = 600, isDebug = false, }) {
     const [playedCards, setPlayedCards] = React.useState([]);
     const [activeDraggingId, setActiveDraggingId] = React.useState(null);
     // フィールド内での最大zIndexを管理するステート
@@ -169,12 +171,9 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
     return (_jsxs("section", { className: playFieldStyles['rg-playfield'], style: {
             ...(backgroundImage ? { background: `url(${backgroundImage}) center/cover no-repeat` } : {}),
             position: 'relative',
-        }, children: [_jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsxs("div", { ref: containerRef, className: playFieldStyles.rgPlayFieldContainer, onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
-                    position: 'relative',
-                    minHeight: '600px',
-                    touchAction: 'none',
-                    overflow: 'visible',
-                }, children: [playedCards.map((card) => {
+            width: typeof width === 'number' ? `${width}px` : width,
+            height: typeof height === 'number' ? `${height}px` : height,
+        }, children: [_jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsxs("div", { ref: containerRef, className: playFieldStyles.rgPlayFieldContainer, onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, children: [playedCards.map((card) => {
                         const owner = players.find((p) => p.id === card.ownerId);
                         const isDragging = activeDraggingId === card.id;
                         const isActuallyFreeShape = !!(card.freeShape && card.frontImage);

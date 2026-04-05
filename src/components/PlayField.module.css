@@ -15,7 +15,10 @@
   flex-wrap: wrap;
   gap: 8px; /* 横も縦も一律 8px に固定 */
   align-content: flex-start; /* 2行目以降を上に詰め寄せる */
-  min-height: 120px;
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+  overflow: visible;
 }
 
 .rgPlayFieldCardWrapper {
