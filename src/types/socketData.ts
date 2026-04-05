@@ -6,7 +6,7 @@ import { CardData } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
-import { Deck } from './deck.js';
+import { DeckData } from './deck.js';
 import {
   BoardId,
   CardId,
@@ -33,7 +33,7 @@ export type GameMeta = {
   gameIcon: string;
   maxPlayers?: number;
   initialHand?: Record<DeckId, number>;
-  initialDecks?: Deck[];
+  initialDecks?: DeckData[];
   initialTokenStores?: TokenStore[];
   initialTokens?: Record<TokenStoreId, number>;
   draggables?: Record<DraggableId, DraggableData>;

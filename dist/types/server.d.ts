@@ -1,7 +1,7 @@
 import { CellData, Player } from '@/index.js';
 import { RoomManager } from '@/server/room-manager.js';
 import { CardData } from './card.js';
-import { Deck } from './deck.js';
+import { DeckData } from './deck.js';
 import { BoardId, CardId, ComponentId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
 import { DraggableData } from './draggable.js';
 import { Phase } from './phase.js';
@@ -40,7 +40,7 @@ export type GameParam = {
     gameId: GameId;
     gameIcon: string;
     maxPlayers?: number;
-    initialDecks: Deck[];
+    initialDecks: DeckData[];
     initialHand?: Record<DeckId, number>;
     initialResources?: Resource[];
     initialTokenStores?: TokenStore[];

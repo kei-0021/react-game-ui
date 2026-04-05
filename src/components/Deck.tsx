@@ -44,6 +44,7 @@ export function Deck({
 }: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<CardData[]>([]);
   const [discardPile, setDiscardPile] = React.useState<CardData[]>([]);
+  const [showDiscardModal, setShowDiscardModal] = React.useState(false);
 
   useEffect(() => {
     socket.on(`deck:update:${deckId}`, (data: DeckUpdateData) => {
@@ -86,6 +87,14 @@ export function Deck({
   const shuffle = () => socket.emit('deck:shuffle', { roomId, deckId } as DeckShuffleData);
   const resetDeck = () => socket.emit('deck:reset', { roomId, deckId } as DeckResetData);
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault(); // 標準メニューを阻止
+    if (discardPile.length === 0) return;
+
+    // 捨て札確認モーダルを開くフラグを立てる
+    setShowDiscardModal(true);
+  };
+
   return (
     <section className={deckStyles.deckSection}>
       <h3 className={deckStyles.deckTitle}>{title}</h3>
@@ -122,7 +131,10 @@ export function Deck({
         </div>
 
         {/* 捨て札 */}
-        <div className={`${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`}>
+        <div
+          className={`${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`}
+          onContextMenu={handleContextMenu}
+        >
           {discardPile.map((c, i) => (
             <CardPreview key={c.id} card={c}>
               <div
@@ -137,6 +149,28 @@ export function Deck({
             </CardPreview>
           ))}
         </div>
+
+        {/* 右クリックで過去のカード履歴表示 */}
+        {showDiscardModal && (
+          <div className={deckStyles.discardModalOverlay} onClick={() => setShowDiscardModal(false)}>
+            <div className={deckStyles.discardModalContent} onClick={(e) => e.stopPropagation()}>
+              <div className={deckStyles.discardModalHeader}>
+                <h4>捨て札の内容</h4>
+                <button onClick={() => setShowDiscardModal(false)}>閉じる</button>
+              </div>
+              <div className={deckStyles.discardModalGrid}>
+                {discardPile
+                  .slice()
+                  .reverse()
+                  .map((c) => (
+                    <div key={c.id} className={deckStyles.discardModalCard}>
+                      <CardDisplayContent card={c} canSeeFront={true} />
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

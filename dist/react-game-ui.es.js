@@ -1052,17 +1052,27 @@ const CardPreview = ({ card: card2, children }) => {
     ] }) })
   ] });
 };
-const deckSection = "_deckSection_1e9bt_3";
-const deckTitle = "_deckTitle_1e9bt_15";
-const deckWrapperFlex = "_deckWrapperFlex_1e9bt_20";
-const deckControls = "_deckControls_1e9bt_34";
-const deckCountBadge = "_deckCountBadge_1e9bt_39";
+const deckSection = "_deckSection_6l4k7_4";
+const deckWrapperFlex = "_deckWrapperFlex_6l4k7_16";
+const deckTitle = "_deckTitle_6l4k7_21";
+const deckControls = "_deckControls_6l4k7_27";
+const deckCountBadge = "_deckCountBadge_6l4k7_32";
+const discardModalOverlay = "_discardModalOverlay_6l4k7_61";
+const discardModalContent = "_discardModalContent_6l4k7_74";
+const discardModalHeader = "_discardModalHeader_6l4k7_85";
+const discardModalGrid = "_discardModalGrid_6l4k7_99";
+const discardModalCard = "_discardModalCard_6l4k7_106";
 const deckStyles = {
   deckSection,
-  deckTitle,
   deckWrapperFlex,
+  deckTitle,
   deckControls,
-  deckCountBadge
+  deckCountBadge,
+  discardModalOverlay,
+  discardModalContent,
+  discardModalHeader,
+  discardModalGrid,
+  discardModalCard
 };
 function Deck({
   socket,
@@ -1076,6 +1086,7 @@ function Deck({
 }) {
   const [deckCards, setDeckCards] = React.useState([]);
   const [discardPile, setDiscardPile] = React.useState([]);
+  const [showDiscardModal, setShowDiscardModal] = React.useState(false);
   useEffect(() => {
     socket.on(`deck:update:${deckId}`, (data) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
@@ -1107,6 +1118,11 @@ function Deck({
   };
   const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+    if (discardPile.length === 0) return;
+    setShowDiscardModal(true);
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: deckStyles.deckSection, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: deckStyles.deckTitle, children: title2 }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.deckControls, children: [
@@ -1136,17 +1152,31 @@ function Deck({
           ]
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: c, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
-          className: cardStyles.deckCardFront,
-          style: {
-            zIndex: i + 1,
-            transform: `translate(${i * -0.3}px, ${i * -0.3}px)`
-          },
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true })
+          className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`,
+          onContextMenu: handleContextMenu,
+          children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: c, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: cardStyles.deckCardFront,
+              style: {
+                zIndex: i + 1,
+                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`
+              },
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true })
+            }
+          ) }, c.id))
         }
-      ) }, c.id)) })
+      ),
+      showDiscardModal && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.discardModalOverlay, onClick: () => setShowDiscardModal(false), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.discardModalContent, onClick: (e) => e.stopPropagation(), children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.discardModalHeader, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { children: "捨て札の内容" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => setShowDiscardModal(false), children: "閉じる" })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.discardModalGrid, children: discardPile.slice().reverse().map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.discardModalCard, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true }) }, c.id)) })
+      ] }) })
     ] })
   ] });
 }

@@ -15,7 +15,7 @@ import type {
   RoomState,
   TokenStoreId,
 } from '@/index.js';
-import { Deck } from '@/types/deck.js';
+import { DeckData } from '@/types/deck.js';
 import { Token } from '@/types/token.js';
 import { TokenStore } from '@/types/tokenStore.js';
 import { server_log } from '../logger.js';
@@ -60,7 +60,7 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
 
   const tokenStores: Record<TokenStoreId, Token[]> = {};
 
-  initialDecks.forEach((deck: Deck) => {
+  initialDecks.forEach((deck: DeckData) => {
     const cards: CardData[] = (deck.cards || []).map((c, index) => ({
       ...c,
       deckId: deck.deckId,
