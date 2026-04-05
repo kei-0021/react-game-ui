@@ -1836,15 +1836,15 @@ function GridBoard({
     })
   ] });
 }
-const rgPlayFieldContainer = "_rgPlayFieldContainer_96k3k_13";
-const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_96k3k_24";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_96k3k_33";
-const contextMenu = "_contextMenu_96k3k_57";
-const menuItem = "_menuItem_96k3k_72";
-const menuIcon = "_menuIcon_96k3k_89";
-const debugLabel = "_debugLabel_96k3k_125";
+const rgPlayFieldContainer = "_rgPlayFieldContainer_mzyzy_13";
+const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_mzyzy_25";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_mzyzy_34";
+const contextMenu = "_contextMenu_mzyzy_58";
+const menuItem = "_menuItem_mzyzy_73";
+const menuIcon = "_menuIcon_mzyzy_90";
+const debugLabel = "_debugLabel_mzyzy_126";
 const playFieldStyles = {
-  "rg-playfield": "_rg-playfield_96k3k_3",
+  "rg-playfield": "_rg-playfield_mzyzy_3",
   rgPlayFieldContainer,
   rgPlayFieldCardWrapper,
   rgPlayFieldOwnerBadge,
