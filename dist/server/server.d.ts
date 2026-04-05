@@ -1,6 +1,6 @@
 import { GameId, GameParam } from '@/types/server.js';
 import { Server as SocketIOServer } from 'socket.io';
-import { LogCategory } from './logger.js';
+import { LogCategory, LogLevel } from './logger.js';
 /**
  * サーバー設定の型定義
  */
@@ -12,6 +12,7 @@ export type GameServerOptions = {
     gameParams: Record<GameId, GameParam>;
     customEvents?: any;
     initialLogCategories?: Partial<Record<LogCategory, boolean>> | null;
+    initialLogLevel?: LogLevel | null;
 };
 /**
  * GameServer
@@ -24,6 +25,7 @@ export type GameServerOptions = {
  * @property {Record<gameId, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
  * @property {any} customEvents - ユーザー定義のカスタムイベントハンドラ
  * @property {Partial<Record<LogCategory, boolean>> | null} initialLogCategories - ログ出力の制御設定
+ * @property {LogLevel | null} initialLogLevel - ログ出力のレベル
  * @property {express.Application} app - Expressアプリケーションインスタンス
  * @property {HttpServer} httpServer - Node.js HTTPサーバーインスタンス
  * @property {SocketIOServer} io - 通信を制御するSocket.IOサーバーインスタンス
@@ -36,6 +38,7 @@ export declare class GameServer {
     gameParams: Record<GameId, GameParam>;
     private customEvents;
     private initialLogCategories;
+    private initialLogLevel;
     private app;
     private httpServer;
     io: SocketIOServer;

@@ -6,7 +6,7 @@ import { createServer, Server as HttpServer } from 'http';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
-import { LogCategory } from './logger.js';
+import { LogCategory, LogLevel } from './logger.js';
 import { initGameServer } from './server-logic.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,6 +23,7 @@ export type GameServerOptions = {
   gameParams: Record<GameId, GameParam>;
   customEvents?: any;
   initialLogCategories?: Partial<Record<LogCategory, boolean>> | null;
+  initialLogLevel?: LogLevel | null;
 };
 
 /**
@@ -36,6 +37,7 @@ export type GameServerOptions = {
  * @property {Record<gameId, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
  * @property {any} customEvents - ユーザー定義のカスタムイベントハンドラ
  * @property {Partial<Record<LogCategory, boolean>> | null} initialLogCategories - ログ出力の制御設定
+ * @property {LogLevel | null} initialLogLevel - ログ出力のレベル
  * @property {express.Application} app - Expressアプリケーションインスタンス
  * @property {HttpServer} httpServer - Node.js HTTPサーバーインスタンス
  * @property {SocketIOServer} io - 通信を制御するSocket.IOサーバーインスタンス
@@ -49,6 +51,7 @@ export class GameServer {
   public gameParams: Record<GameId, GameParam>;
   private customEvents: any;
   private initialLogCategories: Partial<Record<LogCategory, boolean>> | null;
+  private initialLogLevel: LogLevel | null;
 
   private app: express.Application;
   private httpServer: HttpServer;
@@ -66,6 +69,7 @@ export class GameServer {
     // サーバー全体のデフォルト設定
     this.customEvents = options.customEvents || {};
     this.initialLogCategories = options.initialLogCategories || null;
+    this.initialLogLevel = options.initialLogLevel || null;
 
     this.app = express();
     this.httpServer = createServer(this.app);
@@ -120,6 +124,7 @@ export class GameServer {
         gameParams: this.gameParams,
         customEvents: this.customEvents,
         initialLogCategories: this.initialLogCategories,
+        initialLogLevel: this.initialLogLevel,
       });
     } catch (err) {
       console.error('[Server] Failed to initialize game server logic:', err);

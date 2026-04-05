@@ -18,6 +18,7 @@ const __dirname = path.dirname(__filename);
  * @property {Record<gameId, GameParam>} gameParams - 登録されている各ゲームの初期パラメータ定義
  * @property {any} customEvents - ユーザー定義のカスタムイベントハンドラ
  * @property {Partial<Record<LogCategory, boolean>> | null} initialLogCategories - ログ出力の制御設定
+ * @property {LogLevel | null} initialLogLevel - ログ出力のレベル
  * @property {express.Application} app - Expressアプリケーションインスタンス
  * @property {HttpServer} httpServer - Node.js HTTPサーバーインスタンス
  * @property {SocketIOServer} io - 通信を制御するSocket.IOサーバーインスタンス
@@ -30,6 +31,7 @@ export class GameServer {
     gameParams;
     customEvents;
     initialLogCategories;
+    initialLogLevel;
     app;
     httpServer;
     io;
@@ -43,6 +45,7 @@ export class GameServer {
         // サーバー全体のデフォルト設定
         this.customEvents = options.customEvents || {};
         this.initialLogCategories = options.initialLogCategories || null;
+        this.initialLogLevel = options.initialLogLevel || null;
         this.app = express();
         this.httpServer = createServer(this.app);
         this.io = new SocketIOServer(this.httpServer, {
@@ -94,6 +97,7 @@ export class GameServer {
                 gameParams: this.gameParams,
                 customEvents: this.customEvents,
                 initialLogCategories: this.initialLogCategories,
+                initialLogLevel: this.initialLogLevel,
             });
         }
         catch (err) {

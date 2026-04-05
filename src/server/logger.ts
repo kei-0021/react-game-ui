@@ -11,7 +11,11 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
   ERROR: 3,
 };
 
-const CURRENT_LOG_LEVEL: LogLevel = 'DEBUG';
+export let CURRENT_LOG_LEVEL: LogLevel = 'DEBUG';
+
+export const setLogLevel = (level: LogLevel) => {
+  CURRENT_LOG_LEVEL = level;
+};
 
 export type LogCategory =
   | 'connection'

@@ -20,7 +20,7 @@ import { registerBoardListeners } from './listener/board-listener.js';
 import { registerDeckListeners } from './listener/deck-listenr.js';
 import { registerEditorListeners } from './listener/editor-listner.js';
 import { registerTokenListeners } from './listener/token-listener.js';
-import { LOG_CATEGORIES, server_log } from './logger.js';
+import { LOG_CATEGORIES, server_log, setLogLevel } from './logger.js';
 import { createPlayer, createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';
 import { RoomManager } from './room-manager.js';
@@ -44,6 +44,14 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const color = value ? green : red;
       console.log(`${key}: ${color}${value}${reset}`);
     });
+  }
+
+  if (options.initialLogLevel) {
+    setLogLevel(options.initialLogLevel);
+
+    const blue = '\x1b[36m';
+    const reset = '\x1b[0m';
+    console.log(`[log] ログレベルを初期化しました: ${blue}${options.initialLogLevel}${reset}`);
   }
 
   io.on('connection', (socket: Socket) => {

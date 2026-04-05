@@ -6,7 +6,7 @@ import { Position } from '@/types/position.js';
 import { GameParam, RoomState } from '@/types/server.js';
 import { CardPlayData } from '@/types/socketData.js';
 import { Server } from 'socket.io';
-import { LogCategory } from './logger.js';
+import { LogCategory, LogLevel } from './logger.js';
 export declare const isExplored: (roomState: RoomState, position: Position) => boolean;
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。
@@ -22,8 +22,9 @@ export declare class RoomManager {
      * @param gameId - 対象のゲームプリセットID
      * @param roomId - 対象のルームID
      * @param msg - ログのメイン内容
+     * @param level - ログレベル (デフォルト: INFO)
      */
-    server_log(tag: LogCategory, msg: string): void;
+    server_log(tag: LogCategory, msg: string, level?: LogLevel): void;
     /**
      * 一定時間待機する
      * @param ms - 待機時間 (ms)

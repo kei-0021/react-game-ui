@@ -25,7 +25,7 @@ import {
   TokenStoreUpdateData,
 } from '@/types/socketData.js';
 import { Server } from 'socket.io';
-import { LogCategory, server_log } from './logger.js';
+import { LogCategory, LogLevel, server_log } from './logger.js';
 
 export const isExplored = (roomState: RoomState, position: Position): boolean => {
   return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
@@ -47,9 +47,10 @@ export class RoomManager {
    * @param gameId - 対象のゲームプリセットID
    * @param roomId - 対象のルームID
    * @param msg - ログのメイン内容
+   * @param level - ログレベル (デフォルト: INFO)
    */
-  server_log(tag: LogCategory, msg: string): void {
-    server_log(tag, this.state.gameId, this.state.roomId, msg);
+  server_log(tag: LogCategory, msg: string, level: LogLevel = 'INFO'): void {
+    server_log(tag, this.state.gameId, this.state.roomId, msg, level);
   }
 
   /**
@@ -513,7 +514,7 @@ export class RoomManager {
         if (!card.zIndex || card.zIndex < this.state.maxZIndex) {
           this.state.maxZIndex++;
           card.zIndex = this.state.maxZIndex;
-          this.server_log('draggable', `新しいz-index: ${this.state.maxZIndex}`);
+          this.server_log('draggable', `新しいz-index: ${this.state.maxZIndex}`, 'DEBUG');
           this.emitDeckUpdate(objectId[0]);
         }
       } else {
@@ -525,7 +526,7 @@ export class RoomManager {
         if (draggable.zIndex < this.state.maxZIndex) {
           this.state.maxZIndex++;
           draggable.zIndex = this.state.maxZIndex;
-          this.server_log('draggable', `新しいz-index: ${this.state.maxZIndex}`);
+          this.server_log('draggable', `新しいz-index: ${this.state.maxZIndex}`, 'DEBUG');
           this.emitDraggableUpdate(objectId);
         }
       }
@@ -540,7 +541,7 @@ export class RoomManager {
         if (!card.zIndex) card.zIndex = 100;
         // 100枚規模の衝突を回避する正規化
         card.zIndex = 100 + (card.zIndex % 100);
-        this.server_log('draggable', `新しいz-index: ${card.zIndex}`);
+        this.server_log('draggable', `新しいz-index: ${card.zIndex}`, 'DEBUG');
         this.emitDeckUpdate(objectId[0]);
       } else {
         if (Array.isArray(objectId)) {
@@ -550,7 +551,7 @@ export class RoomManager {
         const draggable = this.state.draggables[objectId];
         // 100枚規模の衝突を回避する正規化
         draggable.zIndex = 100 + (draggable.zIndex % 100);
-        this.server_log('draggable', `新しいz-index: ${draggable.zIndex}`);
+        this.server_log('draggable', `新しいz-index: ${draggable.zIndex}`, 'DEBUG');
         this.emitDraggableUpdate(objectId);
       }
     }

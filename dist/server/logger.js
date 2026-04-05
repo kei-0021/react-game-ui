@@ -5,7 +5,10 @@ const LOG_LEVEL_PRIORITY = {
     WARN: 2,
     ERROR: 3,
 };
-const CURRENT_LOG_LEVEL = 'DEBUG';
+export let CURRENT_LOG_LEVEL = 'DEBUG';
+export const setLogLevel = (level) => {
+    CURRENT_LOG_LEVEL = level;
+};
 export let LOG_CATEGORIES = {
     connection: true,
     lobby: true,

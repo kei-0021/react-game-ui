@@ -3649,7 +3649,7 @@ const LOG_LEVEL_PRIORITY = {
   WARN: 2,
   ERROR: 3
 };
-const CURRENT_LOG_LEVEL = "DEBUG";
+let CURRENT_LOG_LEVEL = "DEBUG";
 let LOG_CATEGORIES = {
   connection: true,
   lobby: true,
@@ -3717,9 +3717,10 @@ class RoomManager {
    * @param gameId - 対象のゲームプリセットID
    * @param roomId - 対象のルームID
    * @param msg - ログのメイン内容
+   * @param level - ログレベル (デフォルト: INFO)
    */
-  server_log(tag, msg) {
-    server_log(tag, this.state.gameId, this.state.roomId, msg);
+  server_log(tag, msg, level = "INFO") {
+    server_log(tag, this.state.gameId, this.state.roomId, msg, level);
   }
   /**
    * 一定時間待機する
@@ -4081,7 +4082,7 @@ class RoomManager {
         if (!card2.zIndex || card2.zIndex < this.state.maxZIndex) {
           this.state.maxZIndex++;
           card2.zIndex = this.state.maxZIndex;
-          this.server_log("draggable", `新しいz-index: ${this.state.maxZIndex}`);
+          this.server_log("draggable", `新しいz-index: ${this.state.maxZIndex}`, "DEBUG");
           this.emitDeckUpdate(objectId[0]);
         }
       } else {
@@ -4093,7 +4094,7 @@ class RoomManager {
         if (draggable2.zIndex < this.state.maxZIndex) {
           this.state.maxZIndex++;
           draggable2.zIndex = this.state.maxZIndex;
-          this.server_log("draggable", `新しいz-index: ${this.state.maxZIndex}`);
+          this.server_log("draggable", `新しいz-index: ${this.state.maxZIndex}`, "DEBUG");
           this.emitDraggableUpdate(objectId);
         }
       }
@@ -4107,7 +4108,7 @@ class RoomManager {
         if (!card2) return;
         if (!card2.zIndex) card2.zIndex = 100;
         card2.zIndex = 100 + card2.zIndex % 100;
-        this.server_log("draggable", `新しいz-index: ${card2.zIndex}`);
+        this.server_log("draggable", `新しいz-index: ${card2.zIndex}`, "DEBUG");
         this.emitDeckUpdate(objectId[0]);
       } else {
         if (Array.isArray(objectId)) {
@@ -4116,7 +4117,7 @@ class RoomManager {
         this.server_log("draggable", "ドラッグ可能オブジェクトを最背面に移動");
         const draggable2 = this.state.draggables[objectId];
         draggable2.zIndex = 100 + draggable2.zIndex % 100;
-        this.server_log("draggable", `新しいz-index: ${draggable2.zIndex}`);
+        this.server_log("draggable", `新しいz-index: ${draggable2.zIndex}`, "DEBUG");
         this.emitDraggableUpdate(objectId);
       }
     }
