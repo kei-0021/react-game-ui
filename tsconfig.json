@@ -21,9 +21,8 @@
     "declarationMap": true,
 
     /* パス解決 */
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
 
     /* 型定義の参照 */
