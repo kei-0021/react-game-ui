@@ -3161,15 +3161,24 @@ const ComponentFactory = ({
     const target = existingComponents.find((c) => c.id === compId);
     if (!target) return;
     let additionalParams = {};
-    if (target.type === "Draggable") {
-      const currentDraggables = { ...fullGameParam?.draggables || {} };
-      delete currentDraggables[compId];
-      additionalParams.draggables = currentDraggables;
+    if (target.type === "Deck") {
+      console.log("現状の全データ:", fullGameParam);
+      const originalDecks = fullGameParam?.initialDecks || [];
+      const filteredDecks = originalDecks.filter((d) => d.deckId !== compId);
+      console.log(`[Deck削除] 対象ID: ${compId}`);
+      console.log(`[Deck件数] ${originalDecks.length}件 -> ${filteredDecks.length}件`);
+      console.log("削除後の全データ:", filteredDecks);
+      additionalParams.initialDecks = filteredDecks;
     }
     if (target.type === "TokenStore") {
       additionalParams.initialTokenStores = (fullGameParam?.initialTokenStores || []).filter(
         (s) => s.tokenStoreId !== compId
       );
+    }
+    if (target.type === "Draggable") {
+      const currentDraggables = { ...fullGameParam?.draggables || {} };
+      delete currentDraggables[compId];
+      additionalParams.draggables = currentDraggables;
     }
     onDelete(compId, additionalParams);
   };

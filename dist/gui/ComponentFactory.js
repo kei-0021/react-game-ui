@@ -199,13 +199,22 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
             return;
         let additionalParams = {};
         // 削除対象のタイプに応じて、消すべき Record のキーを指定
+        if (target.type === 'Deck') {
+            console.log('現状の全データ:', fullGameParam);
+            const originalDecks = fullGameParam?.initialDecks || [];
+            const filteredDecks = originalDecks.filter((d) => d.deckId !== compId);
+            console.log(`[Deck削除] 対象ID: ${compId}`);
+            console.log(`[Deck件数] ${originalDecks.length}件 -> ${filteredDecks.length}件`);
+            console.log('削除後の全データ:', filteredDecks);
+            additionalParams.initialDecks = filteredDecks;
+        }
+        if (target.type === 'TokenStore') {
+            additionalParams.initialTokenStores = (fullGameParam?.initialTokenStores || []).filter((s) => s.tokenStoreId !== compId);
+        }
         if (target.type === 'Draggable') {
             const currentDraggables = { ...(fullGameParam?.draggables || {}) };
             delete currentDraggables[compId];
             additionalParams.draggables = currentDraggables;
-        }
-        if (target.type === 'TokenStore') {
-            additionalParams.initialTokenStores = (fullGameParam?.initialTokenStores || []).filter((s) => s.tokenStoreId !== compId);
         }
         // 最終的な削除実行を親（ControlPanel）に伝える
         onDelete(compId, additionalParams);

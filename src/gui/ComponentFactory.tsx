@@ -238,16 +238,21 @@ export const ComponentFactory = ({
     let additionalParams: Partial<GameMeta> = {};
 
     // 削除対象のタイプに応じて、消すべき Record のキーを指定
-    if (target.type === 'Draggable') {
-      const currentDraggables = { ...(fullGameParam?.draggables || {}) };
-      delete currentDraggables[compId];
-      additionalParams.draggables = currentDraggables;
+    if (target.type === 'Deck') {
+      const originalDecks = fullGameParam?.initialDecks || [];
+      additionalParams.initialDecks = originalDecks.filter((d) => d.deckId !== compId);
     }
 
     if (target.type === 'TokenStore') {
       additionalParams.initialTokenStores = (fullGameParam?.initialTokenStores || []).filter(
         (s) => s.tokenStoreId !== compId,
       );
+    }
+
+    if (target.type === 'Draggable') {
+      const currentDraggables = { ...(fullGameParam?.draggables || {}) };
+      delete currentDraggables[compId];
+      additionalParams.draggables = currentDraggables;
     }
 
     // 最終的な削除実行を親（ControlPanel）に伝える

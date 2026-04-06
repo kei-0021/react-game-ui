@@ -55,9 +55,11 @@ export function registerEditorListeners(socket: Socket, gameParams: Record<GameI
         },
       }));
 
-      // マージ処理：draggables と components は新しいスロット情報を含むデータで完全に上書きする
+      // マージ処理
       const mergedParam = {
         ...deepMerge({ ...currentParam }, data.newParam),
+        // 以下のプロパティは、部分的なマージではなく「最新の状態」で完全に上書きする
+        ...(data.newParam.initialDecks ? { initialDecks: data.newParam.initialDecks } : {}),
         ...(data.newParam.draggables ? { draggables: data.newParam.draggables } : {}),
         ...(processedComponents ? { components: processedComponents } : {}),
       };
