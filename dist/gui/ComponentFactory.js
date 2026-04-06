@@ -2,9 +2,17 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { COMPONENT_TYPES } from '@/types/server.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
+import clubs1Image from '../assets/clubs-1.png';
+import diamond1Image from '../assets/diamonds-1.png';
+import hearts1Image from '../assets/hearts-1.png';
+import spades1Image from '../assets/spades-1.png';
 export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam, containerRef, }) => {
     const [newCompId, setNewCompId] = useState('');
     const [newCompType, setNewCompType] = useState('Dice');
+    // Deck関連
+    const [deckMode, setDeckMode] = useState('preset');
+    const [deckJsonData, setDeckJsonData] = useState(null);
+    const [deckFileName, setDeckFileName] = useState('');
     // ScoreBoard関連
     const [sbPlayCard, setSbPlayCard] = useState(true);
     const [sbHold, setSbHold] = useState(false);
@@ -30,6 +38,24 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
         reader.onloadend = () => setUploadImage(reader.result);
         reader.readAsDataURL(file);
     };
+    const handleJsonFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file)
+            return;
+        setDeckFileName(file.name);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const json = JSON.parse(event.target?.result);
+                setDeckJsonData(Array.isArray(json) ? json : [json]);
+            }
+            catch (err) {
+                alert('JSONファイルの解析に失敗しました。形式を確認してください。');
+                setDeckJsonData(null);
+            }
+        };
+        reader.readAsText(file);
+    };
     const handleAddClick = () => {
         if (!newCompId || isDuplicateId)
             return;
@@ -39,27 +65,46 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
             case 'Deck':
                 initialProps = {
                     deckId: newCompId,
-                    title: '山札',
+                    title: `山札 ${newCompId}`,
                 };
+                let cards = [];
+                if (deckMode === 'preset') {
+                    // プリセット（既存の共通化ロジック）
+                    const common = {
+                        deckId: newCompId,
+                        ownerId: null,
+                        location: 'deck',
+                        drawCondition: ['hand', 'back'],
+                        fieldBackCondition: ['discard', 'face'],
+                        playLocation: 'field',
+                        isFaceUp: true,
+                        backColor: 'black',
+                    };
+                    const suits = [
+                        { suffix: 's1', img: spades1Image },
+                        { suffix: 'h1', img: hearts1Image },
+                        { suffix: 'd1', img: diamond1Image },
+                        { suffix: 'c1', img: clubs1Image },
+                    ];
+                    cards = suits.map((suit) => ({
+                        ...common,
+                        id: `${newCompId}-${suit.suffix}`,
+                        frontImage: suit.img,
+                    }));
+                }
+                else {
+                    if (!deckJsonData) {
+                        alert('JSONファイルを選択してください');
+                        return;
+                    }
+                    cards = deckJsonData;
+                }
                 additionalParams.initialDecks = [
                     {
                         deckId: newCompId,
                         name: 'カード',
                         backColor: 'black',
-                        cards: [
-                            {
-                                id: `${newCompId}-c1`,
-                                deckId: newCompId,
-                                name: '1',
-                                ownerId: null,
-                                location: 'deck',
-                                drawCondition: ['hand', 'back'],
-                                fieldBackCondition: ['discard', 'face'],
-                                playLocation: 'field',
-                                isFaceUp: true,
-                                backColor: 'black',
-                            },
-                        ],
+                        cards: cards,
                     },
                 ];
                 break;
@@ -165,7 +210,7 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
         // 最終的な削除実行を親（ControlPanel）に伝える
         onDelete(compId, additionalParams);
     };
-    return (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: styles.compTypeSelect, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: styles.flexFill, style: { borderColor: isDuplicateId ? '#ff4444' : '' }, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "\u8FFD\u52A0" })] }), isDuplicateId && (_jsx("div", { style: { color: '#ff4444', fontSize: '12px', marginTop: '-4px' }, children: "\u3053\u306EID\u306F\u65E2\u306B\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059" })), newCompType === 'ScoreBoard' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u6709\u52B9\u306B\u3059\u308B\u30DC\u30BF\u30F3:" }), [
+    return (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: styles.compTypeSelect, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: styles.flexFill, style: { borderColor: isDuplicateId ? '#ff4444' : '' }, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "\u8FFD\u52A0" })] }), isDuplicateId && (_jsx("div", { style: { color: '#ff4444', fontSize: '12px', marginTop: '-4px' }, children: "\u3053\u306EID\u306F\u65E2\u306B\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059" })), newCompType === 'Deck' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u30C7\u30FC\u30BF\u6295\u5165\u30E2\u30FC\u30C9:" }), _jsxs("div", { style: { display: 'flex', gap: '10px', marginBottom: '10px' }, children: [_jsxs("label", { style: { fontSize: '12px', color: '#fff', cursor: 'pointer' }, children: [_jsx("input", { type: "radio", name: "deckMode", checked: deckMode === 'preset', onChange: () => setDeckMode('preset') }), ' ', "\u30D7\u30EA\u30BB\u30C3\u30C8 (\u30C8\u30E9\u30F3\u30D7)"] }), _jsxs("label", { style: { fontSize: '12px', color: '#fff', cursor: 'pointer' }, children: [_jsx("input", { type: "radio", name: "deckMode", checked: deckMode === 'json', onChange: () => setDeckMode('json') }), ' ', "JSON\u30D5\u30A1\u30A4\u30EB"] })] }), deckMode === 'json' && (_jsxs("div", { children: [_jsx("input", { type: "file", accept: ".json", onChange: handleJsonFileChange, className: styles.select }), deckFileName && (_jsxs("div", { style: { fontSize: '10px', color: '#0f0', marginTop: '4px' }, children: ["\u8AAD\u307F\u8FBC\u307F\u5B8C\u4E86: ", deckFileName, " (", deckJsonData?.length, "\u679A)"] }))] }))] })), newCompType === 'ScoreBoard' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u6709\u52B9\u306B\u3059\u308B\u30DC\u30BF\u30F3:" }), [
                         { label: 'カードプレイ', state: sbPlayCard, setter: setSbPlayCard },
                         { label: 'ホールド', state: sbHold, setter: setSbHold },
                         { label: 'フリップ', state: sbFlip, setter: setSbFlip },

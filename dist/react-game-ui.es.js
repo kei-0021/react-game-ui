@@ -2971,6 +2971,10 @@ const styles = {
   deleteCompBtn,
   divider
 };
+const clubs1Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHRVFMbjBlWSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD41MTRhYmJjNy1lN2E1LTQ0NGYtYTVlOC00ZmMzNzllMTE5Yzg8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const diamond1Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHRVFMbjBlWSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD5mODM0NWQyNC1iODkwLTQ0MmEtYjc3YS1iMjM2ZWYxNzk4OGQ8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyc+CiAgPGRjOnRpdGxlPgogICA8cmRmOkFsdD4KICAgIDxyZGY6bGkgeG1sOmxhbmc9J3gtZGVmYXVsdCc+MSAtIDI8L3JkZjpsaT4KICAgPC9yZGY6QWx0PgogIDwvZGM6dGl0bGU+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOnBkZj0naHR0cDovL25zLmFkb2JlLmNvbS9wZGYvMS4zLyc+CiAgPHBkZjpBdXRob3I+6JCp5Y6f5ZWT5aSqPC9wZGY6QXV0aG9yPgogPC9yZGY6RGVzY3JpcHRpb24+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczp4bXA9J2h0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8nPgogIDx4bXA6Q3JlYXRvclRvb2w+Q2FudmEgKFJlbmRlcmVyKSBkb2M9REFIR0VRTG4wZVkgdXNlcj1VQUdNWi1PZ0t1USBicmFuZD1CQUdNWjBNNVI1ZzwveG1wOkNyZWF0b3JUb29sPgogPC9yZGY6RGVzY3JpcHRpb24+CjwvcmRmOlJERj4KPC94OnhtcG1ldGE+Cjw/eHBhY2tldCBlbmQ9J3InPz5C2PV+AAAATmVYSWZNTQAqAAAACAAEARoABQAAAAEAAAA+ARsABQAAAAEAAABGASgAAwAAAAEAAgAAAhMAAwAAAAEAAQAAAAAAAAAAAGAAAAABAAAAYAAAAAF3Bd/nAAACzUlEQVR4nO2asUuyQRzHP6YSIRWBY1OkNDRVmw31BzRGhEiDEG4N4dAgFQ4N1d4QQUU0tEU0FggNQQTRUKi4tkgQlWA+j73D06uPWi/p+5zHyX0m7w6e+3B8n7vzx+P6/PxEWbpkC/wX2l4eHWb/+sr1tQyTVmiwPz9nf1+GSSs02M/N0dcnw6QVOiz3SlFrXy5TKGCaFAqSfJrDVXNTeH7m5ATA5WJxUZbT73F13D0nl2u7Ros02J+dEYvx9iZDpmlq7fN5trfJ59nakuTTHLX2Gxu8vACcnnJ1JUWoKWz29/dcXlabm5vtt2kWm/3ICIFAtTk7236bZrHZe70kk3i9ABMTzM/Lcvo9tbkPBonF8PlYX6dLgUtEw2llmtzdMTYmyac5Ou+sVQdtLw9tLw9tLw9tLw9tLw9tLw9t/w+yWaGPF2mfThOJkE6Lm0GYvWGQSFAskkhgGIImEWa/u0smA5DJsLcnaBIx/wzTacJhTPOr6fVyeEgw6Pg8AtbeykxFHSiVWFsTkR8B9pXM2Hl8FJEfp5NjmkxOUix+M9TTQyqF2+3gbE6vvdvNwsL3Q5GIs+oIeWsNg3C4PjyBAEdHeDzOTiUg9x4PyWTNMrvdJJOOqyNqvw8GiUarzWhUxHaJwEpgJT9iMmMh7Ky18tPdLSgzFoKrsNksw8PiHq9ryPLQ9vLQ9vLQ9vLQ9vLQ9vLQ9vJQx/72tqZGBChj//TE0hIHB3XdKtiXy6yu8v7Ozk5dRVoF++Njbm4ASqW6GqMK9tbHxRaZDA8PlZYK9vF49ff0NKOjlZYK9qEQMzMA/f2srNhHVLAH4nH8fpaX8fvt3erUFHI5hobq+tSx/w5FkvMDomp0DpNK8fGBYRAK0dtb6VZk7X0+Tk4YHPz60Pgviqz9+DgDA/ad3kKRtf8Bbd8eymUuLur61LGfmrLvNhb6tJKHtpeH2vZ/ADef0n3zjGtFAAAAAElFTkSuQmCC";
+const hearts1Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHRVFMbjBlWSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD4zZGEzMjMwOC0wYzdlLTRiYTYtYjdmMS0zMWUyMzE3YThhNjg8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyc+CiAgPGRjOnRpdGxlPgogICA8cmRmOkFsdD4KICAgIDxyZGY6bGkgeG1sOmxhbmc9J3gtZGVmYXVsdCc+MSAtIDE8L3JkZjpsaT4KICAgPC9yZGY6QWx0PgogIDwvZGM6dGl0bGU+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOnBkZj0naHR0cDovL25zLmFkb2JlLmNvbS9wZGYvMS4zLyc+CiAgPHBkZjpBdXRob3I+6JCp5Y6f5ZWT5aSqPC9wZGY6QXV0aG9yPgogPC9yZGY6RGVzY3JpcHRpb24+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczp4bXA9J2h0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8nPgogIDx4bXA6Q3JlYXRvclRvb2w+Q2FudmEgKFJlbmRlcmVyKSBkb2M9REFIR0VRTG4wZVkgdXNlcj1VQUdNWi1PZ0t1USBicmFuZD1CQUdNWjBNNVI1ZzwveG1wOkNyZWF0b3JUb29sPgogPC9yZGY6RGVzY3JpcHRpb24+CjwvcmRmOlJERj4KPC94OnhtcG1ldGE+Cjw/eHBhY2tldCBlbmQ9J3InPz6oh5rXAAAATmVYSWZNTQAqAAAACAAEARoABQAAAAEAAAA+ARsABQAAAAEAAABGASgAAwAAAAEAAgAAAhMAAwAAAAEAAQAAAAAAAAAAAGAAAAABAAAAYAAAAAF3Bd/nAAACzUlEQVR4nO2aP0hqURzHv/dp3iSu0RAS1WTQEgU3qEEIo6ElagmshGgyIaKGpLE9EsoIGhKK6B9uDY0NNgUtF5pqCIKoEIowlKSub/CZeu291HeuP2+cz+I9v3Pg++Fw//njCqlUCoblF7XAf8Ht6fhh9rEYzs8pTMqhwP7kBDs7FCblUGDvdsNmozAphx923huKfHtVRTyOjw/E40Q+pSHkvSk8PSEcBgBBgNdL5VQ8An/PISPHPhRCTw9GR7G7i/5+jI3h9pZOrCgyZ87LCwYGoKp5kyMjWFoi0SqSzN4nElp1ALFYhW1KJWNvt6OzUzvpclVWpmQy9oKAYBAOR3ZmYgJDQyROxZNz1dps2NxEaysADA9jYYHKqXgK7vf39zg4wNwcTCYipRLgTys6uD0d3J4Obk8Ht6eD29PB7eng9nRwezpY2ysKPB7IMvr6sLaGRAJbWxgchCzD7YaisE1j+s/w6gqTk0gmsxVJymsKiSK2t9HeziqQ6d4fHuapo6Cf9faGoyOGgUztHx+/X/PwwDCQqb3d/v2apiaGgUztPR6I4r8WmM0YH2cYyNTe4UAwCKv161mzGcvLaGtjGKhDN0pRMDuL19e8osWCQABOJ9sofXpp19fw+fD8/GcoilhdRW8v8xzdOoE3N/D5EI3CasX6OmRZjxA9+5h3d/D7sbiIri6dEngXlg5uTwe3p4Pb08Ht6eD2dHB7Org9Hdy+MuztFX5pZhD7jQ0EApiZ0XykawT7/X2EQgBweYn5+dxWadXbRyJYWckOLy7g93+Oqt7++FhbOTtDNJo+rHr72tovihZL+rfq7aem0NwMSYLXi8ZGmEyYnkZ9fXqS93PoMLa9mVqgOCIRJJN4f4fTCUn6LBtk7+vqEA6jpQU1Nbllg+x9dzcaGtDRoSkbZO//ArevDKqK01NNzTj2Llfu3SYNf9bSwe3pMLb9b12RvL2Z0K4XAAAAAElFTkSuQmCC";
+const spades1Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHRVFMbjBlWSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD4yY2VlMWIzOS1kNjE4LTQ4YmQtODYxNy03OWFlYzZlYWVjOGE8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyc+CiAgPGRjOnRpdGxlPgogICA8cmRmOkFsdD4KICAgIDxyZGY6bGkgeG1sOmxhbmc9J3gtZGVmYXVsdCc+MSAtIDM8L3JkZjpsaT4KICAgPC9yZGY6QWx0PgogIDwvZGM6dGl0bGU+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOnBkZj0naHR0cDovL25zLmFkb2JlLmNvbS9wZGYvMS4zLyc+CiAgPHBkZjpBdXRob3I+6JCp5Y6f5ZWT5aSqPC9wZGY6QXV0aG9yPgogPC9yZGY6RGVzY3JpcHRpb24+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczp4bXA9J2h0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8nPgogIDx4bXA6Q3JlYXRvclRvb2w+Q2FudmEgKFJlbmRlcmVyKSBkb2M9REFIR0VRTG4wZVkgdXNlcj1VQUdNWi1PZ0t1USBicmFuZD1CQUdNWjBNNVI1ZzwveG1wOkNyZWF0b3JUb29sPgogPC9yZGY6RGVzY3JpcHRpb24+CjwvcmRmOlJERj4KPC94OnhtcG1ldGE+Cjw/eHBhY2tldCBlbmQ9J3InPz5xZDVPAAAATmVYSWZNTQAqAAAACAAEARoABQAAAAEAAAA+ARsABQAAAAEAAABGASgAAwAAAAEAAgAAAhMAAwAAAAEAAQAAAAAAAAAAAGAAAAABAAAAYAAAAAF3Bd/nAAAEQ0lEQVR4nO2bTUgqWxzAzzg6lflRjBRBH2am0HsXI4M2Sm2Cog+ilga9cuPmFkW7iJatDDdtatNCKWwRCtWioOWzTZAJRUpRqyRFQ/Nrxpm7MMw7r3v7eCNn5jK/1cw5w/x/Hv7858yZI0LTNOAtItgC/wvBHh5/ln08Hj85OYGi8gWY9js7O3a7HYrKF2Da22w2HMehqHyBPyvv+cVP9hRFJZNJkiSTySQsoU+BlM4UHh8f19fXAQAoii4vL8Oz+igIY56TTqej0WhjYyMsoU/BzByHw2G1WlOpFCyhT/FqT9O00+lcWVk5Ojqam5vLZDIQtT7Ia+a43W6LxUKSJAAAQRCbzeZwODAMg6r3Di/2uVxOpVIlEolih0Qi8Xg8g4OD8Nze5yVzwuFwqToAgCCIi4sLGEqf4MW+rq6uqakJRVG1Wq1WqzEMUyqVRqMRrty7vOZ9MBi8urpKJBKnp6dDQ0Nyubynp0ck4vTDWFw8am9vb2trW1tbi0QiJpNJKpVC1PogPz2taJomSZKmaYlEgiAIRK0PwnzW8gtOp/W7CPbwEOzhIdjDQ7CHh2APD8EeHoL9r3E6nel0unz3L6N9IBCYnZ3d2toq3ytEud5O4vF4b2+v3+/Hcfz4+Lizs7McUcoy9rFYbGpqyu/3AwCi0ejExEQwGCxHIPbtY7HYzMyM1+stttzc3AwMDJyfn7Mei+XMyWaz4+PjBwcH/+3SarX7+/s6nY7FcGyOPU3Ti4uLb6oDAEKh0NQ/U+yWIDbtr6+vXS7Xby7w/evz+XwsRmTTPhAIxGKx319zeXnJYkSWM4fFu30ENu11ep1SqSxtqaysFItfFxsRBNFoNCxGZNP+29/flpaWCj9AJpPNz8/r9frvs98bGhoAABiGWSyWvr4+FiOyXDFpmg4Gg+FwGMdxrVYrlUr39vYMBsPd3V21TPZXR0dFRQWL4cTvX/IZEATR6XSFou5yufL5vNfrHR4ebm5uZjdQgXLN0giCcLvdra2tZ2dn9/f3ZYoirCHDQ7CHh2APD8EeHoI9PAR7eAj28GB5fl8m8vn809MTiqIKhaJ0+wc/xp4gcqOjo3a7nTGf5/r8PpVKbWxsRKPReDyu1+tvb2/NZvPY2Fihl+v229vbk5OTFEVVV1fn8/lMJoNhWCQSkcvlgPuZ8/DwQFEUAOD5+bmwRTSXyxU3AHLd3mw2M/4P0NHRUV9fXzjmun1XV9fq6qpCoSictrS0uFwuFEULp1yvmCKRaHp6mqKohYUFHMd3d3cNBkOxl+v2AACxWGy1WkOhkMlk6u7uLq33XK85RXK5nFgsZuwP5Y39m/AgcwAAh4eH2WyWIIj+/v6amppiO9drTgGZTLa5uanRaBiLuPywN5vNKpXKaDRWVVWVtvPDHvziwwxv7N+EN/YkSXo8HkYjb+xHRkZqa2sZjfyu97wZ+zcR7OHBb/sfQ/OUHC3TxZ4AAAAASUVORK5CYII=";
 const ComponentFactory = ({
   onAdd,
   onDelete,
@@ -2980,6 +2984,9 @@ const ComponentFactory = ({
 }) => {
   const [newCompId, setNewCompId] = useState("");
   const [newCompType, setNewCompType] = useState("Dice");
+  const [deckMode, setDeckMode] = useState("preset");
+  const [deckJsonData, setDeckJsonData] = useState(null);
+  const [deckFileName, setDeckFileName] = useState("");
   const [sbPlayCard, setSbPlayCard] = useState(true);
   const [sbHold, setSbHold] = useState(false);
   const [sbFlip, setSbFlip] = useState(false);
@@ -3000,6 +3007,22 @@ const ComponentFactory = ({
     reader.onloadend = () => setUploadImage(reader.result);
     reader.readAsDataURL(file);
   };
+  const handleJsonFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setDeckFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result);
+        setDeckJsonData(Array.isArray(json) ? json : [json]);
+      } catch (err) {
+        alert("JSONファイルの解析に失敗しました。形式を確認してください。");
+        setDeckJsonData(null);
+      }
+    };
+    reader.readAsText(file);
+  };
   const handleAddClick = () => {
     if (!newCompId || isDuplicateId) return;
     let initialProps = {};
@@ -3008,27 +3031,46 @@ const ComponentFactory = ({
       case "Deck":
         initialProps = {
           deckId: newCompId,
-          title: "山札"
+          title: `山札 ${newCompId}`
         };
+        let cards = [];
+        if (deckMode === "preset") {
+          const common = {
+            deckId: newCompId,
+            ownerId: null,
+            location: "deck",
+            drawCondition: ["hand", "back"],
+            fieldBackCondition: ["discard", "face"],
+            playLocation: "field",
+            isFaceUp: true,
+            backColor: "black"
+          };
+          const suits = [
+            { suffix: "s1", img: spades1Image },
+            { suffix: "h1", img: hearts1Image },
+            { suffix: "d1", img: diamond1Image },
+            { suffix: "c1", img: clubs1Image }
+          ];
+          cards = suits.map(
+            (suit) => ({
+              ...common,
+              id: `${newCompId}-${suit.suffix}`,
+              frontImage: suit.img
+            })
+          );
+        } else {
+          if (!deckJsonData) {
+            alert("JSONファイルを選択してください");
+            return;
+          }
+          cards = deckJsonData;
+        }
         additionalParams.initialDecks = [
           {
             deckId: newCompId,
             name: "カード",
             backColor: "black",
-            cards: [
-              {
-                id: `${newCompId}-c1`,
-                deckId: newCompId,
-                name: "1",
-                ownerId: null,
-                location: "deck",
-                drawCondition: ["hand", "back"],
-                fieldBackCondition: ["discard", "face"],
-                playLocation: "field",
-                isFaceUp: true,
-                backColor: "black"
-              }
-            ]
+            cards
           }
         ];
         break;
@@ -3157,6 +3199,39 @@ const ComponentFactory = ({
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "追加" })
     ] }),
     isDuplicateId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#ff4444", fontSize: "12px", marginTop: "-4px" }, children: "このIDは既に使用されています" }),
+    newCompType === "Deck" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "データ投入モード:" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "10px", marginBottom: "10px" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { style: { fontSize: "12px", color: "#fff", cursor: "pointer" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "radio",
+              name: "deckMode",
+              checked: deckMode === "preset",
+              onChange: () => setDeckMode("preset")
+            }
+          ),
+          " ",
+          "プリセット (トランプ)"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { style: { fontSize: "12px", color: "#fff", cursor: "pointer" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", name: "deckMode", checked: deckMode === "json", onChange: () => setDeckMode("json") }),
+          " ",
+          "JSONファイル"
+        ] })
+      ] }),
+      deckMode === "json" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: ".json", onChange: handleJsonFileChange, className: styles.select }),
+        deckFileName && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { fontSize: "10px", color: "#0f0", marginTop: "4px" }, children: [
+          "読み込み完了: ",
+          deckFileName,
+          " (",
+          deckJsonData?.length,
+          "枚)"
+        ] })
+      ] })
+    ] }),
     newCompType === "ScoreBoard" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {

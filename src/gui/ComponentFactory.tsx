@@ -1,9 +1,15 @@
 // src/gui/ComponentFactory.tsx
+import { CardData } from '@/types/card.js';
 import { ComponentId } from '@/types/definition.js';
 import { COMPONENT_TYPES, ComponentInfo, ComponentType } from '@/types/server.js';
 import { GameMeta } from '@/types/socketData.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
+
+import clubs1Image from '../assets/clubs-1.png';
+import diamond1Image from '../assets/diamonds-1.png';
+import hearts1Image from '../assets/hearts-1.png';
+import spades1Image from '../assets/spades-1.png';
 
 interface ComponentFactoryProps {
   onAdd: (newComponent: ComponentInfo, additionalParams?: any) => void;
@@ -22,6 +28,11 @@ export const ComponentFactory = ({
 }: ComponentFactoryProps) => {
   const [newCompId, setNewCompId] = useState('');
   const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
+
+  // Deck関連
+  const [deckMode, setDeckMode] = useState<'preset' | 'json'>('preset');
+  const [deckJsonData, setDeckJsonData] = useState<CardData[] | null>(null);
+  const [deckFileName, setDeckFileName] = useState<string>('');
 
   // ScoreBoard関連
   const [sbPlayCard, setSbPlayCard] = useState<boolean>(true);
@@ -53,6 +64,24 @@ export const ComponentFactory = ({
     reader.readAsDataURL(file);
   };
 
+  const handleJsonFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setDeckFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        setDeckJsonData(Array.isArray(json) ? json : [json]);
+      } catch (err) {
+        alert('JSONファイルの解析に失敗しました。形式を確認してください。');
+        setDeckJsonData(null);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleAddClick = () => {
     if (!newCompId || isDuplicateId) return;
 
@@ -63,27 +92,53 @@ export const ComponentFactory = ({
       case 'Deck':
         initialProps = {
           deckId: newCompId,
-          title: '山札',
+          title: `山札 ${newCompId}`,
         };
+
+        let cards: CardData[] = [];
+
+        if (deckMode === 'preset') {
+          // プリセット（既存の共通化ロジック）
+          const common: Partial<CardData> = {
+            deckId: newCompId,
+            ownerId: null,
+            location: 'deck',
+            drawCondition: ['hand', 'back'],
+            fieldBackCondition: ['discard', 'face'],
+            playLocation: 'field',
+            isFaceUp: true,
+            backColor: 'black',
+          };
+
+          const suits = [
+            { suffix: 's1', img: spades1Image },
+            { suffix: 'h1', img: hearts1Image },
+            { suffix: 'd1', img: diamond1Image },
+            { suffix: 'c1', img: clubs1Image },
+          ];
+
+          cards = suits.map(
+            (suit) =>
+              ({
+                ...common,
+                id: `${newCompId}-${suit.suffix}`,
+                frontImage: suit.img,
+              }) as CardData,
+          );
+        } else {
+          if (!deckJsonData) {
+            alert('JSONファイルを選択してください');
+            return;
+          }
+          cards = deckJsonData;
+        }
+
         additionalParams.initialDecks = [
           {
             deckId: newCompId,
             name: 'カード',
             backColor: 'black',
-            cards: [
-              {
-                id: `${newCompId}-c1`,
-                deckId: newCompId,
-                name: '1',
-                ownerId: null,
-                location: 'deck',
-                drawCondition: ['hand', 'back'],
-                fieldBackCondition: ['discard', 'face'],
-                playLocation: 'field',
-                isFaceUp: true,
-                backColor: 'black',
-              },
-            ],
+            cards: cards,
           },
         ];
         break;
@@ -228,6 +283,41 @@ export const ComponentFactory = ({
       </div>
       {isDuplicateId && (
         <div style={{ color: '#ff4444', fontSize: '12px', marginTop: '-4px' }}>このIDは既に使用されています</div>
+      )}
+
+      {/* Deck専用の設定項目 */}
+      {newCompType === 'Deck' && (
+        <div className={styles.field} style={{ marginTop: '10px' }}>
+          <div className={styles.label} style={{ fontSize: '11px' }}>
+            データ投入モード:
+          </div>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+            <label style={{ fontSize: '12px', color: '#fff', cursor: 'pointer' }}>
+              <input
+                type="radio"
+                name="deckMode"
+                checked={deckMode === 'preset'}
+                onChange={() => setDeckMode('preset')}
+              />{' '}
+              プリセット (トランプ)
+            </label>
+            <label style={{ fontSize: '12px', color: '#fff', cursor: 'pointer' }}>
+              <input type="radio" name="deckMode" checked={deckMode === 'json'} onChange={() => setDeckMode('json')} />{' '}
+              JSONファイル
+            </label>
+          </div>
+
+          {deckMode === 'json' && (
+            <div>
+              <input type="file" accept=".json" onChange={handleJsonFileChange} className={styles.select} />
+              {deckFileName && (
+                <div style={{ fontSize: '10px', color: '#0f0', marginTop: '4px' }}>
+                  読み込み完了: {deckFileName} ({deckJsonData?.length}枚)
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       {/* ScoreBoard専用の設定項目 */}
