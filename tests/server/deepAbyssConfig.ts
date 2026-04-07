@@ -1,6 +1,7 @@
 // src/server/deepAbyssConfig.ts
 
-import { CardData, CardPlayData, GameParam, Player, RoomManager, RoomState } from 'react-game-ui';
+import { roomInterpreter } from '@/server/room-interpreter.js';
+import { CardData, CardPlayData, GameParam, RoomManager, RoomState } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
 import { DeepAbyssPhase } from '../types/phase.js';
 import { cellShuffleAndReconnector } from './cellShuffleAndReConnecter.js';
@@ -99,9 +100,8 @@ export const deepAbyssConfig: RoomConfig = {
       cellEffects: activeCellEffects,
       onCardPlay: (state: RoomState, manager: RoomManager, data: CardPlayData) => {
         // 全員に+2点する
-        state.players.forEach((player: Player) => {
-          manager.addScore(player.id, 2);
-        });
+        roomInterpreter([{ type: 'ADD_SCORE', playerId: 'ALL', points: 2 }], state, manager);
+
         // 場のカードから名前を抽出して「、」で繋げる
         const cardNames = data.cardIds
           ?.map((id) => state.playFieldCards['deepAbyssAction'].find((c) => c.id === id)?.name)
