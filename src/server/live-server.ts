@@ -1,7 +1,7 @@
 // src/server/live-listener.ts
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/server.js';
-import { GameComponentData, GameMeta, LobbyGameList } from '@/types/socketData.js';
+import { GameComponentData, LobbyGameList } from '@/types/socketData.js';
 import { registerEditorListeners } from './listener/editor-listner.js';
 import { server_log } from './logger.js';
 import { createState } from './logic/create-state.js';
@@ -74,7 +74,7 @@ export class LiveGameServer {
     });
 
     // クライアントにゲーム一覧を送信
-    const gameList: GameMeta[] = Object.keys(this.core.gameParams).map((id) => ({
+    const gameList: GameParam[] = Object.keys(this.core.gameParams).map((id) => ({
       gameId: id,
       gameIcon: this.core.gameParams[id].gameIcon,
       maxPlayers: this.core.gameParams[id].maxPlayers,

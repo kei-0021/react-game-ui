@@ -8,12 +8,12 @@ import { GameFactory } from './GameFactory.js';
  * 新規ゲームの作成、既存ゲームのパラメータ（プレイヤー数、初期手札、トークン）、
  * およびゲーム内コンポーネント（ダイスやボード等）の動的な追加・削除を管理する。
  * @param {Socket} props.socket - サーバー通信用の Socket.io クライアントインスタンス
- * @param {GameMeta[]} props.gameMeta - サーバーから取得した全ゲームのメタデータ配列
+ * @param {GameParam[]} props.GameParam - サーバーから取得した全ゲーム情報の配列
  * @param {containerRef}
  * @param {boolean} props.isOpen - パネルの開閉状態
  * @param {function} props.onToggle - パネルの開閉状態を切り替えるコールバック関数
  */
-export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle, }) => {
+export const ControlPanel = ({ socket, GameParam, containerRef, isOpen, onToggle, }) => {
     const [selectedGameId, setSelectedGameId] = useState('');
     // 各種パラメータの状態
     const [maxPlayers, setMaxPlayers] = useState(1);
@@ -34,12 +34,12 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
     const [showSuccess, setShowSuccess] = useState(false);
     // ゲーム選択の初期化
     useEffect(() => {
-        if (gameMeta.length > 0 && !selectedGameId) {
-            setSelectedGameId(gameMeta[0].gameId);
+        if (GameParam.length > 0 && !selectedGameId) {
+            setSelectedGameId(GameParam[0].gameId);
         }
-    }, [gameMeta, selectedGameId]);
+    }, [GameParam, selectedGameId]);
     /** 現在選択されているゲームのオブジェクトをメモ化 */
-    const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
+    const selectedGame = useMemo(() => GameParam.find((g) => g.gameId === selectedGameId), [selectedGameId, GameParam]);
     /** 変更検知フラグ（Dirtyチェック） */
     const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
     const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
@@ -149,7 +149,7 @@ export const ControlPanel = ({ socket, gameMeta, containerRef, isOpen, onToggle,
             },
         });
     };
-    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.scrollContainer, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsx(GameFactory, { socket: socket, gameMeta: gameMeta, selectedGameId: selectedGameId, onSelect: setSelectedGameId }), _jsx("hr", { className: styles.divider }), _jsx(ComponentFactory, { onAdd: handleAddComponent, onDelete: handleDeleteComponent, existingComponents: localComponents, fullGameParam: selectedGame, containerRef: containerRef }), _jsx("hr", { className: styles.divider }), selectedGame && (_jsxs(_Fragment, { children: [selectedGame.maxPlayers !== undefined && (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: ["\u6700\u5927\u30D7\u30EC\u30A4\u30E4\u30FC\u6570: ", isMaxPlayersDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("span", { className: styles.rangeValue, children: maxPlayers })] }), _jsx("input", { type: "range", min: "1", max: "10", className: styles.slider, value: maxPlayers, onChange: (e) => setMaxPlayers(Number(e.target.value)) })] })), Object.entries(initialHand).map(([deckId, count]) => (_jsxs("div", { className: styles.rangeField, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: [_jsxs("strong", { children: ["Hand: ", deckId] }), initialValues.initialHand[deckId] !== count && (_jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" }))] }), _jsx("span", { className: styles.rangeValue, children: count })] }), _jsx("input", { type: "range", min: "0", max: "10", className: styles.slider, value: count, onChange: (e) => {
+    return (_jsxs(_Fragment, { children: [_jsx("button", { className: styles.hamburger, onClick: onToggle, children: isOpen ? '✕' : '☰' }), _jsx("div", { className: `${styles.wrapper} ${isOpen ? styles.open : ''}`, children: _jsxs("div", { className: styles.scrollContainer, children: [_jsx("h3", { className: styles.title, children: "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB\u30D1\u30CD\u30EB" }), _jsx(GameFactory, { socket: socket, GameParam: GameParam, selectedGameId: selectedGameId, onSelect: setSelectedGameId }), _jsx("hr", { className: styles.divider }), _jsx(ComponentFactory, { onAdd: handleAddComponent, onDelete: handleDeleteComponent, existingComponents: localComponents, fullGameParam: selectedGame, containerRef: containerRef }), _jsx("hr", { className: styles.divider }), selectedGame && (_jsxs(_Fragment, { children: [selectedGame.maxPlayers !== undefined && (_jsxs("div", { className: styles.field, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: ["\u6700\u5927\u30D7\u30EC\u30A4\u30E4\u30FC\u6570: ", isMaxPlayersDirty && _jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" })] }), _jsx("span", { className: styles.rangeValue, children: maxPlayers })] }), _jsx("input", { type: "range", min: "1", max: "10", className: styles.slider, value: maxPlayers, onChange: (e) => setMaxPlayers(Number(e.target.value)) })] })), Object.entries(initialHand).map(([deckId, count]) => (_jsxs("div", { className: styles.rangeField, children: [_jsxs("div", { className: styles.rangeHeader, children: [_jsxs("div", { className: styles.label, children: [_jsxs("strong", { children: ["Hand: ", deckId] }), initialValues.initialHand[deckId] !== count && (_jsx("span", { className: styles.dirtyLabel, children: "(\u5909\u66F4\u3042\u308A)" }))] }), _jsx("span", { className: styles.rangeValue, children: count })] }), _jsx("input", { type: "range", min: "0", max: "10", className: styles.slider, value: count, onChange: (e) => {
                                                 setInitialHand({
                                                     ...initialHand,
                                                     [deckId]: Number(e.target.value),

@@ -1,17 +1,18 @@
 // src/gui/GameFactory.tsx
-import { GameCreateData, GameDeleteData, GameMeta } from '@/types/socketData.js';
+import { GameParam } from '@/types/server.js';
+import { GameCreateData, GameDeleteData } from '@/types/socketData.js';
 import { useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import styles from './ControlPanel.module.css';
 
 interface GameFactoryProps {
   socket: Socket;
-  gameMeta: GameMeta[];
+  GameParam: GameParam[];
   selectedGameId: string;
   onSelect: (gameId: string) => void;
 }
 
-export const GameFactory = ({ socket, gameMeta, selectedGameId, onSelect }: GameFactoryProps) => {
+export const GameFactory = ({ socket, GameParam, selectedGameId, onSelect }: GameFactoryProps) => {
   const [newGameName, setNewGameName] = useState('');
   const [newGameIcon, setNewGameIcon] = useState('🎲');
   const [isDeleteMode, setIsDeleteMode] = useState(false);
@@ -87,8 +88,8 @@ export const GameFactory = ({ socket, gameMeta, selectedGameId, onSelect }: Game
             value={selectedGameId}
             onChange={(e) => onSelect(e.target.value)}
           >
-            {gameMeta.length === 0 && <option value="">読み込み中...</option>}
-            {gameMeta.map((game) => (
+            {GameParam.length === 0 && <option value="">読み込み中...</option>}
+            {GameParam.map((game) => (
               <option key={game.gameId} value={game.gameId}>
                 {game.gameIcon} {game.gameId}
               </option>

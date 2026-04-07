@@ -1,12 +1,11 @@
 // src/server/server-logic.ts
 import { RoomId } from '@/types/definition.js';
-import { RoomState } from '@/types/server.js';
+import { GameParam, RoomState } from '@/types/server.js';
 import {
   DiceRollData,
   DiceUpdateData,
   DraggableMovedData,
   GameComponentData,
-  GameMeta,
   GameNextRoundData,
   GameNextTrunData,
   LobbyGameList,
@@ -59,7 +58,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
 
     // ロビー
     socket.on('lobby:get-info', () => {
-      const gameList: GameMeta[] = Object.keys(gameParams).map((id) => ({
+      const gameList: GameParam[] = Object.keys(gameParams).map((id) => ({
         gameId: id,
         gameIcon: gameParams[id].gameIcon,
         maxPlayers: gameParams[id].maxPlayers,

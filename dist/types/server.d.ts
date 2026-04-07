@@ -40,7 +40,7 @@ export type GameParam = {
     gameId: GameId;
     gameIcon: string;
     maxPlayers?: number;
-    initialDecks: DeckData[];
+    initialDecks?: DeckData[];
     initialHand?: Record<DeckId, number>;
     initialResources?: Resource[];
     initialTokenStores?: TokenStore[];

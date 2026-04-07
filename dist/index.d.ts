@@ -24,5 +24,5 @@ export { type GameParam, type RoomState } from './types/server.js';
 export { type CellData } from './types/cell.js';
 export { Phase } from './types/phase.js';
 export { useSocket } from './hooks/useSocket.js';
-export { type CardPlayData, type DeckDrawData, type GameMeta, type GameTurnUpdateData, type LobbyGameList, type LobbyRoomList, type PhaseUpdateData, type RoomJoinData, type RoomMeta, } from './types/socketData.js';
+export { type CardPlayData, type DeckDrawData, type GameTurnUpdateData, type LobbyGameList, type LobbyRoomList, type PhaseUpdateData, type RoomJoinData, type RoomMeta, } from './types/socketData.js';
 //# sourceMappingURL=index.d.ts.map

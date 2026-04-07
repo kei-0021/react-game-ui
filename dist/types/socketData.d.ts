@@ -1,25 +1,12 @@
-import { CellData, DraggableData } from '@/index.js';
-import { ComponentInfo, RoomState } from '@/types/server.js';
+import { CellData } from '@/index.js';
+import { ComponentInfo, GameParam, RoomState } from '@/types/server.js';
 import { CardData } from './card.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';
-import { DeckData } from './deck.js';
 import { BoardId, CardId, DeckId, DiceId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
 import { Phase } from './phase.js';
 import { Token } from './token.js';
-import { TokenStore } from './tokenStore.js';
-export type GameMeta = {
-    gameId: GameId;
-    gameIcon: string;
-    maxPlayers?: number;
-    initialHand?: Record<DeckId, number>;
-    initialDecks?: DeckData[];
-    initialTokenStores?: TokenStore[];
-    initialTokens?: Record<TokenStoreId, number>;
-    draggables?: Record<DraggableId, DraggableData>;
-    components?: ComponentInfo[];
-};
 export type RoomMeta = {
     id: RoomId;
     gameId: GameId;
@@ -28,7 +15,7 @@ export type RoomMeta = {
     createdAt: number;
 };
 export type LobbyGameList = {
-    games: GameMeta[];
+    games: GameParam[];
 };
 export type LobbyRoomList = {
     rooms: RoomMeta[];
@@ -51,7 +38,7 @@ export type GameDeleteData = {
 };
 export type GameParamUpdateData = {
     gameId: GameId;
-    newParam: Partial<GameMeta>;
+    newParam: Partial<GameParam>;
 };
 export type DeckDrawData = {
     roomId: RoomId;

@@ -3460,7 +3460,7 @@ const ComponentFactory = ({
     ] })
   ] });
 };
-const GameFactory = ({ socket, gameMeta, selectedGameId, onSelect }) => {
+const GameFactory = ({ socket, GameParam: GameParam2, selectedGameId, onSelect }) => {
   const [newGameName, setNewGameName] = useState("");
   const [newGameIcon, setNewGameIcon] = useState("🎲");
   const [isDeleteMode, setIsDeleteMode] = useState(false);
@@ -3538,8 +3538,8 @@ const GameFactory = ({ socket, gameMeta, selectedGameId, onSelect }) => {
             value: selectedGameId,
             onChange: (e) => onSelect(e.target.value),
             children: [
-              gameMeta.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "読み込み中..." }),
-              gameMeta.map((game) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: game.gameId, children: [
+              GameParam2.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "読み込み中..." }),
+              GameParam2.map((game) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: game.gameId, children: [
                 game.gameIcon,
                 " ",
                 game.gameId
@@ -3562,7 +3562,7 @@ const GameFactory = ({ socket, gameMeta, selectedGameId, onSelect }) => {
 };
 const ControlPanel = ({
   socket,
-  gameMeta,
+  GameParam: GameParam2,
   containerRef,
   isOpen,
   onToggle
@@ -3583,11 +3583,11 @@ const ControlPanel = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   useEffect(() => {
-    if (gameMeta.length > 0 && !selectedGameId) {
-      setSelectedGameId(gameMeta[0].gameId);
+    if (GameParam2.length > 0 && !selectedGameId) {
+      setSelectedGameId(GameParam2[0].gameId);
     }
-  }, [gameMeta, selectedGameId]);
-  const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
+  }, [GameParam2, selectedGameId]);
+  const selectedGame = useMemo(() => GameParam2.find((g) => g.gameId === selectedGameId), [selectedGameId, GameParam2]);
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
   const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
@@ -3690,7 +3690,7 @@ const ControlPanel = ({
         GameFactory,
         {
           socket,
-          gameMeta,
+          GameParam: GameParam2,
           selectedGameId,
           onSelect: setSelectedGameId
         }

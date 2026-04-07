@@ -1,8 +1,7 @@
 // src/gui/ComponentFactory.tsx
 import { CardData } from '@/types/card.js';
 import { ComponentId } from '@/types/definition.js';
-import { COMPONENT_TYPES, ComponentInfo, ComponentType } from '@/types/server.js';
-import { GameMeta } from '@/types/socketData.js';
+import { COMPONENT_TYPES, ComponentInfo, ComponentType, GameParam } from '@/types/server.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
 
@@ -23,7 +22,7 @@ interface ComponentFactoryProps {
   onAdd: (newComponent: ComponentInfo, additionalParams?: any) => void;
   onDelete: (compId: ComponentId, additionalParams?: any) => void;
   existingComponents: ComponentInfo[];
-  fullGameParam?: GameMeta;
+  fullGameParam?: GameParam;
   containerRef: React.RefObject<HTMLElement | null>;
 }
 
@@ -94,7 +93,7 @@ export const ComponentFactory = ({
     if (!newCompId || isDuplicateId) return;
 
     let initialProps: Record<string, any> = {};
-    let additionalParams: Partial<GameMeta> = {};
+    let additionalParams: Partial<GameParam> = {};
 
     switch (newCompType) {
       case 'Deck':
@@ -244,7 +243,7 @@ export const ComponentFactory = ({
     const target = existingComponents.find((c) => c.id === compId);
     if (!target) return;
 
-    let additionalParams: Partial<GameMeta> = {};
+    let additionalParams: Partial<GameParam> = {};
 
     // 削除対象のタイプに応じて、消すべき Record のキーを指定
     if (target.type === 'Deck') {

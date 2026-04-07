@@ -1,6 +1,6 @@
 // tests/rooms/LobbyRoom.tsx
 import { useEffect, useState } from 'react';
-import { ControlPanel, GameMeta, LobbyGameList, LobbyRoomList, RoomMeta } from 'react-game-ui';
+import { ControlPanel, GameParam, LobbyGameList, LobbyRoomList, RoomMeta } from 'react-game-ui';
 import { useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
 import './LobbyRoom.css';
@@ -8,7 +8,7 @@ import './LobbyRoom.css';
 const SERVER_URL = 'http://127.0.0.1:4000';
 
 export function LobbyRoom() {
-  const [games, setGames] = useState<GameMeta[]>([]);
+  const [games, setGames] = useState<GameParam[]>([]);
   const [rooms, setRooms] = useState<RoomMeta[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -91,14 +91,14 @@ export function LobbyRoom() {
       <div className="section create-room-section">
         <h2 className="section-title">新しいゲームを始める</h2>
         <div className="preset-button-group" style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-          {games.map((gameMeta) => (
+          {games.map((GameParam) => (
             <button
-              key={gameMeta.gameId}
-              onClick={() => handleCreateRoom(gameMeta.gameId)}
+              key={GameParam.gameId}
+              onClick={() => handleCreateRoom(GameParam.gameId)}
               className={`button primary-button`}
               disabled={!socket?.connected}
             >
-              {gameMeta.gameIcon} {gameMeta.gameId}
+              {GameParam.gameIcon} {GameParam.gameId}
             </button>
           ))}
         </div>
@@ -145,7 +145,7 @@ export function LobbyRoom() {
         {socket && (
           <ControlPanel
             socket={socket}
-            gameMeta={games}
+            GameParam={games}
             isOpen={isPanelOpen}
             onToggle={() => setIsPanelOpen(!isPanelOpen)}
           />

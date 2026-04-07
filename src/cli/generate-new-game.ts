@@ -133,7 +133,7 @@ export const ${pascalName}Config: RoomConfig = {
   // --- Room Component Template ---
   const roomTemplate = `import { GameParamUpdateData } from '@/types/socketData';
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ComponentInfo, GameMeta, GameTurnUpdateData, LobbyGameList, Player, RoomJoinData } from 'react-game-ui';
+import type { ComponentInfo, GameParam, GameTurnUpdateData, LobbyGameList, Player, RoomJoinData } from 'react-game-ui';
 import {
   ControlPanel,
   Deck,
@@ -177,7 +177,7 @@ export function ${pascalName}Room() {
   // 動的コンポーネント情報の管理
   const [componentInfo, setComponentInfo] = useState<ComponentInfo[]>([]);
 
-  const [games, setGames] = useState<GameMeta[]>([]);
+  const [games, setGames] = useState<GameParam[]>([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   useEffect(() => {
@@ -411,7 +411,7 @@ export function ${pascalName}Room() {
 
       <ControlPanel
         socket={socket}
-        gameMeta={games}
+        GameParam={games}
         containerRef={containerRef}
         isOpen={isPanelOpen}
         onToggle={() => setIsPanelOpen(!isPanelOpen)}

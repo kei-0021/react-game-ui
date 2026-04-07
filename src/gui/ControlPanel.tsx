@@ -1,7 +1,7 @@
 // src/gui/ControlPanel.tsx
 import { ComponentId, DeckId, DraggableData, DraggableId, TokenStoreId } from '@/index.js';
-import { ComponentInfo } from '@/types/server.js';
-import { GameMeta, GameParamUpdateData } from '@/types/socketData.js';
+import { ComponentInfo, GameParam } from '@/types/server.js';
+import { GameParamUpdateData } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import { ComponentFactory } from './ComponentFactory.js';
@@ -13,20 +13,20 @@ import { GameFactory } from './GameFactory.js';
  * 新規ゲームの作成、既存ゲームのパラメータ（プレイヤー数、初期手札、トークン）、
  * およびゲーム内コンポーネント（ダイスやボード等）の動的な追加・削除を管理する。
  * @param {Socket} props.socket - サーバー通信用の Socket.io クライアントインスタンス
- * @param {GameMeta[]} props.gameMeta - サーバーから取得した全ゲームのメタデータ配列
+ * @param {GameParam[]} props.GameParam - サーバーから取得した全ゲーム情報の配列
  * @param {containerRef}
  * @param {boolean} props.isOpen - パネルの開閉状態
  * @param {function} props.onToggle - パネルの開閉状態を切り替えるコールバック関数
  */
 export const ControlPanel = ({
   socket,
-  gameMeta,
+  GameParam,
   containerRef,
   isOpen,
   onToggle,
 }: {
   socket: Socket;
-  gameMeta: GameMeta[];
+  GameParam: GameParam[];
   containerRef: React.RefObject<HTMLElement | null>;
   isOpen: boolean;
   onToggle: () => void;
@@ -56,13 +56,13 @@ export const ControlPanel = ({
 
   // ゲーム選択の初期化
   useEffect(() => {
-    if (gameMeta.length > 0 && !selectedGameId) {
-      setSelectedGameId(gameMeta[0].gameId);
+    if (GameParam.length > 0 && !selectedGameId) {
+      setSelectedGameId(GameParam[0].gameId);
     }
-  }, [gameMeta, selectedGameId]);
+  }, [GameParam, selectedGameId]);
 
   /** 現在選択されているゲームのオブジェクトをメモ化 */
-  const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
+  const selectedGame = useMemo(() => GameParam.find((g) => g.gameId === selectedGameId), [selectedGameId, GameParam]);
 
   /** 変更検知フラグ（Dirtyチェック） */
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
@@ -129,7 +129,7 @@ export const ControlPanel = ({
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
 
-    const newParam: Partial<GameMeta> = {};
+    const newParam: Partial<GameParam> = {};
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
     if (isHandDirty) newParam.initialHand = initialHand;
     if (isTokensDirty) newParam.initialTokens = initialTokens;
@@ -197,7 +197,7 @@ export const ControlPanel = ({
           {/* ゲームの箱（作成・選択・削除）を管理 */}
           <GameFactory
             socket={socket}
-            gameMeta={gameMeta}
+            GameParam={GameParam}
             selectedGameId={selectedGameId}
             onSelect={setSelectedGameId}
           />

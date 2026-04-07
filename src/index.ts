@@ -46,7 +46,6 @@ export { useSocket } from './hooks/useSocket.js';
 export {
   type CardPlayData,
   type DeckDrawData,
-  type GameMeta,
   type GameTurnUpdateData,
   type LobbyGameList,
   type LobbyRoomList,
