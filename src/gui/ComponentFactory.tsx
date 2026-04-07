@@ -6,10 +6,18 @@ import { GameMeta } from '@/types/socketData.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
 
-import clubs1Image from '../assets/clubs-1.png';
-import diamond1Image from '../assets/diamonds-1.png';
-import hearts1Image from '../assets/hearts-1.png';
-import spades1Image from '../assets/spades-1.png';
+const cardImages = import.meta.glob('../assets/trump/*.png', { eager: true, import: 'default' }) as Record<
+  string,
+  string
+>;
+
+const getCardImage = (suit: string, num: number) => {
+  // globに渡したベースパスと引数を完全に一致させる
+  const targetKey = `../assets/trump/${suit}-${num}.png`;
+
+  // 完全一致で引き当てる
+  return cardImages[targetKey] || '';
+};
 
 interface ComponentFactoryProps {
   onAdd: (newComponent: ComponentInfo, additionalParams?: any) => void;
@@ -110,18 +118,19 @@ export const ComponentFactory = ({
             backColor: 'black',
           };
 
-          const suits = [
-            { suffix: 's1', img: spades1Image },
-            { suffix: 'h1', img: hearts1Image },
-            { suffix: 'd1', img: diamond1Image },
-            { suffix: 'c1', img: clubs1Image },
-          ];
+          const suits = ['spades', 'hearts', 'diamonds', 'clubs'].flatMap((suit) =>
+            [1, 2].map((num) => ({
+              suffix: `${suit[0]}${num}`,
+              img: getCardImage(suit, num),
+            })),
+          );
 
           cards = suits.map(
             (suit) =>
               ({
                 ...common,
                 id: `${newCompId}-${suit.suffix}`,
+                name: `${newCompId}-${suit.suffix}`,
                 frontImage: suit.img,
               }) as CardData,
           );

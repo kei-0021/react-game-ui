@@ -144,8 +144,6 @@ export class RoomManager {
 
     let destination = '';
 
-    this.server_log('deck', `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`);
-
     // A. 捨て札へ
     if (targetLocation === 'discard') {
       card.location = 'discard';
@@ -170,6 +168,8 @@ export class RoomManager {
       this.state.playFieldCards[deckId].push(card);
       destination = 'field';
     }
+
+    this.server_log('deck', `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`);
 
     this.emitDeckUpdate(deckId);
     this.emitPlayerUpdate();

@@ -2,10 +2,13 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { COMPONENT_TYPES } from '@/types/server.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
-import clubs1Image from '../assets/clubs-1.png';
-import diamond1Image from '../assets/diamonds-1.png';
-import hearts1Image from '../assets/hearts-1.png';
-import spades1Image from '../assets/spades-1.png';
+const cardImages = import.meta.glob('../assets/trump/*.png', { eager: true, import: 'default' });
+const getCardImage = (suit, num) => {
+    // globに渡したベースパスと引数を完全に一致させる
+    const targetKey = `../assets/trump/${suit}-${num}.png`;
+    // 完全一致で引き当てる
+    return cardImages[targetKey] || '';
+};
 export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam, containerRef, }) => {
     const [newCompId, setNewCompId] = useState('');
     const [newCompType, setNewCompType] = useState('Dice');
@@ -80,15 +83,14 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
                         isFaceUp: true,
                         backColor: 'black',
                     };
-                    const suits = [
-                        { suffix: 's1', img: spades1Image },
-                        { suffix: 'h1', img: hearts1Image },
-                        { suffix: 'd1', img: diamond1Image },
-                        { suffix: 'c1', img: clubs1Image },
-                    ];
+                    const suits = ['spades', 'hearts', 'diamonds', 'clubs'].flatMap((suit) => [1, 2].map((num) => ({
+                        suffix: `${suit[0]}${num}`,
+                        img: getCardImage(suit, num),
+                    })));
                     cards = suits.map((suit) => ({
                         ...common,
                         id: `${newCompId}-${suit.suffix}`,
+                        name: `${newCompId}-${suit.suffix}`,
                         frontImage: suit.img,
                     }));
                 }
@@ -200,13 +202,8 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
         let additionalParams = {};
         // 削除対象のタイプに応じて、消すべき Record のキーを指定
         if (target.type === 'Deck') {
-            console.log('現状の全データ:', fullGameParam);
             const originalDecks = fullGameParam?.initialDecks || [];
-            const filteredDecks = originalDecks.filter((d) => d.deckId !== compId);
-            console.log(`[Deck削除] 対象ID: ${compId}`);
-            console.log(`[Deck件数] ${originalDecks.length}件 -> ${filteredDecks.length}件`);
-            console.log('削除後の全データ:', filteredDecks);
-            additionalParams.initialDecks = filteredDecks;
+            additionalParams.initialDecks = originalDecks.filter((d) => d.deckId !== compId);
         }
         if (target.type === 'TokenStore') {
             additionalParams.initialTokenStores = (fullGameParam?.initialTokenStores || []).filter((s) => s.tokenStoreId !== compId);
