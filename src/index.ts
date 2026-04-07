@@ -47,10 +47,10 @@ export {
   type CardPlayData,
   type DeckDrawData,
   type GameMeta,
-  type GamePhaseUpdateData,
   type GameTurnUpdateData,
   type LobbyGameList,
   type LobbyRoomList,
+  type PhaseUpdateData,
   type RoomJoinData,
   type RoomMeta,
 } from './types/socketData.js';

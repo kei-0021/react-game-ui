@@ -23,6 +23,7 @@ export let LOG_CATEGORIES = {
     resource: true,
     token: true,
     draggable: true,
+    phase: true,
     warn: true,
     popup: true,
     custom_event: true,

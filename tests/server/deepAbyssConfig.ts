@@ -109,7 +109,7 @@ export const deepAbyssConfig: RoomConfig = {
           .join('、');
 
         manager.emitSystemMessage(`${cardNames} を出した！`, 1000, true);
-        manager.updatePhase(DeepAbyssPhase.NEXT);
+        roomInterpreter([{ type: 'UPDATE_PHASE', newPhase: DeepAbyssPhase.NEXT }], state, manager);
       },
       onPieceMove: (state: RoomState, manager: RoomManager, newLocation: any) => {
         // マス目をオープンにする

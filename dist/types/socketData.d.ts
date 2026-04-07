@@ -155,7 +155,7 @@ export type ObjectBringToData = {
     type: 'card' | 'draggable';
     isFront: boolean;
 };
-export type GamePhaseUpdateData = {
+export type PhaseUpdateData = {
     newPhase: Phase;
 };
 export type GameNextTrunData = {

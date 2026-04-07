@@ -542,8 +542,8 @@ export class RoomManager {
     updatePhase(newPhase) {
         if (this.state.currentPhase !== newPhase) {
             this.state.currentPhase = newPhase;
-            this.server_log('room', `フェーズを更新しました: ${newPhase}`);
-            this.io.to(this.state.roomId).emit('game:phase:update', {
+            this.server_log('phase', `フェーズを更新しました: ${newPhase}`);
+            this.io.to(this.state.roomId).emit('phase:update', {
                 newPhase: this.state.currentPhase,
             });
         }

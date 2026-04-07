@@ -19,8 +19,8 @@ import {
   CardPlayData,
   DeckUpdateData,
   DraggableUpdateData,
-  GamePhaseUpdateData,
   GameTurnUpdateData,
+  PhaseUpdateData,
   SystemMessageData,
   TokenStoreUpdateData,
 } from '@/types/socketData.js';
@@ -645,10 +645,10 @@ export class RoomManager {
   updatePhase(newPhase: Phase): void {
     if (this.state.currentPhase !== newPhase) {
       this.state.currentPhase = newPhase;
-      this.server_log('room', `フェーズを更新しました: ${newPhase}`);
-      this.io.to(this.state.roomId).emit('game:phase:update', {
+      this.server_log('phase', `フェーズを更新しました: ${newPhase}`);
+      this.io.to(this.state.roomId).emit('phase:update', {
         newPhase: this.state.currentPhase,
-      } as GamePhaseUpdateData);
+      } as PhaseUpdateData);
     }
   }
 }

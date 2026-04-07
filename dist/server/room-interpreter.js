@@ -1,4 +1,10 @@
 // src/server/room-interpreter.ts
+/**
+ * ゲームの命令セット（Instruction）を解釈し、RoomManagerを介して実行するDSLインタプリタ。
+ * @param {Instruction[]} instructions - 実行する命令オブジェクトの配列。
+ * @param {RoomState} state - 現在のルームの状態。プレイヤー情報やフィールドの状態を参照します。
+ * @param {RoomManager} manager - 状態操作を担うマネージャ。点数加算やフェーズ遷移などの実処理を呼び出します。
+ */
 export const roomInterpreter = (instructions, state, manager) => {
     const instList = Array.isArray(instructions) ? instructions : [instructions];
     instList.forEach((inst) => {
@@ -13,6 +19,9 @@ export const roomInterpreter = (instructions, state, manager) => {
                 break;
             case 'EMIT_MSG':
                 manager.emitSystemMessage(inst.text, inst.duration ?? 1000, true);
+                break;
+            case 'UPDATE_PHASE':
+                manager.updatePhase(inst.newPhase);
                 break;
             default:
                 console.warn(`未定義の命令です: ${inst.type}`);

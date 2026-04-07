@@ -31,6 +31,7 @@ export type LogCategory =
   | 'resource'
   | 'token'
   | 'draggable'
+  | 'phase'
   | 'warn'
   | 'popup'
   | 'custom_event'
@@ -50,6 +51,7 @@ export let LOG_CATEGORIES: Record<LogCategory, boolean> = {
   resource: true,
   token: true,
   draggable: true,
+  phase: true,
   warn: true,
   popup: true,
   custom_event: true,

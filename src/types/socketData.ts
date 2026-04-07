@@ -243,7 +243,7 @@ export type ObjectBringToData = {
  * ゲーム進行・フェーズ管理
  * ===========================================
  */
-export type GamePhaseUpdateData = {
+export type PhaseUpdateData = {
   newPhase: Phase;
 };
 
