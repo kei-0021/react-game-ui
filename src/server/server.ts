@@ -1,5 +1,6 @@
 // src/server.ts
-import { GameId, GameParam } from '@/types/server.js';
+import { GameParam } from '@/index.js';
+import { GameId } from '@/types/component.js';
 import express from 'express';
 import fs from 'fs';
 import { createServer, Server as HttpServer } from 'http';

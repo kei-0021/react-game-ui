@@ -1,7 +1,6 @@
-import { CellData, DraggableData } from '@/index.js';
+import { CellData, DraggableData, GameParam } from '@/index.js';
 import { Coordinate } from '@/types/coodinate.js';
 import { GameId } from '@/types/definition.js';
-import { GameParam } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import { CardData } from '../types/card.js';
 import { Resource } from '../types/resource.js';

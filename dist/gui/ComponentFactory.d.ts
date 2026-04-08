@@ -1,5 +1,6 @@
+import { GameParam } from '@/index.js';
+import { ComponentInfo } from '@/types/component.js';
 import { ComponentId } from '@/types/definition.js';
-import { ComponentInfo, GameParam } from '@/types/server.js';
 interface ComponentFactoryProps {
     onAdd: (newComponent: ComponentInfo, additionalParams?: any) => void;
     onDelete: (compId: ComponentId, additionalParams?: any) => void;

@@ -9,7 +9,7 @@ import { Draggable } from '../components/Draggable.js';
 import { PlayField } from '../components/PlayField.js';
 import { Timer } from '../components/Timer.js';
 import { TokenStore } from '../components/TokenStore.js';
-import type { ComponentInfo } from '../types/server.js';
+import type { ComponentInfo } from '../types/component.js';
 
 interface DynamicComponentProps {
   type: ComponentInfo['type'];

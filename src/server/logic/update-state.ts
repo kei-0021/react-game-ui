@@ -1,5 +1,5 @@
 // src/server/logic/update-state.ts
-import { RoomState } from '@/types/server.js';
+import { RoomState } from '@/index.js';
 import { deepFill } from './utils.js';
 
 export function updateState(oldState: RoomState, newState: RoomState): void {

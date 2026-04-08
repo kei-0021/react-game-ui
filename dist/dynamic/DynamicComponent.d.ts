@@ -1,7 +1,7 @@
 import { Player } from '@/index.js';
 import { PlayerId, RoomId } from '@/types/definition.js';
 import type { Socket } from 'socket.io-client';
-import type { ComponentInfo } from '../types/server.js';
+import type { ComponentInfo } from '../types/component.js';
 interface DynamicComponentProps {
     type: ComponentInfo['type'];
     props: any;

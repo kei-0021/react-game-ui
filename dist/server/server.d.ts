@@ -1,4 +1,5 @@
-import { GameId, GameParam } from '@/types/server.js';
+import { GameParam } from '@/index.js';
+import { GameId } from '@/types/component.js';
 import { Server as SocketIOServer } from 'socket.io';
 import { LogCategory, LogLevel } from './logger.js';
 /**

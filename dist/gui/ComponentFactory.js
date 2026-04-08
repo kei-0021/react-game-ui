@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { COMPONENT_TYPES } from '@/types/server.js';
+import { COMPONENT_TYPES } from '@/types/component.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
 const cardImages = import.meta.glob('../assets/trump/*.png', { eager: true, import: 'default' });

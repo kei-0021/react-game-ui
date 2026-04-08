@@ -1,6 +1,4 @@
-import { CellData } from '@/index.js';
-import { ComponentInfo, GameParam, RoomState } from '@/types/server.js';
-import { CardData } from './card.js';
+import { CardData, CellData, ComponentInfo, GameParam, RoomState } from '@/index.js';
 import { CardLocation } from './cardLocation.js';
 import { CardState } from './cardState.js';
 import { Coordinate } from './coodinate.js';

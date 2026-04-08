@@ -1,8 +1,8 @@
 // src/server/room-interpreter.ts
 
+import { RoomState } from '@/index.js';
 import { PlayerId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
-import { RoomState } from '@/types/server.js';
 import { RoomManager } from './room-manager.js';
 
 // 各命令の形を定義

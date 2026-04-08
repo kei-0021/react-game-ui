@@ -1,4 +1,4 @@
-import { GameParam } from '@/types/server.js';
+import { GameParam } from '@/index.js';
 import type { Socket } from 'socket.io-client';
 /**
  * ゲームの設定管理およびリアルタイム更新を行う。

@@ -1,6 +1,6 @@
 // src/server/listener/editor-listner.ts
 
-import { GameId, GameParam } from '@/types/server.js';
+import { GameId, GameParam } from '@/index.js';
 import { GameCreateData, GameDeleteData, GameParamUpdateData } from '@/types/socketData.js';
 import { exec } from 'child_process';
 import * as fs from 'node:fs';

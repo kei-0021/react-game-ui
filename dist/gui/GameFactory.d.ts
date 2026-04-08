@@ -1,4 +1,4 @@
-import { GameParam } from '@/types/server.js';
+import { GameParam } from '@/types/gameParam.js';
 import type { Socket } from 'socket.io-client';
 interface GameFactoryProps {
     socket: Socket;

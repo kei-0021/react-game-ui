@@ -1,5 +1,5 @@
 // src/gui/GameFactory.tsx
-import { GameParam } from '@/types/server.js';
+import { GameParam } from '@/types/gameParam.js';
 import { GameCreateData, GameDeleteData } from '@/types/socketData.js';
 import { useState } from 'react';
 import type { Socket } from 'socket.io-client';

@@ -1,4 +1,4 @@
-import { RoomState } from '@/types/server.js';
+import { RoomState } from '@/index.js';
 import { Server } from 'socket.io';
 import { RoomManager } from '../room-manager.js';
 /**

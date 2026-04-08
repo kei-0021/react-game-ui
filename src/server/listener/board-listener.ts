@@ -1,6 +1,6 @@
 // src/server/listner/board-lister.ts
+import { GameParam, RoomState } from '@/index.js';
 import { GameId, RoomId } from '@/types/definition.js';
-import { GameParam, RoomState } from '@/types/server.js';
 import { BaordMovePlayerData, BoardMovableRangeData } from '@/types/socketData.js';
 import { Server, Socket } from 'socket.io';
 import { RoomManager } from '../room-manager.js';

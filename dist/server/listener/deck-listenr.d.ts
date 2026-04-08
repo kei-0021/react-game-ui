@@ -1,5 +1,5 @@
+import { GameParam, RoomState } from '@/index.js';
 import { GameId, RoomId } from '@/types/definition.js';
-import { GameParam, RoomState } from '@/types/server.js';
 import { Server, Socket } from 'socket.io';
 /**
  * デッキ・カード操作専用のイベントリスナーを登録する。

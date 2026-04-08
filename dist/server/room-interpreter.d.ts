@@ -1,6 +1,6 @@
+import { RoomState } from '@/index.js';
 import { PlayerId } from '@/types/definition.js';
 import { Phase } from '@/types/phase.js';
-import { RoomState } from '@/types/server.js';
 import { RoomManager } from './room-manager.js';
 type Instruction = {
     type: 'ADD_SCORE';

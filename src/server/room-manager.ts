@@ -12,9 +12,10 @@ import {
   TokenId,
   TokenStoreId,
 } from '@/types/definition.js';
+import { GameParam } from '@/types/gameParam.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
-import { GameParam, RoomState } from '@/types/server.js';
+import { RoomState } from '@/types/roomState.js';
 import {
   CardPlayData,
   DeckUpdateData,

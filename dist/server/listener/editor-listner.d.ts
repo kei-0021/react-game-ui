@@ -1,4 +1,4 @@
-import { GameId, GameParam } from '@/types/server.js';
+import { GameId, GameParam } from '@/index.js';
 import { Socket } from 'socket.io';
 /**
  * エディタ専用のイベントリスナーをSocketインスタンスに登録する。

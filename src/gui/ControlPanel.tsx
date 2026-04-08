@@ -1,6 +1,6 @@
 // src/gui/ControlPanel.tsx
-import { ComponentId, DeckId, DraggableData, DraggableId, TokenStoreId } from '@/index.js';
-import { ComponentInfo, GameParam } from '@/types/server.js';
+import { ComponentId, DeckId, DraggableData, DraggableId, GameParam, TokenStoreId } from '@/index.js';
+import { ComponentInfo } from '@/types/component.js';
 import { GameParamUpdateData } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';

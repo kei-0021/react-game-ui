@@ -1,9 +1,8 @@
 // src/server/server-io-utils.ts
 
-import { CellData, DraggableData } from '@/index.js';
+import { CellData, DraggableData, GameParam } from '@/index.js';
 import { Coordinate } from '@/types/coodinate.js';
 import { GameId } from '@/types/definition.js';
-import { GameParam } from '@/types/server.js';
 import { Token } from '@/types/token.js';
 import fs from 'node:fs';
 import { CardData } from '../types/card.js';

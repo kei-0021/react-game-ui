@@ -1,7 +1,8 @@
 // src/gui/ComponentFactory.tsx
+import { GameParam } from '@/index.js';
 import { CardData } from '@/types/card.js';
+import { COMPONENT_TYPES, ComponentInfo, ComponentType } from '@/types/component.js';
 import { ComponentId } from '@/types/definition.js';
-import { COMPONENT_TYPES, ComponentInfo, ComponentType, GameParam } from '@/types/server.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
 

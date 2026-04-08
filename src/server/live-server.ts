@@ -1,6 +1,6 @@
 // src/server/live-listener.ts
 import { GameId } from '@/types/definition.js';
-import { GameParam } from '@/types/server.js';
+import { GameParam } from '@/types/gameParam.js';
 import { GameComponentData, LobbyGameList } from '@/types/socketData.js';
 import { registerEditorListeners } from './listener/editor-listner.js';
 import { server_log } from './logger.js';

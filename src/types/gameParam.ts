@@ -1,26 +1,15 @@
-// src/types/server.ts
-import { CellData, Player } from '@/index.js';
+// src/types/server/gameParam.ts
+
+import { RoomState } from '@/index.js';
 import { RoomManager } from '@/server/room-manager.js';
-import { CardData } from './card.js';
+import { CellData } from './cell.js';
+import { ComponentInfo } from './component.js';
 import { DeckData } from './deck.js';
-import {
-  BoardId,
-  CardId,
-  ComponentId,
-  DeckId,
-  DraggableId,
-  GameId,
-  PlayerId,
-  RoomId,
-  TokenId,
-  TokenStoreId,
-} from './definition.js';
+import { BoardId, DeckId, DraggableId, GameId, PlayerId, TokenId } from './definition.js';
 import { DraggableData } from './draggable.js';
 import { Phase } from './phase.js';
-import { Position } from './position.js';
 import { Resource } from './resource.js';
 import { CardPlayData, DeckDrawData } from './socketData.js';
-import { Token } from './token.js';
 import { TokenStore } from './tokenStore.js';
 
 /**
@@ -74,75 +63,3 @@ export type GameParam = {
   onGameEnd?: (state: RoomState) => any;
   components: ComponentInfo[];
 };
-
-/**
- * 実行中のゲームルームの動的な状態を管理する。
- * @param gameId - 適用されているゲーム設定の識別ID。
- * @param roomId - ルームを一意に識別するID。
- * @param createdAt - ルームが作成されたタイムスタンプ。
- * @param currentRoundIndex - 現在のラウンド数（0開始）。
- * @param currentTurnIndex - 現在のターン数（0開始）。
- * @param currentPhase - 現在の進行フェーズ。
- * @param players - 参加しているプレイヤーのリスト。
- * @param decks - 各デッキIDごとの残りカードリスト。
- * @param playFieldCards - プレイフィールド上のカード（キーは "firework" 等の場所名）。
- * @param discardPile - 捨て札置き場のカードリスト。
- * @param boards - ボード上のセルデータ。
- * @param exploredCells - すでに探索・公開されたセルの座標リスト。
- * @param tokenStores - 共有トークンの現在のストック状況。
- * @param draggable - ドラッグ可能オブジェクト。
- * @param timer - タイマー。
- * @param maxZIndex - フィールド上の全オブジェクト（カード、ピース等）で共有する 重ね順のグローバル・カウンタ
- * @param systemMessageHistory - 過去のシステムメッセージの履歴。
- */
-export type RoomState = {
-  gameId: GameId;
-  roomId: RoomId;
-  createdAt: number;
-  currentRoundIndex: number;
-  currentTurnIndex: number;
-  currentPhase?: Phase;
-  players: Player[];
-  decks: Record<DeckId, CardData[]>;
-  playFieldCards: Record<DeckId, CardData[]>;
-  discardPile: Record<PlayerId, CardData[]>;
-  holdCards: Record<PlayerId, Record<DeckId, CardId[]>>;
-  boards: Record<BoardId, CellData[]>;
-  exploredCells: Position[];
-  tokenStores: Record<TokenStoreId, Token[]>;
-  draggables: Record<DraggableId, DraggableData>;
-  timer: NodeJS.Timeout;
-  maxZIndex: number;
-  systemMessageHistory: string[];
-};
-
-/**
- * 利用可能なコンポーネントの種類一覧
- */
-export const COMPONENT_TYPES = [
-  'Deck',
-  'PlayField',
-  'ScoreBoard',
-  'TokenStore',
-  'GridBoard',
-  'Draggable',
-  'Dice',
-  'Timer',
-  'SystemMessageWindow',
-] as const;
-
-/**
- * 利用可能なコンポーネントの種類一覧 (型)
- */
-export type ComponentType = (typeof COMPONENT_TYPES)[number];
-
-/**
- * コンポーネントに渡すpropsを格納する型
- */
-export type ComponentInfo = {
-  id: ComponentId;
-  type: ComponentType;
-  props: Record<string, any>;
-};
-
-export type { GameId };
