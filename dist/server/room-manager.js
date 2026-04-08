@@ -1,4 +1,5 @@
 import { server_log } from './logger.js';
+import { roomInterpreter } from './room-interpreter.js';
 export const isExplored = (roomState, position) => {
     return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
@@ -181,6 +182,7 @@ export class RoomManager {
         // カスタムフック処理
         const onCardPlay = this.param.onCardPlay;
         if (onCardPlay) {
+            roomInterpreter(onCardPlay, this.state, this, data);
             onCardPlay(this.state, this, data);
         }
         // 更新通知

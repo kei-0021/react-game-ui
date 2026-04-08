@@ -27,6 +27,7 @@ import {
 } from '@/types/socketData.js';
 import { Server } from 'socket.io';
 import { LogCategory, LogLevel, server_log } from './logger.js';
+import { roomInterpreter } from './room-interpreter.js';
 
 export const isExplored = (roomState: RoomState, position: Position): boolean => {
   return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
@@ -230,6 +231,7 @@ export class RoomManager {
     // カスタムフック処理
     const onCardPlay = this.param.onCardPlay;
     if (onCardPlay) {
+      roomInterpreter(onCardPlay, this.state, this, data);
       onCardPlay(this.state, this, data);
     }
 

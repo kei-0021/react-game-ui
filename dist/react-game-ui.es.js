@@ -3857,6 +3857,31 @@ const server_log = (tag, gameId, roomId, msg, level = "INFO") => {
       break;
   }
 };
+const roomInterpreter = (logic, state, manager, ...args) => {
+  if (typeof logic === "function") {
+    return logic(state, manager, ...args);
+  }
+  const instList = Array.isArray(logic) ? logic : [logic];
+  instList.forEach((inst) => {
+    switch (inst.type) {
+      case "ADD_SCORE":
+        if (inst.playerId === "ALL") {
+          state.players.forEach((p) => manager.addScore(p.id, inst.points));
+        } else {
+          manager.addScore(inst.playerId, inst.points);
+        }
+        break;
+      case "EMIT_MSG":
+        manager.emitSystemMessage(inst.text, inst.duration ?? 1e3, true);
+        break;
+      case "UPDATE_PHASE":
+        manager.updatePhase(inst.newPhase);
+        break;
+      default:
+        console.warn(`未定義の命令です: ${inst.type}`);
+    }
+  });
+};
 const isExplored = (roomState, position) => {
   return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
@@ -4017,6 +4042,7 @@ class RoomManager {
     });
     const onCardPlay = this.param.onCardPlay;
     if (onCardPlay) {
+      roomInterpreter(onCardPlay, this.state, this, data);
       onCardPlay(this.state, this, data);
     }
     this.emitDeckUpdate(deckId);

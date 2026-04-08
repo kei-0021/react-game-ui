@@ -5,6 +5,7 @@ import { ComponentInfo } from './component.js';
 import { DeckData } from './deck.js';
 import { BoardId, DeckId, DraggableId, GameId, PlayerId, TokenId } from './definition.js';
 import { DraggableData } from './draggable.js';
+import { Instruction } from './instruction.js';
 import { Phase } from './phase.js';
 import { Resource } from './resource.js';
 import { CardPlayData, DeckDrawData } from './socketData.js';
@@ -52,7 +53,7 @@ export type GameParam = {
     cardEffects?: Record<string, any>;
     cellEffects?: Record<string, (manager: RoomManager, player: PlayerId) => void>;
     onDeckDraw?: (state: RoomState, manager: RoomManager, data: DeckDrawData) => void;
-    onCardPlay?: (state: RoomState, manager: RoomManager, data: CardPlayData) => void;
+    onCardPlay?: (state: RoomState, manager: RoomManager, data: CardPlayData) => void | Instruction[];
     onAllPlayersCardHold?: (state: RoomState, manager: RoomManager) => void;
     onPieceMove?: (state: RoomState, manager: RoomManager, newLocation: any) => void;
     onNextRound?: (state: RoomState, manager: RoomManager) => void;
