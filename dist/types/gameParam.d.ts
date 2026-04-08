@@ -53,7 +53,7 @@ export type GameParam = {
     cardEffects?: Record<string, any>;
     cellEffects?: Record<string, (manager: RoomManager, player: PlayerId) => void>;
     onDeckDraw?: (state: RoomState, manager: RoomManager, data: DeckDrawData) => void;
-    onCardPlay?: (state: RoomState, manager: RoomManager, data: CardPlayData) => void | Instruction[];
+    onCardPlay?: ((state: RoomState, manager: RoomManager, data: CardPlayData) => void | Instruction[]) | Instruction[];
     onAllPlayersCardHold?: (state: RoomState, manager: RoomManager) => void;
     onPieceMove?: (state: RoomState, manager: RoomManager, newLocation: any) => void;
     onNextRound?: (state: RoomState, manager: RoomManager) => void;

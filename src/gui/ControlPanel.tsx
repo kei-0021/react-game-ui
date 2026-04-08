@@ -1,12 +1,14 @@
 // src/gui/ControlPanel.tsx
 import { ComponentId, DeckId, DraggableData, DraggableId, GameParam, TokenStoreId } from '@/index.js';
 import { ComponentInfo } from '@/types/component.js';
+import { Instruction } from '@/types/instruction.js';
 import { GameParamUpdateData } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import { ComponentFactory } from './ComponentFactory.js';
 import styles from './ControlPanel.module.css';
 import { GameFactory } from './GameFactory.js';
+import { LogicFactory } from './LogicFactory.js';
 
 /**
  * ゲームの設定管理およびリアルタイム更新を行う。
@@ -48,8 +50,11 @@ export const ControlPanel = ({
     initialHand: {} as Record<string, number>,
     initialTokens: {} as Record<string, number>,
     draggables: {} as Record<DraggableId, DraggableData>,
+    onCardPlay: [] as Instruction[],
     components: [] as ComponentInfo[],
   });
+
+  const [onCardPlay, setOnCardPlay] = useState<Instruction[]>([]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -70,6 +75,7 @@ export const ControlPanel = ({
   const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
   const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
   const isDraggablesDirty = JSON.stringify(draggables) !== JSON.stringify(initialValues.draggables);
+  const isOnCardPlayDirty = JSON.stringify(onCardPlay) !== JSON.stringify(initialValues.onCardPlay);
 
   /** 選択ゲームが切り替わった際のフォーム値の同期 */
   useEffect(() => {
@@ -77,14 +83,19 @@ export const ControlPanel = ({
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
       const configInitialHand = selectedGame.initialHand ?? {};
       const configInitialTokens = selectedGame.initialTokens ?? {};
-      const configComponents = selectedGame.components ?? [];
       const configDraggables = selectedGame.draggables ?? {};
+
+      const rawOnCardPlay = selectedGame.onCardPlay;
+      const configOnCardPlay = Array.isArray(rawOnCardPlay) ? rawOnCardPlay : [];
+
+      const configComponents = selectedGame.components ?? [];
 
       setInitialValues({
         maxPlayers: configMaxPlayers,
         initialHand: { ...configInitialHand },
         initialTokens: { ...configInitialTokens },
         draggables: { ...configDraggables },
+        onCardPlay: [...configOnCardPlay],
         components: [...configComponents],
       });
 
@@ -96,8 +107,21 @@ export const ControlPanel = ({
         setLocalComponents([...configComponents]);
         setDraggables({ ...configDraggables });
       }
+
+      if (!isOnCardPlayDirty) {
+        setOnCardPlay([...configOnCardPlay]);
+      }
     }
-  }, [selectedGame, isSaving, isComponentsDirty, isMaxPlayersDirty, isHandDirty, isTokensDirty, isDraggablesDirty]);
+  }, [
+    selectedGame,
+    isSaving,
+    isComponentsDirty,
+    isMaxPlayersDirty,
+    isHandDirty,
+    isTokensDirty,
+    isDraggablesDirty,
+    isOnCardPlayDirty,
+  ]);
 
   /** Socket通信のイベントリスナー設定 */
   useEffect(() => {
@@ -112,6 +136,7 @@ export const ControlPanel = ({
           initialHand: { ...initialHand },
           initialTokens: { ...initialTokens },
           draggables: { ...draggables },
+          onCardPlay: [...onCardPlay],
           components: [...localComponents],
         });
 
@@ -134,6 +159,7 @@ export const ControlPanel = ({
     if (isHandDirty) newParam.initialHand = initialHand;
     if (isTokensDirty) newParam.initialTokens = initialTokens;
     if (isComponentsDirty) newParam.components = localComponents;
+    if (isOnCardPlayDirty) newParam.onCardPlay = onCardPlay;
     if (isDraggablesDirty) newParam.draggables = draggables;
 
     setIsSaving(true);
@@ -296,6 +322,13 @@ export const ControlPanel = ({
             </>
           )}
 
+          <hr className={styles.divider} />
+
+          {/* ロジック設定 */}
+          <LogicFactory instructions={onCardPlay} onChange={setOnCardPlay} />
+
+          <hr className={styles.divider} />
+
           {/* 保存・反映ボタン */}
           <button
             className={styles.saveButton}
@@ -303,7 +336,12 @@ export const ControlPanel = ({
             disabled={
               !socket.connected ||
               isSaving ||
-              (!isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isComponentsDirty)
+              (!isMaxPlayersDirty &&
+                !isHandDirty &&
+                !isTokensDirty &&
+                !isComponentsDirty &&
+                !isDraggablesDirty &&
+                !isOnCardPlayDirty)
             }
           >
             {isSaving ? '保存中...' : showSuccess ? '完了' : '変更箇所のみ反映'}

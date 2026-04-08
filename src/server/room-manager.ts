@@ -222,8 +222,9 @@ export class RoomManager {
         this.server_log('card', `カード効果発揮: ${card.name} by ${playerId}`);
         effect({
           playerId,
-          updateResource: (resourceId: string, amount: number) => this.acquireResource(playerId, resourceId, amount),
-          updateToken: (tokenId: string) => this.acquireToken(this.state.roomId, playerId, tokenId),
+          updateResource: (resourceId: ResourceId, amount: number) =>
+            this.acquireResource(playerId, resourceId, amount),
+          updateToken: (tokenId: TokenId) => this.acquireToken(this.state.roomId, playerId, tokenId),
         });
       }
     });
@@ -232,7 +233,6 @@ export class RoomManager {
     const onCardPlay = this.param.onCardPlay;
     if (onCardPlay) {
       roomInterpreter(onCardPlay, this.state, this, data);
-      onCardPlay(this.state, this, data);
     }
 
     // 更新通知

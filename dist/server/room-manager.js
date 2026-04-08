@@ -183,7 +183,6 @@ export class RoomManager {
         const onCardPlay = this.param.onCardPlay;
         if (onCardPlay) {
             roomInterpreter(onCardPlay, this.state, this, data);
-            onCardPlay(this.state, this, data);
         }
         // 更新通知
         this.emitDeckUpdate(deckId);

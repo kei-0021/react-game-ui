@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ComponentFactory } from './ComponentFactory.js';
 import styles from './ControlPanel.module.css';
 import { GameFactory } from './GameFactory.js';
+import { LogicFactory } from './LogicFactory.js';
 /**
  * ゲームの設定管理およびリアルタイム更新を行う。
  * 新規ゲームの作成、既存ゲームのパラメータ（プレイヤー数、初期手札、トークン）、
@@ -28,8 +29,10 @@ export const ControlPanel = ({ socket, GameParam, containerRef, isOpen, onToggle
         initialHand: {},
         initialTokens: {},
         draggables: {},
+        onCardPlay: [],
         components: [],
     });
+    const [onCardPlay, setOnCardPlay] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     // ゲーム選択の初期化
@@ -46,19 +49,23 @@ export const ControlPanel = ({ socket, GameParam, containerRef, isOpen, onToggle
     const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
     const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
     const isDraggablesDirty = JSON.stringify(draggables) !== JSON.stringify(initialValues.draggables);
+    const isOnCardPlayDirty = JSON.stringify(onCardPlay) !== JSON.stringify(initialValues.onCardPlay);
     /** 選択ゲームが切り替わった際のフォーム値の同期 */
     useEffect(() => {
         if (selectedGame && !isSaving) {
             const configMaxPlayers = selectedGame.maxPlayers ?? 1;
             const configInitialHand = selectedGame.initialHand ?? {};
             const configInitialTokens = selectedGame.initialTokens ?? {};
-            const configComponents = selectedGame.components ?? [];
             const configDraggables = selectedGame.draggables ?? {};
+            const rawOnCardPlay = selectedGame.onCardPlay;
+            const configOnCardPlay = Array.isArray(rawOnCardPlay) ? rawOnCardPlay : [];
+            const configComponents = selectedGame.components ?? [];
             setInitialValues({
                 maxPlayers: configMaxPlayers,
                 initialHand: { ...configInitialHand },
                 initialTokens: { ...configInitialTokens },
                 draggables: { ...configDraggables },
+                onCardPlay: [...configOnCardPlay],
                 components: [...configComponents],
             });
             // 他の項目も含め、未編集の場合のみ外部データを反映
@@ -69,8 +76,20 @@ export const ControlPanel = ({ socket, GameParam, containerRef, isOpen, onToggle
                 setLocalComponents([...configComponents]);
                 setDraggables({ ...configDraggables });
             }
+            if (!isOnCardPlayDirty) {
+                setOnCardPlay([...configOnCardPlay]);
+            }
         }
-    }, [selectedGame, isSaving, isComponentsDirty, isMaxPlayersDirty, isHandDirty, isTokensDirty, isDraggablesDirty]);
+    }, [
+        selectedGame,
+        isSaving,
+        isComponentsDirty,
+        isMaxPlayersDirty,
+        isHandDirty,
+        isTokensDirty,
+        isDraggablesDirty,
+        isOnCardPlayDirty,
+    ]);
     /** Socket通信のイベントリスナー設定 */
     useEffect(() => {
         const onUpdated = (data) => {
@@ -83,6 +102,7 @@ export const ControlPanel = ({ socket, GameParam, containerRef, isOpen, onToggle
                     initialHand: { ...initialHand },
                     initialTokens: { ...initialTokens },
                     draggables: { ...draggables },
+                    onCardPlay: [...onCardPlay],
                     components: [...localComponents],
                 });
                 setTimeout(() => setShowSuccess(false), 2000);
@@ -106,6 +126,8 @@ export const ControlPanel = ({ socket, GameParam, containerRef, isOpen, onToggle
             newParam.initialTokens = initialTokens;
         if (isComponentsDirty)
             newParam.components = localComponents;
+        if (isOnCardPlayDirty)
+            newParam.onCardPlay = onCardPlay;
         if (isDraggablesDirty)
             newParam.draggables = draggables;
         setIsSaving(true);
@@ -159,7 +181,12 @@ export const ControlPanel = ({ socket, GameParam, containerRef, isOpen, onToggle
                                                     ...initialTokens,
                                                     [tokenId]: Number(e.target.value),
                                                 });
-                                            } })] }, `token-${tokenId}`)))] })), _jsx("button", { className: styles.saveButton, onClick: handleSave, disabled: !socket.connected ||
+                                            } })] }, `token-${tokenId}`)))] })), _jsx("hr", { className: styles.divider }), _jsx(LogicFactory, { instructions: onCardPlay, onChange: setOnCardPlay }), _jsx("hr", { className: styles.divider }), _jsx("button", { className: styles.saveButton, onClick: handleSave, disabled: !socket.connected ||
                                 isSaving ||
-                                (!isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isComponentsDirty), children: isSaving ? '保存中...' : showSuccess ? '完了' : '変更箇所のみ反映' })] }) })] }));
+                                (!isMaxPlayersDirty &&
+                                    !isHandDirty &&
+                                    !isTokensDirty &&
+                                    !isComponentsDirty &&
+                                    !isDraggablesDirty &&
+                                    !isOnCardPlayDirty), children: isSaving ? '保存中...' : showSuccess ? '完了' : '変更箇所のみ反映' })] }) })] }));
 };
