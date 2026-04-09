@@ -1,15 +1,48 @@
 // src/gui/LogicFactory.tsx
+import { GameParam } from '@/index.js';
 import { Instruction } from '@/types/instruction.js';
+import { useEffect, useState } from 'react';
 import styles from './ControlPanel.module.css';
 
 interface LogicFactoryProps {
-  instructions: Instruction[];
-  onChange: (newInstructions: Instruction[]) => void;
+  selectedGame: GameParam | undefined;
+  isSaving: boolean;
+  /** 変更状態と最新の命令リストを親へ同期する */
+  onSync: (isDirty: boolean, instructions: Instruction[]) => void;
 }
 
-export const LogicFactory = ({ instructions, onChange }: LogicFactoryProps) => {
+export const LogicFactory = ({ selectedGame, isSaving, onSync }: LogicFactoryProps) => {
+  const [instructions, setInstructions] = useState<Instruction[]>([]);
+  const [initialInstructions, setInitialInstructions] = useState<Instruction[]>([]);
+
+  // 内部でDirtyチェックを完結させる
+  const isDirty = JSON.stringify(instructions) !== JSON.stringify(initialInstructions);
+
+  // サーバーデータとの同期ロジックを移設
+  useEffect(() => {
+    if (selectedGame && !isSaving) {
+      const rawOnCardPlay = selectedGame.onCardPlay;
+      const configOnCardPlay = Array.isArray(rawOnCardPlay) ? rawOnCardPlay : [];
+
+      setInitialInstructions([...configOnCardPlay]);
+
+      if (!isDirty) {
+        setInstructions([...configOnCardPlay]);
+      }
+    }
+  }, [selectedGame, isSaving]);
+
+  // 状態変化を親の ControlPanel へ通知
+  useEffect(() => {
+    onSync(isDirty, instructions);
+  }, [isDirty, instructions]);
+
   const handleAdd = () => {
     onChange([...instructions, { type: 'ADD_SCORE', playerId: 'ALL', points: 0 }]);
+  };
+
+  const onChange = (newInstructions: Instruction[]) => {
+    setInstructions(newInstructions);
   };
 
   const handleUpdate = (index: number, patch: Partial<Instruction>) => {
@@ -21,6 +54,8 @@ export const LogicFactory = ({ instructions, onChange }: LogicFactoryProps) => {
   const handleDelete = (index: number) => {
     onChange(instructions.filter((_, i) => i !== index));
   };
+
+  if (!selectedGame) return null;
 
   return (
     <div className={styles.section}>
@@ -41,8 +76,6 @@ export const LogicFactory = ({ instructions, onChange }: LogicFactoryProps) => {
               placeholder="点数"
             />
           )}
-
-          {/* 必要なプロパティ入力をここに追加していく */}
 
           <button className={styles.deleteMini} onClick={() => handleDelete(idx)}>
             削除

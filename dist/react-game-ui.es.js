@@ -3560,9 +3560,28 @@ const GameFactory = ({ socket, GameParam: GameParam2, selectedGameId, onSelect }
     ] })
   ] });
 };
-const LogicFactory = ({ instructions, onChange }) => {
+const LogicFactory = ({ selectedGame, isSaving, onSync }) => {
+  const [instructions, setInstructions] = useState([]);
+  const [initialInstructions, setInitialInstructions] = useState([]);
+  const isDirty = JSON.stringify(instructions) !== JSON.stringify(initialInstructions);
+  useEffect(() => {
+    if (selectedGame && !isSaving) {
+      const rawOnCardPlay = selectedGame.onCardPlay;
+      const configOnCardPlay = Array.isArray(rawOnCardPlay) ? rawOnCardPlay : [];
+      setInitialInstructions([...configOnCardPlay]);
+      if (!isDirty) {
+        setInstructions([...configOnCardPlay]);
+      }
+    }
+  }, [selectedGame, isSaving]);
+  useEffect(() => {
+    onSync(isDirty, instructions);
+  }, [isDirty, instructions]);
   const handleAdd = () => {
     onChange([...instructions, { type: "ADD_SCORE", playerId: "ALL", points: 0 }]);
+  };
+  const onChange = (newInstructions) => {
+    setInstructions(newInstructions);
   };
   const handleUpdate = (index, patch) => {
     const next = [...instructions];
@@ -3572,6 +3591,7 @@ const LogicFactory = ({ instructions, onChange }) => {
   const handleDelete = (index) => {
     onChange(instructions.filter((_, i) => i !== index));
   };
+  if (!selectedGame) return null;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.section, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { className: styles.subTitle, children: "onCardPlay ロジック" }),
     instructions.map((inst, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.effectRow, children: [
@@ -3607,15 +3627,14 @@ const ControlPanel = ({
   const [initialTokens, setInitialTokens] = useState({});
   const [draggables, setDraggables] = useState({});
   const [localComponents, setLocalComponents] = useState([]);
+  const [logicSync, setLogicSync] = useState({ isDirty: false, data: [] });
   const [initialValues, setInitialValues] = useState({
     maxPlayers: 1,
     initialHand: {},
     initialTokens: {},
     draggables: {},
-    onCardPlay: [],
     components: []
   });
-  const [onCardPlay, setOnCardPlay] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   useEffect(() => {
@@ -3629,22 +3648,18 @@ const ControlPanel = ({
   const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
   const isComponentsDirty = JSON.stringify(localComponents) !== JSON.stringify(initialValues.components);
   const isDraggablesDirty = JSON.stringify(draggables) !== JSON.stringify(initialValues.draggables);
-  const isOnCardPlayDirty = JSON.stringify(onCardPlay) !== JSON.stringify(initialValues.onCardPlay);
   useEffect(() => {
     if (selectedGame && !isSaving) {
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
       const configInitialHand = selectedGame.initialHand ?? {};
       const configInitialTokens = selectedGame.initialTokens ?? {};
       const configDraggables = selectedGame.draggables ?? {};
-      const rawOnCardPlay = selectedGame.onCardPlay;
-      const configOnCardPlay = Array.isArray(rawOnCardPlay) ? rawOnCardPlay : [];
       const configComponents = selectedGame.components ?? [];
       setInitialValues({
         maxPlayers: configMaxPlayers,
         initialHand: { ...configInitialHand },
         initialTokens: { ...configInitialTokens },
         draggables: { ...configDraggables },
-        onCardPlay: [...configOnCardPlay],
         components: [...configComponents]
       });
       if (!isComponentsDirty && !isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isDraggablesDirty) {
@@ -3654,20 +3669,8 @@ const ControlPanel = ({
         setLocalComponents([...configComponents]);
         setDraggables({ ...configDraggables });
       }
-      if (!isOnCardPlayDirty) {
-        setOnCardPlay([...configOnCardPlay]);
-      }
     }
-  }, [
-    selectedGame,
-    isSaving,
-    isComponentsDirty,
-    isMaxPlayersDirty,
-    isHandDirty,
-    isTokensDirty,
-    isDraggablesDirty,
-    isOnCardPlayDirty
-  ]);
+  }, [selectedGame, isSaving, isComponentsDirty, isMaxPlayersDirty, isHandDirty, isTokensDirty, isDraggablesDirty]);
   useEffect(() => {
     const onUpdated = (data) => {
       if (data.success) {
@@ -3678,7 +3681,6 @@ const ControlPanel = ({
           initialHand: { ...initialHand },
           initialTokens: { ...initialTokens },
           draggables: { ...draggables },
-          onCardPlay: [...onCardPlay],
           components: [...localComponents]
         });
         setTimeout(() => setShowSuccess(false), 2e3);
@@ -3695,9 +3697,9 @@ const ControlPanel = ({
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
     if (isHandDirty) newParam.initialHand = initialHand;
     if (isTokensDirty) newParam.initialTokens = initialTokens;
-    if (isComponentsDirty) newParam.components = localComponents;
-    if (isOnCardPlayDirty) newParam.onCardPlay = onCardPlay;
     if (isDraggablesDirty) newParam.draggables = draggables;
+    if (logicSync.isDirty) newParam.onCardPlay = logicSync.data;
+    if (isComponentsDirty) newParam.components = localComponents;
     setIsSaving(true);
     socket.emit("game-param:update", {
       gameId: selectedGameId,
@@ -3840,14 +3842,21 @@ const ControlPanel = ({
         ] }, `token-${tokenId}`))
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: styles.divider }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(LogicFactory, { instructions: onCardPlay, onChange: setOnCardPlay }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        LogicFactory,
+        {
+          selectedGame,
+          isSaving,
+          onSync: (isDirty, data) => setLogicSync({ isDirty, data })
+        }
+      ),
       /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: styles.divider }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
         {
           className: styles.saveButton,
           onClick: handleSave,
-          disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isComponentsDirty && !isDraggablesDirty && !isOnCardPlayDirty,
+          disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isComponentsDirty && !isDraggablesDirty && !logicSync.isDirty,
           children: isSaving ? "保存中..." : showSuccess ? "完了" : "変更箇所のみ反映"
         }
       )
