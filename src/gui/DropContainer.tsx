@@ -61,7 +61,7 @@ export function DropContainer({
       setPreviewSlot(null);
 
       const rawData = e.dataTransfer.getData('application/react-game-ui');
-      if (!rawData || !socket || !roomId) return;
+      if (!rawData || !socket || !roomId || !gameParam) return;
 
       try {
         const data = JSON.parse(rawData);
@@ -74,28 +74,33 @@ export function DropContainer({
           type: data.type,
           props: {
             ...data.props,
-            draggableId: targetId,
-            slotX: undefined,
-            slotY: undefined,
             coordinate: { x: coords.x, y: coords.y },
           },
         };
 
         const updatedComponents = [...componentInfo, newComponent];
+        const newParam: Partial<GameParam> = { components: updatedComponents };
 
-        let updatedDraggables = { ...(gameParam?.draggables || {}) };
         if (data.type === 'Draggable') {
-          updatedDraggables[targetId] = {
-            id: targetId,
-            coordinate: { x: coords.x, y: coords.y },
-            zIndex: 100,
-            rotation: 0,
+          newParam.draggables = {
+            ...(gameParam.draggables || {}),
+            [targetId]: {
+              id: targetId,
+              coordinate: { x: coords.x, y: coords.y },
+              zIndex: 100,
+              rotation: 0,
+            },
           };
+        } else if (data.type === 'TokenStore' && data.additionalParams?.initialTokenStores) {
+          newParam.initialTokenStores = [
+            ...(gameParam.initialTokenStores || []),
+            ...data.additionalParams.initialTokenStores,
+          ];
         }
 
         socket.emit('game-param:update', {
-          gameId: gameParam?.gameId,
-          newParam: { draggables: updatedDraggables, components: updatedComponents },
+          gameId: gameParam.gameId,
+          newParam: newParam,
         } as GameParamUpdateData);
 
         setComponentInfo(updatedComponents);

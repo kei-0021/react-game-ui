@@ -29,7 +29,7 @@ export const DraggableFactory = ({ newCompId, onAdd, onSuccess, getInitialProps 
   });
 
   const handleAdd = () => {
-    const id = newCompId || `drag-${Date.now()}`;
+    const id = newCompId || `draggable-${Date.now()}`;
     const initialProps = getInitialProps('Draggable', id, getOverrides());
 
     const additionalParams = {
@@ -49,7 +49,7 @@ export const DraggableFactory = ({ newCompId, onAdd, onSuccess, getInitialProps 
   };
 
   const handleDragStart = (e: React.DragEvent) => {
-    const id = newCompId || `drag-${Date.now()}`;
+    const id = newCompId || `draggable-${Date.now()}`;
     const dragData = {
       type: 'Draggable',
       id: id,

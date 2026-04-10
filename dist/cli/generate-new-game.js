@@ -300,8 +300,22 @@ export function ${pascalName}Room() {
           gameParam={currentGameParam as GameParam}
           setComponentInfo={setComponentInfo}
         >
-          {/* パネル操作時のオーバーレイ */}
-          {isPanelOpen && <div className={styles.panelOverlay} onClick={() => setIsPanelOpen(false)} />}
+          {/* パネルが開いている時だけ背後に敷く透明なレイヤー */}
+          {isPanelOpen && (
+            <div
+              className="panel-overlay"
+              onClick={() => setIsPanelOpen(false)}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                zIndex: 998,
+                background: 'transparent',
+              }}
+            />
+          )}
 
           <header className={styles.gameHeader}>
           <h1>${gameIcon} ${gameName}</h1>

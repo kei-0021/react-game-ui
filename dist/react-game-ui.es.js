@@ -3148,7 +3148,7 @@ const DraggableFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => {
     image: uploadImage
   });
   const handleAdd = () => {
-    const id = newCompId || `drag-${Date.now()}`;
+    const id = newCompId || `draggable-${Date.now()}`;
     const initialProps = getInitialProps("Draggable", id, getOverrides());
     const additionalParams = {
       draggables: {
@@ -3165,7 +3165,7 @@ const DraggableFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => {
     setUploadImage(null);
   };
   const handleDragStart = (e) => {
-    const id = newCompId || `drag-${Date.now()}`;
+    const id = newCompId || `draggable-${Date.now()}`;
     const dragData = {
       type: "Draggable",
       id,
