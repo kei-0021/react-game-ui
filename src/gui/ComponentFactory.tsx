@@ -8,6 +8,7 @@ import { DeckFactory } from './factory/DeckFactory.js';
 import { DiceFactory } from './factory/DiceFactory.js';
 import { DraggableFactory } from './factory/DraggableFactory.js';
 import { ScoreBoardFactory } from './factory/ScoreBoardFactory.js';
+import { TokenStoreFactory } from './factory/TokenStoreFactory.js';
 
 const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== 'PlayField');
 
@@ -23,13 +24,11 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
   const [newCompId, setNewCompId] = useState('');
   const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
 
-  // --- UI状態 ---
-
-  // Token関連
-  const [newTokenCount, setNewTokenCount] = useState<number>(10);
-
   const existingIds = existingComponents.map((c) => c.id);
   const isDuplicateId = existingIds.includes(newCompId);
+
+  // Factory管理対象のリスト
+  const FACTORY_MANAGED_TYPES: ComponentType[] = ['Deck', 'Dice', 'Draggable', 'ScoreBoard', 'TokenStore'];
 
   /**
    * Props生成ロジックの集約
@@ -78,28 +77,12 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
     if (!newCompId || isDuplicateId) return;
 
     // Factory分離済みのタイプはここでは処理しない
-    if (['Deck', 'Dice', 'Draggable', 'ScoreBoard'].includes(newCompType)) return;
+    if (FACTORY_MANAGED_TYPES.includes(newCompType)) return;
 
     const initialProps = getInitialProps(newCompType, newCompId);
-    let additionalParams: Partial<GameParam> = {};
 
-    switch (newCompType) {
-      case 'TokenStore':
-        additionalParams.initialTokenStores = [
-          {
-            tokenStoreId: newCompId,
-            name: newCompId,
-            tokens: Array.from({ length: newTokenCount }, (_, i) => ({
-              id: `${newCompId}-s${i + 1}`,
-              name: '💰',
-              color: '#D4AF37',
-            })),
-          },
-        ];
-        break;
-    }
-
-    onAdd({ id: newCompId, type: newCompType, props: initialProps }, additionalParams);
+    // 現在のComponentFactoryに残っている追加ロジックはTimer等のシンプルなもののみ
+    onAdd({ id: newCompId, type: newCompType, props: initialProps });
     setNewCompId('');
   };
 
@@ -129,7 +112,7 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
     onDelete(compId, additionalParams);
   };
 
-  const isFactoryManaged = ['Deck', 'Dice', 'Draggable', 'ScoreBoard'].includes(newCompType);
+  const isFactoryManaged = FACTORY_MANAGED_TYPES.includes(newCompType);
 
   return (
     <div className={styles.addComponentBox}>
@@ -191,8 +174,6 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
         />
       )}
 
-      {/* --- その他の設定UI --- */}
-
       {newCompType === 'ScoreBoard' && (
         <ScoreBoardFactory
           newCompId={newCompId}
@@ -202,25 +183,13 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
         />
       )}
 
-      {/* --- その他の設定UI (TokenStore) --- */}
-
       {newCompType === 'TokenStore' && (
-        <div className={styles.field} style={{ marginTop: '10px' }}>
-          <div className={styles.label} style={{ fontSize: '11px' }}>
-            初期個数:
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input
-              type="range"
-              min="1"
-              max="50"
-              value={newTokenCount}
-              onChange={(e) => setNewTokenCount(Number(e.target.value))}
-              className={styles.slider}
-            />
-            <span style={{ fontSize: '12px', color: '#fff', minWidth: '30px' }}>{newTokenCount}</span>
-          </div>
-        </div>
+        <TokenStoreFactory
+          newCompId={newCompId}
+          onAdd={onAdd}
+          onSuccess={() => setNewCompId('')}
+          getInitialProps={getInitialProps}
+        />
       )}
 
       {/* --- 既存コンポーネントのリスト表示 --- */}

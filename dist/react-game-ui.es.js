@@ -3309,13 +3309,62 @@ const ScoreBoardFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => 
     )
   ] });
 };
+const TokenStoreFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => {
+  const [newTokenCount, setNewTokenCount] = useState(10);
+  const handleAdd = () => {
+    const id = newCompId || `token-${Date.now()}`;
+    const initialProps = getInitialProps("TokenStore", id);
+    const additionalParams = {
+      initialTokenStores: [
+        {
+          tokenStoreId: id,
+          name: id,
+          tokens: Array.from({ length: newTokenCount }, (_, i) => ({
+            id: `${id}-s${i + 1}`,
+            name: "💰",
+            color: "#D4AF37"
+          }))
+        }
+      ]
+    };
+    onAdd({ id, type: "TokenStore", props: initialProps }, additionalParams);
+    onSuccess();
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "初期個数:" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", alignItems: "center", gap: "8px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "range",
+          min: "1",
+          max: "50",
+          value: newTokenCount,
+          onChange: (e) => setNewTokenCount(Number(e.target.value)),
+          className: styles.slider
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "12px", color: "#fff", minWidth: "30px" }, children: newTokenCount })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "button",
+      {
+        className: styles.saveButton,
+        style: { width: "100%", marginTop: "10px" },
+        onClick: handleAdd,
+        disabled: !newCompId,
+        children: "TokenStoreを追加"
+      }
+    )
+  ] });
+};
 const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== "PlayField");
 const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }) => {
   const [newCompId, setNewCompId] = useState("");
   const [newCompType, setNewCompType] = useState("Dice");
-  const [newTokenCount, setNewTokenCount] = useState(10);
   const existingIds = existingComponents.map((c) => c.id);
   const isDuplicateId = existingIds.includes(newCompId);
+  const FACTORY_MANAGED_TYPES = ["Deck", "Dice", "Draggable", "ScoreBoard", "TokenStore"];
   const getInitialProps = (type, targetId, overrides = {}) => {
     switch (type) {
       case "Dice":
@@ -3356,25 +3405,9 @@ const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }
   };
   const handleAddClick = () => {
     if (!newCompId || isDuplicateId) return;
-    if (["Deck", "Dice", "Draggable", "ScoreBoard"].includes(newCompType)) return;
+    if (FACTORY_MANAGED_TYPES.includes(newCompType)) return;
     const initialProps = getInitialProps(newCompType, newCompId);
-    let additionalParams = {};
-    switch (newCompType) {
-      case "TokenStore":
-        additionalParams.initialTokenStores = [
-          {
-            tokenStoreId: newCompId,
-            name: newCompId,
-            tokens: Array.from({ length: newTokenCount }, (_, i) => ({
-              id: `${newCompId}-s${i + 1}`,
-              name: "💰",
-              color: "#D4AF37"
-            }))
-          }
-        ];
-        break;
-    }
-    onAdd({ id: newCompId, type: newCompType, props: initialProps }, additionalParams);
+    onAdd({ id: newCompId, type: newCompType, props: initialProps });
     setNewCompId("");
   };
   const handleDeleteClick = (compId) => {
@@ -3397,7 +3430,7 @@ const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }
     }
     onDelete(compId, additionalParams);
   };
-  const isFactoryManaged = ["Deck", "Dice", "Draggable", "ScoreBoard"].includes(newCompType);
+  const isFactoryManaged = FACTORY_MANAGED_TYPES.includes(newCompType);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.addComponentBox, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "コンポーネント追加:" }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.createSection, children: [
@@ -3452,23 +3485,15 @@ const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }
         getInitialProps
       }
     ),
-    newCompType === "TokenStore" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "初期個数:" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", alignItems: "center", gap: "8px" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            type: "range",
-            min: "1",
-            max: "50",
-            value: newTokenCount,
-            onChange: (e) => setNewTokenCount(Number(e.target.value)),
-            className: styles.slider
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "12px", color: "#fff", minWidth: "30px" }, children: newTokenCount })
-      ] })
-    ] }),
+    newCompType === "TokenStore" && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      TokenStoreFactory,
+      {
+        newCompId,
+        onAdd,
+        onSuccess: () => setNewCompId(""),
+        getInitialProps
+      }
+    ),
     existingComponents.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "15px" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "配置済みコンポーネント:" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.componentList, children: existingComponents.map((comp) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.componentItem, children: [
