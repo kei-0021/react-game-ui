@@ -5,21 +5,9 @@ import { COMPONENT_TYPES, ComponentInfo, ComponentType } from '@/types/component
 import { ComponentId } from '@/types/definition.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
+import { DeckFactory } from './factory/DeckFactory.js';
 
 const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== 'PlayField');
-
-const cardImages = import.meta.glob('../assets/trump/*.png', { eager: true, import: 'default' }) as Record<
-  string,
-  string
->;
-
-const getCardImage = (suit: string, num: number) => {
-  // globに渡したベースパスと引数を完全に一致させる
-  const targetKey = `../assets/trump/${suit}-${num}.png`;
-
-  // 完全一致で引き当てる
-  return cardImages[targetKey] || '';
-};
 
 interface ComponentFactoryProps {
   onAdd: (newComponent: ComponentInfo, additionalParams?: any) => void;
@@ -156,77 +144,9 @@ export const ComponentFactory = ({
     const initialProps = getInitialProps(newCompType, newCompId);
     let additionalParams: Partial<GameParam> = {};
 
+    if (newCompType === 'Deck') return;
+
     switch (newCompType) {
-      case 'Deck':
-        const fieldId = `${newCompId}-field`;
-
-        // 対になる PlayField を定義
-        const companionField: ComponentInfo = {
-          id: fieldId,
-          type: 'PlayField',
-          props: {
-            deckId: newCompId,
-            title: `${newCompId}用フィールド`,
-          },
-        };
-
-        let cards: CardData[] = [];
-
-        if (deckMode === 'preset') {
-          // プリセット（既存の共通化ロジック）
-          const common: Partial<CardData> = {
-            deckId: newCompId,
-            ownerId: null,
-            location: 'deck',
-            drawCondition: ['hand', 'back'],
-            fieldBackCondition: ['discard', 'face'],
-            playLocation: 'field',
-            isFaceUp: true,
-            backColor: 'black',
-          };
-
-          const suits = ['spades', 'hearts', 'diamonds', 'clubs'].flatMap((suit) =>
-            [1, 2].map((num) => ({
-              suffix: `${suit[0]}${num}`,
-              img: getCardImage(suit, num),
-            })),
-          );
-
-          cards = suits.map(
-            (suit) =>
-              ({
-                ...common,
-                id: `${newCompId}-${suit.suffix}`,
-                name: `${newCompId}-${suit.suffix}`,
-                frontImage: suit.img,
-              }) as CardData,
-          );
-        } else {
-          if (!deckJsonData) {
-            alert('JSONファイルを選択してください');
-            return;
-          }
-          cards = deckJsonData;
-        }
-
-        additionalParams.initialDecks = [
-          {
-            deckId: newCompId,
-            name: 'カード',
-            backColor: 'black',
-            cards: cards,
-          },
-        ];
-
-        // フィールドとデッキの両方を登録
-        onAdd(companionField, {});
-        onAdd({ id: newCompId, type: 'Deck', props: initialProps }, additionalParams);
-
-        // 共通のクリーンアップへ行かずに終了
-        setNewCompId('');
-        setUploadImage(null);
-        return;
-
       case 'TokenStore':
         additionalParams.initialTokenStores = [
           {
@@ -327,38 +247,12 @@ export const ComponentFactory = ({
       )}
 
       {/* Deck専用の設定項目 */}
-      {newCompType === 'Deck' && (
-        <div className={styles.field} style={{ marginTop: '10px' }}>
-          <div className={styles.label} style={{ fontSize: '11px' }}>
-            データ投入モード:
-          </div>
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-            <label style={{ fontSize: '12px', color: '#fff', cursor: 'pointer' }}>
-              <input
-                type="radio"
-                name="deckMode"
-                checked={deckMode === 'preset'}
-                onChange={() => setDeckMode('preset')}
-              />{' '}
-              プリセット (トランプ)
-            </label>
-            <label style={{ fontSize: '12px', color: '#fff', cursor: 'pointer' }}>
-              <input type="radio" name="deckMode" checked={deckMode === 'json'} onChange={() => setDeckMode('json')} />{' '}
-              JSONファイル
-            </label>
-          </div>
-
-          {deckMode === 'json' && (
-            <div>
-              <input type="file" accept=".json" onChange={handleJsonFileChange} className={styles.select} />
-              {deckFileName && (
-                <div style={{ fontSize: '10px', color: '#0f0', marginTop: '4px' }}>
-                  読み込み完了: {deckFileName} ({deckJsonData?.length}枚)
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+      {newCompType === 'Deck' ? (
+        <DeckFactory newCompId={newCompId} onAdd={onAdd} onSuccess={() => setNewCompId('')} />
+      ) : (
+        <button className={styles.saveButton} onClick={handleAddClick} disabled={!newCompId || isDuplicateId}>
+          追加
+        </button>
       )}
 
       {/* ScoreBoard専用の設定項目 */}
