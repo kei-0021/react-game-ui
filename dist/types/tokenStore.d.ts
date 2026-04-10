@@ -1,7 +1,8 @@
-import { Token } from './token.js';
-export type TokenStore = {
-    tokenStoreId: string;
+import type { TokenStoreId } from './definition.js';
+import type { TokenData } from './token.js';
+export type TokenStoreData = {
+    tokenStoreId: TokenStoreId;
     name: string;
-    tokens: Token[];
+    tokens: TokenData[];
 };
 //# sourceMappingURL=tokenStore.d.ts.map

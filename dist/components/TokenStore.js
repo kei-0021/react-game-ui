@@ -10,7 +10,7 @@ import styles from './TokenStore.module.css';
  * @param {RoomId} roomId - 現在参加しているルームの識別子
  * @param {TokenStoreId} tokenStoreId - このトークンストア固有の識別子
  * @param {string} title - UIに表示するストアのタイトル
- * @param {(token: Token) => void} [onSelect] - トークンが選択された際に呼び出されるオプションのコールバック関数
+ * @param {(token: TokenData) => void} [onSelect] - トークンが選択された際に呼び出されるオプションのコールバック関数
  */
 export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
     const [tokenStoreTokens, setTokenStoreTokens] = useState([]);

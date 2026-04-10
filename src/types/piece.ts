@@ -1,6 +1,6 @@
 // src/types/piece.ts
 
-import { PieceId } from './definition.js';
+import type { PieceId } from './definition.js';
 
 // コマのデータ型
 export type PieceData = {

@@ -1,9 +1,9 @@
 // src/types/card.ts
 
-import { CardLocation } from './cardLocation.js';
-import { CardState } from './cardState.js';
-import { Coordinate } from './coodinate.js';
-import { CardId, DeckId, PlayerId } from './definition.js';
+import type { CardLocation } from './cardLocation.js';
+import type { CardState } from './cardState.js';
+import type { Coordinate } from './coodinate.js';
+import type { CardId, DeckId, PlayerId } from './definition.js';
 
 /**
  * @property {CardId} id - カードの一意な識別子

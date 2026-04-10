@@ -1,10 +1,12 @@
 // src/types/socketData.ts
 
-import { CardData, CellData, ComponentInfo, GameParam, RoomState } from '@/index.js';
-import { CardLocation } from './cardLocation.js';
-import { CardState } from './cardState.js';
-import { Coordinate } from './coodinate.js';
-import {
+import type { CardData } from './card.js';
+import type { CardLocation } from './cardLocation.js';
+import type { CardState } from './cardState.js';
+import type { CellData } from './cell.js';
+import type { ComponentInfo } from './component.js';
+import type { Coordinate } from './coodinate.js';
+import type {
   BoardId,
   CardId,
   DeckId,
@@ -16,8 +18,10 @@ import {
   TokenId,
   TokenStoreId,
 } from './definition.js';
-import { Phase } from './phase.js';
-import { Token } from './token.js';
+import type { GameParam } from './gameParam.js';
+import type { Phase } from './phase.js';
+import type { RoomState } from './roomState.js';
+import type { TokenData } from './token.js';
 
 /*
  * ===========================================
@@ -148,7 +152,7 @@ export type TokenAcquireData = {
 };
 
 export type TokenStoreUpdateData = {
-  tokenStore: Token[];
+  tokenStore: TokenData[];
 };
 
 /*

@@ -1,11 +1,11 @@
-import { CardData } from './card.js';
-import { CellData } from './cell.js';
-import { BoardId, CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenStoreId } from './definition.js';
-import { DraggableData } from './draggable.js';
-import { Phase } from './phase.js';
-import { Player } from './player.js';
-import { Position } from './position.js';
-import { Token } from './token.js';
+import type { CardData } from './card.js';
+import type { CellData } from './cell.js';
+import type { BoardId, CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenStoreId } from './definition.js';
+import type { DraggableData } from './draggable.js';
+import type { Phase } from './phase.js';
+import type { Player } from './player.js';
+import type { Position } from './position.js';
+import type { TokenData } from './token.js';
 /**
  * 実行中のゲームルームの動的な状態を管理する。
  * @param gameId - 適用されているゲーム設定の識別ID。
@@ -40,7 +40,7 @@ export type RoomState = {
     holdCards: Record<PlayerId, Record<DeckId, CardId[]>>;
     boards: Record<BoardId, CellData[]>;
     exploredCells: Position[];
-    tokenStores: Record<TokenStoreId, Token[]>;
+    tokenStores: Record<TokenStoreId, TokenData[]>;
     draggables: Record<DraggableId, DraggableData>;
     timer: NodeJS.Timeout;
     maxZIndex: number;

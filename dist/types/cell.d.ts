@@ -1,4 +1,4 @@
-import { CellId } from './definition.js';
+import type { CellId } from './definition.js';
 /**
  * 各マスの基本データ構造
  * @property {CellId} id - セルの一意識別子

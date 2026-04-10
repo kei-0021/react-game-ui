@@ -2,9 +2,9 @@
 
 import type { CardData } from './card.js';
 import type { PlayerId } from './definition.js';
-import { Position } from './position.js';
+import type { Position } from './position.js';
 import type { Resource } from './resource.js';
-import type { Token } from './token.js';
+import type { TokenData } from './token.js';
 
 /**
  * ゲームに参加するプレイヤーの状態を管理する型定義
@@ -28,7 +28,7 @@ export type Player = {
   color: string;
   cards: CardData[];
   isHolding: boolean;
-  tokens: Token[];
+  tokens: TokenData[];
   resources: Resource[];
   score: number;
   position: Position;

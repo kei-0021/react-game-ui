@@ -16,8 +16,8 @@ import type {
   TokenStoreId,
 } from '@/index.js';
 import { DeckData } from '@/types/deck.js';
-import { Token } from '@/types/token.js';
-import { TokenStore } from '@/types/tokenStore.js';
+import { TokenData } from '@/types/token.js';
+import { TokenStoreData } from '@/types/tokenStore.js';
 import { server_log } from '../logger.js';
 import { generateColorFromId } from './utils.js';
 
@@ -58,7 +58,7 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
   const discardPile: Record<DeckId, CardData[]> = {};
   const holdCards: Record<PlayerId, Record<DeckId, CardId[]>> = {};
 
-  const tokenStores: Record<TokenStoreId, Token[]> = {};
+  const tokenStores: Record<TokenStoreId, TokenData[]> = {};
 
   initialDecks.forEach((deck: DeckData) => {
     const cards: CardData[] = (deck.cards || []).map((c, index) => ({
@@ -81,8 +81,8 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     }
   });
 
-  initialTokenStores.forEach((tokenStore: TokenStore) => {
-    const tokens: Token[] = (tokenStore.tokens || []).map((t, index) => ({
+  initialTokenStores.forEach((tokenStore: TokenStoreData) => {
+    const tokens: TokenData[] = (tokenStore.tokens || []).map((t, index) => ({
       ...t,
       tokenStoreId: tokenStore.tokenStoreId,
       instanceId: `${roomId}_${tokenStore.tokenStoreId}_${index}`,

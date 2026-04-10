@@ -3,7 +3,7 @@ import { TokenAcquireData, TokenStoreUpdateData } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import { RoomId, TokenId, TokenStoreId } from '../types/definition.js';
-import { Token } from '../types/token.js';
+import { TokenData } from '../types/token.js';
 import { TokenDisplayContent } from './Token.js';
 import styles from './TokenStore.module.css';
 
@@ -12,7 +12,7 @@ type TokenStoreProps = {
   roomId: RoomId;
   tokenStoreId: TokenStoreId;
   title: string;
-  onSelect?: (token: Token) => void;
+  onSelect?: (token: TokenData) => void;
 };
 
 /**
@@ -23,10 +23,10 @@ type TokenStoreProps = {
  * @param {RoomId} roomId - 現在参加しているルームの識別子
  * @param {TokenStoreId} tokenStoreId - このトークンストア固有の識別子
  * @param {string} title - UIに表示するストアのタイトル
- * @param {(token: Token) => void} [onSelect] - トークンが選択された際に呼び出されるオプションのコールバック関数
+ * @param {(token: TokenData) => void} [onSelect] - トークンが選択された際に呼び出されるオプションのコールバック関数
  */
 export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }: TokenStoreProps) {
-  const [tokenStoreTokens, setTokenStoreTokens] = useState<Token[]>([]);
+  const [tokenStoreTokens, setTokenStoreTokens] = useState<TokenData[]>([]);
 
   useEffect(() => {
     socket.on(`token-store:update:${tokenStoreId}`, (data: TokenStoreUpdateData) => {

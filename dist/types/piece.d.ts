@@ -1,4 +1,4 @@
-import { PieceId } from './definition.js';
+import type { PieceId } from './definition.js';
 export type PieceData = {
     id: PieceId;
     name: string;

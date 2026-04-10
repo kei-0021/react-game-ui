@@ -1,6 +1,6 @@
 // src/types/draggable.ts
-import { DraggableId } from '@/index.js';
-import { Coordinate } from './coodinate.js';
+import type { Coordinate } from './coodinate.js';
+import type { DraggableId } from './definition.js';
 
 /**
  * 盤面上に自由に配置されるオブジェクト（コマ、トークンなど）のデータ構造

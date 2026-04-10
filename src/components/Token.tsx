@@ -1,9 +1,9 @@
 // src/components/Token.tsx
-import { Token } from '@/types/token.js';
+import { TokenData } from '@/types/token.js';
 import React from 'react';
 import styles from './Token.module.css';
 
-export const TokenDisplayContent = React.memo(({ token }: { token: Token }) => {
+export const TokenDisplayContent = React.memo(({ token }: { token: TokenData }) => {
   // 画像がある場合
   if (token.imageSrc) {
     return (

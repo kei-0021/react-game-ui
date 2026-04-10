@@ -1,5 +1,5 @@
-import { PlayerId } from '@/types/definition.js';
-import { Phase } from '@/types/phase.js';
+import type { PlayerId } from './definition.js';
+import type { Phase } from './phase.js';
 export type Instruction = {
     type: 'ADD_SCORE';
     playerId: PlayerId | 'ALL';

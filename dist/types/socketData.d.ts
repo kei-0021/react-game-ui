@@ -1,10 +1,14 @@
-import { CardData, CellData, ComponentInfo, GameParam, RoomState } from '@/index.js';
-import { CardLocation } from './cardLocation.js';
-import { CardState } from './cardState.js';
-import { Coordinate } from './coodinate.js';
-import { BoardId, CardId, DeckId, DiceId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
-import { Phase } from './phase.js';
-import { Token } from './token.js';
+import type { CardData } from './card.js';
+import type { CardLocation } from './cardLocation.js';
+import type { CardState } from './cardState.js';
+import type { CellData } from './cell.js';
+import type { ComponentInfo } from './component.js';
+import type { Coordinate } from './coodinate.js';
+import type { BoardId, CardId, DeckId, DiceId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
+import type { GameParam } from './gameParam.js';
+import type { Phase } from './phase.js';
+import type { RoomState } from './roomState.js';
+import type { TokenData } from './token.js';
 export type RoomMeta = {
     id: RoomId;
     gameId: GameId;
@@ -95,7 +99,7 @@ export type TokenAcquireData = {
     tokenId: TokenId;
 };
 export type TokenStoreUpdateData = {
-    tokenStore: Token[];
+    tokenStore: TokenData[];
 };
 export type BoardMovableRangeData = {
     roomId: RoomId;

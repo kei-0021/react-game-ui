@@ -1,17 +1,17 @@
 // src/types/server/gameParam.ts
 
-import { RoomState } from '@/index.js';
-import { RoomManager } from '@/server/room-manager.js';
-import { CellData } from './cell.js';
-import { ComponentInfo } from './component.js';
-import { DeckData } from './deck.js';
-import { BoardId, DeckId, DraggableId, GameId, PlayerId, TokenId } from './definition.js';
-import { DraggableData } from './draggable.js';
-import { Instruction } from './instruction.js';
-import { Phase } from './phase.js';
-import { Resource } from './resource.js';
-import { CardPlayData, DeckDrawData } from './socketData.js';
-import { TokenStore } from './tokenStore.js';
+import type { RoomManager } from '@/server/room-manager.js';
+import type { CellData } from './cell.js';
+import type { ComponentInfo } from './component.js';
+import type { DeckData } from './deck.js';
+import type { BoardId, DeckId, DraggableId, GameId, PlayerId, TokenId } from './definition.js';
+import type { DraggableData } from './draggable.js';
+import type { Instruction } from './instruction.js';
+import type { Phase } from './phase.js';
+import type { Resource } from './resource.js';
+import type { RoomState } from './roomState.js';
+import type { CardPlayData, DeckDrawData } from './socketData.js';
+import type { TokenStoreData } from './tokenStore.js';
 
 /**
  * ゲームルーム作成時の初期設定パラメータ。
@@ -46,7 +46,7 @@ export type GameParam = {
   initialDecks?: DeckData[];
   initialHand?: Record<DeckId, number>;
   initialResources?: Resource[];
-  initialTokenStores?: TokenStore[];
+  initialTokenStores?: TokenStoreData[];
   initialTokens?: Record<TokenId, number>;
   initialBoard?: Record<BoardId, CellData[]>;
   shuffleAndReconnectBoard?: Record<BoardId, (cells: CellData[]) => CellData[]>;

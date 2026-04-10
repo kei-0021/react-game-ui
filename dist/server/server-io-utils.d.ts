@@ -1,7 +1,7 @@
 import { CellData, DraggableData, GameParam } from '@/index.js';
 import { Coordinate } from '@/types/coodinate.js';
 import { GameId } from '@/types/definition.js';
-import { Token } from '@/types/token.js';
+import { TokenData } from '@/types/token.js';
 import { CardData } from '../types/card.js';
 import { Resource } from '../types/resource.js';
 export type RoomConfig = {
@@ -42,7 +42,7 @@ export declare class SetupHelper {
      * @param color - トークンの背景用のカラーコード（省略可能）
      * @returns トークン置き場
      */
-    createTokenStore(tokens: Token[], count: number, imageSrc?: string, color?: string): Token[];
+    createTokenStore(tokens: TokenData[], count: number, imageSrc?: string, color?: string): TokenData[];
     /**
      * グリッド状ボードレイアウトの生成
      */

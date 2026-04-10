@@ -1,5 +1,5 @@
-import { CardData } from './card.js';
-import { DeckId } from './definition.js';
+import type { CardData } from './card.js';
+import type { DeckId } from './definition.js';
 export type DeckData = {
     deckId: DeckId;
     name: string;

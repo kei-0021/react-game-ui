@@ -1,5 +1,5 @@
 // src/types/server.ts
-import { ComponentId, GameId } from './definition.js';
+import type { ComponentId, GameId } from './definition.js';
 
 /**
  * 利用可能なコンポーネントの種類一覧

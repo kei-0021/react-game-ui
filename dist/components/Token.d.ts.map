@@ -1,1 +1,1 @@
-{"version":3,"file":"Token.d.ts","sourceRoot":"","sources":["../../src/components/Token.tsx"],"names":[],"mappings":"AACA,OAAO,EAAE,KAAK,EAAE,MAAM,kBAAkB,CAAC;AACzC,OAAO,KAAK,MAAM,OAAO,CAAC;AAG1B,eAAO,MAAM,mBAAmB,wCAA0B;IAAE,KAAK,EAAE,KAAK,CAAA;CAAE,6CAkBxE,CAAC"}
+{"version":3,"file":"Token.d.ts","sourceRoot":"","sources":["../../src/components/Token.tsx"],"names":[],"mappings":"AACA,OAAO,EAAE,SAAS,EAAE,MAAM,kBAAkB,CAAC;AAC7C,OAAO,KAAK,MAAM,OAAO,CAAC;AAG1B,eAAO,MAAM,mBAAmB,wCAA0B;IAAE,KAAK,EAAE,SAAS,CAAA;CAAE,6CAkB5E,CAAC"}

@@ -1,6 +1,7 @@
+import type { PlayerId, ResourceId } from './definition.js';
 export type CardEffectParams = {
-    playerId?: string;
-    addScore: (playerId: string, points: number) => void;
-    updateResource: (playerId: string, resourceId: string, amount: number) => void;
+    playerId?: PlayerId;
+    addScore: (playerId: PlayerId, points: number) => void;
+    updateResource: (playerId: PlayerId, resourceId: ResourceId, amount: number) => void;
 };
 //# sourceMappingURL=cardEffectParams.d.ts.map

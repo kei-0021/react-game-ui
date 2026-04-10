@@ -1,4 +1,4 @@
-import { TokenId } from './definition.js';
+import type { TokenId } from './definition.js';
 /**
  * トークンのデータ構造
  * @property {TokenId} id - 一意な識別子
@@ -7,7 +7,7 @@ import { TokenId } from './definition.js';
  * @property {string} [color] - トークンの背景用のカラーコード
  * @property {string} [description] - トークンの説明文
  */
-export type Token = {
+export type TokenData = {
     id: TokenId;
     name: string;
     imageSrc?: string;
