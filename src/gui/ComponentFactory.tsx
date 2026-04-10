@@ -7,6 +7,7 @@ import styles from './ControlPanel.module.css';
 import { DeckFactory } from './factory/DeckFactory.js';
 import { DiceFactory } from './factory/DiceFactory.js';
 import { DraggableFactory } from './factory/DraggableFactory.js';
+import { ScoreBoardFactory } from './factory/ScoreBoardFactory.js';
 
 const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== 'PlayField');
 
@@ -23,13 +24,6 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
   const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
 
   // --- UI状態 ---
-
-  // ScoreBoard関連
-  const [sbPlayCard, setSbPlayCard] = useState<boolean>(true);
-  const [sbHold, setSbHold] = useState<boolean>(false);
-  const [sbFlip, setSbFlip] = useState<boolean>(false);
-  const [sbTurnSkip, setSbTurnSkip] = useState<boolean>(true);
-  const [sbRoundSkip, setSbRoundSkip] = useState<boolean>(false);
 
   // Token関連
   const [newTokenCount, setNewTokenCount] = useState<number>(10);
@@ -62,11 +56,11 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
         };
       case 'ScoreBoard':
         return {
-          playCardButton: [sbPlayCard, true],
-          holdButton: [sbHold, true],
-          flipButton: [sbFlip, true],
-          turnSkipButton: [sbTurnSkip, true],
-          roundSkipButton: [sbRoundSkip, true],
+          playCardButton: [overrides.sbPlayCard ?? true, true],
+          holdButton: [overrides.sbHold ?? false, true],
+          flipButton: [overrides.sbFlip ?? false, true],
+          turnSkipButton: [overrides.sbTurnSkip ?? true, true],
+          roundSkipButton: [overrides.sbRoundSkip ?? false, true],
         };
       case 'TokenStore':
         return {
@@ -84,7 +78,7 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
     if (!newCompId || isDuplicateId) return;
 
     // Factory分離済みのタイプはここでは処理しない
-    if (['Deck', 'Dice', 'Draggable'].includes(newCompType)) return;
+    if (['Deck', 'Dice', 'Draggable', 'ScoreBoard'].includes(newCompType)) return;
 
     const initialProps = getInitialProps(newCompType, newCompId);
     let additionalParams: Partial<GameParam> = {};
@@ -135,7 +129,7 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
     onDelete(compId, additionalParams);
   };
 
-  const isFactoryManaged = ['Deck', 'Dice', 'Draggable'].includes(newCompType);
+  const isFactoryManaged = ['Deck', 'Dice', 'Draggable', 'ScoreBoard'].includes(newCompType);
 
   return (
     <div className={styles.addComponentBox}>
@@ -200,38 +194,15 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
       {/* --- その他の設定UI --- */}
 
       {newCompType === 'ScoreBoard' && (
-        <div
-          className={styles.field}
-          style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }}
-        >
-          <div className={styles.label} style={{ fontSize: '11px' }}>
-            有効にするボタン:
-          </div>
-
-          {[
-            { label: 'カードプレイ', state: sbPlayCard, setter: setSbPlayCard },
-            { label: 'ホールド', state: sbHold, setter: setSbHold },
-            { label: 'フリップ', state: sbFlip, setter: setSbFlip },
-            { label: 'ターンスキップ', state: sbTurnSkip, setter: setSbTurnSkip },
-            { label: 'ラウンドスキップ', state: sbRoundSkip, setter: setSbRoundSkip },
-          ].map((item) => (
-            <label
-              key={item.label}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                color: '#fff',
-              }}
-            >
-              <input type="checkbox" checked={item.state} onChange={(e) => item.setter(e.target.checked)} />
-              {item.label}
-            </label>
-          ))}
-        </div>
+        <ScoreBoardFactory
+          newCompId={newCompId}
+          onAdd={onAdd}
+          onSuccess={() => setNewCompId('')}
+          getInitialProps={getInitialProps}
+        />
       )}
+
+      {/* --- その他の設定UI (TokenStore) --- */}
 
       {newCompType === 'TokenStore' && (
         <div className={styles.field} style={{ marginTop: '10px' }}>
