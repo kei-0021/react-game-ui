@@ -1,7 +1,7 @@
 // src/server/listener/room-listener.ts
 import { GameParam, RoomState } from '@/index.js';
 import { GameId, RoomId } from '@/types/definition.js';
-import { GameComponentData, RoomJoinData } from '@/types/socketData.js';
+import { GameComponentData, GameNextRoundData, GameNextTrunData, RoomJoinData } from '@/types/socketData.js';
 import { Server, Socket } from 'socket.io';
 import { server_log } from '../logger.js';
 import { createPlayer, createState } from '../logic/create-state.js';
@@ -57,6 +57,24 @@ export function registerRoomListeners(
     const param = gameParams[state.gameId];
     const roomManager = new RoomManager(io, param, state);
     syncState(state, roomManager, io);
+  });
+
+  // 次のターン
+  socket.on('game:next-turn', ({ roomId }: GameNextTrunData) => {
+    const state = activeRooms.get(roomId);
+    if (!state) return;
+    const param = gameParams[state.gameId];
+    const roomManager = new RoomManager(io, param, state);
+    roomManager.updateTurn();
+  });
+
+  // 次のラウンド
+  socket.on('game:next-round', ({ roomId }: GameNextRoundData) => {
+    const state = activeRooms.get(roomId);
+    if (!state) return;
+    const param = gameParams[state.gameId];
+    const roomManager = new RoomManager(io, param, state);
+    roomManager.updateRound();
   });
 
   socket.on('disconnect', () => {

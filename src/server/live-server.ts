@@ -2,7 +2,7 @@
 import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/gameParam.js';
 import { GameComponentData, LobbyGameList } from '@/types/socketData.js';
-import { registerEditorListeners } from './listener/editor-listner.js';
+import { registerEditorListeners } from './listener/editor-listener.js';
 import { server_log } from './logger.js';
 import { createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';

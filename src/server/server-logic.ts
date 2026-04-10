@@ -1,20 +1,14 @@
 // src/server/server-logic.ts
 import { GameParam, RoomState } from '@/index.js';
 import { RoomId } from '@/types/definition.js';
-import {
-  GameNextRoundData,
-  GameNextTrunData,
-  LobbyGameList,
-  LobbyRoomList,
-  ObjectBringToData,
-  RoomMeta,
-} from '@/types/socketData.js';
+import { LobbyGameList, LobbyRoomList, ObjectBringToData, RoomMeta } from '@/types/socketData.js';
 import { Server, Socket } from 'socket.io';
 import { registerBoardListeners } from './listener/board-listener.js';
-import { registerDeckListeners } from './listener/deck-listenr.js';
+import { registerDeckListeners } from './listener/deck-listener.js';
 import { registerDiceListeners } from './listener/dice-listener.js';
 import { registerDraggableListeners } from './listener/draggable-listener.js';
-import { registerEditorListeners } from './listener/editor-listner.js';
+import { registerEditorListeners } from './listener/editor-listener.js';
+import { registerPlayerListeners } from './listener/player-listener.js';
 import { registerRoomListeners } from './listener/room-listener.js';
 import { registerTimerListeners } from './listener/timer-listener.js';
 import { registerTokenListeners } from './listener/token-listener.js';
@@ -85,7 +79,7 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       } as LobbyRoomList);
     });
 
-    // ルーム関連
+    // ルーム進行関連
     registerRoomListeners(socket, io, gameParams, activeRooms);
 
     // デッキ関連
@@ -106,6 +100,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     // タイマー関連
     registerTimerListeners(socket, io, gameParams, activeRooms);
 
+    // プレイヤー要素関連
+    registerPlayerListeners(socket, io, gameParams, activeRooms);
+
     socket.on('cursor:move', ({ roomId, x, y }) => {
       socket.to(roomId).emit('cursor:update', { playerId: socket.id, x, y });
     });
@@ -118,42 +115,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const roomManager = new RoomManager(io, param, state);
 
       roomManager.updateZIndex(type, objectId, isFront);
-    });
-
-    // 次のターン
-    socket.on('game:next-turn', ({ roomId }: GameNextTrunData) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-      roomManager.updateTurn();
-    });
-
-    // 次のラウンド
-    socket.on('game:next-round', ({ roomId }: GameNextRoundData) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-      roomManager.updateRound();
-    });
-
-    // スコア加算
-    socket.on('player:add-score', ({ roomId, targetPlayerId, points }) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-      roomManager.addScore(targetPlayerId, points);
-    });
-
-    // リソース加算
-    socket.on('player:update-resource', ({ roomId, playerId, resourceId, amount }) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-      roomManager.acquireResource(playerId, resourceId, amount);
     });
 
     // --- カスタムイベント ---

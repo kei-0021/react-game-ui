@@ -7,4 +7,4 @@ import { Server, Socket } from 'socket.io';
  * プレイヤー対戦の核となるアクションを制御する。
  */
 export declare function registerDeckListeners(socket: Socket, io: Server, gameParams: Record<GameId, GameParam>, activeRooms: Map<RoomId, RoomState>): void;
-//# sourceMappingURL=deck-listenr.d.ts.map
+//# sourceMappingURL=deck-listener.d.ts.map

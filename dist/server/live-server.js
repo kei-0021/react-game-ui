@@ -1,4 +1,4 @@
-import { registerEditorListeners } from './listener/editor-listner.js';
+import { registerEditorListeners } from './listener/editor-listener.js';
 import { server_log } from './logger.js';
 import { createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';

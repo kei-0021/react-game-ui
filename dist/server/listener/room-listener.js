@@ -43,6 +43,24 @@ export function registerRoomListeners(socket, io, gameParams, activeRooms) {
         const roomManager = new RoomManager(io, param, state);
         syncState(state, roomManager, io);
     });
+    // 次のターン
+    socket.on('game:next-turn', ({ roomId }) => {
+        const state = activeRooms.get(roomId);
+        if (!state)
+            return;
+        const param = gameParams[state.gameId];
+        const roomManager = new RoomManager(io, param, state);
+        roomManager.updateTurn();
+    });
+    // 次のラウンド
+    socket.on('game:next-round', ({ roomId }) => {
+        const state = activeRooms.get(roomId);
+        if (!state)
+            return;
+        const param = gameParams[state.gameId];
+        const roomManager = new RoomManager(io, param, state);
+        roomManager.updateRound();
+    });
     socket.on('disconnect', () => {
         for (const [id, state] of activeRooms.entries()) {
             const idx = state.players.findIndex((p) => p.socketId === socket.id);

@@ -9,4 +9,4 @@ import { Socket } from 'socket.io';
  * @param {Record<GameId, GameParam>} gameParams - サーバーが保持しているゲーム定義データの参照
  */
 export declare function registerEditorListeners(socket: Socket, gameParams: Record<GameId, GameParam>): void;
-//# sourceMappingURL=editor-listner.d.ts.map
+//# sourceMappingURL=editor-listener.d.ts.map
