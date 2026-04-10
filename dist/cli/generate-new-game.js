@@ -126,14 +126,20 @@ export const ${pascalName}Config: RoomConfig = {
     // --- Room Component Template ---
     const roomTemplate = `import { DropContainer } from '@/gui/DropContainer';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ComponentInfo, GameParam, GameTurnUpdateData, LobbyGameList, Player, RoomJoinData } from 'react-game-ui';
+import type {
+  ComponentInfo,
+  GameParam,
+  GameTurnUpdateData,
+  LobbyGameList,
+  Player,
+  PlayerId,
+  RoomJoinData,
+} from 'react-game-ui';
 import {
   ControlPanel,
   Deck,
   Dice,
-  Draggable,
   DynamicComponent,
-  PlayerId,
   PlayField,
   RemoteCursor,
   ScoreBoard,
@@ -157,21 +163,27 @@ export function ${pascalName}Room() {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // --- 参加・プレイヤー状態 ---
   const [userName, setUserName] = useState<string>('');
   const [isJoining, setIsJoining] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+
+  // --- ゲーム進行状態 ---
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
 
-  // 動的コンポーネント情報の管理
+  // --- 動的コンポーネント & パラメータ管理 ---
   const [componentInfo, setComponentInfo] = useState<ComponentInfo[]>([]);
-
   const [games, setGames] = useState<GameParam[]>([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
+  // 現在のゲーム設定（poker）を抽出
+  const currentGameParam = games.find((g) => g.gameId === '${lowerName}');
+
+  // ウィンドウリサイズに応じたスケーリング
   useEffect(() => {
     const handleResize = () => {
       const scaleX = window.innerWidth / BASE_WIDTH;
@@ -182,6 +194,7 @@ export function ${pascalName}Room() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // 入場処理
   const handleJoinRoom = useCallback(() => {
     if (!socket || userName.trim() === '' || isJoining) return;
     setIsJoining(true);
@@ -192,8 +205,10 @@ export function ${pascalName}Room() {
     } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);
 
+  // Socket.IO イベントリスナー
   useEffect(() => {
     if (!socket) return;
+
     const onClientReady = (id: PlayerId) => {
       setMyPlayerId(id);
       setHasJoined(true);
@@ -201,7 +216,9 @@ export function ${pascalName}Room() {
       socket.emit('client:ready', roomId);
       socket.emit('lobby:get-info');
     };
+
     const handlePlayersUpdate = (updatedPlayers: Player[]) => setPlayers(updatedPlayers);
+
     const handleGameTurn = (data: GameTurnUpdateData) => {
       setCurrentPlayerId(data.currentPlayerId);
       setCurrentRound(data.currentRoundIndex + 1);
@@ -213,28 +230,29 @@ export function ${pascalName}Room() {
     };
 
     // ゲームリスト受信
-    socket.on('lobby:game-list', (data: LobbyGameList) => {
-      if (!Array.isArray(data) && data.games) {
-        setGames(Object.values(data.games).filter((game) => game.gameId === "${lowerName}"));
-      }
-    });
+    const handleGameList = (data: LobbyGameList) => {
+      const list = Array.isArray(data) ? data : data.games ? Object.values(data.games) : [];
+      setGames(list.filter((game) => game.gameId === 'poker'));
+    };
 
     socket.on('client:ready-to-sync', onClientReady);
     socket.on('players:update', handlePlayersUpdate);
     socket.on('game:turn', handleGameTurn);
     socket.on('game:component', handleGameComponent);
+    socket.on('lobby:game-list', handleGameList);
 
     return () => {
       socket.off('client:ready-to-sync', onClientReady);
-      socket.off('lobby:game-list');
       socket.off('players:update', handlePlayersUpdate);
       socket.off('game:turn', handleGameTurn);
       socket.off('game:component', handleGameComponent);
+      socket.off('lobby:game-list', handleGameList);
     };
   }, [socket, roomId]);
 
   if (!roomId) return null;
 
+  // 入場前画面
   if (!hasJoined) {
     return (
       <div className={styles.joinScreen}>
@@ -276,36 +294,25 @@ export function ${pascalName}Room() {
         <DropContainer
           scale={scale}
           containerRef={containerRef}
-          socket={socket}
+          socket={socket!}
           roomId={roomId!}
           componentInfo={componentInfo}
-          games={games}
+          gameParam={currentGameParam as GameParam}
           setComponentInfo={setComponentInfo}
         >
-          {/* パネルが開いている時だけ背後に敷く透明なレイヤー */}
-          {isPanelOpen && (
-            <div
-              className="panel-overlay"
-              onClick={() => setIsPanelOpen(false)}
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                zIndex: 998,
-                background: 'transparent',
-              }}
-            />
-          )}
+          {/* パネル操作時のオーバーレイ */}
+          {isPanelOpen && <div className={styles.panelOverlay} onClick={() => setIsPanelOpen(false)} />}
 
           <header className={styles.gameHeader}>
           <h1>${gameIcon} ${gameName}</h1>
-            <div>Round: {currentRound}</div>
-            <button onClick={() => navigate('/')}>ロビーへ</button>
+            <div className={styles.roundLabel}>Round: {currentRound}</div>
+            <button onClick={() => navigate('/')} className={styles.backButton}>
+              ロビーへ
+            </button>
           </header>
 
           <main className={styles.gameMain}>
+            {/* 左サイドバー：固定コンポーネント */}
             <aside className={styles.sidebarLeft}>
               <Deck
                 socket={socket!}
@@ -315,15 +322,20 @@ export function ${pascalName}Room() {
                 currentPlayerId={currentPlayerId}
                 myPlayerId={myPlayerId}
               />
-              <Dice sides={6} socket={socket} diceId="move" roomId={roomId} />
+              <Dice sides={6} socket={socket!} diceId="move" roomId={roomId} />
             </aside>
 
+            {/* メインフィールド */}
             <div className={styles.playFieldContainer}>
               <RemoteCursor
                 socket={socket!}
                 roomId={roomId}
                 myPlayerId={myPlayerId}
-                players={players.map((p) => ({ name: p.name, socketId: String(p.id), color: p.color }))}
+                players={players.map((p) => ({
+                  name: p.name,
+                  socketId: String(p.id),
+                  color: p.color,
+                }))}
                 scale={scale}
                 fixedContainerRef={containerRef}
                 visible={true}
@@ -337,9 +349,9 @@ export function ${pascalName}Room() {
                 myPlayerId={myPlayerId}
                 layoutMode="free"
               />
-              <Draggable socket={socket!} roomId={roomId} draggableId="piece" containerRef={containerRef} />
             </div>
 
+            {/* 右サイドバー：スコア管理 */}
             <aside className={styles.sidebarRight}>
               <ScoreBoard
                 socket={socket!}
@@ -351,8 +363,10 @@ export function ${pascalName}Room() {
             </aside>
           </main>
 
+          {/* 共通トークンエリア */}
           <TokenStore socket={socket!} roomId={roomId} tokenStoreId="chips" title="所持チップ" />
 
+          {/* 動的に配置される全コンポーネント */}
           {componentInfo.map((info) => (
             <DynamicComponent
               key={info.id}
@@ -369,9 +383,10 @@ export function ${pascalName}Room() {
         </DropContainer>
       </div>
 
+      {/* 管理パネル */}
       <ControlPanel
         socket={socket!}
-        GameParam={games}
+        GameParam={currentGameParam ? [currentGameParam] : []}
         containerRef={containerRef}
         isOpen={isPanelOpen}
         onToggle={() => setIsPanelOpen(!isPanelOpen)}

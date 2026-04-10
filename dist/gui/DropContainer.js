@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useCallback, useState } from 'react';
-export function DropContainer({ scale, containerRef, socket, roomId, componentInfo, games, setComponentInfo, children, }) {
+export function DropContainer({ scale, containerRef, socket, roomId, componentInfo, gameParam, setComponentInfo, children, }) {
     const [previewSlot, setPreviewSlot] = useState(null);
     const getCanvasCoordinates = useCallback((e) => {
         const canvas = containerRef.current;
@@ -46,8 +46,7 @@ export function DropContainer({ scale, containerRef, socket, roomId, componentIn
                 },
             };
             const updatedComponents = [...componentInfo, newComponent];
-            const currentGame = games.find((g) => g.gameId === 'poker') || games[0];
-            let updatedDraggables = { ...(currentGame?.draggables || {}) };
+            let updatedDraggables = { ...(gameParam?.draggables || {}) };
             if (data.type === 'Draggable') {
                 updatedDraggables[targetId] = {
                     id: targetId,
@@ -57,7 +56,7 @@ export function DropContainer({ scale, containerRef, socket, roomId, componentIn
                 };
             }
             socket.emit('game-param:update', {
-                gameId: currentGame?.gameId || 'poker',
+                gameId: gameParam?.gameId,
                 newParam: { draggables: updatedDraggables, components: updatedComponents },
             });
             setComponentInfo(updatedComponents);
@@ -65,7 +64,7 @@ export function DropContainer({ scale, containerRef, socket, roomId, componentIn
         catch (err) {
             console.error('Drop error:', err);
         }
-    }, [socket, roomId, componentInfo, games, setComponentInfo, getCanvasCoordinates]);
+    }, [socket, roomId, componentInfo, gameParam, setComponentInfo, getCanvasCoordinates]);
     return (_jsxs("div", { onDragOver: handleDragOver, onDragLeave: () => setPreviewSlot(null), onDrop: handleDrop, style: {
             width: '100%',
             height: '100%',

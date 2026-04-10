@@ -10,7 +10,7 @@ interface DropContainerProps {
   socket: Socket;
   roomId: RoomId;
   componentInfo: ComponentInfo[];
-  games: GameParam[];
+  gameParam: GameParam;
   setComponentInfo: (info: ComponentInfo[]) => void;
   children: React.ReactNode;
 }
@@ -21,7 +21,7 @@ export function DropContainer({
   socket,
   roomId,
   componentInfo,
-  games,
+  gameParam,
   setComponentInfo,
   children,
 }: DropContainerProps) {
@@ -82,9 +82,8 @@ export function DropContainer({
         };
 
         const updatedComponents = [...componentInfo, newComponent];
-        const currentGame = games.find((g) => g.gameId === 'poker') || games[0];
 
-        let updatedDraggables = { ...(currentGame?.draggables || {}) };
+        let updatedDraggables = { ...(gameParam?.draggables || {}) };
         if (data.type === 'Draggable') {
           updatedDraggables[targetId] = {
             id: targetId,
@@ -95,7 +94,7 @@ export function DropContainer({
         }
 
         socket.emit('game-param:update', {
-          gameId: currentGame?.gameId || 'poker',
+          gameId: gameParam?.gameId,
           newParam: { draggables: updatedDraggables, components: updatedComponents },
         } as GameParamUpdateData);
 
@@ -104,7 +103,7 @@ export function DropContainer({
         console.error('Drop error:', err);
       }
     },
-    [socket, roomId, componentInfo, games, setComponentInfo, getCanvasCoordinates],
+    [socket, roomId, componentInfo, gameParam, setComponentInfo, getCanvasCoordinates],
   );
 
   return (

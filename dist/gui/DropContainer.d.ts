@@ -6,10 +6,10 @@ interface DropContainerProps {
     socket: Socket;
     roomId: RoomId;
     componentInfo: ComponentInfo[];
-    games: GameParam[];
+    gameParam: GameParam;
     setComponentInfo: (info: ComponentInfo[]) => void;
     children: React.ReactNode;
 }
-export declare function DropContainer({ scale, containerRef, socket, roomId, componentInfo, games, setComponentInfo, children, }: DropContainerProps): import("react/jsx-runtime").JSX.Element;
+export declare function DropContainer({ scale, containerRef, socket, roomId, componentInfo, gameParam, setComponentInfo, children, }: DropContainerProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=DropContainer.d.ts.map
