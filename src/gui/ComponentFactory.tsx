@@ -66,6 +66,64 @@ export const ComponentFactory = ({
   const existingIds = existingComponents.map((c) => c.id);
   const isDuplicateId = existingIds.includes(newCompId);
 
+  // Props生成ロジックの集約（追加ボタンとD&Dで共有）
+  const getInitialProps = (type: ComponentType, targetId: string) => {
+    switch (type) {
+      case 'Dice':
+        return {
+          diceId: targetId,
+          sides: newDiceSides,
+          title: `${newDiceSides}面ダイス`,
+          // 4面の場合は天気ダイス
+          customFaces:
+            newDiceSides === 4
+              ? ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png']
+              : [],
+        };
+      case 'Draggable':
+        return {
+          draggableId: targetId,
+          image: uploadImage || '/hanabishi.svg',
+          mask: true,
+          color: newDraggableColor,
+          size: 100,
+          isDebug: true,
+        };
+      case 'ScoreBoard':
+        return {
+          playCardButton: [sbPlayCard, true],
+          holdButton: [sbHold, true],
+          flipButton: [sbFlip, true],
+          turnSkipButton: [sbTurnSkip, true],
+          roundSkipButton: [sbRoundSkip, true],
+        };
+      case 'TokenStore':
+        return {
+          tokenStoreId: targetId,
+          title: `トークン置き場`,
+        };
+      case 'Deck':
+        return {
+          deckId: targetId,
+          title: `山札 ${targetId}`,
+        };
+      case 'PlayField':
+        return {
+          deckId: targetId,
+          title: targetId,
+        };
+      case 'GridBoard':
+        return {
+          boardId: targetId,
+          allowPieceDrag: true,
+        };
+      case 'Timer':
+        return { initialDuration: 30 };
+      default:
+        return {};
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -95,7 +153,7 @@ export const ComponentFactory = ({
   const handleAddClick = () => {
     if (!newCompId || isDuplicateId) return;
 
-    let initialProps: Record<string, any> = {};
+    const initialProps = getInitialProps(newCompType, newCompId);
     let additionalParams: Partial<GameParam> = {};
 
     switch (newCompType) {
@@ -110,11 +168,6 @@ export const ComponentFactory = ({
             deckId: newCompId,
             title: `${newCompId}用フィールド`,
           },
-        };
-
-        initialProps = {
-          deckId: newCompId,
-          title: `山札 ${newCompId}`,
         };
 
         let cards: CardData[] = [];
@@ -174,26 +227,7 @@ export const ComponentFactory = ({
         setUploadImage(null);
         return;
 
-      case 'PlayField':
-        initialProps = {
-          deckId: newCompId,
-          title: newCompId,
-        };
-        break;
-      case 'ScoreBoard':
-        initialProps = {
-          playCardButton: [sbPlayCard, true],
-          holdButton: [sbHold, true],
-          flipButton: [sbFlip, true],
-          turnSkipButton: [sbTurnSkip, true],
-          roundSkipButton: [sbRoundSkip, true],
-        };
-        break;
       case 'TokenStore':
-        initialProps = {
-          tokenStoreId: newCompId,
-          title: `トークン置き場`,
-        };
         additionalParams.initialTokenStores = [
           {
             tokenStoreId: newCompId,
@@ -206,21 +240,8 @@ export const ComponentFactory = ({
           },
         ];
         break;
-      case 'GridBoard':
-        initialProps = {
-          boardId: newCompId,
-          allowPieceDrag: true,
-        };
-        break;
+
       case 'Draggable':
-        initialProps = {
-          draggableId: newCompId,
-          image: uploadImage || '/hanabishi.svg',
-          mask: true,
-          color: newDraggableColor,
-          size: 100,
-          isDebug: true,
-        };
         additionalParams.draggables = {
           [newCompId]: {
             id: newCompId,
@@ -230,26 +251,9 @@ export const ComponentFactory = ({
           },
         };
         break;
-      case 'Dice':
-        initialProps = {
-          diceId: newCompId,
-          sides: newDiceSides,
-          title: `${newDiceSides}面ダイス`,
-          // 4面の場合は天気ダイス
-          customFaces:
-            newDiceSides === 4
-              ? ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png']
-              : [],
-        };
-        break;
-      case 'Timer':
-        initialProps = { initialDuration: 30 };
-        break;
       case 'SystemMessageWindow':
-        initialProps = {};
+        // PropsはgetInitialPropsで空オブジェクトが返る
         break;
-      default:
-        initialProps = {};
     }
 
     const newComponent: ComponentInfo = {
@@ -439,13 +443,12 @@ export const ComponentFactory = ({
           <div
             draggable
             onDragStart={(e) => {
+              const id = newCompId || `dice-${Date.now()}`;
               const dragData = {
                 type: 'Dice',
-                id: newCompId || `dice-${Date.now()}`,
+                id: id,
                 props: {
-                  diceId: newCompId || `dice-${Date.now()}`,
-                  sides: newDiceSides,
-                  title: `${newDiceSides}面ダイス`,
+                  ...getInitialProps('Dice', id),
                   slotX: 1,
                   slotY: 1,
                 },
@@ -498,13 +501,14 @@ export const ComponentFactory = ({
           <div
             draggable
             onDragStart={(e) => {
+              const id = newCompId || `drag-${Date.now()}`;
               const dragData = {
                 type: 'Draggable',
-                id: newCompId || `drag-${Date.now()}`,
+                id: id,
                 props: {
-                  image: uploadImage || '/hanabishi.svg',
-                  color: newDraggableColor,
-                  size: 80,
+                  ...getInitialProps('Draggable', id),
+                  slotX: 1,
+                  slotY: 1,
                 },
               };
               e.dataTransfer.setData('application/react-game-ui', JSON.stringify(dragData));
