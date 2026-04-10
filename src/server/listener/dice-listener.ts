@@ -1,0 +1,26 @@
+// src/server/listener/dice-listener.ts
+import { GameParam, RoomState } from '@/index.js';
+import { GameId, RoomId } from '@/types/definition.js';
+import { DiceRollData, DiceUpdateData } from '@/types/socketData.js';
+import { Server, Socket } from 'socket.io';
+import { RoomManager } from '../room-manager.js';
+
+export function registerDiceListeners(
+  socket: Socket,
+  io: Server,
+  gameParams: Record<GameId, GameParam>,
+  activeRooms: Map<RoomId, RoomState>,
+) {
+  socket.on('dice:roll', ({ roomId, diceId, sides }: DiceRollData) => {
+    const state = activeRooms.get(roomId);
+    if (!state) return;
+    const param = gameParams[state.gameId];
+    const roomManager = new RoomManager(io, param, state);
+
+    const data: DiceUpdateData = {
+      value: Math.floor(Math.random() * sides) + 1,
+    };
+    roomManager.server_log('dice', `Dice ${diceId} rolled. Result: ${data.value}`);
+    io.to(roomId).emit(`dice:update:${diceId}`, data);
+  });
+}
