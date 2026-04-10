@@ -140,8 +140,8 @@ import {
   TokenStore,
   useSocket,
 } from 'react-game-ui';
-import styles from "./${pascalName}Room.module.css";
 import { useNavigate, useParams } from 'react-router-dom';
+import styles from "./${pascalName}Room.module.css";
 
 const SERVER_URL =
   import.meta.env.MODE === "development"
@@ -164,7 +164,6 @@ export function ${pascalName}Room() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
-  const [currentDiceValue, setCurrentDiceValue] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
 
   // 動的コンポーネント情報の管理
@@ -172,6 +171,8 @@ export function ${pascalName}Room() {
 
   const [games, setGames] = useState<GameParam[]>([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+  const [previewSlot, setPreviewSlot] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -194,10 +195,36 @@ export function ${pascalName}Room() {
     } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);
 
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'move';
+
+      const canvas = containerRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / scale;
+      const y = (e.clientY - rect.top) / scale;
+
+      const slotX = Math.floor(x / 100);
+      const slotY = Math.floor(y / 100);
+
+      setPreviewSlot({ x: slotX * 100, y: slotY * 100 });
+    },
+    [scale],
+  );
+
+  const handleDragLeave = useCallback(() => {
+    setPreviewSlot(null);
+  }, []);
+
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
+      setPreviewSlot(null);
 
       const rawData = e.dataTransfer.getData('application/react-game-ui');
       if (!rawData || !socket || !roomId) return;
@@ -205,16 +232,20 @@ export function ${pascalName}Room() {
       try {
         const data = JSON.parse(rawData);
         const targetId = data.id || data.compId;
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (!rect || !targetId) return;
+        const canvas = containerRef.current;
+        if (!canvas || !targetId) return;
 
-        // マウス位置の座標（スケール補正後）
+        const rect = canvas.getBoundingClientRect();
+
+        // プレビューと完全に一致させる計算
         const x = (e.clientX - rect.left) / scale;
         const y = (e.clientY - rect.top) / scale;
 
-        // 【スロット計算】100px単位で何番目か算出 (1始まり)
-        const slotX = Math.floor(x / 100) + 1;
-        const slotY = Math.floor(y / 100) + 1;
+        const slotIndexX = Math.floor(x / 100);
+        const slotIndexY = Math.floor(y / 100);
+
+        const snappedX = slotIndexX * 100;
+        const snappedY = slotIndexY * 100;
 
         const newComponent: ComponentInfo = {
           id: targetId,
@@ -222,11 +253,11 @@ export function ${pascalName}Room() {
           props: {
             ...data.props,
             draggableId: targetId,
-            // 座標ではなくスロット情報を優先してセット
-            slotX: slotX,
-            slotY: slotY,
-            // 必要なら coordinate は undefined にしてスロットに吸着させる
-            coordinate: undefined,
+            // slotX/Y による自動計算を避けるため undefined にし、
+            // 座標 (coordinate) を優先させる
+            slotX: undefined,
+            slotY: undefined,
+            coordinate: { x: snappedX, y: snappedY },
           },
         };
 
@@ -237,7 +268,7 @@ export function ${pascalName}Room() {
           ...(currentGame?.draggables || {}),
           [targetId]: {
             id: targetId,
-            coordinate: { x, y },
+            coordinate: { x: snappedX, y: snappedY },
             zIndex: 100,
             rotation: 0,
           },
@@ -313,11 +344,15 @@ export function ${pascalName}Room() {
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
             placeholder="お名前"
-            onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
+            onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
             style={{ padding: '8px', borderRadius: '4px', border: 'none', color: '#000' }}
           />
-          <button onClick={handleJoinRoom} disabled={isJoining} style={{ marginLeft: '8px', padding: '8px 16px', cursor: 'pointer' }}>
-            {isJoining ? "入場中" : "入場"}
+          <button
+            onClick={handleJoinRoom}
+            disabled={isJoining}
+            style={{ marginLeft: '8px', padding: '8px 16px', cursor: 'pointer' }}
+          >
+            {isJoining ? '入場中' : '入場'}
           </button>
         </div>
       </div>
@@ -331,12 +366,10 @@ export function ${pascalName}Room() {
         className={styles.roomCanvas}
         style={{
           transform: \`scale(\${scale})\`
+          transformOrigin: '0 0',
         }}
-        onDragOver={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          e.dataTransfer.dropEffect = 'move';
-        }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         {/* パネルが開いている時だけ背後に敷く透明なレイヤー */}
@@ -364,14 +397,37 @@ export function ${pascalName}Room() {
 
         <main className={styles.gameMain}>
           <aside className={styles.sidebarLeft}>
-            <Deck socket={socket!} roomId={roomId} deckId="main" title="山札" currentPlayerId={currentPlayerId} myPlayerId={myPlayerId} />
-            <Dice sides={6} socket={socket} diceId="move" roomId={roomId} onRoll={setCurrentDiceValue} />
+            <Deck
+              socket={socket!}
+              roomId={roomId}
+              deckId="main"
+              title="山札"
+              currentPlayerId={currentPlayerId}
+              myPlayerId={myPlayerId}
+            />
+            <Dice sides={6} socket={socket} diceId="move" roomId={roomId} />
           </aside>
 
           <div className={styles.playFieldContainer}>
-             <RemoteCursor socket={socket!} roomId={roomId} myPlayerId={myPlayerId} players={players.map(p => ({ name: p.name, socketId: String(p.id), color: p.color }))} scale={scale} fixedContainerRef={containerRef} visible={true} isRelative={false} />
-             <PlayField socket={socket} roomId={roomId} deckId="main" players={players} myPlayerId={myPlayerId} layoutMode="free" />
-             <Draggable socket={socket} roomId={roomId} draggableId="piece" containerRef={containerRef}/>
+            <RemoteCursor
+              socket={socket!}
+              roomId={roomId}
+              myPlayerId={myPlayerId}
+              players={players.map((p) => ({ name: p.name, socketId: String(p.id), color: p.color }))}
+              scale={scale}
+              fixedContainerRef={containerRef}
+              visible={true}
+              isRelative={false}
+            />
+            <PlayField
+              socket={socket}
+              roomId={roomId}
+              deckId="main"
+              players={players}
+              myPlayerId={myPlayerId}
+              layoutMode="free"
+            />
+            <Draggable socket={socket} roomId={roomId} draggableId="piece" containerRef={containerRef} />
           </div>
 
           <aside className={styles.sidebarRight}>
@@ -386,6 +442,29 @@ export function ${pascalName}Room() {
         </main>
 
         <TokenStore socket={socket} roomId={roomId} tokenStoreId="chips" title="所持チップ" />
+
+        {/* プレビュー要素をキャンバスの直下に配置 */}
+        {previewSlot && (
+          <div
+            style={{
+              position: 'absolute',
+              left: previewSlot.x,
+              top: previewSlot.y,
+              width: 100,
+              height: 100,
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              border: '2px dashed rgba(255, 255, 255, 0.5)',
+              borderRadius: '8px',
+              pointerEvents: 'none',
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span style={{ fontSize: '24px', opacity: 0.5 }}>＋</span>
+          </div>
+        )}
 
         {componentInfo.map((info) => (
           <DynamicComponent
