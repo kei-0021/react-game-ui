@@ -3,7 +3,7 @@ import { GameId } from '@/types/definition.js';
 import { GameParam } from '@/types/gameParam.js';
 import { GameComponentData, LobbyGameList } from '@/types/socketData.js';
 import { registerLiveListeners } from './listener/live-listener.js';
-import { server_log } from './logger.js';
+import { server_log } from './log/logger.js';
 import { createState } from './logic/create-state.js';
 import { syncState } from './logic/sync-state.js';
 import { updateState } from './logic/update-state.js';

@@ -3,7 +3,7 @@ import { exec } from 'child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import util from 'util';
-import { server_log } from '../logger.js';
+import { server_log } from '../log/logger.js';
 import { deepMerge } from '../logic/utils.js';
 const execPromise = util.promisify(exec);
 /**

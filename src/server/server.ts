@@ -7,7 +7,7 @@ import { createServer, Server as HttpServer } from 'http';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
-import { LogCategory, LogLevel } from './logger.js';
+import { LogCategory, LogLevel } from './log/logger.js';
 import { initGameServer } from './server-logic.js';
 
 const __filename = fileURLToPath(import.meta.url);

@@ -1,4 +1,4 @@
-// src/server/logger.ts
+// src/server/log/logger.ts
 
 import { GameId, RoomId } from '@/types/definition.js';
 

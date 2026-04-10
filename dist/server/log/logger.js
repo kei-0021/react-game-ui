@@ -1,4 +1,4 @@
-// src/server/logger.ts
+// src/server/log/logger.ts
 const LOG_LEVEL_PRIORITY = {
     DEBUG: 0,
     INFO: 1,

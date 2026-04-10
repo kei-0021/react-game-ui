@@ -26,7 +26,7 @@ import {
   TokenStoreUpdateData,
 } from '@/types/socketData.js';
 import { Server } from 'socket.io';
-import { LogCategory, LogLevel, server_log } from './logger.js';
+import { LogCategory, LogLevel, server_log } from './log/logger.js';
 import { roomInterpreter } from './room-interpreter.js';
 
 export const isExplored = (roomState: RoomState, position: Position): boolean => {

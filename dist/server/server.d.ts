@@ -1,7 +1,7 @@
 import { GameParam, RoomState } from '@/index.js';
 import { GameId } from '@/types/component.js';
 import { Server as SocketIOServer } from 'socket.io';
-import { LogCategory, LogLevel } from './logger.js';
+import { LogCategory, LogLevel } from './log/logger.js';
 /**
  * サーバー設定の型定義
  */

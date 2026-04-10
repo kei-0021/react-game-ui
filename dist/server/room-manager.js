@@ -1,4 +1,4 @@
-import { server_log } from './logger.js';
+import { server_log } from './log/logger.js';
 import { roomInterpreter } from './room-interpreter.js';
 export const isExplored = (roomState, position) => {
     return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);

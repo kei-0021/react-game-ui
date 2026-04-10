@@ -7,7 +7,7 @@ import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/roomState.js';
 import { CardPlayData } from '@/types/socketData.js';
 import { Server } from 'socket.io';
-import { LogCategory, LogLevel } from './logger.js';
+import { LogCategory, LogLevel } from './log/logger.js';
 export declare const isExplored: (roomState: RoomState, position: Position) => boolean;
 /**
  * ゲームにおける状態（State）の変更と、それに伴うサーバーログ出力を一括管理する。

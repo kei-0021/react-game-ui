@@ -3,7 +3,7 @@ import { GameParam, RoomState } from '@/index.js';
 import { GameId, RoomId } from '@/types/definition.js';
 import { GameComponentData, GameNextRoundData, GameNextTrunData, RoomJoinData } from '@/types/socketData.js';
 import { Server, Socket } from 'socket.io';
-import { server_log } from '../logger.js';
+import { server_log } from '../log/logger.js';
 import { createPlayer, createState } from '../logic/create-state.js';
 import { syncState } from '../logic/sync-state.js';
 import { RoomManager } from '../room-manager.js';

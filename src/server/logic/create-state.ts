@@ -18,7 +18,7 @@ import type {
 import { DeckData } from '@/types/deck.js';
 import { TokenData } from '@/types/token.js';
 import { TokenStoreData } from '@/types/tokenStore.js';
-import { server_log } from '../logger.js';
+import { server_log } from '../log/logger.js';
 import { generateColorFromId } from './utils.js';
 
 /**

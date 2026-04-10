@@ -1,4 +1,4 @@
-import { server_log } from '../logger.js';
+import { server_log } from '../log/logger.js';
 import { createPlayer, createState } from '../logic/create-state.js';
 import { syncState } from '../logic/sync-state.js';
 import { RoomManager } from '../room-manager.js';

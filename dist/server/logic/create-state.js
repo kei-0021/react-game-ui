@@ -1,5 +1,5 @@
 // src/server/server-create-state.ts
-import { server_log } from '../logger.js';
+import { server_log } from '../log/logger.js';
 import { generateColorFromId } from './utils.js';
 /**
  * GameParamからRoomStateを作成する
