@@ -2979,6 +2979,7 @@ const styles = {
   deleteCompBtn,
   divider
 };
+const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== "PlayField");
 const cardImages = /* @__PURE__ */ Object.assign({ "../assets/trump/clubs-1.png": __vite_glob_0_0, "../assets/trump/clubs-2.png": __vite_glob_0_1, "../assets/trump/diamonds-1.png": __vite_glob_0_2, "../assets/trump/diamonds-2.png": __vite_glob_0_3, "../assets/trump/hearts-1.png": __vite_glob_0_4, "../assets/trump/hearts-2.png": __vite_glob_0_5, "../assets/trump/spades-1.png": __vite_glob_0_6, "../assets/trump/spades-2.png": __vite_glob_0_7 });
 const getCardImage = (suit, num) => {
   const targetKey = `../assets/trump/${suit}-${num}.png`;
@@ -3038,6 +3039,15 @@ const ComponentFactory = ({
     let additionalParams = {};
     switch (newCompType) {
       case "Deck":
+        const fieldId = `${newCompId}-field`;
+        const companionField = {
+          id: fieldId,
+          type: "PlayField",
+          props: {
+            deckId: newCompId,
+            title: `${newCompId}用フィールド`
+          }
+        };
         initialProps = {
           deckId: newCompId,
           title: `山札 ${newCompId}`
@@ -3083,7 +3093,11 @@ const ComponentFactory = ({
             cards
           }
         ];
-        break;
+        onAdd(companionField, {});
+        onAdd({ id: newCompId, type: "Deck", props: initialProps }, additionalParams);
+        setNewCompId("");
+        setUploadImage(null);
+        return;
       case "PlayField":
         initialProps = {
           deckId: newCompId,
@@ -3196,7 +3210,7 @@ const ComponentFactory = ({
           className: styles.compTypeSelect,
           value: newCompType,
           onChange: (e) => setNewCompType(e.target.value),
-          children: COMPONENT_TYPES.map((type) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: type, children: type }, type))
+          children: FILTERED_COMPONENT_TYPES.map((type) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: type, children: type }, type))
         }
       ),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -3708,20 +3722,24 @@ const ControlPanel = ({
   };
   const handleAddComponent = (newComponent, additionalParams) => {
     if (!selectedGameId) return;
-    const updatedComponents = [...localComponents, newComponent];
-    const updatedDraggables = {
-      ...draggables,
-      ...additionalParams?.draggables || {}
-    };
-    setLocalComponents(updatedComponents);
-    setDraggables(updatedDraggables);
-    socket.emit("game-param:update", {
-      gameId: selectedGameId,
-      newParam: {
-        ...additionalParams,
-        draggables: updatedDraggables,
-        components: updatedComponents
-      }
+    setLocalComponents((prevComponents) => {
+      const updatedComponents = [...prevComponents, newComponent];
+      setDraggables((prevDraggables) => {
+        const updatedDraggables = {
+          ...prevDraggables,
+          ...additionalParams?.draggables || {}
+        };
+        socket.emit("game-param:update", {
+          gameId: selectedGameId,
+          newParam: {
+            ...additionalParams,
+            draggables: updatedDraggables,
+            components: updatedComponents
+          }
+        });
+        return updatedDraggables;
+      });
+      return updatedComponents;
     });
   };
   const handleDeleteComponent = (compId, additionalParams) => {

@@ -150,23 +150,30 @@ export const ControlPanel = ({
 
   const handleAddComponent = (newComponent: ComponentInfo, additionalParams?: any) => {
     if (!selectedGameId) return;
-    const updatedComponents = [...localComponents, newComponent];
-    const updatedDraggables = {
-      ...draggables,
-      ...(additionalParams?.draggables || {}),
-    };
 
-    setLocalComponents(updatedComponents);
-    setDraggables(updatedDraggables);
+    setLocalComponents((prevComponents) => {
+      const updatedComponents = [...prevComponents, newComponent];
 
-    socket.emit('game-param:update', {
-      gameId: selectedGameId,
-      newParam: {
-        ...additionalParams,
-        draggables: updatedDraggables,
-        components: updatedComponents,
-      },
-    } as GameParamUpdateData);
+      setDraggables((prevDraggables) => {
+        const updatedDraggables = {
+          ...prevDraggables,
+          ...(additionalParams?.draggables || {}),
+        };
+
+        socket.emit('game-param:update', {
+          gameId: selectedGameId,
+          newParam: {
+            ...additionalParams,
+            draggables: updatedDraggables,
+            components: updatedComponents,
+          },
+        } as GameParamUpdateData);
+
+        return updatedDraggables;
+      });
+
+      return updatedComponents;
+    });
   };
 
   // コンポーネント削除ハンドラ

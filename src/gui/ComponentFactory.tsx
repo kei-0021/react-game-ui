@@ -6,6 +6,8 @@ import { ComponentId } from '@/types/definition.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
 
+const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== 'PlayField');
+
 const cardImages = import.meta.glob('../assets/trump/*.png', { eager: true, import: 'default' }) as Record<
   string,
   string
@@ -98,6 +100,18 @@ export const ComponentFactory = ({
 
     switch (newCompType) {
       case 'Deck':
+        const fieldId = `${newCompId}-field`;
+
+        // 対になる PlayField を定義
+        const companionField: ComponentInfo = {
+          id: fieldId,
+          type: 'PlayField',
+          props: {
+            deckId: newCompId,
+            title: `${newCompId}用フィールド`,
+          },
+        };
+
         initialProps = {
           deckId: newCompId,
           title: `山札 ${newCompId}`,
@@ -150,7 +164,16 @@ export const ComponentFactory = ({
             cards: cards,
           },
         ];
-        break;
+
+        // フィールドとデッキの両方を登録
+        onAdd(companionField, {});
+        onAdd({ id: newCompId, type: 'Deck', props: initialProps }, additionalParams);
+
+        // 共通のクリーンアップへ行かずに終了
+        setNewCompId('');
+        setUploadImage(null);
+        return;
+
       case 'PlayField':
         initialProps = {
           deckId: newCompId,
@@ -277,7 +300,7 @@ export const ComponentFactory = ({
           value={newCompType}
           onChange={(e) => setNewCompType(e.target.value as ComponentType)}
         >
-          {COMPONENT_TYPES.map((type) => (
+          {FILTERED_COMPONENT_TYPES.map((type) => (
             <option key={type} value={type}>
               {type}
             </option>

@@ -2,6 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { COMPONENT_TYPES } from '@/types/component.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
+const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== 'PlayField');
 const cardImages = import.meta.glob('../assets/trump/*.png', { eager: true, import: 'default' });
 const getCardImage = (suit, num) => {
     // globに渡したベースパスと引数を完全に一致させる
@@ -66,6 +67,16 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
         let additionalParams = {};
         switch (newCompType) {
             case 'Deck':
+                const fieldId = `${newCompId}-field`;
+                // 対になる PlayField を定義
+                const companionField = {
+                    id: fieldId,
+                    type: 'PlayField',
+                    props: {
+                        deckId: newCompId,
+                        title: `${newCompId}用フィールド`,
+                    },
+                };
                 initialProps = {
                     deckId: newCompId,
                     title: `山札 ${newCompId}`,
@@ -109,7 +120,13 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
                         cards: cards,
                     },
                 ];
-                break;
+                // フィールドとデッキの両方を登録
+                onAdd(companionField, {});
+                onAdd({ id: newCompId, type: 'Deck', props: initialProps }, additionalParams);
+                // 共通のクリーンアップへ行かずに終了
+                setNewCompId('');
+                setUploadImage(null);
+                return;
             case 'PlayField':
                 initialProps = {
                     deckId: newCompId,
@@ -216,7 +233,7 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
         // 最終的な削除実行を親（ControlPanel）に伝える
         onDelete(compId, additionalParams);
     };
-    return (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: styles.compTypeSelect, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: styles.flexFill, style: { borderColor: isDuplicateId ? '#ff4444' : '' }, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "\u8FFD\u52A0" })] }), isDuplicateId && (_jsx("div", { style: { color: '#ff4444', fontSize: '12px', marginTop: '-4px' }, children: "\u3053\u306EID\u306F\u65E2\u306B\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059" })), newCompType === 'Deck' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u30C7\u30FC\u30BF\u6295\u5165\u30E2\u30FC\u30C9:" }), _jsxs("div", { style: { display: 'flex', gap: '10px', marginBottom: '10px' }, children: [_jsxs("label", { style: { fontSize: '12px', color: '#fff', cursor: 'pointer' }, children: [_jsx("input", { type: "radio", name: "deckMode", checked: deckMode === 'preset', onChange: () => setDeckMode('preset') }), ' ', "\u30D7\u30EA\u30BB\u30C3\u30C8 (\u30C8\u30E9\u30F3\u30D7)"] }), _jsxs("label", { style: { fontSize: '12px', color: '#fff', cursor: 'pointer' }, children: [_jsx("input", { type: "radio", name: "deckMode", checked: deckMode === 'json', onChange: () => setDeckMode('json') }), ' ', "JSON\u30D5\u30A1\u30A4\u30EB"] })] }), deckMode === 'json' && (_jsxs("div", { children: [_jsx("input", { type: "file", accept: ".json", onChange: handleJsonFileChange, className: styles.select }), deckFileName && (_jsxs("div", { style: { fontSize: '10px', color: '#0f0', marginTop: '4px' }, children: ["\u8AAD\u307F\u8FBC\u307F\u5B8C\u4E86: ", deckFileName, " (", deckJsonData?.length, "\u679A)"] }))] }))] })), newCompType === 'ScoreBoard' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u6709\u52B9\u306B\u3059\u308B\u30DC\u30BF\u30F3:" }), [
+    return (_jsxs("div", { className: styles.addComponentBox, children: [_jsx("div", { className: styles.label, children: "\u30B3\u30F3\u30DD\u30FC\u30CD\u30F3\u30C8\u8FFD\u52A0:" }), _jsxs("div", { className: styles.createSection, children: [_jsx("select", { className: styles.compTypeSelect, value: newCompType, onChange: (e) => setNewCompType(e.target.value), children: FILTERED_COMPONENT_TYPES.map((type) => (_jsx("option", { value: type, children: type }, type))) }), _jsx("input", { type: "text", className: styles.flexFill, style: { borderColor: isDuplicateId ? '#ff4444' : '' }, placeholder: "ID (\u4F8B: dice-2)", value: newCompId, onChange: (e) => setNewCompId(e.target.value) }), _jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "\u8FFD\u52A0" })] }), isDuplicateId && (_jsx("div", { style: { color: '#ff4444', fontSize: '12px', marginTop: '-4px' }, children: "\u3053\u306EID\u306F\u65E2\u306B\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u3059" })), newCompType === 'Deck' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u30C7\u30FC\u30BF\u6295\u5165\u30E2\u30FC\u30C9:" }), _jsxs("div", { style: { display: 'flex', gap: '10px', marginBottom: '10px' }, children: [_jsxs("label", { style: { fontSize: '12px', color: '#fff', cursor: 'pointer' }, children: [_jsx("input", { type: "radio", name: "deckMode", checked: deckMode === 'preset', onChange: () => setDeckMode('preset') }), ' ', "\u30D7\u30EA\u30BB\u30C3\u30C8 (\u30C8\u30E9\u30F3\u30D7)"] }), _jsxs("label", { style: { fontSize: '12px', color: '#fff', cursor: 'pointer' }, children: [_jsx("input", { type: "radio", name: "deckMode", checked: deckMode === 'json', onChange: () => setDeckMode('json') }), ' ', "JSON\u30D5\u30A1\u30A4\u30EB"] })] }), deckMode === 'json' && (_jsxs("div", { children: [_jsx("input", { type: "file", accept: ".json", onChange: handleJsonFileChange, className: styles.select }), deckFileName && (_jsxs("div", { style: { fontSize: '10px', color: '#0f0', marginTop: '4px' }, children: ["\u8AAD\u307F\u8FBC\u307F\u5B8C\u4E86: ", deckFileName, " (", deckJsonData?.length, "\u679A)"] }))] }))] })), newCompType === 'ScoreBoard' && (_jsxs("div", { className: styles.field, style: { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }, children: [_jsx("div", { className: styles.label, style: { fontSize: '11px' }, children: "\u6709\u52B9\u306B\u3059\u308B\u30DC\u30BF\u30F3:" }), [
                         { label: 'カードプレイ', state: sbPlayCard, setter: setSbPlayCard },
                         { label: 'ホールド', state: sbHold, setter: setSbHold },
                         { label: 'フリップ', state: sbFlip, setter: setSbFlip },
