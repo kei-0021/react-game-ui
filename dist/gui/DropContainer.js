@@ -47,15 +47,15 @@ export function DropContainer({ scale, containerRef, socket, roomId, componentIn
             };
             const updatedComponents = [...componentInfo, newComponent];
             const currentGame = games.find((g) => g.gameId === 'poker') || games[0];
-            const updatedDraggables = {
-                ...(currentGame?.draggables || {}),
-                [targetId]: {
+            let updatedDraggables = { ...(currentGame?.draggables || {}) };
+            if (data.type === 'Draggable') {
+                updatedDraggables[targetId] = {
                     id: targetId,
                     coordinate: { x: coords.x, y: coords.y },
                     zIndex: 100,
                     rotation: 0,
-                },
-            };
+                };
+            }
             socket.emit('game-param:update', {
                 gameId: currentGame?.gameId || 'poker',
                 newParam: { draggables: updatedDraggables, components: updatedComponents },

@@ -1,8 +1,9 @@
 import { ComponentInfo, GameParam, RoomId } from 'react-game-ui';
+import { Socket } from 'socket.io-client';
 interface DropContainerProps {
     scale: number;
     containerRef: React.RefObject<HTMLDivElement>;
-    socket: any;
+    socket: Socket;
     roomId: RoomId;
     componentInfo: ComponentInfo[];
     games: GameParam[];

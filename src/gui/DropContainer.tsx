@@ -2,11 +2,12 @@
 import { GameParamUpdateData } from '@/types/socketData.js';
 import { useCallback, useState } from 'react';
 import { ComponentInfo, GameParam, RoomId } from 'react-game-ui';
+import { Socket } from 'socket.io-client';
 
 interface DropContainerProps {
   scale: number;
   containerRef: React.RefObject<HTMLDivElement>;
-  socket: any;
+  socket: Socket;
   roomId: RoomId;
   componentInfo: ComponentInfo[];
   games: GameParam[];
@@ -82,15 +83,16 @@ export function DropContainer({
 
         const updatedComponents = [...componentInfo, newComponent];
         const currentGame = games.find((g) => g.gameId === 'poker') || games[0];
-        const updatedDraggables = {
-          ...(currentGame?.draggables || {}),
-          [targetId]: {
+
+        let updatedDraggables = { ...(currentGame?.draggables || {}) };
+        if (data.type === 'Draggable') {
+          updatedDraggables[targetId] = {
             id: targetId,
             coordinate: { x: coords.x, y: coords.y },
             zIndex: 100,
             rotation: 0,
-          },
-        };
+          };
+        }
 
         socket.emit('game-param:update', {
           gameId: currentGame?.gameId || 'poker',
