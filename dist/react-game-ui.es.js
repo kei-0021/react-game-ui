@@ -3133,6 +3133,121 @@ const DiceFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => {
     /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, style: { width: "100%" }, onClick: handleAdd, disabled: !newCompId, children: "Diceを追加" })
   ] });
 };
+const DraggableFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => {
+  const [newDraggableColor, setNewDraggableColor] = useState("#ff0000");
+  const [uploadImage, setUploadImage] = useState(null);
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setUploadImage(reader.result);
+    reader.readAsDataURL(file);
+  };
+  const getOverrides = () => ({
+    color: newDraggableColor,
+    image: uploadImage
+  });
+  const handleAdd = () => {
+    const id = newCompId || `drag-${Date.now()}`;
+    const initialProps = getInitialProps("Draggable", id, getOverrides());
+    const additionalParams = {
+      draggables: {
+        [id]: {
+          id,
+          coordinate: { x: 500, y: 500 },
+          zIndex: 100,
+          rotation: 0
+        }
+      }
+    };
+    onAdd({ id, type: "Draggable", props: initialProps }, additionalParams);
+    onSuccess();
+    setUploadImage(null);
+  };
+  const handleDragStart = (e) => {
+    const id = newCompId || `drag-${Date.now()}`;
+    const dragData = {
+      type: "Draggable",
+      id,
+      props: {
+        ...getInitialProps("Draggable", id, getOverrides()),
+        slotX: 1,
+        slotY: 1
+      }
+    };
+    e.dataTransfer.setData("application/react-game-ui", JSON.stringify(dragData));
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px", margin: 0 }, children: "色:" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "color",
+          value: newDraggableColor,
+          onChange: (e) => setNewDraggableColor(e.target.value),
+          style: { cursor: "pointer", border: "none", background: "none", width: "30px", height: "24px" }
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "画像アップロード:" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px", marginTop: "10px" }, children: "プレビュー (これを盤面にドラッグ):" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        draggable: true,
+        onDragStart: handleDragStart,
+        className: styles.dragSourcePreview,
+        style: {
+          width: "80px",
+          height: "80px",
+          border: `2px solid ${newDraggableColor}`,
+          backgroundColor: `${newDraggableColor}33`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "grab",
+          borderRadius: "8px",
+          overflow: "hidden",
+          position: "relative",
+          marginBottom: "10px"
+        },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "img",
+            {
+              src: uploadImage || "/hanabishi.svg",
+              alt: "preview",
+              style: {
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                pointerEvents: "none"
+              }
+            }
+          ),
+          !newCompId && /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              style: {
+                position: "absolute",
+                bottom: 0,
+                backgroundColor: "rgba(0,0,0,0.6)",
+                color: "#fff",
+                fontSize: "9px",
+                width: "100%",
+                textAlign: "center"
+              },
+              children: "ID未設定"
+            }
+          )
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, style: { width: "100%" }, onClick: handleAdd, disabled: !newCompId, children: "Draggableを追加" })
+  ] });
+};
 const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== "PlayField");
 const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }) => {
   const [newCompId, setNewCompId] = useState("");
@@ -3143,14 +3258,12 @@ const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }
   const [sbTurnSkip, setSbTurnSkip] = useState(true);
   const [sbRoundSkip, setSbRoundSkip] = useState(false);
   const [newTokenCount, setNewTokenCount] = useState(10);
-  const [newDraggableColor, setNewDraggableColor] = useState("#ff0000");
-  const [uploadImage, setUploadImage] = useState(null);
   const existingIds = existingComponents.map((c) => c.id);
   const isDuplicateId = existingIds.includes(newCompId);
-  const getInitialProps = (type, targetId, diceSidesOverride) => {
+  const getInitialProps = (type, targetId, overrides = {}) => {
     switch (type) {
       case "Dice":
-        const sides = diceSidesOverride || 6;
+        const sides = overrides.sides || 6;
         return {
           diceId: targetId,
           sides,
@@ -3160,9 +3273,9 @@ const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }
       case "Draggable":
         return {
           draggableId: targetId,
-          image: uploadImage || "/hanabishi.svg",
+          image: overrides.image || "/hanabishi.svg",
           mask: true,
-          color: newDraggableColor,
+          color: overrides.color || "#ff0000",
           size: 100,
           isDebug: true
         };
@@ -3185,16 +3298,9 @@ const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }
         return {};
     }
   };
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setUploadImage(reader.result);
-    reader.readAsDataURL(file);
-  };
   const handleAddClick = () => {
     if (!newCompId || isDuplicateId) return;
-    if (newCompType === "Deck" || newCompType === "Dice") return;
+    if (["Deck", "Dice", "Draggable"].includes(newCompType)) return;
     const initialProps = getInitialProps(newCompType, newCompId);
     let additionalParams = {};
     switch (newCompType) {
@@ -3211,25 +3317,9 @@ const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }
           }
         ];
         break;
-      case "Draggable":
-        additionalParams.draggables = {
-          [newCompId]: {
-            id: newCompId,
-            coordinate: { x: 500, y: 500 },
-            zIndex: 100,
-            rotation: 0
-          }
-        };
-        break;
     }
-    const newComponent = {
-      id: newCompId,
-      type: newCompType,
-      props: initialProps
-    };
-    onAdd(newComponent, additionalParams);
+    onAdd({ id: newCompId, type: newCompType, props: initialProps }, additionalParams);
     setNewCompId("");
-    setUploadImage(null);
   };
   const handleDeleteClick = (compId) => {
     const target = existingComponents.find((c) => c.id === compId);
@@ -3251,6 +3341,7 @@ const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }
     }
     onDelete(compId, additionalParams);
   };
+  const isFactoryManaged = ["Deck", "Dice", "Draggable"].includes(newCompType);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.addComponentBox, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "コンポーネント追加:" }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.createSection, children: [
@@ -3274,12 +3365,21 @@ const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }
           onChange: (e) => setNewCompId(e.target.value)
         }
       ),
-      newCompType !== "Deck" && newCompType !== "Dice" && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "追加" })
+      !isFactoryManaged && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "追加" })
     ] }),
     isDuplicateId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#ff4444", fontSize: "12px", marginTop: "-4px" }, children: "このIDは既に使用されています" }),
     newCompType === "Deck" && /* @__PURE__ */ jsxRuntimeExports.jsx(DeckFactory, { newCompId, onAdd, onSuccess: () => setNewCompId("") }),
     newCompType === "Dice" && /* @__PURE__ */ jsxRuntimeExports.jsx(
       DiceFactory,
+      {
+        newCompId,
+        onAdd,
+        onSuccess: () => setNewCompId(""),
+        getInitialProps: (type, id, sides) => getInitialProps(type, id, { sides })
+      }
+    ),
+    newCompType === "Draggable" && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      DraggableFactory,
       {
         newCompId,
         onAdd,
@@ -3337,79 +3437,6 @@ const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "12px", color: "#fff", minWidth: "30px" }, children: newTokenCount })
       ] })
-    ] }),
-    newCompType === "Draggable" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px", margin: 0 }, children: "色:" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "color", value: newDraggableColor, onChange: (e) => setNewDraggableColor(e.target.value) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "画像アップロード:" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px", marginTop: "10px" }, children: "プレビュー (これを盤面にドラッグ):" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          draggable: true,
-          onDragStart: (e) => {
-            const id = newCompId || `drag-${Date.now()}`;
-            const dragData = {
-              type: "Draggable",
-              id,
-              props: {
-                ...getInitialProps("Draggable", id),
-                slotX: 1,
-                slotY: 1
-              }
-            };
-            e.dataTransfer.setData("application/react-game-ui", JSON.stringify(dragData));
-          },
-          className: styles.dragSourcePreview,
-          style: {
-            width: "80px",
-            height: "80px",
-            border: `2px solid ${newDraggableColor}`,
-            backgroundColor: `${newDraggableColor}33`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "grab",
-            borderRadius: "8px",
-            overflow: "hidden",
-            position: "relative",
-            transition: "transform 0.1s ease"
-          },
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "img",
-              {
-                src: uploadImage || "/hanabishi.svg",
-                alt: "preview",
-                style: {
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  pointerEvents: "none"
-                }
-              }
-            ),
-            !newCompId && /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "div",
-              {
-                style: {
-                  position: "absolute",
-                  bottom: 0,
-                  backgroundColor: "rgba(0,0,0,0.6)",
-                  color: "#fff",
-                  fontSize: "9px",
-                  width: "100%",
-                  textAlign: "center"
-                },
-                children: "ID未設定"
-              }
-            )
-          ]
-        }
-      )
     ] }),
     existingComponents.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "15px" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "配置済みコンポーネント:" }),

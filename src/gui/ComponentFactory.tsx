@@ -6,6 +6,7 @@ import { useState } from 'react';
 import styles from './ControlPanel.module.css';
 import { DeckFactory } from './factory/DeckFactory.js';
 import { DiceFactory } from './factory/DiceFactory.js';
+import { DraggableFactory } from './factory/DraggableFactory.js';
 
 const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== 'PlayField');
 
@@ -21,7 +22,7 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
   const [newCompId, setNewCompId] = useState('');
   const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
 
-  // --- UI状態 (Dice/Deck 以外) ---
+  // --- UI状態 ---
 
   // ScoreBoard関連
   const [sbPlayCard, setSbPlayCard] = useState<boolean>(true);
@@ -33,21 +34,16 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
   // Token関連
   const [newTokenCount, setNewTokenCount] = useState<number>(10);
 
-  // Draggable関連
-  const [newDraggableColor, setNewDraggableColor] = useState<string>('#ff0000');
-  const [uploadImage, setUploadImage] = useState<string | null>(null);
-
   const existingIds = existingComponents.map((c) => c.id);
   const isDuplicateId = existingIds.includes(newCompId);
 
   /**
    * Props生成ロジックの集約
-   * DiceFactory等、外部Factoryからも参照できるように sides などの引数を拡張
    */
-  const getInitialProps = (type: ComponentType, targetId: string, diceSidesOverride?: number) => {
+  const getInitialProps = (type: ComponentType, targetId: string, overrides: any = {}) => {
     switch (type) {
       case 'Dice':
-        const sides = diceSidesOverride || 6;
+        const sides = overrides.sides || 6;
         return {
           diceId: targetId,
           sides: sides,
@@ -58,9 +54,9 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
       case 'Draggable':
         return {
           draggableId: targetId,
-          image: uploadImage || '/hanabishi.svg',
+          image: overrides.image || '/hanabishi.svg',
           mask: true,
-          color: newDraggableColor,
+          color: overrides.color || '#ff0000',
           size: 100,
           isDebug: true,
         };
@@ -84,19 +80,11 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setUploadImage(reader.result as string);
-    reader.readAsDataURL(file);
-  };
-
   const handleAddClick = () => {
     if (!newCompId || isDuplicateId) return;
 
-    // Deck と Dice はそれぞれの Factory 内で完結するため、ここでは処理しない
-    if (newCompType === 'Deck' || newCompType === 'Dice') return;
+    // Factory分離済みのタイプはここでは処理しない
+    if (['Deck', 'Dice', 'Draggable'].includes(newCompType)) return;
 
     const initialProps = getInitialProps(newCompType, newCompId);
     let additionalParams: Partial<GameParam> = {};
@@ -115,31 +103,10 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
           },
         ];
         break;
-
-      case 'Draggable':
-        additionalParams.draggables = {
-          [newCompId]: {
-            id: newCompId,
-            coordinate: { x: 500, y: 500 },
-            zIndex: 100,
-            rotation: 0,
-          },
-        };
-        break;
-      case 'SystemMessageWindow':
-        // PropsはgetInitialPropsで空オブジェクトが返る
-        break;
     }
 
-    const newComponent: ComponentInfo = {
-      id: newCompId,
-      type: newCompType,
-      props: initialProps,
-    };
-
-    onAdd(newComponent, additionalParams);
+    onAdd({ id: newCompId, type: newCompType, props: initialProps }, additionalParams);
     setNewCompId('');
-    setUploadImage(null);
   };
 
   const handleDeleteClick = (compId: ComponentId) => {
@@ -148,7 +115,6 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
 
     let additionalParams: Partial<GameParam> = {};
 
-    // 削除対象のタイプに応じて、消すべき Record のキーを指定
     if (target.type === 'Deck') {
       const originalDecks = fullGameParam?.initialDecks || [];
       additionalParams.initialDecks = originalDecks.filter((d) => d.deckId !== compId);
@@ -166,9 +132,10 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
       additionalParams.draggables = currentDraggables;
     }
 
-    // 最終的な削除実行を親（ControlPanel）に伝える
     onDelete(compId, additionalParams);
   };
+
+  const isFactoryManaged = ['Deck', 'Dice', 'Draggable'].includes(newCompType);
 
   return (
     <div className={styles.addComponentBox}>
@@ -196,8 +163,8 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
           onChange={(e) => setNewCompId(e.target.value)}
         />
 
-        {/* Deck, Dice 以外の場合のみ共通追加ボタンを表示 */}
-        {newCompType !== 'Deck' && newCompType !== 'Dice' && (
+        {/* Factory管理外のものだけ共通追加ボタンを表示 */}
+        {!isFactoryManaged && (
           <button className={styles.saveButton} onClick={handleAddClick} disabled={!newCompId || isDuplicateId}>
             追加
           </button>
@@ -217,11 +184,20 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
           newCompId={newCompId}
           onAdd={onAdd}
           onSuccess={() => setNewCompId('')}
+          getInitialProps={(type, id, sides) => getInitialProps(type, id, { sides })}
+        />
+      )}
+
+      {newCompType === 'Draggable' && (
+        <DraggableFactory
+          newCompId={newCompId}
+          onAdd={onAdd}
+          onSuccess={() => setNewCompId('')}
           getInitialProps={getInitialProps}
         />
       )}
 
-      {/* --- その他の設定UI (ScoreBoard, TokenStore, Draggable) --- */}
+      {/* --- その他の設定UI --- */}
 
       {newCompType === 'ScoreBoard' && (
         <div
@@ -257,7 +233,6 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
         </div>
       )}
 
-      {/* トークン専用の設定項目 */}
       {newCompType === 'TokenStore' && (
         <div className={styles.field} style={{ marginTop: '10px' }}>
           <div className={styles.label} style={{ fontSize: '11px' }}>
@@ -277,88 +252,8 @@ export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGame
         </div>
       )}
 
-      {newCompType === 'Draggable' && (
-        <div className={styles.field} style={{ marginTop: '10px' }}>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
-            <div className={styles.label} style={{ fontSize: '11px', margin: 0 }}>
-              色:
-            </div>
-            <input type="color" value={newDraggableColor} onChange={(e) => setNewDraggableColor(e.target.value)} />
-          </div>
+      {/* --- 既存コンポーネントのリスト表示 --- */}
 
-          <div className={styles.label} style={{ fontSize: '11px' }}>
-            画像アップロード:
-          </div>
-          <input type="file" accept="image/*" className={styles.select} onChange={handleFileChange} />
-
-          {/* ドラッグソースのプレビュー部分 */}
-          <div className={styles.label} style={{ fontSize: '11px', marginTop: '10px' }}>
-            プレビュー (これを盤面にドラッグ):
-          </div>
-          <div
-            draggable
-            onDragStart={(e) => {
-              const id = newCompId || `drag-${Date.now()}`;
-              const dragData = {
-                type: 'Draggable',
-                id: id,
-                props: {
-                  ...getInitialProps('Draggable', id),
-                  slotX: 1,
-                  slotY: 1,
-                },
-              };
-              e.dataTransfer.setData('application/react-game-ui', JSON.stringify(dragData));
-            }}
-            className={styles.dragSourcePreview}
-            style={{
-              width: '80px',
-              height: '80px',
-              border: `2px solid ${newDraggableColor}`,
-              backgroundColor: `${newDraggableColor}33`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'grab',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              position: 'relative',
-              transition: 'transform 0.1s ease',
-            }}
-          >
-            {/* アップロード画像があれば表示、なければデフォルトアイコン */}
-            <img
-              src={uploadImage || '/hanabishi.svg'}
-              alt="preview"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                pointerEvents: 'none',
-              }}
-            />
-
-            {/* IDが未入力の時のガイド */}
-            {!newCompId && (
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  backgroundColor: 'rgba(0,0,0,0.6)',
-                  color: '#fff',
-                  fontSize: '9px',
-                  width: '100%',
-                  textAlign: 'center',
-                }}
-              >
-                ID未設定
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* --- 既存コンポーネントのリスト表示と削除ボタン --- */}
       {existingComponents.length > 0 && (
         <div style={{ marginTop: '15px' }}>
           <div className={styles.label}>配置済みコンポーネント:</div>
