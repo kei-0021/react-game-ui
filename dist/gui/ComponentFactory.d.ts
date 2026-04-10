@@ -8,6 +8,6 @@ interface ComponentFactoryProps {
     fullGameParam?: GameParam;
     containerRef: React.RefObject<HTMLElement | null>;
 }
-export declare const ComponentFactory: ({ onAdd, onDelete, existingComponents, fullGameParam, containerRef, }: ComponentFactoryProps) => import("react/jsx-runtime").JSX.Element;
+export declare const ComponentFactory: ({ onAdd, onDelete, existingComponents, fullGameParam }: ComponentFactoryProps) => import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=ComponentFactory.d.ts.map

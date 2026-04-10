@@ -3062,41 +3062,100 @@ const DeckFactory = ({ newCompId, onAdd, onSuccess }) => {
     /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, style: { marginTop: "10px", width: "100%" }, onClick: executeAdd, children: "DeckとFieldを同時追加" })
   ] });
 };
+const DiceFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => {
+  const [newDiceSides, setNewDiceSides] = useState(6);
+  const handleAdd = () => {
+    const id = newCompId || `dice-${Date.now()}`;
+    const initialProps = getInitialProps("Dice", id, newDiceSides);
+    onAdd({
+      id,
+      type: "Dice",
+      props: initialProps
+    });
+    onSuccess();
+  };
+  const handleDragStart = (e) => {
+    const id = newCompId || `dice-${Date.now()}`;
+    const dragData = {
+      type: "Dice",
+      id,
+      props: {
+        ...getInitialProps("Dice", id, newDiceSides),
+        slotX: 1,
+        slotY: 1
+      }
+    };
+    e.dataTransfer.setData("application/react-game-ui", JSON.stringify(dragData));
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "面数を選択:" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "select",
+      {
+        className: styles.compTypeSelect,
+        value: newDiceSides,
+        onChange: (e) => setNewDiceSides(Number(e.target.value)),
+        style: { marginBottom: "10px" },
+        children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: n, children: [
+          n,
+          "面"
+        ] }, n))
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        draggable: true,
+        onDragStart: handleDragStart,
+        className: styles.dragSourcePreview,
+        style: {
+          width: "60px",
+          height: "60px",
+          border: "2px dashed #888",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "grab",
+          borderRadius: "8px",
+          backgroundColor: "rgba(255,255,255,0.1)",
+          marginBottom: "10px"
+        },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "20px" }, children: "🎲" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontSize: "10px", color: "#ccc" }, children: [
+            newDiceSides,
+            "面"
+          ] })
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, style: { width: "100%" }, onClick: handleAdd, disabled: !newCompId, children: "Diceを追加" })
+  ] });
+};
 const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== "PlayField");
-const ComponentFactory = ({
-  onAdd,
-  onDelete,
-  existingComponents,
-  fullGameParam,
-  containerRef
-}) => {
+const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }) => {
   const [newCompId, setNewCompId] = useState("");
   const [newCompType, setNewCompType] = useState("Dice");
-  const [deckMode, setDeckMode] = useState("preset");
-  const [deckJsonData, setDeckJsonData] = useState(null);
-  const [deckFileName, setDeckFileName] = useState("");
   const [sbPlayCard, setSbPlayCard] = useState(true);
   const [sbHold, setSbHold] = useState(false);
   const [sbFlip, setSbFlip] = useState(false);
   const [sbTurnSkip, setSbTurnSkip] = useState(true);
   const [sbRoundSkip, setSbRoundSkip] = useState(false);
   const [newTokenCount, setNewTokenCount] = useState(10);
-  const [newDiceSides, setNewDiceSides] = useState(6);
   const [newDraggableColor, setNewDraggableColor] = useState("#ff0000");
   const [uploadImage, setUploadImage] = useState(null);
-  const [newDraggableX, setNewDraggableX] = useState(500);
-  const [newDraggableY, setNewDraggableY] = useState(500);
   const existingIds = existingComponents.map((c) => c.id);
   const isDuplicateId = existingIds.includes(newCompId);
-  const getInitialProps = (type, targetId) => {
+  const getInitialProps = (type, targetId, diceSidesOverride) => {
     switch (type) {
       case "Dice":
+        const sides = diceSidesOverride || 6;
         return {
           diceId: targetId,
-          sides: newDiceSides,
-          title: `${newDiceSides}面ダイス`,
-          // 4面の場合は天気ダイス
-          customFaces: newDiceSides === 4 ? ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"] : []
+          sides,
+          title: `${sides}面ダイス`,
+          customFaces: sides === 4 ? ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"] : []
         };
       case "Draggable":
         return {
@@ -3120,21 +3179,6 @@ const ComponentFactory = ({
           tokenStoreId: targetId,
           title: `トークン置き場`
         };
-      case "Deck":
-        return {
-          deckId: targetId,
-          title: `山札 ${targetId}`
-        };
-      case "PlayField":
-        return {
-          deckId: targetId,
-          title: targetId
-        };
-      case "GridBoard":
-        return {
-          boardId: targetId,
-          allowPieceDrag: true
-        };
       case "Timer":
         return { initialDuration: 30 };
       default:
@@ -3150,9 +3194,9 @@ const ComponentFactory = ({
   };
   const handleAddClick = () => {
     if (!newCompId || isDuplicateId) return;
+    if (newCompType === "Deck" || newCompType === "Dice") return;
     const initialProps = getInitialProps(newCompType, newCompId);
     let additionalParams = {};
-    if (newCompType === "Deck") return;
     switch (newCompType) {
       case "TokenStore":
         additionalParams.initialTokenStores = [
@@ -3171,7 +3215,7 @@ const ComponentFactory = ({
         additionalParams.draggables = {
           [newCompId]: {
             id: newCompId,
-            coordinate: { x: newDraggableX, y: newDraggableY },
+            coordinate: { x: 500, y: 500 },
             zIndex: 100,
             rotation: 0
           }
@@ -3230,10 +3274,19 @@ const ComponentFactory = ({
           onChange: (e) => setNewCompId(e.target.value)
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "追加" })
+      newCompType !== "Deck" && newCompType !== "Dice" && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "追加" })
     ] }),
     isDuplicateId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#ff4444", fontSize: "12px", marginTop: "-4px" }, children: "このIDは既に使用されています" }),
-    newCompType === "Deck" ? /* @__PURE__ */ jsxRuntimeExports.jsx(DeckFactory, { newCompId, onAdd, onSuccess: () => setNewCompId("") }) : /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "追加" }),
+    newCompType === "Deck" && /* @__PURE__ */ jsxRuntimeExports.jsx(DeckFactory, { newCompId, onAdd, onSuccess: () => setNewCompId("") }),
+    newCompType === "Dice" && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      DiceFactory,
+      {
+        newCompId,
+        onAdd,
+        onSuccess: () => setNewCompId(""),
+        getInitialProps
+      }
+    ),
     newCompType === "ScoreBoard" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
@@ -3259,15 +3312,7 @@ const ComponentFactory = ({
                 color: "#fff"
               },
               children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "input",
-                  {
-                    type: "checkbox",
-                    checked: item.state,
-                    onChange: (e) => item.setter(e.target.checked),
-                    style: { cursor: "pointer" }
-                  }
-                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "checkbox", checked: item.state, onChange: (e) => item.setter(e.target.checked) }),
                 item.label
               ]
             },
@@ -3293,73 +3338,10 @@ const ComponentFactory = ({
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "12px", color: "#fff", minWidth: "30px" }, children: newTokenCount })
       ] })
     ] }),
-    newCompType === "Dice" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "面数を選択:" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "select",
-        {
-          className: styles.compTypeSelect,
-          value: newDiceSides,
-          onChange: (e) => setNewDiceSides(Number(e.target.value)),
-          style: { marginBottom: "10px" },
-          children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: n, children: [
-            n,
-            "面"
-          ] }, n))
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          draggable: true,
-          onDragStart: (e) => {
-            const id = newCompId || `dice-${Date.now()}`;
-            const dragData = {
-              type: "Dice",
-              id,
-              props: {
-                ...getInitialProps("Dice", id),
-                slotX: 1,
-                slotY: 1
-              }
-            };
-            e.dataTransfer.setData("application/react-game-ui", JSON.stringify(dragData));
-          },
-          className: styles.dragSourcePreview,
-          style: {
-            width: "60px",
-            height: "60px",
-            border: "2px dashed #888",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "grab",
-            borderRadius: "8px",
-            backgroundColor: "rgba(255,255,255,0.1)"
-          },
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "20px" }, children: "🎲" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontSize: "10px", color: "#ccc" }, children: [
-              newDiceSides,
-              "面"
-            ] })
-          ]
-        }
-      )
-    ] }),
     newCompType === "Draggable" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px", margin: 0 }, children: "色:" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            type: "color",
-            value: newDraggableColor,
-            onChange: (e) => setNewDraggableColor(e.target.value),
-            style: { cursor: "pointer", border: "none", background: "none", width: "30px", height: "24px" }
-          }
-        )
+        /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "color", value: newDraggableColor, onChange: (e) => setNewDraggableColor(e.target.value) })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "画像アップロード:" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }),
@@ -3387,7 +3369,6 @@ const ComponentFactory = ({
             height: "80px",
             border: `2px solid ${newDraggableColor}`,
             backgroundColor: `${newDraggableColor}33`,
-            // 少し透明度を下げた背景
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -3408,7 +3389,6 @@ const ComponentFactory = ({
                   height: "100%",
                   objectFit: "contain",
                   pointerEvents: "none"
-                  // imgタグがドラッグイベントを邪魔しないように
                 }
               }
             ),

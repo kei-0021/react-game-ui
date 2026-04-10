@@ -1,11 +1,11 @@
 // src/gui/ComponentFactory.tsx
 import { GameParam } from '@/index.js';
-import { CardData } from '@/types/card.js';
 import { COMPONENT_TYPES, ComponentInfo, ComponentType } from '@/types/component.js';
 import { ComponentId } from '@/types/definition.js';
 import { useState } from 'react';
 import styles from './ControlPanel.module.css';
 import { DeckFactory } from './factory/DeckFactory.js';
+import { DiceFactory } from './factory/DiceFactory.js';
 
 const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== 'PlayField');
 
@@ -17,20 +17,11 @@ interface ComponentFactoryProps {
   containerRef: React.RefObject<HTMLElement | null>;
 }
 
-export const ComponentFactory = ({
-  onAdd,
-  onDelete,
-  existingComponents,
-  fullGameParam,
-  containerRef,
-}: ComponentFactoryProps) => {
+export const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }: ComponentFactoryProps) => {
   const [newCompId, setNewCompId] = useState('');
   const [newCompType, setNewCompType] = useState<ComponentType>('Dice');
 
-  // Deck関連
-  const [deckMode, setDeckMode] = useState<'preset' | 'json'>('preset');
-  const [deckJsonData, setDeckJsonData] = useState<CardData[] | null>(null);
-  const [deckFileName, setDeckFileName] = useState<string>('');
+  // --- UI状態 (Dice/Deck 以外) ---
 
   // ScoreBoard関連
   const [sbPlayCard, setSbPlayCard] = useState<boolean>(true);
@@ -42,31 +33,27 @@ export const ComponentFactory = ({
   // Token関連
   const [newTokenCount, setNewTokenCount] = useState<number>(10);
 
-  // Dice関連
-  const [newDiceSides, setNewDiceSides] = useState<number>(6);
-
   // Draggable関連
   const [newDraggableColor, setNewDraggableColor] = useState<string>('#ff0000');
   const [uploadImage, setUploadImage] = useState<string | null>(null);
-  const [newDraggableX, setNewDraggableX] = useState<number>(500);
-  const [newDraggableY, setNewDraggableY] = useState<number>(500);
 
   const existingIds = existingComponents.map((c) => c.id);
   const isDuplicateId = existingIds.includes(newCompId);
 
-  // Props生成ロジックの集約（追加ボタンとD&Dで共有）
-  const getInitialProps = (type: ComponentType, targetId: string) => {
+  /**
+   * Props生成ロジックの集約
+   * DiceFactory等、外部Factoryからも参照できるように sides などの引数を拡張
+   */
+  const getInitialProps = (type: ComponentType, targetId: string, diceSidesOverride?: number) => {
     switch (type) {
       case 'Dice':
+        const sides = diceSidesOverride || 6;
         return {
           diceId: targetId,
-          sides: newDiceSides,
-          title: `${newDiceSides}面ダイス`,
-          // 4面の場合は天気ダイス
+          sides: sides,
+          title: `${sides}面ダイス`,
           customFaces:
-            newDiceSides === 4
-              ? ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png']
-              : [],
+            sides === 4 ? ['/weather_sunny.png', '/weather_cloud.png', '/weather_wind.png', '/weather_rain.png'] : [],
         };
       case 'Draggable':
         return {
@@ -90,21 +77,6 @@ export const ComponentFactory = ({
           tokenStoreId: targetId,
           title: `トークン置き場`,
         };
-      case 'Deck':
-        return {
-          deckId: targetId,
-          title: `山札 ${targetId}`,
-        };
-      case 'PlayField':
-        return {
-          deckId: targetId,
-          title: targetId,
-        };
-      case 'GridBoard':
-        return {
-          boardId: targetId,
-          allowPieceDrag: true,
-        };
       case 'Timer':
         return { initialDuration: 30 };
       default:
@@ -120,31 +92,14 @@ export const ComponentFactory = ({
     reader.readAsDataURL(file);
   };
 
-  const handleJsonFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setDeckFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const json = JSON.parse(event.target?.result as string);
-        setDeckJsonData(Array.isArray(json) ? json : [json]);
-      } catch (err) {
-        alert('JSONファイルの解析に失敗しました。形式を確認してください。');
-        setDeckJsonData(null);
-      }
-    };
-    reader.readAsText(file);
-  };
-
   const handleAddClick = () => {
     if (!newCompId || isDuplicateId) return;
 
+    // Deck と Dice はそれぞれの Factory 内で完結するため、ここでは処理しない
+    if (newCompType === 'Deck' || newCompType === 'Dice') return;
+
     const initialProps = getInitialProps(newCompType, newCompId);
     let additionalParams: Partial<GameParam> = {};
-
-    if (newCompType === 'Deck') return;
 
     switch (newCompType) {
       case 'TokenStore':
@@ -165,7 +120,7 @@ export const ComponentFactory = ({
         additionalParams.draggables = {
           [newCompId]: {
             id: newCompId,
-            coordinate: { x: newDraggableX, y: newDraggableY },
+            coordinate: { x: 500, y: 500 },
             zIndex: 100,
             rotation: 0,
           },
@@ -218,6 +173,7 @@ export const ComponentFactory = ({
   return (
     <div className={styles.addComponentBox}>
       <div className={styles.label}>コンポーネント追加:</div>
+
       <div className={styles.createSection}>
         <select
           className={styles.compTypeSelect}
@@ -230,6 +186,7 @@ export const ComponentFactory = ({
             </option>
           ))}
         </select>
+
         <input
           type="text"
           className={styles.flexFill}
@@ -238,24 +195,34 @@ export const ComponentFactory = ({
           value={newCompId}
           onChange={(e) => setNewCompId(e.target.value)}
         />
-        <button className={styles.saveButton} onClick={handleAddClick} disabled={!newCompId || isDuplicateId}>
-          追加
-        </button>
+
+        {/* Deck, Dice 以外の場合のみ共通追加ボタンを表示 */}
+        {newCompType !== 'Deck' && newCompType !== 'Dice' && (
+          <button className={styles.saveButton} onClick={handleAddClick} disabled={!newCompId || isDuplicateId}>
+            追加
+          </button>
+        )}
       </div>
+
       {isDuplicateId && (
         <div style={{ color: '#ff4444', fontSize: '12px', marginTop: '-4px' }}>このIDは既に使用されています</div>
       )}
 
-      {/* Deck専用の設定項目 */}
-      {newCompType === 'Deck' ? (
-        <DeckFactory newCompId={newCompId} onAdd={onAdd} onSuccess={() => setNewCompId('')} />
-      ) : (
-        <button className={styles.saveButton} onClick={handleAddClick} disabled={!newCompId || isDuplicateId}>
-          追加
-        </button>
+      {/* --- コンポーネント別 Factory 呼び出し --- */}
+
+      {newCompType === 'Deck' && <DeckFactory newCompId={newCompId} onAdd={onAdd} onSuccess={() => setNewCompId('')} />}
+
+      {newCompType === 'Dice' && (
+        <DiceFactory
+          newCompId={newCompId}
+          onAdd={onAdd}
+          onSuccess={() => setNewCompId('')}
+          getInitialProps={getInitialProps}
+        />
       )}
 
-      {/* ScoreBoard専用の設定項目 */}
+      {/* --- その他の設定UI (ScoreBoard, TokenStore, Draggable) --- */}
+
       {newCompType === 'ScoreBoard' && (
         <div
           className={styles.field}
@@ -283,12 +250,7 @@ export const ComponentFactory = ({
                 color: '#fff',
               }}
             >
-              <input
-                type="checkbox"
-                checked={item.state}
-                onChange={(e) => item.setter(e.target.checked)}
-                style={{ cursor: 'pointer' }}
-              />
+              <input type="checkbox" checked={item.state} onChange={(e) => item.setter(e.target.checked)} />
               {item.label}
             </label>
           ))}
@@ -315,72 +277,13 @@ export const ComponentFactory = ({
         </div>
       )}
 
-      {/* ダイス専用の設定項目 */}
-      {newCompType === 'Dice' && (
-        <div className={styles.field} style={{ marginTop: '10px' }}>
-          <div className={styles.label} style={{ fontSize: '11px' }}>
-            面数を選択:
-          </div>
-          <select
-            className={styles.compTypeSelect}
-            value={newDiceSides}
-            onChange={(e) => setNewDiceSides(Number(e.target.value))}
-            style={{ marginBottom: '10px' }}
-          >
-            {[2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => (
-              <option key={n} value={n}>
-                {n}面
-              </option>
-            ))}
-          </select>
-
-          <div
-            draggable
-            onDragStart={(e) => {
-              const id = newCompId || `dice-${Date.now()}`;
-              const dragData = {
-                type: 'Dice',
-                id: id,
-                props: {
-                  ...getInitialProps('Dice', id),
-                  slotX: 1,
-                  slotY: 1,
-                },
-              };
-              e.dataTransfer.setData('application/react-game-ui', JSON.stringify(dragData));
-            }}
-            className={styles.dragSourcePreview}
-            style={{
-              width: '60px',
-              height: '60px',
-              border: '2px dashed #888',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'grab',
-              borderRadius: '8px',
-              backgroundColor: 'rgba(255,255,255,0.1)',
-            }}
-          >
-            <span style={{ fontSize: '20px' }}>🎲</span>
-            <span style={{ fontSize: '10px', color: '#ccc' }}>{newDiceSides}面</span>
-          </div>
-        </div>
-      )}
-
       {newCompType === 'Draggable' && (
         <div className={styles.field} style={{ marginTop: '10px' }}>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
             <div className={styles.label} style={{ fontSize: '11px', margin: 0 }}>
               色:
             </div>
-            <input
-              type="color"
-              value={newDraggableColor}
-              onChange={(e) => setNewDraggableColor(e.target.value)}
-              style={{ cursor: 'pointer', border: 'none', background: 'none', width: '30px', height: '24px' }}
-            />
+            <input type="color" value={newDraggableColor} onChange={(e) => setNewDraggableColor(e.target.value)} />
           </div>
 
           <div className={styles.label} style={{ fontSize: '11px' }}>
@@ -412,7 +315,7 @@ export const ComponentFactory = ({
               width: '80px',
               height: '80px',
               border: `2px solid ${newDraggableColor}`,
-              backgroundColor: `${newDraggableColor}33`, // 少し透明度を下げた背景
+              backgroundColor: `${newDraggableColor}33`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -431,7 +334,7 @@ export const ComponentFactory = ({
                 width: '100%',
                 height: '100%',
                 objectFit: 'contain',
-                pointerEvents: 'none', // imgタグがドラッグイベントを邪魔しないように
+                pointerEvents: 'none',
               }}
             />
 
