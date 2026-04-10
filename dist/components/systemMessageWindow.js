@@ -1,7 +1,7 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { useEffect, useState } from 'react';
 import styles from './systemMessageWindow.module.css';
-export const SystemMessageWindow = ({ socket, roomId, displayDuration = 2000 }) => {
+export function SystemMessageWindow({ socket, roomId, displayDuration = 2000 }) {
     const [displayMessage, setDisplayMessage] = useState('');
     const [currentData, setCurrentData] = useState(null);
     const [queue, setQueue] = useState([]);
@@ -51,4 +51,4 @@ export const SystemMessageWindow = ({ socket, roomId, displayDuration = 2000 }) 
         };
     }, [isProcessing, currentData, displayDuration]);
     return (_jsx("section", { className: styles.messageContainer, children: _jsx("div", { className: styles.messageList, children: displayMessage && (_jsx("div", { className: styles.messageItemActive, children: displayMessage }, msgKey)) }) }));
-};
+}

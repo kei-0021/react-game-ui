@@ -1,7 +1,7 @@
 // src/components/systemMessageWindow.tsx
 import { RoomId } from '@/types/definition.js';
 import { SystemMessageData } from '@/types/socketData.js';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import styles from './systemMessageWindow.module.css';
 
@@ -11,7 +11,7 @@ interface SystemMessageWindowProps {
   displayDuration?: number;
 }
 
-export const SystemMessageWindow: React.FC<SystemMessageWindowProps> = ({ socket, roomId, displayDuration = 2000 }) => {
+export function SystemMessageWindow({ socket, roomId, displayDuration = 2000 }: SystemMessageWindowProps) {
   const [displayMessage, setDisplayMessage] = useState<string>('');
   const [currentData, setCurrentData] = useState<SystemMessageData | null>(null);
   const [queue, setQueue] = useState<SystemMessageData[]>([]);
@@ -77,4 +77,4 @@ export const SystemMessageWindow: React.FC<SystemMessageWindowProps> = ({ socket
       </div>
     </section>
   );
-};
+}

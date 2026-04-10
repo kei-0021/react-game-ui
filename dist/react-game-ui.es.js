@@ -2658,7 +2658,7 @@ const styles$2 = {
   messageList,
   messageItemActive
 };
-const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
+function SystemMessageWindow({ socket, roomId, displayDuration = 2e3 }) {
   const [displayMessage, setDisplayMessage] = useState("");
   const [currentData, setCurrentData] = useState(null);
   const [queue, setQueue] = useState([]);
@@ -2700,7 +2700,7 @@ const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
     };
   }, [isProcessing, currentData, displayDuration]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$2.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageItemActive, children: displayMessage }, msgKey) }) });
-};
+}
 function Timer({ socket = null, roomId, initialDuration, onFinish }) {
   const [timeLeft, setTimeLeft] = useState(initialDuration);
   useEffect(() => {
