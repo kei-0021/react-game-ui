@@ -8,5 +8,5 @@ import { Socket } from 'socket.io';
  * @param {Socket} socket - 接続されたクライアントのSocket.IOインスタンス
  * @param {Record<GameId, GameParam>} gameParams - サーバーが保持しているゲーム定義データの参照
  */
-export declare function registerEditorListeners(socket: Socket, gameParams: Record<GameId, GameParam>): void;
-//# sourceMappingURL=editor-listener.d.ts.map
+export declare function registerLiveListeners(socket: Socket, gameParams: Record<GameId, GameParam>): void;
+//# sourceMappingURL=live-listener.d.ts.map

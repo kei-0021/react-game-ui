@@ -1,4 +1,4 @@
-import { GameParam } from '@/index.js';
+import { GameParam, RoomState } from '@/index.js';
 import { GameId } from '@/types/component.js';
 import { Server as SocketIOServer } from 'socket.io';
 import { LogCategory, LogLevel } from './logger.js';
@@ -37,6 +37,7 @@ export declare class GameServer {
     private clientDistPath;
     private corsOrigins;
     gameParams: Record<GameId, GameParam>;
+    private activeRooms;
     private customEvents;
     private initialLogCategories;
     private initialLogLevel;
@@ -55,6 +56,7 @@ export declare class GameServer {
      * 各プリセット情報をそのまま渡すことで、ルームごとに独立した効果を適用可能にする
      */
     private initSocketLogic;
+    getActiveRooms(): Map<string, RoomState>;
     /**
      * 指定されたポートでHTTPサーバーの待機を開始する。
      * 起動完了後、コンソールにアクセス可能なURL（http://localhost:{port}）を出力する。

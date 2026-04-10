@@ -14,7 +14,7 @@ const execPromise = util.promisify(exec);
  * @param {Socket} socket - 接続されたクライアントのSocket.IOインスタンス
  * @param {Record<GameId, GameParam>} gameParams - サーバーが保持しているゲーム定義データの参照
  */
-export function registerEditorListeners(socket, gameParams) {
+export function registerLiveListeners(socket, gameParams) {
     // GUIからConfigファイルを直接書き換える
     socket.on('game-param:update', async (data) => {
         try {

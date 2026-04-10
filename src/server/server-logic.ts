@@ -7,7 +7,7 @@ import { registerBoardListeners } from './listener/board-listener.js';
 import { registerDeckListeners } from './listener/deck-listener.js';
 import { registerDiceListeners } from './listener/dice-listener.js';
 import { registerDraggableListeners } from './listener/draggable-listener.js';
-import { registerEditorListeners } from './listener/editor-listener.js';
+import { registerLiveListeners } from './listener/live-listener.js';
 import { registerPlayerListeners } from './listener/player-listener.js';
 import { registerRoomListeners } from './listener/room-listener.js';
 import { registerTimerListeners } from './listener/timer-listener.js';
@@ -16,9 +16,7 @@ import { LOG_CATEGORIES, setLogLevel } from './logger.js';
 import { RoomManager } from './room-manager.js';
 import type { GameServerOptions } from './server.js';
 
-export const activeRooms = new Map<RoomId, RoomState>();
-
-export function initGameServer(io: Server, options: GameServerOptions) {
+export function initGameServer(io: Server, options: GameServerOptions, activeRooms: Map<RoomId, RoomState>) {
   const gameParams = options.gameParams || {};
 
   if (options.initialLogCategories) {
@@ -45,7 +43,8 @@ export function initGameServer(io: Server, options: GameServerOptions) {
   }
 
   io.on('connection', (socket: Socket) => {
-    registerEditorListeners(socket, gameParams);
+    // エディタ編集関連
+    registerLiveListeners(socket, gameParams);
 
     // ロビー
     socket.on('lobby:get-info', () => {

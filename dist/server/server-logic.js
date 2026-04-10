@@ -2,15 +2,14 @@ import { registerBoardListeners } from './listener/board-listener.js';
 import { registerDeckListeners } from './listener/deck-listener.js';
 import { registerDiceListeners } from './listener/dice-listener.js';
 import { registerDraggableListeners } from './listener/draggable-listener.js';
-import { registerEditorListeners } from './listener/editor-listener.js';
+import { registerLiveListeners } from './listener/live-listener.js';
 import { registerPlayerListeners } from './listener/player-listener.js';
 import { registerRoomListeners } from './listener/room-listener.js';
 import { registerTimerListeners } from './listener/timer-listener.js';
 import { registerTokenListeners } from './listener/token-listener.js';
 import { LOG_CATEGORIES, setLogLevel } from './logger.js';
 import { RoomManager } from './room-manager.js';
-export const activeRooms = new Map();
-export function initGameServer(io, options) {
+export function initGameServer(io, options, activeRooms) {
     const gameParams = options.gameParams || {};
     if (options.initialLogCategories) {
         Object.assign(LOG_CATEGORIES, options.initialLogCategories);
@@ -30,7 +29,8 @@ export function initGameServer(io, options) {
         console.log(`[log] ログレベルを初期化しました: ${blue}${options.initialLogLevel}${reset}`);
     }
     io.on('connection', (socket) => {
-        registerEditorListeners(socket, gameParams);
+        // エディタ編集関連
+        registerLiveListeners(socket, gameParams);
         // ロビー
         socket.on('lobby:get-info', () => {
             const gameList = Object.keys(gameParams).map((id) => ({

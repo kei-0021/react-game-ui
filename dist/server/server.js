@@ -29,6 +29,7 @@ export class GameServer {
     clientDistPath;
     corsOrigins;
     gameParams;
+    activeRooms = new Map();
     customEvents;
     initialLogCategories;
     initialLogLevel;
@@ -98,11 +99,14 @@ export class GameServer {
                 customEvents: this.customEvents,
                 initialLogCategories: this.initialLogCategories,
                 initialLogLevel: this.initialLogLevel,
-            });
+            }, this.activeRooms);
         }
         catch (err) {
             console.error('[Server] Failed to initialize game server logic:', err);
         }
+    }
+    getActiveRooms() {
+        return this.activeRooms;
     }
     /**
      * 指定されたポートでHTTPサーバーの待機を開始する。
