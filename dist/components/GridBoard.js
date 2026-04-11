@@ -24,6 +24,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
     const [highlightedCells, setHighlightedCells] = React.useState([]);
     const [draggingPieceId, setDraggingPieceId] = React.useState(null);
     const [pieces, setPieces] = React.useState([]);
+    const [serverExtraPieces, setServerExtraPieces] = React.useState([]);
     // IDから盤面の最大行列数を計算（一次元配列対応）
     const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || '0', 10))) + 1 : 0;
     const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || '0', 10))) + 1 : 0;
@@ -43,10 +44,10 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
         if (draggedPieceId) {
             // ドロップ（移動確定）したらハイライトを消す
             setHighlightedCells([]);
-            socket.emit('board:move-player', {
+            socket.emit('board:move-piece', {
                 roomId,
                 boardId: boardId,
-                playerId: draggedPieceId,
+                pieceId: draggedPieceId,
                 newLocation: { row: targetRow, col: targetCol },
             });
         }
@@ -55,8 +56,11 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
      * 駒クリック時のハンドラ
      * 移動可能範囲を表示するためにサーバーへリクエストを飛ばす
      */
-    const handlePieceClick = (pieceId) => {
-        if (!isBoardReady || !socket || pieceId !== myPlayerId)
+    const requestMovableRange = (pieceId) => {
+        if (!isBoardReady || !socket)
+            return;
+        const isPlayerPiece = players?.some((p) => p.id === pieceId);
+        if (isPlayerPiece && pieceId !== myPlayerId)
             return;
         const requestData = {
             roomId,
@@ -71,7 +75,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
         e.dataTransfer.setData('pieceId', piece.id);
         e.dataTransfer.effectAllowed = 'move';
         setDraggingPieceId(piece.id);
-        handlePieceClick(piece.id);
+        requestMovableRange(piece.id);
     };
     const handlePieceDragEnd = () => {
         setDraggingPieceId(null);
@@ -83,6 +87,9 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
             if (data.board && data.board.length > 0) {
                 setCells(data.board);
                 setIsBoardReady(true);
+            }
+            if (data.extraPieces) {
+                setServerExtraPieces(data.extraPieces);
             }
         };
         socket.on('board:update', handleInitBoard);
@@ -104,25 +111,23 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
     // プレイヤー情報を描画用の駒データに変換
     React.useEffect(() => {
         setPieces((prevPieces) => {
-            if (!players)
-                return [];
-            return players.map((p) => {
+            const playerPieces = (players || []).map((p) => {
                 const existingPiece = prevPieces.find((piece) => piece.id === p.id);
                 const location = p.position;
-                const playerColor = p.color || existingPiece?.color || '#aaaaaa';
-                const playerName = p.name || existingPiece?.name || `P?`;
-                const playerImage = p.pieceImage || existingPiece?.image;
                 return {
                     ...existingPiece,
                     id: p.id,
-                    name: playerName,
-                    color: playerColor,
-                    image: playerImage,
+                    name: p.name || existingPiece?.name || `P?`,
+                    color: p.color || existingPiece?.color || '#aaaaaa',
+                    image: p.pieceImage || existingPiece?.image,
                     location,
                 };
             });
+            // Array.isArray で配列であることを確認し、そうでなければ空配列として扱う
+            const safeExtraPieces = Array.isArray(serverExtraPieces) ? serverExtraPieces : [];
+            return [...playerPieces, ...safeExtraPieces];
         });
-    }, [players]);
+    }, [players, serverExtraPieces]);
     const boardStyle = {
         '--board-rows': rows,
         '--board-cols': cols,
@@ -177,6 +182,6 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
                     transform: `translate(${offsetX}px, ${offsetY}px)`,
                     transition: 'transform 0.3s ease-in-out',
                 };
-                return (_jsx(Piece, { piece: piece, style: pieceStyle, onClick: handlePieceClick, isDraggable: allowPieceDrag, isFilled: true, onDragStart: handlePieceDragStart, onDragEnd: handlePieceDragEnd }, piece.id));
+                return (_jsx(Piece, { piece: piece, style: pieceStyle, onClick: requestMovableRange, isDraggable: allowPieceDrag, isFilled: true, onDragStart: handlePieceDragStart, onDragEnd: handlePieceDragEnd }, piece.id));
             })] }));
 }

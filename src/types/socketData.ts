@@ -13,6 +13,7 @@ import type {
   DiceId,
   DraggableId,
   GameId,
+  PieceId,
   PlayerId,
   RoomId,
   TokenId,
@@ -20,6 +21,7 @@ import type {
 } from './definition.js';
 import type { GameParam } from './gameParam.js';
 import type { Phase } from './phase.js';
+import { PieceData } from './piece.js';
 import type { RoomState } from './roomState.js';
 import type { TokenData } from './token.js';
 
@@ -169,16 +171,17 @@ export type BoardMovableRangeData = {
   isExact: boolean;
 };
 
-export type BaordMovePlayerData = {
+export type BaordMovePieceData = {
   roomId: RoomId;
   boardId: BoardId;
-  playerId: PlayerId;
+  pieceId: PieceId;
   newLocation: any;
 };
 
 export type BoardUpdateData = {
   boardId: BoardId;
   board: CellData[];
+  extraPieces: PieceData[];
 };
 
 /*

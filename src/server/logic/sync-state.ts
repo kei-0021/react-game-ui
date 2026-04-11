@@ -20,7 +20,11 @@ export function syncState(state: RoomState, roomManager: RoomManager, io: Server
   Object.keys(state.tokenStores).forEach((id) => roomManager.emitTokenStoreUpdate(id));
   if (state.exploredCells.length > 0) io.to(state.roomId).emit('cell:update', state.exploredCells);
   Object.entries(state.boards).forEach(([boardId, board]) => {
-    io.to(state.roomId).emit('board:update', { boardId, board } as BoardUpdateData);
+    io.to(state.roomId).emit('board:update', {
+      boardId,
+      board,
+      extraPieces: Object.values(state.extraPieces),
+    } as BoardUpdateData);
   });
   Object.keys(state.draggables).forEach((id) => roomManager.emitDraggableUpdate(id));
 

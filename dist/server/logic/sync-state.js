@@ -16,7 +16,11 @@ export function syncState(state, roomManager, io) {
     if (state.exploredCells.length > 0)
         io.to(state.roomId).emit('cell:update', state.exploredCells);
     Object.entries(state.boards).forEach(([boardId, board]) => {
-        io.to(state.roomId).emit('board:update', { boardId, board });
+        io.to(state.roomId).emit('board:update', {
+            boardId,
+            board,
+            extraPieces: Object.values(state.extraPieces),
+        });
     });
     Object.keys(state.draggables).forEach((id) => roomManager.emitDraggableUpdate(id));
     // 初回の一人のみターンを更新する

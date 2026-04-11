@@ -93,6 +93,26 @@ export const deepAbyssConfig: RoomConfig = {
       initialHand: { deepAbyssAction: 6 },
       initialTokens: { ARTIFACT: 2, Hanabishi: 3 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
+      extraPieces: {
+        'enemy-01': {
+          id: 'enemy-01',
+          name: 'Goblin',
+          color: '#ff4444',
+          location: { row: 2, col: 3 },
+        },
+        'item-treasure': {
+          id: 'item-treasure',
+          name: 'Chest',
+          color: '#ffd700',
+          location: { row: 5, col: 5 },
+        },
+        'enemy-boss': {
+          id: 'enemy-boss',
+          name: 'Dragon',
+          color: '#8b0000',
+          location: { row: 0, col: 0 },
+        },
+      },
       shuffleAndReconnectBoard: { deepAbyssBoard: cellShuffleAndReconnector },
       pieceImage: '/hanabishi.svg',
       initialPhase: DeepAbyssPhase.START,

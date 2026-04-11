@@ -5,19 +5,20 @@ import { RoomManager } from '../room-manager.js';
  */
 export function registerBoardListeners(socket, io, gameParams, activeRooms) {
     // 駒の移動
-    socket.on('board:move-player', ({ roomId, boardId, playerId, newLocation }) => {
+    socket.on('board:move-piece', ({ roomId, boardId, pieceId, newLocation }) => {
         const state = activeRooms.get(roomId);
         if (!state)
             return;
         const param = gameParams[state.gameId];
         const roomManager = new RoomManager(io, param, state);
-        const player = state?.players.find((p) => p.id === playerId);
-        if (player && state) {
+        // プレイヤーリストから検索
+        const player = state.players.find((p) => p.id === pieceId);
+        if (player) {
             player.position = newLocation;
             // セル効果
             const cellEffects = param.cellEffects;
             if (cellEffects) {
-                roomManager.applyCellEffect(boardId, playerId, newLocation, cellEffects);
+                roomManager.applyCellEffect(boardId, pieceId, newLocation, cellEffects);
             }
             // カスタムフック
             const onPieceMove = param.onPieceMove;
@@ -25,6 +26,18 @@ export function registerBoardListeners(socket, io, gameParams, activeRooms) {
                 onPieceMove(state, roomManager, newLocation);
             }
             roomManager.emitPlayerUpdate();
+            return;
+        }
+        // プレイヤー以外のコマの処理
+        const extraPiece = state.extraPieces[pieceId];
+        if (extraPiece) {
+            extraPiece.location = newLocation;
+            console.log('ここを通りました');
+            io.to(roomId).emit('board:update', {
+                board: state.boards,
+                players: state.players,
+                extraPieces: state.extraPieces,
+            });
         }
     });
     // プレイヤーの移動可能範囲リクエストを処理する

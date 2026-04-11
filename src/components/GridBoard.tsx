@@ -1,7 +1,7 @@
 // src/components/GridBoard.tsx
 import { CellData, Player } from '@/index.js';
 import { BoardId, PieceId, PlayerId, RoomId } from '@/types/definition.js';
-import { BaordMovePlayerData, BoardMovableRangeData, BoardUpdateData } from '@/types/socketData.js';
+import { BaordMovePieceData, BoardMovableRangeData, BoardUpdateData } from '@/types/socketData.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
@@ -62,6 +62,7 @@ export function GridBoard({
   const [highlightedCells, setHighlightedCells] = React.useState<GridLocation[]>([]);
   const [draggingPieceId, setDraggingPieceId] = React.useState<PieceId | null>(null);
   const [pieces, setPieces] = React.useState<PieceData[]>([]);
+  const [serverExtraPieces, setServerExtraPieces] = React.useState<PieceData[]>([]);
 
   // IDから盤面の最大行列数を計算（一次元配列対応）
   const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || '0', 10))) + 1 : 0;
@@ -85,12 +86,12 @@ export function GridBoard({
       // ドロップ（移動確定）したらハイライトを消す
       setHighlightedCells([]);
 
-      socket.emit('board:move-player', {
+      socket.emit('board:move-piece', {
         roomId,
         boardId: boardId,
-        playerId: draggedPieceId,
+        pieceId: draggedPieceId,
         newLocation: { row: targetRow, col: targetCol },
-      } as BaordMovePlayerData);
+      } as BaordMovePieceData);
     }
   };
 
@@ -98,8 +99,11 @@ export function GridBoard({
    * 駒クリック時のハンドラ
    * 移動可能範囲を表示するためにサーバーへリクエストを飛ばす
    */
-  const handlePieceClick = (pieceId: PieceId) => {
-    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
+  const requestMovableRange = (pieceId: PieceId) => {
+    if (!isBoardReady || !socket) return;
+
+    const isPlayerPiece = players?.some((p) => p.id === pieceId);
+    if (isPlayerPiece && pieceId !== myPlayerId) return;
 
     const requestData: BoardMovableRangeData = {
       roomId,
@@ -116,7 +120,7 @@ export function GridBoard({
     e.dataTransfer.setData('pieceId', piece.id);
     e.dataTransfer.effectAllowed = 'move';
     setDraggingPieceId(piece.id);
-    handlePieceClick(piece.id);
+    requestMovableRange(piece.id);
   };
 
   const handlePieceDragEnd = () => {
@@ -131,6 +135,9 @@ export function GridBoard({
       if (data.board && data.board.length > 0) {
         setCells(data.board);
         setIsBoardReady(true);
+      }
+      if (data.extraPieces) {
+        setServerExtraPieces(data.extraPieces);
       }
     };
     socket.on('board:update', handleInitBoard);
@@ -154,26 +161,26 @@ export function GridBoard({
   // プレイヤー情報を描画用の駒データに変換
   React.useEffect(() => {
     setPieces((prevPieces) => {
-      if (!players) return [];
-      return players.map((p) => {
+      const playerPieces: PieceData[] = (players || []).map((p) => {
         const existingPiece = prevPieces.find((piece) => piece.id === p.id);
         const location: GridLocation = p.position;
-
-        const playerColor = p.color || existingPiece?.color || '#aaaaaa';
-        const playerName = p.name || existingPiece?.name || `P?`;
-        const playerImage = p.pieceImage || existingPiece?.image;
 
         return {
           ...existingPiece,
           id: p.id,
-          name: playerName,
-          color: playerColor,
-          image: playerImage,
+          name: p.name || existingPiece?.name || `P?`,
+          color: p.color || existingPiece?.color || '#aaaaaa',
+          image: p.pieceImage || existingPiece?.image,
           location,
         } as PieceData;
       });
+
+      // Array.isArray で配列であることを確認し、そうでなければ空配列として扱う
+      const safeExtraPieces = Array.isArray(serverExtraPieces) ? serverExtraPieces : [];
+
+      return [...playerPieces, ...safeExtraPieces];
     });
-  }, [players]);
+  }, [players, serverExtraPieces]);
 
   const boardStyle: React.CSSProperties = {
     '--board-rows': rows,
@@ -272,7 +279,7 @@ export function GridBoard({
             key={piece.id}
             piece={piece}
             style={pieceStyle}
-            onClick={handlePieceClick}
+            onClick={requestMovableRange}
             isDraggable={allowPieceDrag}
             isFilled={true}
             onDragStart={handlePieceDragStart}
