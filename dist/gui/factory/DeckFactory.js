@@ -50,7 +50,7 @@ export const DeckFactory = ({ newCompId, onAdd, onSuccess }) => {
                 isFaceUp: true,
                 backColor: 'black',
             };
-            cards = ['spades', 'hearts', 'diamonds', 'clubs'].flatMap((suit) => [1, 2].map((num) => ({
+            cards = ['spades', 'hearts', 'diamonds', 'clubs'].flatMap((suit) => [1, 2, 3, 4].map((num) => ({
                 ...common,
                 id: `${newCompId}-${suit[0]}${num}`,
                 name: `${newCompId}-${suit[0]}${num}`,
