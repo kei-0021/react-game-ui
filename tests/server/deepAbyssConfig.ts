@@ -93,12 +93,22 @@ export const deepAbyssConfig: RoomConfig = {
       initialHand: { deepAbyssAction: 6 },
       initialTokens: { ARTIFACT: 2, Hanabishi: 3 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
-      extraPieces: {
-        'enemy-01': {
-          id: 'enemy-01',
-          name: 'Goblin',
+      initialPieces: {
+        piece: {
+          id: 'piece',
+          name: 'piece',
+          ownerId: 'player',
           color: '#ff4444',
           location: { row: 2, col: 3 },
+          image: '/hanabishi.svg',
+        },
+        'piece-2': {
+          id: 'piece-2',
+          name: 'piece-2',
+          ownerId: 'player',
+          color: '#ff4444',
+          location: { row: 2, col: 3 },
+          image: '/hanabishi.svg',
         },
         'item-treasure': {
           id: 'item-treasure',

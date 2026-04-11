@@ -140,20 +140,25 @@ export function createPlayer(param, state, playerName, socketId) {
         }
     }
     // 駒の配布処理
-    const pieceId = `piece_${playerId}`; // 駒固有のID
-    state.pieces[pieceId] = {
-        id: pieceId,
-        ownerId: playerId,
-        name: newPlayer.name,
-        color: newPlayer.color,
-        image: param.pieceImage,
-        position: {
-            row: 0,
-            col: state.players.length,
-        },
-        movableCells: [],
-    };
-    server_log('cell', state.gameId, state.roomId, `プレイヤー ${newPlayer.name} 用の駒を生成しました`);
+    if (param.initialPieces) {
+        const templates = Object.entries(param.initialPieces).filter(([_, p]) => p.ownerId === 'player');
+        templates.forEach(([templateId, template]) => {
+            const pieceId = `${templateId}_${playerId}`;
+            state.pieces[pieceId] = {
+                ...template,
+                id: pieceId,
+                ownerId: playerId,
+                name: newPlayer.name,
+                color: newPlayer.color,
+                position: {
+                    row: template.position?.row ?? 0,
+                    col: (template.position?.col ?? 0) + state.players.length,
+                },
+                movableCells: [],
+            };
+            server_log('cell', state.gameId, state.roomId, `プレイヤー ${newPlayer.name} 用の駒を生成しました`);
+        });
+    }
     // 初期トークンの配布処理
     const initialTokens = param.initialTokens;
     if (initialTokens) {
