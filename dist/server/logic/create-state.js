@@ -87,7 +87,7 @@ export function createState(roomId, param) {
         discardPile: discardPile,
         holdCards: holdCards,
         boards: Cells,
-        pieces: param.initialPieces || {},
+        pieces: Object.fromEntries(Object.entries(param.initialPieces || {}).filter(([_, p]) => p.ownerId !== 'player')),
         exploredCells: [],
         tokenStores: tokenStores,
         draggables: draggables,
