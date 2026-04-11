@@ -1,12 +1,12 @@
-import type { PieceId } from './definition.js';
+import type { PieceId, PlayerId } from './definition.js';
+import type { Position } from './position.js';
 export type PieceData = {
     id: PieceId;
+    ownerId: PlayerId | null;
     name: string;
     color: string;
     image?: string;
-    location: {
-        row: number;
-        col: number;
-    };
+    position: Position;
+    movableCells: any[];
 };
 //# sourceMappingURL=piece.d.ts.map

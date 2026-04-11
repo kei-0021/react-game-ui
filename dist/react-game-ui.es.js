@@ -1723,8 +1723,9 @@ function GridBoard({
   };
   const requestMovableRange = (pieceId) => {
     if (!isBoardReady || !socket) return;
-    const isPlayerPiece = players?.some((p) => p.id === pieceId);
-    if (isPlayerPiece && pieceId !== myPlayerId) return;
+    const targetPiece = pieces.find((p) => p.id === pieceId);
+    if (!targetPiece) return;
+    if (targetPiece.ownerId && targetPiece.ownerId !== myPlayerId) return;
     const requestData = {
       roomId,
       boardId,
@@ -1735,6 +1736,10 @@ function GridBoard({
     socket.emit("board:movable-range", requestData);
   };
   const handlePieceDragStart = (e, piece2) => {
+    if (piece2.ownerId && piece2.ownerId !== myPlayerId) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.setData("pieceId", piece2.id);
     e.dataTransfer.effectAllowed = "move";
     setDraggingPieceId(piece2.id);
@@ -1768,23 +1773,9 @@ function GridBoard({
     };
   }, [socket]);
   React.useEffect(() => {
-    setPieces((prevPieces) => {
-      const playerPieces = (players || []).map((p) => {
-        const existingPiece = prevPieces.find((piece2) => piece2.id === p.id);
-        const location = p.position;
-        return {
-          ...existingPiece,
-          id: p.id,
-          name: p.name || existingPiece?.name || `P?`,
-          color: p.color || existingPiece?.color || "#aaaaaa",
-          image: p.pieceImage || existingPiece?.image,
-          location
-        };
-      });
-      const safeExtraPieces = Array.isArray(serverExtraPieces) ? serverExtraPieces : [];
-      return [...playerPieces, ...safeExtraPieces];
-    });
-  }, [players, serverExtraPieces]);
+    const safePieces = Array.isArray(serverExtraPieces) ? serverExtraPieces : [];
+    setPieces(safePieces);
+  }, [serverExtraPieces]);
   const boardStyle = {
     "--board-rows": rows,
     "--board-cols": cols,
@@ -1816,22 +1807,21 @@ function GridBoard({
       const r = match ? parseInt(match[1], 10) : 0;
       const c = match ? parseInt(match[2], 10) : 0;
       const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
-      const isHighlighted = players ? players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false : false;
+      const isHighlighted = pieces.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false;
       const cellDataForRenderer = {
         ...cell2,
         content: isChanged ? cell2.changedContent : cell2.content
       };
-      const loc = { row: r, col: c };
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
         Cell,
         {
-          locationData: loc,
+          locationData: { row: r, col: c },
           cellData: cellDataForRenderer,
           onClick: () => handleCellClick(),
           onDoubleClick: () => handleCellDoubleClick(),
           onDrop: (e) => handleCellDrop(e, r, c),
           onDragOver: (e) => e.preventDefault(),
-          highlighted: isHighlighted,
+          highlighted: isHighlighted && !!draggingPieceId,
           changed: isChanged,
           children: renderCell(cellDataForRenderer, r, c)
         },
@@ -1839,9 +1829,12 @@ function GridBoard({
       );
     }),
     pieces.map((piece2) => {
-      const sameLocationPieces = pieces.filter(
-        (p) => p.location.row === piece2.location.row && p.location.col === piece2.location.col
-      );
+      const pos = piece2.position;
+      if (!pos) return null;
+      const sameLocationPieces = pieces.filter((p) => {
+        const pPos = p.position;
+        return pPos && pPos.row === pos.row && pPos.col === pos.col;
+      });
       const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece2.id);
       const groupCount = sameLocationPieces.length;
       let offsetX = 0;
@@ -1853,7 +1846,8 @@ function GridBoard({
         offsetY = radius * Math.sin(angle);
       }
       const pieceStyle = {
-        gridArea: `${piece2.location.row + 1} / ${piece2.location.col + 1} / span 1 / span 1`,
+        // 確定した座標 pos を使用
+        gridArea: `${pos.row + 1} / ${pos.col + 1} / span 1 / span 1`,
         alignSelf: "center",
         justifySelf: "center",
         transform: `translate(${offsetX}px, ${offsetY}px)`,

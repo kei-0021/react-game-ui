@@ -29,7 +29,7 @@ export function syncState(state: RoomState, roomManager: RoomManager, io: Server
     io.to(state.roomId).emit('board:update', {
       boardId,
       board,
-      extraPieces: Object.values(state.extraPieces),
+      extraPieces: Object.values(state.pieces),
     } as BoardUpdateData);
   });
 

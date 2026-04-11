@@ -22,7 +22,7 @@ export function syncState(state, roomManager, io) {
         io.to(state.roomId).emit('board:update', {
             boardId,
             board,
-            extraPieces: Object.values(state.extraPieces),
+            extraPieces: Object.values(state.pieces),
         });
     });
     // ドラッグ可能オブジェクト関連

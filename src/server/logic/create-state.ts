@@ -128,7 +128,7 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     discardPile: discardPile,
     holdCards: holdCards,
     boards: Cells,
-    extraPieces: param.extraPieces || {},
+    pieces: param.initialPieces || {},
     exploredCells: [],
     tokenStores: tokenStores,
     draggables: draggables,
@@ -162,9 +162,6 @@ export function createPlayer(param: GameParam, state: RoomState, playerName: str
     score: 0,
     resources: param.initialResources || [],
     tokens: [],
-    position: { row: 0, col: 0 },
-    movableCells: [],
-    pieceImage: param.pieceImage,
   };
 
   // 初期手札配布処理
@@ -189,6 +186,23 @@ export function createPlayer(param: GameParam, state: RoomState, playerName: str
       }
     }
   }
+
+  // 駒の配布処理
+  const pieceId = `piece_${playerId}`; // 駒固有のID
+  state.pieces[pieceId] = {
+    id: pieceId,
+    ownerId: playerId,
+    name: newPlayer.name,
+    color: newPlayer.color,
+    image: param.pieceImage,
+    position: {
+      row: 0,
+      col: state.players.length,
+    },
+    movableCells: [],
+  };
+
+  server_log('cell', state.gameId, state.roomId, `プレイヤー ${newPlayer.name} 用の駒を生成しました`);
 
   // 初期トークンの配布処理
   const initialTokens = param.initialTokens;

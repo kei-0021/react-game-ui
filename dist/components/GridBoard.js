@@ -23,6 +23,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
     const [changedCells, setChangedCells] = React.useState([]);
     const [highlightedCells, setHighlightedCells] = React.useState([]);
     const [draggingPieceId, setDraggingPieceId] = React.useState(null);
+    // serverExtraPiecesが「盤上のすべての駒（自分・他・敵）」を持つ前提にする
     const [pieces, setPieces] = React.useState([]);
     const [serverExtraPieces, setServerExtraPieces] = React.useState([]);
     // IDから盤面の最大行列数を計算（一次元配列対応）
@@ -59,8 +60,11 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
     const requestMovableRange = (pieceId) => {
         if (!isBoardReady || !socket)
             return;
-        const isPlayerPiece = players?.some((p) => p.id === pieceId);
-        if (isPlayerPiece && pieceId !== myPlayerId)
+        const targetPiece = pieces.find((p) => p.id === pieceId);
+        if (!targetPiece)
+            return;
+        // 持ち主（ownerId）が設定されている場合、自分以外ならリクエストを送らない
+        if (targetPiece.ownerId && targetPiece.ownerId !== myPlayerId)
             return;
         const requestData = {
             roomId,
@@ -72,6 +76,11 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
         socket.emit('board:movable-range', requestData);
     };
     const handlePieceDragStart = (e, piece) => {
+        // ドラッグ権限チェック
+        if (piece.ownerId && piece.ownerId !== myPlayerId) {
+            e.preventDefault();
+            return;
+        }
         e.dataTransfer.setData('pieceId', piece.id);
         e.dataTransfer.effectAllowed = 'move';
         setDraggingPieceId(piece.id);
@@ -110,24 +119,10 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
     }, [socket]);
     // プレイヤー情報を描画用の駒データに変換
     React.useEffect(() => {
-        setPieces((prevPieces) => {
-            const playerPieces = (players || []).map((p) => {
-                const existingPiece = prevPieces.find((piece) => piece.id === p.id);
-                const location = p.position;
-                return {
-                    ...existingPiece,
-                    id: p.id,
-                    name: p.name || existingPiece?.name || `P?`,
-                    color: p.color || existingPiece?.color || '#aaaaaa',
-                    image: p.pieceImage || existingPiece?.image,
-                    location,
-                };
-            });
-            // Array.isArray で配列であることを確認し、そうでなければ空配列として扱う
-            const safeExtraPieces = Array.isArray(serverExtraPieces) ? serverExtraPieces : [];
-            return [...playerPieces, ...safeExtraPieces];
-        });
-    }, [players, serverExtraPieces]);
+        // playersからmapするのではなく、サーバーから来た駒リストをそのままセット
+        const safePieces = Array.isArray(serverExtraPieces) ? serverExtraPieces : [];
+        setPieces(safePieces);
+    }, [serverExtraPieces]);
     const boardStyle = {
         '--board-rows': rows,
         '--board-cols': cols,
@@ -152,19 +147,22 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
                 const r = match ? parseInt(match[1], 10) : 0;
                 const c = match ? parseInt(match[2], 10) : 0;
                 const isChanged = changedCells.some((loc) => loc.row === r && loc.col === c);
-                const isHighlighted = players
-                    ? (players
-                        .find((p) => p.id === draggingPieceId)
-                        ?.movableCells?.some((loc) => loc.row === r && loc.col === c) ?? false)
-                    : false;
+                const isHighlighted = pieces.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc) => loc.row === r && loc.col === c) ??
+                    false;
                 const cellDataForRenderer = {
                     ...cell,
                     content: isChanged ? cell.changedContent : cell.content,
                 };
                 const loc = { row: r, col: c };
-                return (_jsx(Cell, { locationData: loc, cellData: cellDataForRenderer, onClick: () => handleCellClick(cell, loc), onDoubleClick: () => handleCellDoubleClick(cell, loc), onDrop: (e) => handleCellDrop(e, r, c), onDragOver: (e) => e.preventDefault(), highlighted: isHighlighted, changed: isChanged, children: renderCell(cellDataForRenderer, r, c) }, cell.id));
+                return (_jsx(Cell, { locationData: { row: r, col: c }, cellData: cellDataForRenderer, onClick: () => handleCellClick(cell, { row: r, col: c }), onDoubleClick: () => handleCellDoubleClick(cell, loc), onDrop: (e) => handleCellDrop(e, r, c), onDragOver: (e) => e.preventDefault(), highlighted: isHighlighted && !!draggingPieceId, changed: isChanged, children: renderCell(cellDataForRenderer, r, c) }, cell.id));
             }), pieces.map((piece) => {
-                const sameLocationPieces = pieces.filter((p) => p.location.row === piece.location.row && p.location.col === piece.location.col);
+                const pos = piece.position;
+                if (!pos)
+                    return null;
+                const sameLocationPieces = pieces.filter((p) => {
+                    const pPos = p.position;
+                    return pPos && pPos.row === pos.row && pPos.col === pos.col;
+                });
                 const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece.id);
                 const groupCount = sameLocationPieces.length;
                 let offsetX = 0;
@@ -176,7 +174,8 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
                     offsetY = radius * Math.sin(angle);
                 }
                 const pieceStyle = {
-                    gridArea: `${piece.location.row + 1} / ${piece.location.col + 1} / span 1 / span 1`,
+                    // 確定した座標 pos を使用
+                    gridArea: `${pos.row + 1} / ${pos.col + 1} / span 1 / span 1`,
                     alignSelf: 'center',
                     justifySelf: 'center',
                     transform: `translate(${offsetX}px, ${offsetY}px)`,

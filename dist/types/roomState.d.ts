@@ -20,7 +20,7 @@ import type { TokenData } from './token.js';
  * @param playFieldCards - プレイフィールド上のカード（キーは "firework" 等の場所名）。
  * @param discardPile - 捨て札置き場のカードリスト。
  * @param boards - ボード上のセルデータ。
- * @param extraPieces - ボード上のプレイヤー以外のコマに使用するデータ。
+ * @param pieces - ボード上の駒のデータ。
  * @param exploredCells - すでに探索・公開されたセルの座標リスト。
  * @param tokenStores - 共有トークンの現在のストック状況。
  * @param draggable - ドラッグ可能オブジェクト。
@@ -41,7 +41,7 @@ export type RoomState = {
     discardPile: Record<PlayerId, CardData[]>;
     holdCards: Record<PlayerId, Record<DeckId, CardId[]>>;
     boards: Record<BoardId, CellData[]>;
-    extraPieces: Record<PieceId, PieceData>;
+    pieces: Record<PieceId, PieceData>;
     exploredCells: Position[];
     tokenStores: Record<TokenStoreId, TokenData[]>;
     draggables: Record<DraggableId, DraggableData>;

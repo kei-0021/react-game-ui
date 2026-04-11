@@ -11,10 +11,11 @@ export function registerBoardListeners(socket, io, gameParams, activeRooms) {
             return;
         const param = gameParams[state.gameId];
         const roomManager = new RoomManager(io, param, state);
-        // プレイヤーリストから検索
-        const player = state.players.find((p) => p.id === pieceId);
-        if (player) {
-            player.position = newLocation;
+        // 全駒リスト (extraPieces) から検索
+        const piece = state.pieces[pieceId];
+        if (piece) {
+            // 駒の座標を更新
+            piece.position = newLocation;
             // セル効果
             const cellEffects = param.cellEffects;
             if (cellEffects) {
@@ -25,36 +26,30 @@ export function registerBoardListeners(socket, io, gameParams, activeRooms) {
             if (onPieceMove) {
                 onPieceMove(state, roomManager, newLocation);
             }
-            roomManager.emitPlayerUpdate();
-            return;
-        }
-        // プレイヤー以外のコマの処理
-        const extraPiece = state.extraPieces[pieceId];
-        if (extraPiece) {
-            extraPiece.location = newLocation;
+            // 盤面全体を同期（すべての駒の状態を送る）
             io.to(roomId).emit('board:update', {
-                board: state.boards,
+                board: state.boards[boardId], // ボードID指定で送るのが安全
                 players: state.players,
-                extraPieces: Object.values(state.extraPieces),
+                extraPieces: Object.values(state.pieces),
             });
         }
     });
-    // プレイヤーの移動可能範囲リクエストを処理する
-    socket.on('board:movable-range', ({ roomId, boardId, playerId, moveRange, isExact }) => {
+    // 駒の移動可能範囲リクエスト
+    socket.on('board:movable-range', ({ roomId, boardId, playerId: pieceId, moveRange, isExact }) => {
         const state = activeRooms.get(roomId);
         if (!state)
             return;
         const param = gameParams[state.gameId];
         const roomManager = new RoomManager(io, param, state);
-        // プレイヤーの現在位置を取得
-        const player = state.players.find((p) => p.id === playerId);
-        if (!player)
+        // 指定された pieceId の駒を取得
+        const piece = state.pieces[pieceId];
+        if (!piece)
             return;
-        const { row, col } = player.position;
+        const { row, col } = piece.position;
         const startCellId = `r${row}c${col}`;
         // 移動範囲を計算
         const movableIds = roomManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
-        // セルIDをクライアントが解釈できる GridLocation[] 形式に変換
+        // 位置情報形式に変換
         const movableLocs = movableIds.map((id) => {
             const m = id.match(/r(\d+)c(\d+)/);
             return {
@@ -62,7 +57,13 @@ export function registerBoardListeners(socket, io, gameParams, activeRooms) {
                 col: parseInt(m[2], 10),
             };
         });
-        player.movableCells = movableLocs;
-        roomManager.emitPlayerUpdate();
+        // 駒自体に移動可能範囲をセット（フロントがこれを参照する）
+        piece.movableCells = movableLocs;
+        // 更新を通知
+        io.to(roomId).emit('board:update', {
+            board: state.boards[boardId],
+            players: state.players,
+            extraPieces: Object.values(state.pieces),
+        });
     });
 }

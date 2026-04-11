@@ -27,7 +27,7 @@ import type { TokenStoreData } from './tokenStore.js';
  * @param initialBoard - ボードの初期レイアウト。
  * @param shuffleAndReconnectBoard - シャッフルと再接続を利用するボードとその戦略関数。
  * @param pieceImage - ボード上のプレイヤーコマに使用する画像URL。
- * @param extraPieces - ボード上のプレイヤー以外のコマに使用するデータ。
+ * @param initialPieces - ボード上の駒に使用するデータ。
  * @param draggable - ドラッグ可能オブジェクト。
  * @param initialPhase - 初期フェーズ。
  * @param cardEffects - カードの特殊効果定義。
@@ -53,7 +53,7 @@ export type GameParam = {
   initialBoard?: Record<BoardId, CellData[]>;
   shuffleAndReconnectBoard?: Record<BoardId, (cells: CellData[]) => CellData[]>;
   pieceImage?: string;
-  extraPieces?: Record<PieceId, PieceData>;
+  initialPieces?: Record<PieceId, PieceData>;
   draggables?: Record<DraggableId, DraggableData>;
   initialPhase?: Phase;
   cardEffects?: Record<string, any>;
