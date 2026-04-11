@@ -48,11 +48,10 @@ export function registerBoardListeners(
     const extraPiece = state.extraPieces[pieceId];
     if (extraPiece) {
       extraPiece.location = newLocation;
-      console.log('ここを通りました');
       io.to(roomId).emit('board:update', {
         board: state.boards,
         players: state.players,
-        extraPieces: state.extraPieces,
+        extraPieces: Object.values(state.extraPieces),
       });
     }
   });
