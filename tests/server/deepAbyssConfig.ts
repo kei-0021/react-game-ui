@@ -108,7 +108,7 @@ export const deepAbyssConfig: RoomConfig = {
         },
         'enemy-boss': {
           id: 'enemy-boss',
-          name: 'Dragon',
+          name: '🐉',
           color: '#8b0000',
           location: { row: 0, col: 0 },
         },

@@ -160,7 +160,7 @@ export function createPlayer(param: GameParam, state: RoomState, playerName: str
     cards: [],
     isHolding: false,
     score: 0,
-    resources: JSON.parse(JSON.stringify(param.initialResources || [])),
+    resources: param.initialResources || [],
     tokens: [],
     position: { row: 0, col: 0 },
     movableCells: [],
