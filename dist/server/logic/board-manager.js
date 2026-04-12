@@ -24,4 +24,37 @@ export class BoardManager {
             server_log('cell', this.state.gameId, this.state.roomId, `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
         }
     };
+    /**
+     * セル効果を発動する
+     */
+    applyCellEffect = (boardId, playerId, position, cellEffects, roomManager) => {
+        // ボード情報を取得
+        const { row, col } = position;
+        const targetBoard = this.state.boards[boardId];
+        if (!targetBoard) {
+            server_log('warn', this.state.gameId, this.state.roomId, 'applyCellEffect: ボードがありません。');
+            return;
+        }
+        // ID（座標形式）で対象のセルを検索
+        const targetId = `r${row}c${col}`;
+        const cell = targetBoard.find((c) => c.id === targetId);
+        // セルが見つからない場合のガード
+        if (!cell) {
+            server_log('warn', this.state.gameId, this.state.roomId, `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`);
+            return;
+        }
+        const effect = cellEffects[cell.name];
+        if (effect) {
+            server_log('cell', this.state.gameId, this.state.roomId, `マス効果発動: ${cell.name} by ${playerId}`);
+            try {
+                effect(roomManager, playerId);
+            }
+            catch (e) {
+                server_log('warn', this.state.gameId, this.state.roomId, `マス効果の実行中にエラーが発生しました: ${cell.name}`);
+            }
+        }
+        else {
+            server_log('cell', this.state.gameId, this.state.roomId, `マス効果なし: (${row}, ${col}) ${cell.name}`);
+        }
+    };
 }

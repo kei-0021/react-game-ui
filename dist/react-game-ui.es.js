@@ -4039,6 +4039,44 @@ class BoardManager {
       );
     }
   };
+  /**
+   * セル効果を発動する
+   */
+  applyCellEffect = (boardId, playerId, position, cellEffects, roomManager) => {
+    const { row, col } = position;
+    const targetBoard = this.state.boards[boardId];
+    if (!targetBoard) {
+      server_log("warn", this.state.gameId, this.state.roomId, "applyCellEffect: ボードがありません。");
+      return;
+    }
+    const targetId = `r${row}c${col}`;
+    const cell2 = targetBoard.find((c) => c.id === targetId);
+    if (!cell2) {
+      server_log(
+        "warn",
+        this.state.gameId,
+        this.state.roomId,
+        `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`
+      );
+      return;
+    }
+    const effect = cellEffects[cell2.name];
+    if (effect) {
+      server_log("cell", this.state.gameId, this.state.roomId, `マス効果発動: ${cell2.name} by ${playerId}`);
+      try {
+        effect(roomManager, playerId);
+      } catch (e) {
+        server_log(
+          "warn",
+          this.state.gameId,
+          this.state.roomId,
+          `マス効果の実行中にエラーが発生しました: ${cell2.name}`
+        );
+      }
+    } else {
+      server_log("cell", this.state.gameId, this.state.roomId, `マス効果なし: (${row}, ${col}) ${cell2.name}`);
+    }
+  };
 }
 const roomInterpreter = (logic, state, manager, ...args) => {
   if (typeof logic === "function") {
@@ -4446,29 +4484,8 @@ class RoomManager {
    * @param cellEffects - 各セル名に対応する効果処理の定義集
    */
   applyCellEffect = (boardId, playerId, position, cellEffects) => {
-    const { row, col } = position;
-    const targetBoard = this.state.boards[boardId];
-    if (!targetBoard) {
-      this.server_log("warn", "applyCellEffect: ボードがありません。");
-      return;
-    }
-    const targetId = `r${row}c${col}`;
-    const cell2 = targetBoard.find((c) => c.id === targetId);
-    if (!cell2) {
-      this.server_log("warn", `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`);
-      return;
-    }
-    const effect = cellEffects[cell2.name];
-    if (effect) {
-      this.server_log("cell", `マス効果発動: ${cell2.name} by ${playerId}`);
-      try {
-        effect(this, playerId);
-      } catch (e) {
-        this.server_log("warn", `マス効果の実行中にエラーが発生しました: ${cell2.name}`);
-      }
-    } else {
-      this.server_log("cell", `マス効果なし: (${row}, ${col}) ${cell2.name}`);
-    }
+    const boardManager = new BoardManager(this.state);
+    boardManager.applyCellEffect(boardId, playerId, position, cellEffects, this);
   };
   /**
    * スコアを加算する

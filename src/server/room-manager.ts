@@ -230,38 +230,8 @@ export class RoomManager {
     position: Position,
     cellEffects: Record<string, (manager: RoomManager, playerId: PlayerId) => void>,
   ): void => {
-    const { row, col } = position;
-
-    // ボード配列を取得
-    const targetBoard = this.state.boards[boardId];
-
-    if (!targetBoard) {
-      this.server_log('warn', 'applyCellEffect: ボードがありません。');
-      return;
-    }
-
-    // ID（座標形式）で対象のセルを検索
-    const targetId = `r${row}c${col}`;
-    const cell = targetBoard.find((c) => c.id === targetId);
-
-    // セルが見つからない場合のガード
-    if (!cell) {
-      this.server_log('warn', `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`);
-      return;
-    }
-
-    const effect = cellEffects[cell.name];
-
-    if (effect) {
-      this.server_log('cell', `マス効果発動: ${cell.name} by ${playerId}`);
-      try {
-        effect(this, playerId);
-      } catch (e) {
-        this.server_log('warn', `マス効果の実行中にエラーが発生しました: ${cell.name}`);
-      }
-    } else {
-      this.server_log('cell', `マス効果なし: (${row}, ${col}) ${cell.name}`);
-    }
+    const boardManager = new BoardManager(this.state);
+    boardManager.applyCellEffect(boardId, playerId, position, cellEffects, this);
   };
 
   /**
