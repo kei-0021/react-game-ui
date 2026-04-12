@@ -17,9 +17,7 @@ export function registerDeckListeners(socket, io, gameParams, activeRooms) {
             roomManager.server_log('card', `${playerId} はカードをホールドしているので、カードを引くことができません`);
             return;
         }
-        const success = roomManager.drawCard(deckId, drawCondition, playerId);
-        if (!success)
-            return;
+        roomManager.drawCard(deckId, drawCondition, playerId);
         // カスタムフック
         param?.onDeckDraw?.(state, roomManager, data);
     });

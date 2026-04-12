@@ -26,8 +26,8 @@ export function registerDeckListeners(
   // カードを引く
   socket.on('deck:draw', (data: DeckDrawData) => {
     const { roomId, deckId, playerId, drawCondition } = data;
-    const state = activeRooms.get(roomId);
 
+    const state = activeRooms.get(roomId);
     if (!state || playerId === null) return;
     const param = gameParams[state.gameId];
     const roomManager = new RoomManager(io, param, state);
@@ -37,8 +37,7 @@ export function registerDeckListeners(
       return;
     }
 
-    const success = roomManager.drawCard(deckId, drawCondition, playerId);
-    if (!success) return;
+    roomManager.drawCard(deckId, drawCondition, playerId);
 
     // カスタムフック
     param?.onDeckDraw?.(state, roomManager, data);

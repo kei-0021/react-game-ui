@@ -1,4 +1,5 @@
 import { server_log } from './log/logger.js';
+import { DeckManager } from './logic/deck-manager.js';
 import { roomInterpreter } from './room-interpreter.js';
 export const isExplored = (roomState, position) => {
     return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
@@ -108,42 +109,10 @@ export class RoomManager {
      * カードをデッキから引く
      */
     drawCard(deckId, condition, playerId) {
-        const [targetLocation, targetState] = condition;
-        // デッキから「deck」ロケーションにあるカードを抽出
-        const currentDeck = this.state.decks[deckId].filter((c) => c.location === 'deck');
-        if (!currentDeck.length)
-            return false;
-        const card = currentDeck[0];
-        card.isFaceUp = targetState === 'face';
-        let destination = '';
-        // A. 捨て札へ
-        if (targetLocation === 'discard') {
-            card.location = 'discard';
-            card.ownerId = null;
-            this.state.discardPile[deckId].push(card);
-            destination = 'discard';
-        }
-        // B. プレイヤーの手札へ
-        else if (playerId && targetLocation === 'hand') {
-            const player = this.state.players.find((p) => p.id === playerId);
-            if (player) {
-                card.location = 'hand';
-                card.ownerId = playerId;
-                player.cards.push(card);
-                destination = playerId;
-            }
-        }
-        // C. プレイフィールドへ
-        else {
-            card.location = 'field';
-            card.ownerId = null;
-            this.state.playFieldCards[deckId].push(card);
-            destination = 'field';
-        }
-        this.server_log('deck', `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`);
+        const deckManager = new DeckManager();
+        deckManager.drawCard(this.state, deckId, condition, playerId);
         this.emitDeckUpdate(deckId);
         this.emitPlayerUpdate();
-        return true;
     }
     /**
      * カードをプレイする

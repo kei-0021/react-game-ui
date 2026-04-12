@@ -63,7 +63,7 @@ export declare class RoomManager {
     /**
      * カードをデッキから引く
      */
-    drawCard(deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): boolean;
+    drawCard(deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): void;
     /**
      * カードをプレイする
      */
