@@ -39,7 +39,6 @@ export declare class RoomManager {
      * 盤面更新を通知する
      */
     emitBoardUpdate: (boardId: BoardId) => void;
-    shuffleDeck: (deckId: DeckId) => void;
     /**
      * デッキ更新を通知する
      */
@@ -64,6 +63,10 @@ export declare class RoomManager {
      * カードをデッキから引く
      */
     drawCard(deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): void;
+    /**
+     * デッキをシャッフルする
+     */
+    shuffleDeck: (deckId: DeckId) => void;
     /**
      * カードをプレイする
      */

@@ -52,4 +52,22 @@ export class DeckManager {
       `DRAW: ${card.name} (ID:${card.id}) (deck -> ${destination}, state: ${targetState})`,
     );
   }
+
+  /**
+   * デッキをシャッフルする
+   */
+  shuffleDeck = (state: RoomState, deckId: DeckId) => {
+    const targetDeck = state.decks[deckId];
+    if (!targetDeck) return;
+
+    const currentDeck = targetDeck.filter((c) => c.location === 'deck');
+    const otherCards = targetDeck.filter((c) => c.location !== 'deck');
+    for (let i = currentDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
+    }
+    state.decks[deckId] = currentDeck.concat(otherCards);
+
+    server_log('deck', state.gameId, state.roomId, `${deckId} をシャッフル`);
+  };
 }

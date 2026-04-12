@@ -7,5 +7,9 @@ export declare class DeckManager {
      * カードをデッキから引く
      */
     drawCard(state: RoomState, deckId: DeckId, condition: [CardLocation, CardState], playerId?: PlayerId): false | undefined;
+    /**
+     * デッキをシャッフルする
+     */
+    shuffleDeck: (state: RoomState, deckId: DeckId) => void;
 }
 //# sourceMappingURL=deck-manager.d.ts.map

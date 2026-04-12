@@ -47,18 +47,6 @@ export class RoomManager {
             boardTokens: Object.values(this.state.boardTokens),
         });
     };
-    shuffleDeck = (deckId) => {
-        if (!this.state.decks[deckId])
-            return;
-        this.server_log('deck', `${deckId} をシャッフル`);
-        const currentDeck = this.state.decks[deckId].filter((c) => c.location === 'deck');
-        const otherCards = this.state.decks[deckId].filter((c) => c.location !== 'deck');
-        for (let i = currentDeck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
-        }
-        this.state.decks[deckId] = currentDeck.concat(otherCards);
-    };
     /**
      * デッキ更新を通知する
      */
@@ -114,6 +102,13 @@ export class RoomManager {
         this.emitDeckUpdate(deckId);
         this.emitPlayerUpdate();
     }
+    /**
+     * デッキをシャッフルする
+     */
+    shuffleDeck = (deckId) => {
+        const deckManager = new DeckManager();
+        deckManager.shuffleDeck(this.state, deckId);
+    };
     /**
      * カードをプレイする
      */
