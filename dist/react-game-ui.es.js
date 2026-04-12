@@ -1719,8 +1719,7 @@ function GridBoard({
     const draggedTokenId = e.dataTransfer.getData("tokenId");
     if (draggedTokenId) {
       setHighlightedCells([]);
-      console.log(draggedTokenId);
-      socket.emit("board:move-token", {
+      socket.emit("token:move-on-board", {
         roomId,
         boardId,
         tokenId: draggedTokenId,
@@ -1740,10 +1739,9 @@ function GridBoard({
       moveRange,
       isExact
     };
-    socket.emit("board:movable-range", requestData);
+    socket.emit("token:movable-range", requestData);
   };
   const handleTokenDragStart = (e, token) => {
-    console.log(token);
     if (token.ownerId && token.ownerId !== myPlayerId) {
       e.preventDefault();
       return;
@@ -1774,8 +1772,8 @@ function GridBoard({
         setCells(data.board);
         setIsBoardReady(true);
       }
-      if (data.extraTokens) {
-        setServerExtraTokens(data.extraTokens);
+      if (data.boardTokens) {
+        setServerExtraTokens(data.boardTokens);
       }
     };
     socket.on("board:update", handleInitBoard);
@@ -4067,8 +4065,7 @@ class RoomManager {
   emitBoardUpdate = (boardId) => {
     this.io.to(this.state.roomId).emit("board:update", {
       board: this.state.boards[boardId],
-      players: this.state.players,
-      extraTokens: Object.values(this.state.boardTokens)
+      boardTokens: Object.values(this.state.boardTokens)
     });
   };
   shuffleDeck = (deckId) => {

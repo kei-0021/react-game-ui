@@ -1,7 +1,7 @@
 // src/server/listner/board-lister.ts
 import { GameParam, RoomState } from '@/index.js';
 import { GameId, RoomId } from '@/types/definition.js';
-import { BaordMoveTokenData, BoardMovableRangeData } from '@/types/socketData.js';
+import { TokenMovableRangeData, TokenMoveOnBoardData } from '@/types/socketData.js';
 import { Server, Socket } from 'socket.io';
 import { RoomManager } from '../room-manager.js';
 
@@ -16,7 +16,7 @@ export function registerBoardListeners(
   activeRooms: Map<RoomId, RoomState>,
 ) {
   // トークンの移動
-  socket.on('board:move-token', ({ roomId, boardId, tokenId, newLocation }: BaordMoveTokenData) => {
+  socket.on('token:move-on-board', ({ roomId, boardId, tokenId, newLocation }: TokenMoveOnBoardData) => {
     const state = activeRooms.get(roomId);
     if (!state) return;
     const param = gameParams[state.gameId];
@@ -46,8 +46,8 @@ export function registerBoardListeners(
 
   // 駒の移動可能範囲リクエスト
   socket.on(
-    'board:movable-range',
-    ({ roomId, boardId, playerId: tokenId, moveRange, isExact }: BoardMovableRangeData) => {
+    'token:movable-range',
+    ({ roomId, boardId, playerId: tokenId, moveRange, isExact }: TokenMovableRangeData) => {
       const state = activeRooms.get(roomId);
       if (!state) return;
       const param = gameParams[state.gameId];

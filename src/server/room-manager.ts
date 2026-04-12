@@ -17,6 +17,7 @@ import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/roomState.js';
 import {
+  BoardUpdateData,
   CardPlayData,
   DeckUpdateData,
   DraggableUpdateData,
@@ -74,9 +75,8 @@ export class RoomManager {
   emitBoardUpdate = (boardId: BoardId) => {
     this.io.to(this.state.roomId).emit('board:update', {
       board: this.state.boards[boardId],
-      players: this.state.players,
-      extraTokens: Object.values(this.state.boardTokens),
-    });
+      boardTokens: Object.values(this.state.boardTokens),
+    } as BoardUpdateData);
   };
 
   shuffleDeck = (deckId: DeckId) => {

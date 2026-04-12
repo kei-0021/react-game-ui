@@ -5,7 +5,7 @@ import { RoomManager } from '../room-manager.js';
  */
 export function registerBoardListeners(socket, io, gameParams, activeRooms) {
     // トークンの移動
-    socket.on('board:move-token', ({ roomId, boardId, tokenId, newLocation }) => {
+    socket.on('token:move-on-board', ({ roomId, boardId, tokenId, newLocation }) => {
         const state = activeRooms.get(roomId);
         if (!state)
             return;
@@ -30,7 +30,7 @@ export function registerBoardListeners(socket, io, gameParams, activeRooms) {
         }
     });
     // 駒の移動可能範囲リクエスト
-    socket.on('board:movable-range', ({ roomId, boardId, playerId: tokenId, moveRange, isExact }) => {
+    socket.on('token:movable-range', ({ roomId, boardId, playerId: tokenId, moveRange, isExact }) => {
         const state = activeRooms.get(roomId);
         if (!state)
             return;

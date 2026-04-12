@@ -2,10 +2,10 @@
 import { CellData, Player } from '@/index.js';
 import { BoardId, PlayerId, RoomId, TokenId } from '@/types/definition.js';
 import {
-  BaordMoveTokenData,
-  BoardMovableRangeData,
   BoardUpdateData,
+  TokenMovableRangeData,
   TokenMoveFromBoardData,
+  TokenMoveOnBoardData,
 } from '@/types/socketData.js';
 import { TokenData } from '@/types/token.js';
 import type { DragEvent } from 'react';
@@ -92,12 +92,12 @@ export function GridBoard({
       // ドロップ（移動確定）したらハイライトを消す
       setHighlightedCells([]);
 
-      socket.emit('board:move-token', {
+      socket.emit('token:move-on-board', {
         roomId,
         boardId: boardId,
         tokenId: draggedTokenId,
         newLocation: { row: targetRow, col: targetCol },
-      } as BaordMoveTokenData);
+      } as TokenMoveOnBoardData);
     }
   };
 
@@ -114,7 +114,7 @@ export function GridBoard({
     // 持ち主（ownerId）が設定されている場合、自分以外ならリクエストを送らない
     if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
 
-    const requestData: BoardMovableRangeData = {
+    const requestData: TokenMovableRangeData = {
       roomId,
       boardId,
       playerId: tokenId,
@@ -122,7 +122,7 @@ export function GridBoard({
       isExact: isExact,
     };
 
-    socket.emit('board:movable-range', requestData);
+    socket.emit('token:movable-range', requestData);
   };
 
   const handleTokenDragStart = (e: DragEvent<HTMLDivElement>, token: TokenData) => {
@@ -172,8 +172,8 @@ export function GridBoard({
         setCells(data.board);
         setIsBoardReady(true);
       }
-      if (data.extraTokens) {
-        setServerExtraTokens(data.extraTokens);
+      if (data.boardTokens) {
+        setServerExtraTokens(data.boardTokens);
       }
     };
     socket.on('board:update', handleInitBoard);

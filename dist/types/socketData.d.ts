@@ -93,36 +93,35 @@ export type CardMoveFromFieldData = {
     cardId: string;
     playerId?: PlayerId | null;
 };
+export type TokenStoreUpdateData = {
+    tokenStore: TokenData[];
+};
 export type TokenAcquireData = {
     roomId: RoomId;
     tokenStoreId: TokenStoreId;
     tokenId: TokenId;
 };
-export type TokenStoreUpdateData = {
-    tokenStore: TokenData[];
-};
-export type BoardMovableRangeData = {
+export type TokenMovableRangeData = {
     roomId: RoomId;
     boardId: BoardId;
     playerId: PlayerId;
     moveRange: number;
     isExact: boolean;
 };
-export type BaordMoveTokenData = {
+export type TokenMoveOnBoardData = {
     roomId: RoomId;
     boardId: BoardId;
     tokenId: TokenId;
     newLocation: any;
 };
-export type BoardUpdateData = {
-    boardId: BoardId;
-    board: CellData[];
-    extraTokens: TokenData[];
-};
 export type TokenMoveFromBoardData = {
     roomId: RoomId;
     boardId: BoardId;
     tokenId: TokenId;
+};
+export type BoardUpdateData = {
+    board: CellData[];
+    boardTokens: TokenData[];
 };
 export type DraggableMovedData = {
     roomId: RoomId;

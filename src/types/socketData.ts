@@ -142,17 +142,39 @@ export type CardMoveFromFieldData = {
 
 /*
  * ===========================================
- * トークン・リソース操作関連
+ * トークン関連
  * ===========================================
  */
+
+export type TokenStoreUpdateData = {
+  tokenStore: TokenData[];
+};
+
 export type TokenAcquireData = {
   roomId: RoomId;
   tokenStoreId: TokenStoreId;
   tokenId: TokenId;
 };
 
-export type TokenStoreUpdateData = {
-  tokenStore: TokenData[];
+export type TokenMovableRangeData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  playerId: PlayerId;
+  moveRange: number;
+  isExact: boolean;
+};
+
+export type TokenMoveOnBoardData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  tokenId: TokenId;
+  newLocation: any;
+};
+
+export type TokenMoveFromBoardData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  tokenId: TokenId;
 };
 
 /*
@@ -161,31 +183,9 @@ export type TokenStoreUpdateData = {
  * ===========================================
  */
 
-export type BoardMovableRangeData = {
-  roomId: RoomId;
-  boardId: BoardId;
-  playerId: PlayerId;
-  moveRange: number;
-  isExact: boolean;
-};
-
-export type BaordMoveTokenData = {
-  roomId: RoomId;
-  boardId: BoardId;
-  tokenId: TokenId;
-  newLocation: any;
-};
-
 export type BoardUpdateData = {
-  boardId: BoardId;
   board: CellData[];
-  extraTokens: TokenData[];
-};
-
-export type TokenMoveFromBoardData = {
-  roomId: RoomId;
-  boardId: BoardId;
-  tokenId: TokenId;
+  boardTokens: TokenData[];
 };
 
 /*
