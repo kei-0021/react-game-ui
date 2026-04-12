@@ -120,6 +120,11 @@ export type BoardUpdateData = {
     board: CellData[];
     extraPieces: PieceData[];
 };
+export type TokenMoveFromBoardData = {
+    roomId: RoomId;
+    boardId: BoardId;
+    tokenId: TokenId;
+};
 export type DraggableMovedData = {
     roomId: RoomId;
     draggableId: DraggableId;

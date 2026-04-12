@@ -11,10 +11,14 @@ import styles from './Piece.module.css';
  * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} props.onDragEnd - ドラッグ終了時のハンドラ
  * @returns {JSX.Element} 駒のJSX要素
  */
-export function Piece({ piece, style, onClick, isDraggable, isFilled = false, onDragStart, onDragEnd, }) {
+export function Piece({ piece, style, onClick, onDoubleClick, isDraggable, isFilled = false, onDragStart, onDragEnd, }) {
     const handleClick = (e) => {
         e.stopPropagation();
         onClick(piece.id);
+    };
+    const handleDoubleClick = (e) => {
+        e.stopPropagation();
+        onDoubleClick(piece.id);
     };
     const handleDragStart = (e) => {
         if (isDraggable) {
@@ -42,7 +46,7 @@ export function Piece({ piece, style, onClick, isDraggable, isFilled = false, on
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: piece.image ? 'none' : '0 2px 4px rgba(0,0,0,0.2)',
-        }, onClick: handleClick, draggable: isDraggable, onDragStart: handleDragStart, onDragEnd: (e) => onDragEnd(e, piece), children: piece.image ? (_jsxs("div", { style: {
+        }, onClick: handleClick, onDoubleClick: handleDoubleClick, draggable: isDraggable, onDragStart: handleDragStart, onDragEnd: (e) => onDragEnd(e, piece), children: piece.image ? (_jsxs("div", { style: {
                 width: '100%',
                 height: '100%',
                 position: 'relative',

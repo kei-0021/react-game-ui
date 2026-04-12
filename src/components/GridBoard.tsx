@@ -1,7 +1,12 @@
 // src/components/GridBoard.tsx
 import { CellData, Player } from '@/index.js';
 import { BoardId, PieceId, PlayerId, RoomId } from '@/types/definition.js';
-import { BaordMovePieceData, BoardMovableRangeData, BoardUpdateData } from '@/types/socketData.js';
+import {
+  BaordMovePieceData,
+  BoardMovableRangeData,
+  BoardUpdateData,
+  TokenMoveFromBoardData,
+} from '@/types/socketData.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
@@ -136,6 +141,27 @@ export function GridBoard({
 
   const handlePieceDragEnd = () => {
     setDraggingPieceId(null);
+  };
+
+  /**
+   * トークンをダブルクリックした際のハンドラ
+   * 盤面から取り除き、手札等のサーバー管理領域に戻すリクエストを送信
+   */
+  const handleTokenDoubleClick = (pieceId: PieceId) => {
+    if (!isBoardReady || !socket) return;
+
+    const targetToken = pieces.find((p) => p.id === pieceId);
+    if (!targetToken) return;
+
+    if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
+
+    const requestData: TokenMoveFromBoardData = {
+      roomId,
+      boardId,
+      tokenId: pieceId,
+    };
+
+    socket.emit('token:move-from-board', requestData);
   };
 
   // ------------------- Socket Effects -------------------
@@ -279,6 +305,7 @@ export function GridBoard({
             piece={piece}
             style={pieceStyle}
             onClick={requestMovableRange}
+            onDoubleClick={() => handleTokenDoubleClick(piece.id)}
             isDraggable={allowPieceDrag}
             isFilled={true}
             onDragStart={handlePieceDragStart}

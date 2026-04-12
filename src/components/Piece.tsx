@@ -1,4 +1,5 @@
 // src/components/Piece.tsx
+import type { PieceId } from '@/types/definition.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import type { PieceData } from '../types/piece.js';
@@ -7,7 +8,8 @@ import styles from './Piece.module.css';
 export type PieceProps = {
   piece: PieceData;
   style: React.CSSProperties;
-  onClick: (pieceId: string) => void;
+  onClick: (pieceId: PieceId) => void;
+  onDoubleClick: (pieceId: PieceId) => void;
   isDraggable: boolean;
   isFilled?: boolean;
   onDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
@@ -29,6 +31,7 @@ export function Piece({
   piece,
   style,
   onClick,
+  onDoubleClick,
   isDraggable,
   isFilled = false,
   onDragStart,
@@ -37,6 +40,11 @@ export function Piece({
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClick(piece.id);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDoubleClick(piece.id);
   };
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
@@ -74,6 +82,7 @@ export function Piece({
         boxShadow: piece.image ? 'none' : '0 2px 4px rgba(0,0,0,0.2)',
       }}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       draggable={isDraggable}
       onDragStart={handleDragStart}
       onDragEnd={(e) => onDragEnd(e, piece)}

@@ -1586,6 +1586,7 @@ function Piece({
   piece: piece2,
   style,
   onClick,
+  onDoubleClick,
   isDraggable,
   isFilled = false,
   onDragStart,
@@ -1594,6 +1595,10 @@ function Piece({
   const handleClick = (e) => {
     e.stopPropagation();
     onClick(piece2.id);
+  };
+  const handleDoubleClick = (e) => {
+    e.stopPropagation();
+    onDoubleClick(piece2.id);
   };
   const handleDragStart = (e) => {
     if (isDraggable) {
@@ -1626,6 +1631,7 @@ function Piece({
         boxShadow: piece2.image ? "none" : "0 2px 4px rgba(0,0,0,0.2)"
       },
       onClick: handleClick,
+      onDoubleClick: handleDoubleClick,
       draggable: isDraggable,
       onDragStart: handleDragStart,
       onDragEnd: (e) => onDragEnd(e, piece2),
@@ -1748,6 +1754,18 @@ function GridBoard({
   const handlePieceDragEnd = () => {
     setDraggingPieceId(null);
   };
+  const handleTokenDoubleClick = (pieceId) => {
+    if (!isBoardReady || !socket) return;
+    const targetToken = pieces.find((p) => p.id === pieceId);
+    if (!targetToken) return;
+    if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
+    const requestData = {
+      roomId,
+      boardId,
+      tokenId: pieceId
+    };
+    socket.emit("token:move-from-board", requestData);
+  };
   React.useEffect(() => {
     const handleInitBoard = (data) => {
       if (data.board && data.board.length > 0) {
@@ -1859,6 +1877,7 @@ function GridBoard({
           piece: piece2,
           style: pieceStyle,
           onClick: requestMovableRange,
+          onDoubleClick: () => handleTokenDoubleClick(piece2.id),
           isDraggable: allowPieceDrag,
           isFilled: true,
           onDragStart: handlePieceDragStart,

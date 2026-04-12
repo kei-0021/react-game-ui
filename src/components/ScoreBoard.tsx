@@ -12,6 +12,8 @@ import scoreBoardStyles from './ScoreBoard.module.css';
 import { TokenDisplayContent } from './Token.js';
 
 type PlayerListItemProps = {
+  socket: Socket;
+  roomId: RoomId;
   player: Player;
   currentPlayerId: PlayerId | null | undefined;
   myPlayerId: PlayerId | null;
@@ -19,8 +21,6 @@ type PlayerListItemProps = {
   selectedCards: CardId[];
   heldCards: CardId[];
   toggleCardSelection: (cardId: string, isOwner: boolean) => void;
-  socket: Socket;
-  roomId: RoomId;
   isDebug?: boolean;
   enabled: boolean;
 };

@@ -184,6 +184,12 @@ export type BoardUpdateData = {
   extraPieces: PieceData[];
 };
 
+export type TokenMoveFromBoardData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  tokenId: TokenId;
+};
+
 /*
  * ===========================================
  * ドラッグ可能オブジェクト

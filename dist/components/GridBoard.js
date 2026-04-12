@@ -89,6 +89,25 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
     const handlePieceDragEnd = () => {
         setDraggingPieceId(null);
     };
+    /**
+     * トークンをダブルクリックした際のハンドラ
+     * 盤面から取り除き、手札等のサーバー管理領域に戻すリクエストを送信
+     */
+    const handleTokenDoubleClick = (pieceId) => {
+        if (!isBoardReady || !socket)
+            return;
+        const targetToken = pieces.find((p) => p.id === pieceId);
+        if (!targetToken)
+            return;
+        if (targetToken.ownerId && targetToken.ownerId !== myPlayerId)
+            return;
+        const requestData = {
+            roomId,
+            boardId,
+            tokenId: pieceId,
+        };
+        socket.emit('token:move-from-board', requestData);
+    };
     // ------------------- Socket Effects -------------------
     // 盤面初期化/更新
     React.useEffect(() => {
@@ -181,6 +200,6 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowP
                     transform: `translate(${offsetX}px, ${offsetY}px)`,
                     transition: 'transform 0.3s ease-in-out',
                 };
-                return (_jsx(Piece, { piece: piece, style: pieceStyle, onClick: requestMovableRange, isDraggable: allowPieceDrag, isFilled: true, onDragStart: handlePieceDragStart, onDragEnd: handlePieceDragEnd }, piece.id));
+                return (_jsx(Piece, { piece: piece, style: pieceStyle, onClick: requestMovableRange, onDoubleClick: () => handleTokenDoubleClick(piece.id), isDraggable: allowPieceDrag, isFilled: true, onDragStart: handlePieceDragStart, onDragEnd: handlePieceDragEnd }, piece.id));
             })] }));
 }

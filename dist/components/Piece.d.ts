@@ -1,10 +1,12 @@
+import type { PieceId } from '@/types/definition.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import type { PieceData } from '../types/piece.js';
 export type PieceProps = {
     piece: PieceData;
     style: React.CSSProperties;
-    onClick: (pieceId: string) => void;
+    onClick: (pieceId: PieceId) => void;
+    onDoubleClick: (pieceId: PieceId) => void;
     isDraggable: boolean;
     isFilled?: boolean;
     onDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
@@ -21,5 +23,5 @@ export type PieceProps = {
  * @param {(e: DragEvent<HTMLDivElement>, piece: PieceData) => void} props.onDragEnd - ドラッグ終了時のハンドラ
  * @returns {JSX.Element} 駒のJSX要素
  */
-export declare function Piece({ piece, style, onClick, isDraggable, isFilled, onDragStart, onDragEnd, }: PieceProps): JSX.Element;
+export declare function Piece({ piece, style, onClick, onDoubleClick, isDraggable, isFilled, onDragStart, onDragEnd, }: PieceProps): JSX.Element;
 //# sourceMappingURL=Piece.d.ts.map
