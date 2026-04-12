@@ -8,43 +8,6 @@ export class BoardManager {
         this.state = state;
     }
     /**
-     * 指定したセルから一定歩数で行けるセルIDをすべて取得する
-     * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
-     */
-    getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
-        const targetBoard = this.state.boards[boardId];
-        const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
-        const reachable = new Set();
-        const queue = [{ id: startCellId, dist: 0 }];
-        const visited = new Set([startCellId]);
-        while (queue.length > 0) {
-            const { id, dist } = queue.shift();
-            // 登録条件の判定
-            if (dist > 0) {
-                if (isExact) {
-                    // isExactフラグがtrueなら、指定歩数と同じ場合のみ登録
-                    if (dist === moveRange)
-                        reachable.add(id);
-                }
-                else {
-                    // 通常時は今まで通り移動範囲内すべて
-                    reachable.add(id);
-                }
-            }
-            // 探索継続の判定（移動範囲を超えたら隣接は探さない）
-            if (dist >= moveRange)
-                continue;
-            const cell = boardMap.get(id);
-            cell?.adjacentCellIds.forEach((nextId) => {
-                if (!visited.has(nextId)) {
-                    visited.add(nextId);
-                    queue.push({ id: nextId, dist: dist + 1 });
-                }
-            });
-        }
-        return Array.from(reachable);
-    };
-    /**
      * 特定のセルの探索状態を切り替える
      * @param {Position} position - 操作対象の座標
      * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false

@@ -1,6 +1,7 @@
 import { server_log } from './log/logger.js';
 import { BoardManager } from './logic/board-manager.js';
 import { DeckManager } from './logic/deck-manager.js';
+import { TokenManager } from './logic/token-manager.js';
 export const isExplored = (roomState, position) => {
     return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
@@ -141,58 +142,24 @@ export class RoomManager {
         this.emitPlayerUpdate();
     }
     /**
-     * スコアを加算する
-     * @param playerId - 対象のプレイヤーのID
-     * @param points - 加算するスコア
-     */
-    addScore(playerId, points) {
-        const player = this.state.players.find((p) => p.id === playerId);
-        if (!player)
-            return;
-        player.score = (player.score || 0) + points;
-        this.server_log('addScore', `${player.name} に ${points}pt 加算`);
-        this.emitPlayerUpdate();
-    }
-    /**
-     * リソースを取得する
-     * @param playerId - 対象のプレイヤーのID
-     * @param resourceId - 対象のリソースID
-     * @param amount - 加算する個数
-     */
-    acquireResource = (playerId, resourceId, amount) => {
-        const player = this.state.players.find((p) => p.id === playerId);
-        const resource = player?.resources?.find((r) => r.resourceId === resourceId);
-        if (resource) {
-            resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
-            this.server_log('resource', `${player.name}: ${resource.name} 更新`);
-            this.emitPlayerUpdate();
-        }
-    };
-    /**
      * トークンを取得する
      * @param tokenStoreId - トークン置き場ID
      * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
      * @param playerId - プレイヤーID
      */
     acquireToken(tokenStoreId, tokenId = null, playerId) {
-        const player = this.state.players.find((p) => p.id === playerId);
-        if (!player)
-            return;
-        const tokens = this.state.tokenStores[tokenStoreId];
-        if (tokens.length === 0)
-            return;
-        // tokenId が指定されていればそのインデックス、null ならランダムなインデックスを選択
-        const index = tokenId !== null ? tokens.findIndex((t) => t.id === tokenId) : Math.floor(Math.random() * tokens.length);
-        if (index !== -1) {
-            const acquiredToken = tokens.splice(index, 1)[0];
-            if (!Array.isArray(player.tokens)) {
-                player.tokens = [];
-            }
-            player.tokens.push(acquiredToken);
-            this.server_log('token', `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${acquiredToken.id} を獲得しました。`);
-            this.emitTokenStoreUpdate(tokenStoreId);
-        }
+        const tokenManager = new TokenManager(this.state);
+        tokenManager.acquireToken(tokenStoreId, tokenId, playerId);
+        this.emitTokenStoreUpdate(tokenStoreId);
     }
+    /**
+     * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+     * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
+     */
+    getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
+        const tokenManager = new TokenManager(this.state);
+        return tokenManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
+    };
     /**
      * 特定のセルの探索状態を切り替える
      * @param {Position} position - 操作対象の座標
@@ -203,14 +170,6 @@ export class RoomManager {
         const boardManager = new BoardManager(this.state);
         boardManager.updateCellExploredStatus(position, shouldMark);
         this.emitCellUpdate();
-    };
-    /**
-     * 指定したセルから一定歩数で行けるセルIDをすべて取得する
-     * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
-     */
-    getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
-        const boardManager = new BoardManager(this.state);
-        return boardManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
     };
     /**
      * セル効果を発動する
@@ -247,6 +206,34 @@ export class RoomManager {
         }
         else {
             this.server_log('cell', `マス効果なし: (${row}, ${col}) ${cell.name}`);
+        }
+    };
+    /**
+     * スコアを加算する
+     * @param playerId - 対象のプレイヤーのID
+     * @param points - 加算するスコア
+     */
+    addScore(playerId, points) {
+        const player = this.state.players.find((p) => p.id === playerId);
+        if (!player)
+            return;
+        player.score = (player.score || 0) + points;
+        this.server_log('addScore', `${player.name} に ${points}pt 加算`);
+        this.emitPlayerUpdate();
+    }
+    /**
+     * リソースを取得する
+     * @param playerId - 対象のプレイヤーのID
+     * @param resourceId - 対象のリソースID
+     * @param amount - 加算する個数
+     */
+    acquireResource = (playerId, resourceId, amount) => {
+        const player = this.state.players.find((p) => p.id === playerId);
+        const resource = player?.resources?.find((r) => r.resourceId === resourceId);
+        if (resource) {
+            resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
+            this.server_log('resource', `${player.name}: ${resource.name} 更新`);
+            this.emitPlayerUpdate();
         }
     };
     /**

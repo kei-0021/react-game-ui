@@ -84,6 +84,33 @@ export declare class RoomManager {
      */
     moveFromField(deckId: DeckId, cardId: CardId, playerId?: PlayerId | null): void;
     /**
+     * トークンを取得する
+     * @param tokenStoreId - トークン置き場ID
+     * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
+     * @param playerId - プレイヤーID
+     */
+    acquireToken(tokenStoreId: TokenStoreId, tokenId: (TokenId | null) | undefined, playerId: PlayerId): void;
+    /**
+     * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+     * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
+     */
+    getMovableCellIds: (boardId: BoardId, startCellId: CellId, moveRange: number, isExact: boolean) => CellId[];
+    /**
+     * 特定のセルの探索状態を切り替える
+     * @param {Position} position - 操作対象の座標
+     * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
+     * @returns {boolean} 状態が実際に変化した場合は true
+     */
+    updateCellExploredStatus: (position: Position, shouldMark: boolean) => void;
+    /**
+     * セル効果を発動する
+     * @param boardId - ボードID
+     * @param playerId - 効果を発動させたプレイヤーのID
+     * @param position - 発動対象となるマスの座標
+     * @param cellEffects - 各セル名に対応する効果処理の定義集
+     */
+    applyCellEffect: (boardId: BoardId, playerId: PlayerId, position: Position, cellEffects: Record<string, (manager: RoomManager, playerId: PlayerId) => void>) => void;
+    /**
      * スコアを加算する
      * @param playerId - 対象のプレイヤーのID
      * @param points - 加算するスコア
@@ -96,33 +123,6 @@ export declare class RoomManager {
      * @param amount - 加算する個数
      */
     acquireResource: (playerId: PlayerId, resourceId: ResourceId, amount: number) => void;
-    /**
-     * トークンを取得する
-     * @param tokenStoreId - トークン置き場ID
-     * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
-     * @param playerId - プレイヤーID
-     */
-    acquireToken(tokenStoreId: TokenStoreId, tokenId: (TokenId | null) | undefined, playerId: PlayerId): void;
-    /**
-     * 特定のセルの探索状態を切り替える
-     * @param {Position} position - 操作対象の座標
-     * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
-     * @returns {boolean} 状態が実際に変化した場合は true
-     */
-    updateCellExploredStatus: (position: Position, shouldMark: boolean) => void;
-    /**
-     * 指定したセルから一定歩数で行けるセルIDをすべて取得する
-     * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
-     */
-    getMovableCellIds: (boardId: BoardId, startCellId: CellId, moveRange: number, isExact: boolean) => CellId[];
-    /**
-     * セル効果を発動する
-     * @param boardId - ボードID
-     * @param playerId - 効果を発動させたプレイヤーのID
-     * @param position - 発動対象となるマスの座標
-     * @param cellEffects - 各セル名に対応する効果処理の定義集
-     */
-    applyCellEffect: (boardId: BoardId, playerId: PlayerId, position: Position, cellEffects: Record<string, (manager: RoomManager, playerId: PlayerId) => void>) => void;
     /**
      * タイマーを停止させる
      */
