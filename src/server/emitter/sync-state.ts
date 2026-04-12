@@ -1,3 +1,4 @@
+// src/server/emitter/sync-state.ts
 import { RoomState } from '@/index.js';
 import { GameTurnUpdateData } from '@/types/socketData.js';
 import { Server } from 'socket.io';
