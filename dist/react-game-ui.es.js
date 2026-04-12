@@ -2377,8 +2377,8 @@ const styles$3 = {
   contentWrapper
 };
 const TokenDisplayContent = React__default.memo(({ token }) => {
-  if (token.imageSrc) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$3.image }) });
+  if (token.image) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: styles$3.image }) });
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$3.text, children: token.name }) }) });
 });
@@ -4058,6 +4058,13 @@ class RoomManager {
    */
   emitPlayerUpdate = () => {
     this.io.to(this.state.roomId).emit("players:update", this.state.players);
+  };
+  emitBoardUpdate = (boardId) => {
+    this.io.to(this.state.roomId).emit("board:update", {
+      board: this.state.boards[boardId],
+      players: this.state.players,
+      extraPieces: Object.values(this.state.pieces)
+    });
   };
   shuffleDeck = (deckId) => {
     if (!this.state.decks[deckId]) return;

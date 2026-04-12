@@ -155,7 +155,7 @@ export class SetupHelper {
     const replicatedTokens = replicateData(tokens, count);
     if (imageSrc) {
       replicatedTokens.forEach((token) => {
-        token.imageSrc = imageSrc;
+        token.image = imageSrc;
       });
     }
     if (color) {

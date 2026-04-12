@@ -38,12 +38,18 @@ export function registerTokenListeners(
     if (state && player) {
       const token: TokenData = {
         id: tokenId,
-        name: '',
-        imageSrc: '',
-        color: 'white',
+        name: piece.name,
+        image: piece.image,
+        color: piece.color,
+        position: null,
+        movableCells: [],
       };
       player.tokens.push(token);
+      delete state?.pieces[tokenId];
+
+      // 更新を通知
       roomManager.emitPlayerUpdate();
+      roomManager.emitBoardUpdate(boardId);
     }
   });
 }

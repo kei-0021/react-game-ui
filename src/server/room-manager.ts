@@ -68,6 +68,14 @@ export class RoomManager {
     this.io.to(this.state.roomId).emit('players:update', this.state.players);
   };
 
+  emitBoardUpdate = (boardId: BoardId) => {
+    this.io.to(this.state.roomId).emit('board:update', {
+      board: this.state.boards[boardId],
+      players: this.state.players,
+      extraPieces: Object.values(this.state.pieces),
+    });
+  };
+
   shuffleDeck = (deckId: DeckId) => {
     if (!this.state.decks[deckId]) return;
 

@@ -5,10 +5,10 @@ import styles from './Token.module.css';
 
 export const TokenDisplayContent = React.memo(({ token }: { token: TokenData }) => {
   // 画像がある場合
-  if (token.imageSrc) {
+  if (token.image) {
     return (
       <div className={styles.contentWrapper} style={{ backgroundColor: token.color || '#4f4848ff' }}>
-        <img src={token.imageSrc} alt={token.name} className={styles.image} />
+        <img src={token.image} alt={token.name} className={styles.image} />
       </div>
     );
   }

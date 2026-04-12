@@ -21,15 +21,21 @@ export function registerTokenListeners(socket, io, gameParams, activeRooms) {
         const param = gameParams[state.gameId];
         const roomManager = new RoomManager(io, param, state);
         const player = state?.players.find((p) => p.socketId === socket.id);
+        const piece = state?.pieces[tokenId];
         if (state && player) {
             const token = {
-                id: '',
-                name: '',
-                imageSrc: '',
-                color: 'white',
+                id: tokenId,
+                name: piece.name,
+                image: piece.image,
+                color: piece.color,
+                position: null,
+                movableCells: [],
             };
             player.tokens.push(token);
+            delete state?.pieces[tokenId];
+            // 更新を通知
             roomManager.emitPlayerUpdate();
+            roomManager.emitBoardUpdate(boardId);
         }
     });
 }
