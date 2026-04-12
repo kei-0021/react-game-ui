@@ -141,8 +141,6 @@ export function registerDeckListeners(socket, io, gameParams, activeRooms) {
             roomManager.server_log('card', `${playerId} はカードをホールドしているので、カードを移動できません`);
             return;
         }
-        const success = roomManager.moveFromField(deckId, cardId, playerId);
-        if (!success)
-            return;
+        roomManager.moveFromField(deckId, cardId, playerId);
     });
 }

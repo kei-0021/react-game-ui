@@ -4003,59 +4003,6 @@ const server_log = (tag, gameId, roomId, msg, level = "INFO") => {
       break;
   }
 };
-class DeckManager {
-  /**
-   * カードをデッキから引く
-   */
-  drawCard(state, deckId, condition, playerId) {
-    const [targetLocation, targetState] = condition;
-    const currentDeck = state.decks[deckId].filter((c) => c.location === "deck");
-    if (!currentDeck.length) return false;
-    const card2 = currentDeck[0];
-    card2.isFaceUp = targetState === "face";
-    let destination = "";
-    if (targetLocation === "discard") {
-      card2.location = "discard";
-      card2.ownerId = null;
-      state.discardPile[deckId].push(card2);
-      destination = "discard";
-    } else if (playerId && targetLocation === "hand") {
-      const player = state.players.find((p) => p.id === playerId);
-      if (player) {
-        card2.location = "hand";
-        card2.ownerId = playerId;
-        player.cards.push(card2);
-        destination = playerId;
-      }
-    } else {
-      card2.location = "field";
-      card2.ownerId = null;
-      state.playFieldCards[deckId].push(card2);
-      destination = "field";
-    }
-    server_log(
-      "deck",
-      state.gameId,
-      state.roomId,
-      `DRAW: ${card2.name} (ID:${card2.id}) (deck -> ${destination}, state: ${targetState})`
-    );
-  }
-  /**
-   * デッキをシャッフルする
-   */
-  shuffleDeck = (state, deckId) => {
-    const targetDeck = state.decks[deckId];
-    if (!targetDeck) return;
-    const currentDeck = targetDeck.filter((c) => c.location === "deck");
-    const otherCards = targetDeck.filter((c) => c.location !== "deck");
-    for (let i = currentDeck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
-    }
-    state.decks[deckId] = currentDeck.concat(otherCards);
-    server_log("deck", state.gameId, state.roomId, `${deckId} をシャッフル`);
-  };
-}
 const roomInterpreter = (logic, state, manager, ...args) => {
   if (typeof logic === "function") {
     return logic(state, manager, ...args);
@@ -4081,6 +4028,160 @@ const roomInterpreter = (logic, state, manager, ...args) => {
     }
   });
 };
+class DeckManager {
+  constructor(param, state) {
+    this.param = param;
+    this.state = state;
+  }
+  /**
+   * カードをデッキから引く
+   */
+  drawCard(deckId, condition, playerId) {
+    const [targetLocation, targetState] = condition;
+    const currentDeck = this.state.decks[deckId].filter((c) => c.location === "deck");
+    if (!currentDeck.length) return false;
+    const card2 = currentDeck[0];
+    card2.isFaceUp = targetState === "face";
+    let destination = "";
+    if (targetLocation === "discard") {
+      card2.location = "discard";
+      card2.ownerId = null;
+      this.state.discardPile[deckId].push(card2);
+      destination = "discard";
+    } else if (playerId && targetLocation === "hand") {
+      const player = this.state.players.find((p) => p.id === playerId);
+      if (player) {
+        card2.location = "hand";
+        card2.ownerId = playerId;
+        player.cards.push(card2);
+        destination = playerId;
+      }
+    } else {
+      card2.location = "field";
+      card2.ownerId = null;
+      this.state.playFieldCards[deckId].push(card2);
+      destination = "field";
+    }
+    server_log(
+      "deck",
+      this.state.gameId,
+      this.state.roomId,
+      `DRAW: ${card2.name} (ID:${card2.id}) (deck -> ${destination}, state: ${targetState})`
+    );
+  }
+  /**
+   * デッキをシャッフルする
+   */
+  shuffleDeck = (deckId) => {
+    const targetDeck = this.state.decks[deckId];
+    if (!targetDeck) return;
+    const currentDeck = targetDeck.filter((c) => c.location === "deck");
+    const otherCards = targetDeck.filter((c) => c.location !== "deck");
+    for (let i = currentDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
+    }
+    this.state.decks[deckId] = currentDeck.concat(otherCards);
+    server_log("deck", this.state.gameId, this.state.roomId, `${deckId} をシャッフル`);
+  };
+  /**
+   * カードをプレイする
+   */
+  playCard(data, roomManager) {
+    const { deckId, cardIds, playerId, playLocation = "field", coordinate } = data;
+    const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (player?.isHolding) {
+      server_log(
+        "card",
+        this.state.gameId,
+        this.state.roomId,
+        `${playerId} はカードをホールドしているので、カードをプレイできません`
+      );
+      return;
+    }
+    ids.forEach((id) => {
+      const card2 = this.state.decks[deckId]?.find((c) => c.id === id);
+      if (!card2) return;
+      const p = this.state.players.find((p2) => p2.id === playerId);
+      if (p) p.cards = p.cards.filter((c) => c.id !== id);
+      card2.location = playLocation;
+      card2.coordinate = coordinate;
+      card2.isFaceUp = true;
+      this.state.playFieldCards[deckId] = this.state.playFieldCards[deckId].filter((c) => c.id !== id);
+      this.state.discardPile[deckId] = this.state.discardPile[deckId].filter((c) => c.id !== id);
+      if (playLocation === "discard") {
+        this.state.discardPile[deckId].push(card2);
+      } else {
+        this.state.playFieldCards[deckId].push(card2);
+      }
+      roomManager.updateZIndex("card", [deckId, card2.id], true);
+      server_log("card", this.state.gameId, this.state.roomId, `"${card2.name}" をプレイした`);
+      const effect = this.param.cardEffects?.[card2.name];
+      if (effect) {
+        server_log("card", this.state.gameId, this.state.roomId, `カード効果発揮: ${card2.name} by ${playerId}`);
+        effect({
+          playerId,
+          updateResource: (resourceId, amount) => roomManager.acquireResource(playerId, resourceId, amount),
+          updateToken: (tokenId) => roomManager.acquireToken(this.state.roomId, playerId, tokenId)
+        });
+      }
+    });
+    const onCardPlay = this.param.onCardPlay;
+    if (onCardPlay) {
+      roomInterpreter(onCardPlay, this.state, roomManager, data);
+    }
+  }
+  /**
+   * ホールド状態を解除し、カードを出す
+   */
+  unholdCards(roomManager) {
+    this.state.players.forEach((player) => {
+      player.isHolding = false;
+      const playerHoldData = this.state.holdCards[player.id];
+      if (!playerHoldData) return;
+      Object.entries(playerHoldData).forEach(([deckId, cardIds]) => {
+        const playData = {
+          roomId: this.state.roomId,
+          deckId,
+          cardIds,
+          playerId: player.id,
+          playLocation: "field",
+          coordinate: { x: 50, y: 50 }
+        };
+        roomManager.playCard(playData);
+      });
+      delete this.state.holdCards[player.id];
+    });
+    server_log("card", this.state.gameId, this.state.roomId, `プレイヤー全員のホールド状態を解除しました`);
+  }
+  /**
+   * フィールドからカードを回収（手札に戻す or 捨て札へ）
+   */
+  moveFromField(deckId, cardId, playerId) {
+    const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
+    const fieldList = playFieldCards[deckId] || [];
+    const cardIndex = fieldList.findIndex((c) => c.id === cardId);
+    if (cardIndex === -1) return;
+    const [card2] = fieldList.splice(cardIndex, 1);
+    card2.isFaceUp = card2.fieldBackCondition?.[1] === "face";
+    if (playerId) {
+      const player = players.find((p) => p.id === playerId);
+      if (!player) return;
+      card2.location = "hand";
+      card2.ownerId = playerId;
+      player.cards = player.cards || [];
+      player.cards.push(card2);
+      server_log("card", this.state.gameId, this.state.roomId, `Return: ${card2.name} -> Player:${playerId}`);
+    } else {
+      card2.location = "discard";
+      card2.ownerId = null;
+      discardPile[deckId] = discardPile[deckId] || [];
+      discardPile[deckId].push(card2);
+      server_log("card", this.state.gameId, this.state.roomId, `Discard: ${card2.name} -> discard`);
+    }
+  }
+}
 const isExplored = (roomState, position) => {
   return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
@@ -4169,8 +4270,8 @@ class RoomManager {
    * カードをデッキから引く
    */
   drawCard(deckId, condition, playerId) {
-    const deckManager = new DeckManager();
-    deckManager.drawCard(this.state, deckId, condition, playerId);
+    const deckManager = new DeckManager(this.param, this.state);
+    deckManager.drawCard(deckId, condition, playerId);
     this.emitDeckUpdate(deckId);
     this.emitPlayerUpdate();
   }
@@ -4178,105 +4279,33 @@ class RoomManager {
    * デッキをシャッフルする
    */
   shuffleDeck = (deckId) => {
-    const deckManager = new DeckManager();
-    deckManager.shuffleDeck(this.state, deckId);
+    const deckManager = new DeckManager(this.param, this.state);
+    deckManager.shuffleDeck(deckId);
   };
   /**
    * カードをプレイする
    */
   playCard(data) {
-    const { deckId, cardIds, playerId, playLocation = "field", coordinate } = data;
-    const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
-    const player = this.state.players.find((p) => p.id === playerId);
-    if (player?.isHolding) {
-      this.server_log("card", `${playerId} はカードをホールドしているので、カードをプレイできません`);
-      return;
-    }
-    ids.forEach((id) => {
-      const card2 = this.state.decks[deckId]?.find((c) => c.id === id);
-      if (!card2) return;
-      const p = this.state.players.find((p2) => p2.id === playerId);
-      if (p) p.cards = p.cards.filter((c) => c.id !== id);
-      card2.location = playLocation;
-      card2.coordinate = coordinate;
-      card2.isFaceUp = true;
-      this.state.playFieldCards[deckId] = this.state.playFieldCards[deckId].filter((c) => c.id !== id);
-      this.state.discardPile[deckId] = this.state.discardPile[deckId].filter((c) => c.id !== id);
-      if (playLocation === "discard") {
-        this.state.discardPile[deckId].push(card2);
-      } else {
-        this.state.playFieldCards[deckId].push(card2);
-      }
-      this.updateZIndex("card", [deckId, card2.id], true);
-      this.server_log("card", `"${card2.name}" をプレイした`);
-      const effect = this.param.cardEffects?.[card2.name];
-      if (effect) {
-        this.server_log("card", `カード効果発揮: ${card2.name} by ${playerId}`);
-        effect({
-          playerId,
-          updateResource: (resourceId, amount) => this.acquireResource(playerId, resourceId, amount),
-          updateToken: (tokenId) => this.acquireToken(this.state.roomId, playerId, tokenId)
-        });
-      }
-    });
-    const onCardPlay = this.param.onCardPlay;
-    if (onCardPlay) {
-      roomInterpreter(onCardPlay, this.state, this, data);
-    }
-    this.emitDeckUpdate(deckId);
+    const deckManager = new DeckManager(this.param, this.state);
+    deckManager.playCard(data, this);
+    this.emitDeckUpdate(data.deckId);
     this.emitPlayerUpdate();
   }
   /**
    * ホールド状態を解除し、カードを出す
    */
   unholdCards() {
-    this.state.players.forEach((player) => {
-      player.isHolding = false;
-      const playerHoldData = this.state.holdCards[player.id];
-      if (!playerHoldData) return;
-      Object.entries(playerHoldData).forEach(([deckId, cardIds]) => {
-        const playData = {
-          roomId: this.state.roomId,
-          deckId,
-          cardIds,
-          playerId: player.id,
-          playLocation: "field",
-          coordinate: { x: 50, y: 50 }
-        };
-        this.playCard(playData);
-      });
-      delete this.state.holdCards[player.id];
-    });
-    this.server_log("card", `プレイヤー全員のホールド状態を解除しました`);
+    const deckManager = new DeckManager(this.param, this.state);
+    deckManager.unholdCards(this);
   }
   /**
    * フィールドからカードを回収（手札に戻す or 捨て札へ）
    */
   moveFromField(deckId, cardId, playerId) {
-    const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
-    const fieldList = playFieldCards[deckId] || [];
-    const cardIndex = fieldList.findIndex((c) => c.id === cardId);
-    if (cardIndex === -1) return false;
-    const [card2] = fieldList.splice(cardIndex, 1);
-    card2.isFaceUp = card2.fieldBackCondition?.[1] === "face";
-    if (playerId) {
-      const player = players.find((p) => p.id === playerId);
-      if (!player) return false;
-      card2.location = "hand";
-      card2.ownerId = playerId;
-      player.cards = player.cards || [];
-      player.cards.push(card2);
-      this.server_log("card", `Return: ${card2.name} -> Player:${playerId}`);
-    } else {
-      card2.location = "discard";
-      card2.ownerId = null;
-      discardPile[deckId] = discardPile[deckId] || [];
-      discardPile[deckId].push(card2);
-      this.server_log("card", `Discard: ${card2.name} -> discard`);
-    }
+    const deckManager = new DeckManager(this.param, this.state);
+    deckManager.moveFromField(deckId, cardId, playerId);
     this.emitDeckUpdate(deckId);
     this.emitPlayerUpdate();
-    return true;
   }
   /**
    * スコアを加算する

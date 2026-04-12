@@ -172,7 +172,6 @@ export function registerDeckListeners(
       return;
     }
 
-    const success = roomManager.moveFromField(deckId, cardId, playerId);
-    if (!success) return;
+    roomManager.moveFromField(deckId, cardId, playerId);
   });
 }

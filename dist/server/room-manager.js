@@ -1,6 +1,5 @@
 import { server_log } from './log/logger.js';
 import { DeckManager } from './logic/deck-manager.js';
-import { roomInterpreter } from './room-interpreter.js';
 export const isExplored = (roomState, position) => {
     return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
@@ -97,8 +96,8 @@ export class RoomManager {
      * カードをデッキから引く
      */
     drawCard(deckId, condition, playerId) {
-        const deckManager = new DeckManager();
-        deckManager.drawCard(this.state, deckId, condition, playerId);
+        const deckManager = new DeckManager(this.param, this.state);
+        deckManager.drawCard(deckId, condition, playerId);
         this.emitDeckUpdate(deckId);
         this.emitPlayerUpdate();
     }
@@ -106,123 +105,33 @@ export class RoomManager {
      * デッキをシャッフルする
      */
     shuffleDeck = (deckId) => {
-        const deckManager = new DeckManager();
-        deckManager.shuffleDeck(this.state, deckId);
+        const deckManager = new DeckManager(this.param, this.state);
+        deckManager.shuffleDeck(deckId);
     };
     /**
      * カードをプレイする
      */
     playCard(data) {
-        const { deckId, cardIds, playerId, playLocation = 'field', coordinate } = data;
-        const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
-        const player = this.state.players.find((p) => p.id === playerId);
-        if (player?.isHolding) {
-            this.server_log('card', `${playerId} はカードをホールドしているので、カードをプレイできません`);
-            return;
-        }
-        ids.forEach((id) => {
-            const card = this.state.decks[deckId]?.find((c) => c.id === id);
-            if (!card)
-                return;
-            const p = this.state.players.find((p) => p.id === playerId);
-            if (p)
-                p.cards = p.cards.filter((c) => c.id !== id);
-            card.location = playLocation;
-            card.coordinate = coordinate;
-            card.isFaceUp = true;
-            this.state.playFieldCards[deckId] = this.state.playFieldCards[deckId].filter((c) => c.id !== id);
-            this.state.discardPile[deckId] = this.state.discardPile[deckId].filter((c) => c.id !== id);
-            if (playLocation === 'discard') {
-                this.state.discardPile[deckId].push(card);
-            }
-            else {
-                this.state.playFieldCards[deckId].push(card);
-            }
-            // 最前面に移動
-            this.updateZIndex('card', [deckId, card.id], true);
-            this.server_log('card', `"${card.name}" をプレイした`);
-            // カード効果
-            const effect = this.param.cardEffects?.[card.name];
-            if (effect) {
-                this.server_log('card', `カード効果発揮: ${card.name} by ${playerId}`);
-                effect({
-                    playerId,
-                    updateResource: (resourceId, amount) => this.acquireResource(playerId, resourceId, amount),
-                    updateToken: (tokenId) => this.acquireToken(this.state.roomId, playerId, tokenId),
-                });
-            }
-        });
-        // カスタムフック処理
-        const onCardPlay = this.param.onCardPlay;
-        if (onCardPlay) {
-            roomInterpreter(onCardPlay, this.state, this, data);
-        }
-        // 更新通知
-        this.emitDeckUpdate(deckId);
+        const deckManager = new DeckManager(this.param, this.state);
+        deckManager.playCard(data, this);
+        this.emitDeckUpdate(data.deckId);
         this.emitPlayerUpdate();
     }
     /**
      * ホールド状態を解除し、カードを出す
      */
     unholdCards() {
-        this.state.players.forEach((player) => {
-            player.isHolding = false;
-            // プレイヤーがホールドしているデータがない場合はスキップ
-            const playerHoldData = this.state.holdCards[player.id];
-            if (!playerHoldData)
-                return;
-            Object.entries(playerHoldData).forEach(([deckId, cardIds]) => {
-                const playData = {
-                    roomId: this.state.roomId,
-                    deckId: deckId,
-                    cardIds: cardIds,
-                    playerId: player.id,
-                    playLocation: 'field',
-                    coordinate: { x: 50, y: 50 },
-                };
-                this.playCard(playData);
-            });
-            delete this.state.holdCards[player.id];
-        });
-        this.server_log('card', `プレイヤー全員のホールド状態を解除しました`);
+        const deckManager = new DeckManager(this.param, this.state);
+        deckManager.unholdCards(this);
     }
     /**
      * フィールドからカードを回収（手札に戻す or 捨て札へ）
      */
     moveFromField(deckId, cardId, playerId) {
-        const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
-        // 1. フィールドから対象カードを探して抜き取る
-        const fieldList = playFieldCards[deckId] || [];
-        const cardIndex = fieldList.findIndex((c) => c.id === cardId);
-        if (cardIndex === -1)
-            return false;
-        const [card] = fieldList.splice(cardIndex, 1);
-        // 2. 表裏の状態を反映（fieldBackConditionの設定に従う）
-        // 以前のロジックを継承：設定が 'face' なら表、それ以外なら裏
-        card.isFaceUp = card.fieldBackCondition?.[1] === 'face';
-        // 3. 行き先の判定
-        if (playerId) {
-            // --- 手札に戻す場合 ---
-            const player = players.find((p) => p.id === playerId);
-            if (!player)
-                return false;
-            card.location = 'hand';
-            card.ownerId = playerId;
-            player.cards = player.cards || [];
-            player.cards.push(card);
-            this.server_log('card', `Return: ${card.name} -> Player:${playerId}`);
-        }
-        else {
-            // --- 捨て札に送る場合 ---
-            card.location = 'discard';
-            card.ownerId = null;
-            discardPile[deckId] = discardPile[deckId] || [];
-            discardPile[deckId].push(card);
-            this.server_log('card', `Discard: ${card.name} -> discard`);
-        }
+        const deckManager = new DeckManager(this.param, this.state);
+        deckManager.moveFromField(deckId, cardId, playerId);
         this.emitDeckUpdate(deckId);
         this.emitPlayerUpdate();
-        return true;
     }
     /**
      * スコアを加算する
