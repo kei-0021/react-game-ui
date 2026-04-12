@@ -1719,6 +1719,7 @@ function GridBoard({
     const draggedTokenId = e.dataTransfer.getData("tokenId");
     if (draggedTokenId) {
       setHighlightedCells([]);
+      console.log(draggedTokenId);
       socket.emit("board:move-token", {
         roomId,
         boardId,
@@ -1742,6 +1743,7 @@ function GridBoard({
     socket.emit("board:movable-range", requestData);
   };
   const handleTokenDragStart = (e, token) => {
+    console.log(token);
     if (token.ownerId && token.ownerId !== myPlayerId) {
       e.preventDefault();
       return;

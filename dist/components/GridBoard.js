@@ -76,6 +76,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowT
     };
     const handleTokenDragStart = (e, token) => {
         // ドラッグ権限チェック
+        console.log(token);
         if (token.ownerId && token.ownerId !== myPlayerId) {
             e.preventDefault();
             return;

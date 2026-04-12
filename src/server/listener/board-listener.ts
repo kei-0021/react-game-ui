@@ -1,13 +1,13 @@
 // src/server/listner/board-lister.ts
 import { GameParam, RoomState } from '@/index.js';
 import { GameId, RoomId } from '@/types/definition.js';
-import { BaordMoveTokenData, BoardMovableRangeData, BoardUpdateData } from '@/types/socketData.js';
+import { BaordMoveTokenData, BoardMovableRangeData } from '@/types/socketData.js';
 import { Server, Socket } from 'socket.io';
 import { RoomManager } from '../room-manager.js';
 
 /**
  * ボード操作専用のイベントリスナーを登録する。
- * コマの移動・移動可能範囲の計算を行うアクションを制御する。
+ * トークンの移動・移動可能範囲の計算を行うアクションを制御する。
  */
 export function registerBoardListeners(
   socket: Socket,
@@ -15,24 +15,22 @@ export function registerBoardListeners(
   gameParams: Record<GameId, GameParam>,
   activeRooms: Map<RoomId, RoomState>,
 ) {
-  // 駒の移動
+  // トークンの移動
   socket.on('board:move-token', ({ roomId, boardId, tokenId, newLocation }: BaordMoveTokenData) => {
     const state = activeRooms.get(roomId);
     if (!state) return;
     const param = gameParams[state.gameId];
     const roomManager = new RoomManager(io, param, state);
 
-    // 全トークンから検索
     const token = state.boardTokens[tokenId];
-
     if (token) {
       // 座標を更新
       token.position = newLocation;
 
       // セル効果
       const cellEffects = param.cellEffects;
-      if (cellEffects) {
-        roomManager.applyCellEffect(boardId, tokenId, newLocation, cellEffects);
+      if (cellEffects && token.ownerId) {
+        roomManager.applyCellEffect(boardId, token.ownerId, newLocation, cellEffects);
       }
 
       // カスタムフック
@@ -41,12 +39,8 @@ export function registerBoardListeners(
         onTokenMove(state, roomManager, newLocation);
       }
 
-      // 盤面全体を同期（すべての駒の状態を送る）
-      io.to(roomId).emit('board:update', {
-        boardId: boardId,
-        board: state.boards[boardId],
-        extraTokens: Object.values(state.boardTokens),
-      } as BoardUpdateData);
+      // 盤面全体を同期
+      roomManager.emitBoardUpdate(boardId);
     }
   });
 
@@ -59,7 +53,6 @@ export function registerBoardListeners(
       const param = gameParams[state.gameId];
       const roomManager = new RoomManager(io, param, state);
 
-      // 指定された tokenId の駒を取得
       const token = state.boardTokens[tokenId];
       if (!token || !token.position) return;
 
@@ -78,15 +71,11 @@ export function registerBoardListeners(
         };
       });
 
-      // 駒自体に移動可能範囲をセット（フロントがこれを参照する）
+      // 移動可能範囲をセット
       token.movableCells = movableLocs;
 
-      // 更新を通知
-      io.to(roomId).emit('board:update', {
-        boardId: boardId,
-        board: state.boards[boardId],
-        extraTokens: Object.values(state.boardTokens),
-      } as BoardUpdateData);
+      // 盤面全体を同期
+      roomManager.emitBoardUpdate(boardId);
     },
   );
 }

@@ -1,5 +1,5 @@
 import { RoomState } from '@/index.js';
-import { BoardUpdateData, GameTurnUpdateData } from '@/types/socketData.js';
+import { GameTurnUpdateData } from '@/types/socketData.js';
 import { Server } from 'socket.io';
 import { RoomManager } from '../room-manager.js';
 
@@ -25,13 +25,7 @@ export function syncState(state: RoomState, roomManager: RoomManager, io: Server
 
   // ボード関連
   if (state.exploredCells.length > 0) io.to(state.roomId).emit('cell:update', state.exploredCells);
-  Object.entries(state.boards).forEach(([boardId, board]) => {
-    io.to(state.roomId).emit('board:update', {
-      boardId,
-      board,
-      extraTokens: Object.values(state.boardTokens),
-    } as BoardUpdateData);
-  });
+  Object.keys(state.boards).forEach((id) => roomManager.emitBoardUpdate(id));
 
   // ドラッグ可能オブジェクト関連
   Object.keys(state.draggables).forEach((id) => roomManager.emitDraggableUpdate(id));
