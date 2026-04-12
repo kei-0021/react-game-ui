@@ -1,3 +1,4 @@
+// src/server/logic/deck-manager.ts
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
 import { CardId, DeckId, PlayerId, ResourceId, TokenId } from '@/types/definition.js';

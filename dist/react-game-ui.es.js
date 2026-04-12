@@ -4003,6 +4003,73 @@ const server_log = (tag, gameId, roomId, msg, level = "INFO") => {
       break;
   }
 };
+const isExplored = (roomState, position) => {
+  return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
+};
+class BoardManager {
+  constructor(state) {
+    this.state = state;
+  }
+  /**
+   * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+   * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
+   */
+  getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
+    const targetBoard = this.state.boards[boardId];
+    const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
+    const reachable = /* @__PURE__ */ new Set();
+    const queue = [{ id: startCellId, dist: 0 }];
+    const visited = /* @__PURE__ */ new Set([startCellId]);
+    while (queue.length > 0) {
+      const { id, dist } = queue.shift();
+      if (dist > 0) {
+        if (isExact) {
+          if (dist === moveRange) reachable.add(id);
+        } else {
+          reachable.add(id);
+        }
+      }
+      if (dist >= moveRange) continue;
+      const cell2 = boardMap.get(id);
+      cell2?.adjacentCellIds.forEach((nextId) => {
+        if (!visited.has(nextId)) {
+          visited.add(nextId);
+          queue.push({ id: nextId, dist: dist + 1 });
+        }
+      });
+    }
+    return Array.from(reachable);
+  };
+  /**
+   * 特定のセルの探索状態を切り替える
+   * @param {Position} position - 操作対象の座標
+   * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
+   * @returns {boolean} 状態が実際に変化した場合は true
+   */
+  updateCellExploredStatus = (position, shouldMark) => {
+    const isCurrentlyExplored = isExplored(this.state, position);
+    if (shouldMark && !isCurrentlyExplored) {
+      this.state.exploredCells.push(position);
+      server_log(
+        "cell",
+        this.state.gameId,
+        this.state.roomId,
+        `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`
+      );
+    }
+    if (!shouldMark && isCurrentlyExplored) {
+      this.state.exploredCells = this.state.exploredCells.filter(
+        (loc) => !(loc.row === position.row && loc.col === position.col)
+      );
+      server_log(
+        "cell",
+        this.state.gameId,
+        this.state.roomId,
+        `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`
+      );
+    }
+  };
+}
 const roomInterpreter = (logic, state, manager, ...args) => {
   if (typeof logic === "function") {
     return logic(state, manager, ...args);
@@ -4182,9 +4249,6 @@ class DeckManager {
     }
   }
 }
-const isExplored = (roomState, position) => {
-  return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
-};
 class RoomManager {
   constructor(io2, param, state) {
     this.io = io2;
@@ -4239,6 +4303,12 @@ class RoomManager {
   emitTokenStoreUpdate = (tokenStoreId) => {
     const updateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
     this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
+  };
+  /**
+   * セルの状態更新を通知する
+   */
+  emitCellUpdate = () => {
+    this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
   };
   /**
    * ドラッグ可能オブジェクトの更新を通知する
@@ -4366,52 +4436,17 @@ class RoomManager {
    * @returns {boolean} 状態が実際に変化した場合は true
    */
   updateCellExploredStatus = (position, shouldMark) => {
-    const isCurrentlyExplored = isExplored(this.state, position);
-    if (shouldMark && !isCurrentlyExplored) {
-      this.state.exploredCells.push(position);
-      this.server_log("cell", `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
-      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
-      return;
-    }
-    if (!shouldMark && isCurrentlyExplored) {
-      this.state.exploredCells = this.state.exploredCells.filter(
-        (loc) => !(loc.row === position.row && loc.col === position.col)
-      );
-      this.server_log("cell", `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
-      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
-      return;
-    }
-    return;
+    const boardManager = new BoardManager(this.state);
+    boardManager.updateCellExploredStatus(position, shouldMark);
+    this.emitCellUpdate();
   };
   /**
    * 指定したセルから一定歩数で行けるセルIDをすべて取得する
    * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
    */
   getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
-    const targetBoard = this.state.boards[boardId];
-    const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
-    const reachable = /* @__PURE__ */ new Set();
-    const queue = [{ id: startCellId, dist: 0 }];
-    const visited = /* @__PURE__ */ new Set([startCellId]);
-    while (queue.length > 0) {
-      const { id, dist } = queue.shift();
-      if (dist > 0) {
-        if (isExact) {
-          if (dist === moveRange) reachable.add(id);
-        } else {
-          reachable.add(id);
-        }
-      }
-      if (dist >= moveRange) continue;
-      const cell2 = boardMap.get(id);
-      cell2?.adjacentCellIds.forEach((nextId) => {
-        if (!visited.has(nextId)) {
-          visited.add(nextId);
-          queue.push({ id: nextId, dist: dist + 1 });
-        }
-      });
-    }
-    return Array.from(reachable);
+    const boardManager = new BoardManager(this.state);
+    return boardManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
   };
   /**
    * セル効果を発動する

@@ -48,6 +48,10 @@ export declare class RoomManager {
      */
     emitTokenStoreUpdate: (tokenStoreId: TokenStoreId) => void;
     /**
+     * セルの状態更新を通知する
+     */
+    emitCellUpdate: () => void;
+    /**
      * ドラッグ可能オブジェクトの更新を通知する
      */
     emitDraggableUpdate: (draggableId: DraggableId) => void;

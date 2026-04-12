@@ -28,6 +28,7 @@ import {
 } from '@/types/socketData.js';
 import { Server } from 'socket.io';
 import { LogCategory, LogLevel, server_log } from './log/logger.js';
+import { BoardManager } from './logic/board-manager.js';
 import { DeckManager } from './logic/deck-manager.js';
 
 export const isExplored = (roomState: RoomState, position: Position): boolean => {
@@ -97,6 +98,13 @@ export class RoomManager {
   emitTokenStoreUpdate = (tokenStoreId: TokenStoreId) => {
     const updateData: TokenStoreUpdateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
     this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
+  };
+
+  /**
+   * セルの状態更新を通知する
+   */
+  emitCellUpdate = () => {
+    this.io.to(this.state.roomId).emit('cell:update', this.state.exploredCells);
   };
 
   /**
@@ -245,25 +253,9 @@ export class RoomManager {
    * @returns {boolean} 状態が実際に変化した場合は true
    */
   updateCellExploredStatus = (position: Position, shouldMark: boolean) => {
-    const isCurrentlyExplored = isExplored(this.state, position);
-
-    if (shouldMark && !isCurrentlyExplored) {
-      this.state.exploredCells.push(position);
-      this.server_log('cell', `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
-      this.io.to(this.state.roomId).emit('cell:update', this.state.exploredCells);
-      return;
-    }
-
-    if (!shouldMark && isCurrentlyExplored) {
-      this.state.exploredCells = this.state.exploredCells.filter(
-        (loc) => !(loc.row === position.row && loc.col === position.col),
-      );
-      this.server_log('cell', `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
-      this.io.to(this.state.roomId).emit('cell:update', this.state.exploredCells);
-      return;
-    }
-
-    return;
+    const boardManager = new BoardManager(this.state);
+    boardManager.updateCellExploredStatus(position, shouldMark);
+    this.emitCellUpdate();
   };
 
   /**
@@ -271,39 +263,8 @@ export class RoomManager {
    * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
    */
   getMovableCellIds = (boardId: BoardId, startCellId: CellId, moveRange: number, isExact: boolean): CellId[] => {
-    const targetBoard = this.state.boards[boardId];
-    const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
-
-    const reachable = new Set<string>();
-    const queue: { id: string; dist: number }[] = [{ id: startCellId, dist: 0 }];
-    const visited = new Set<string>([startCellId]);
-
-    while (queue.length > 0) {
-      const { id, dist } = queue.shift()!;
-
-      // 登録条件の判定
-      if (dist > 0) {
-        if (isExact) {
-          // isExactフラグがtrueなら、指定歩数と同じ場合のみ登録
-          if (dist === moveRange) reachable.add(id);
-        } else {
-          // 通常時は今まで通り移動範囲内すべて
-          reachable.add(id);
-        }
-      }
-
-      // 探索継続の判定（移動範囲を超えたら隣接は探さない）
-      if (dist >= moveRange) continue;
-
-      const cell = boardMap.get(id);
-      cell?.adjacentCellIds.forEach((nextId) => {
-        if (!visited.has(nextId)) {
-          visited.add(nextId);
-          queue.push({ id: nextId, dist: dist + 1 });
-        }
-      });
-    }
-    return Array.from(reachable);
+    const boardManager = new BoardManager(this.state);
+    return boardManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
   };
 
   /**
