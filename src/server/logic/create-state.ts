@@ -194,11 +194,11 @@ export function createPlayer(param: GameParam, state: RoomState, playerName: str
     const templates = Object.entries(param.initialTokensOnBoard).filter(([_, p]) => p.ownerId === ('player' as any));
 
     templates.forEach(([templateId, template]) => {
-      const pieceId = `${templateId}_${playerId}`;
+      const tokenId = `${templateId}_${playerId}`;
 
-      state.boardTokens[pieceId] = {
+      state.boardTokens[tokenId] = {
         ...template,
-        id: pieceId,
+        id: tokenId,
         ownerId: playerId,
         name: newPlayer.name,
         color: newPlayer.color,

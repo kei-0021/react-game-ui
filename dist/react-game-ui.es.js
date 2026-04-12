@@ -1690,7 +1690,7 @@ function GridBoard({
   boardId,
   players,
   myPlayerId,
-  allowPieceDrag = false,
+  allowTokenDrag = false,
   moveRange = 2,
   isExact = true,
   width = 800,
@@ -1716,13 +1716,13 @@ function GridBoard({
   const handleCellDrop = (e, targetRow, targetCol) => {
     e.preventDefault();
     if (!isBoardReady || !socket) return;
-    const draggedPieceId = e.dataTransfer.getData("pieceId");
-    if (draggedPieceId) {
+    const draggedTokenId = e.dataTransfer.getData("tokenId");
+    if (draggedTokenId) {
       setHighlightedCells([]);
-      socket.emit("board:move-piece", {
+      socket.emit("board:move-token", {
         roomId,
         boardId,
-        tokenId: draggedPieceId,
+        tokenId: draggedTokenId,
         newLocation: { row: targetRow, col: targetCol }
       });
     }
@@ -1746,12 +1746,12 @@ function GridBoard({
       e.preventDefault();
       return;
     }
-    e.dataTransfer.setData("pieceId", token.id);
+    e.dataTransfer.setData("tokenId", token.id);
     e.dataTransfer.effectAllowed = "move";
     setDraggingTokenId(token.id);
     requestMovableRange(token.id);
   };
-  const handlePieceDragEnd = () => {
+  const handleTokenDragEnd = () => {
     setDraggingTokenId(null);
   };
   const handleTokenDoubleClick = (tokenId) => {
@@ -1791,8 +1791,8 @@ function GridBoard({
     };
   }, [socket]);
   React.useEffect(() => {
-    const safePieces = Array.isArray(serverExtraTokens) ? serverExtraTokens : [];
-    setTokens(safePieces);
+    const safeTokens = Array.isArray(serverExtraTokens) ? serverExtraTokens : [];
+    setTokens(safeTokens);
   }, [serverExtraTokens]);
   const boardStyle = {
     "--board-rows": rows,
@@ -1846,15 +1846,15 @@ function GridBoard({
         cell2.id
       );
     }),
-    tokens.map((piece2) => {
-      const pos = piece2.position;
+    tokens.map((token) => {
+      const pos = token.position;
       if (!pos) return null;
-      const sameLocationPieces = tokens.filter((p) => {
+      const sameLocationTokens = tokens.filter((p) => {
         const pPos = p.position;
         return pPos && pPos.row === pos.row && pPos.col === pos.col;
       });
-      const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece2.id);
-      const groupCount = sameLocationPieces.length;
+      const groupIndex = sameLocationTokens.findIndex((p) => p.id === token.id);
+      const groupCount = sameLocationTokens.length;
       let offsetX = 0;
       let offsetY = 0;
       if (groupCount > 1) {
@@ -1874,16 +1874,16 @@ function GridBoard({
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
         Piece,
         {
-          piece: piece2,
+          piece: token,
           style: pieceStyle,
           onClick: requestMovableRange,
-          onDoubleClick: () => handleTokenDoubleClick(piece2.id),
-          isDraggable: allowPieceDrag,
+          onDoubleClick: () => handleTokenDoubleClick(token.id),
+          isDraggable: allowTokenDrag,
           isFilled: true,
           onDragStart: handleTokenDragStart,
-          onDragEnd: handlePieceDragEnd
+          onDragEnd: handleTokenDragEnd
         },
-        piece2.id
+        token.id
       );
     })
   ] });

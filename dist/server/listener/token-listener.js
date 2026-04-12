@@ -21,17 +21,13 @@ export function registerTokenListeners(socket, io, gameParams, activeRooms) {
         const param = gameParams[state.gameId];
         const roomManager = new RoomManager(io, param, state);
         const player = state?.players.find((p) => p.socketId === socket.id);
-        const piece = state?.boardTokens[tokenId];
+        const token = state?.boardTokens[tokenId];
         if (state && player) {
-            const token = {
-                id: tokenId,
-                name: piece.name,
-                ownerId: player.id,
-                image: piece.image,
-                color: piece.color,
-                position: null,
-                movableCells: [],
-            };
+            // 属性を書き換える
+            token.ownerId = player.id;
+            token.position = null;
+            token.movableCells = [];
+            // トークンの所在を書き換える
             player.tokens.push(token);
             delete state?.boardTokens[tokenId];
             // 更新を通知

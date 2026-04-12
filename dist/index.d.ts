@@ -16,7 +16,6 @@ export { type CardEffectParams } from './types/cardEffectParams.js';
 export * from './types/cardLocation.js';
 export * from './types/definition.js';
 export * from './types/player.js';
-export { type PieceData } from './types/piece.js';
 export { type DraggableData } from './types/draggable.js';
 export { type ComponentInfo } from './types/component.js';
 export { RoomManager } from './server/room-manager.js';

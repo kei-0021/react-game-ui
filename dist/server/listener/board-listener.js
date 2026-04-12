@@ -5,7 +5,7 @@ import { RoomManager } from '../room-manager.js';
  */
 export function registerBoardListeners(socket, io, gameParams, activeRooms) {
     // 駒の移動
-    socket.on('board:move-piece', ({ roomId, boardId, tokenId, newLocation }) => {
+    socket.on('board:move-token', ({ roomId, boardId, tokenId, newLocation }) => {
         const state = activeRooms.get(roomId);
         if (!state)
             return;
@@ -22,9 +22,9 @@ export function registerBoardListeners(socket, io, gameParams, activeRooms) {
                 roomManager.applyCellEffect(boardId, tokenId, newLocation, cellEffects);
             }
             // カスタムフック
-            const onPieceMove = param.onPieceMove;
-            if (onPieceMove) {
-                onPieceMove(state, roomManager, newLocation);
+            const onTokenMove = param.onTokenMove;
+            if (onTokenMove) {
+                onTokenMove(state, roomManager, newLocation);
             }
             // 盤面全体を同期（すべての駒の状態を送る）
             io.to(roomId).emit('board:update', {

@@ -16,7 +16,7 @@ export function registerBoardListeners(
   activeRooms: Map<RoomId, RoomState>,
 ) {
   // 駒の移動
-  socket.on('board:move-piece', ({ roomId, boardId, tokenId, newLocation }: BaordMoveTokenData) => {
+  socket.on('board:move-token', ({ roomId, boardId, tokenId, newLocation }: BaordMoveTokenData) => {
     const state = activeRooms.get(roomId);
     if (!state) return;
     const param = gameParams[state.gameId];
@@ -36,9 +36,9 @@ export function registerBoardListeners(
       }
 
       // カスタムフック
-      const onPieceMove = param.onPieceMove;
-      if (onPieceMove) {
-        onPieceMove(state, roomManager, newLocation);
+      const onTokenMove = param.onTokenMove;
+      if (onTokenMove) {
+        onTokenMove(state, roomManager, newLocation);
       }
 
       // 盤面全体を同期（すべての駒の状態を送る）

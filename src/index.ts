@@ -27,8 +27,6 @@ export * from './types/definition.js';
 /* @ts-ignore */
 export * from './types/player.js';
 /* @ts-ignore */
-export { type PieceData } from './types/piece.js';
-/* @ts-ignore */
 export { type DraggableData } from './types/draggable.js';
 /* @ts-ignore */
 export { type ComponentInfo } from './types/component.js';

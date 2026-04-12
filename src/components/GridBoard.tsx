@@ -26,7 +26,7 @@ type GridBoardProps = {
   boardId: BoardId;
   players?: Player[];
   myPlayerId: PlayerId | null;
-  allowPieceDrag?: boolean;
+  allowTokenDrag?: boolean;
   moveRange?: number;
   isExact?: boolean;
   width?: number;
@@ -41,7 +41,7 @@ type GridBoardProps = {
  * @param {string} boardId - 描画対象となる盤面の識別子
  * @param {Player[]} players - ルームに参加しているプレイヤーのリスト。指定するとプレーヤーに対応するコマを生成する
  * @param {PlayerId} myPlayerId - 操作者自身のプレイヤーID
- * @param {boolean} [allowPieceDrag=false] - 駒のドラッグ操作を許可するかどうか
+ * @param {boolean} [allowTokenDrag=false] - トークンのドラッグ操作を許可するかどうか
  * @param {boolean} [moveRange=2] - 駒が移動できるマス数
  * @param {boolean} [isExact=true] - 駒が移動できるマス数がピッタリであるべきかのフラグ
  * @param {number} widht - 横幅
@@ -54,7 +54,7 @@ export function GridBoard({
   boardId,
   players,
   myPlayerId,
-  allowPieceDrag = false,
+  allowTokenDrag = false,
   moveRange = 2,
   isExact = true,
   width = 800,
@@ -87,15 +87,15 @@ export function GridBoard({
     e.preventDefault();
     if (!isBoardReady || !socket) return;
 
-    const draggedPieceId = e.dataTransfer.getData('pieceId');
-    if (draggedPieceId) {
+    const draggedTokenId = e.dataTransfer.getData('tokenId');
+    if (draggedTokenId) {
       // ドロップ（移動確定）したらハイライトを消す
       setHighlightedCells([]);
 
-      socket.emit('board:move-piece', {
+      socket.emit('board:move-token', {
         roomId,
         boardId: boardId,
-        tokenId: draggedPieceId,
+        tokenId: draggedTokenId,
         newLocation: { row: targetRow, col: targetCol },
       } as BaordMoveTokenData);
     }
@@ -132,13 +132,13 @@ export function GridBoard({
       return;
     }
 
-    e.dataTransfer.setData('pieceId', token.id);
+    e.dataTransfer.setData('tokenId', token.id);
     e.dataTransfer.effectAllowed = 'move';
     setDraggingTokenId(token.id);
     requestMovableRange(token.id);
   };
 
-  const handlePieceDragEnd = () => {
+  const handleTokenDragEnd = () => {
     setDraggingTokenId(null);
   };
 
@@ -197,8 +197,8 @@ export function GridBoard({
   // プレイヤー情報を描画用の駒データに変換
   React.useEffect(() => {
     // playersからmapするのではなく、サーバーから来た駒リストをそのままセット
-    const safePieces = Array.isArray(serverExtraTokens) ? serverExtraTokens : [];
-    setTokens(safePieces);
+    const safeTokens = Array.isArray(serverExtraTokens) ? serverExtraTokens : [];
+    setTokens(safeTokens);
   }, [serverExtraTokens]);
 
   const boardStyle: React.CSSProperties = {
@@ -267,17 +267,17 @@ export function GridBoard({
       })}
 
       {/* コマのレンダリング */}
-      {tokens.map((piece) => {
-        const pos = (piece as any).position;
+      {tokens.map((token) => {
+        const pos = (token as any).position;
         if (!pos) return null;
 
-        const sameLocationPieces = tokens.filter((p) => {
+        const sameLocationTokens = tokens.filter((p) => {
           const pPos = (p as any).position;
           return pPos && pPos.row === pos.row && pPos.col === pos.col;
         });
 
-        const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece.id);
-        const groupCount = sameLocationPieces.length;
+        const groupIndex = sameLocationTokens.findIndex((p) => p.id === token.id);
+        const groupCount = sameLocationTokens.length;
 
         let offsetX = 0;
         let offsetY = 0;
@@ -300,15 +300,15 @@ export function GridBoard({
 
         return (
           <Piece
-            key={piece.id}
-            piece={piece}
+            key={token.id}
+            piece={token}
             style={pieceStyle}
             onClick={requestMovableRange}
-            onDoubleClick={() => handleTokenDoubleClick(piece.id)}
-            isDraggable={allowPieceDrag}
+            onDoubleClick={() => handleTokenDoubleClick(token.id)}
+            isDraggable={allowTokenDrag}
             isFilled={true}
             onDragStart={handleTokenDragStart}
-            onDragEnd={handlePieceDragEnd}
+            onDragEnd={handleTokenDragEnd}
           />
         );
       })}

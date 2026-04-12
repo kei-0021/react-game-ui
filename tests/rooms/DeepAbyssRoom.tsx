@@ -216,7 +216,7 @@ export function DeepAbyssRoom() {
           boardId="deepAbyssBoard"
           players={players}
           myPlayerId={myPlayerId}
-          allowPieceDrag={true}
+          allowTokenDrag={true}
           moveRange={3}
           renderCell={MyCustomCellRenderer}
         />

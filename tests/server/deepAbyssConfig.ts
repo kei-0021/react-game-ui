@@ -135,7 +135,6 @@ export const deepAbyssConfig: RoomConfig = {
         },
       },
       shuffleAndReconnectBoard: { deepAbyssBoard: cellShuffleAndReconnector },
-      pieceImage: '/hanabishi.svg',
       initialPhase: DeepAbyssPhase.START,
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,
@@ -152,7 +151,7 @@ export const deepAbyssConfig: RoomConfig = {
         manager.emitSystemMessage(`${cardNames} を出した！`, 1000, true);
         roomInterpreter([{ type: 'UPDATE_PHASE', newPhase: DeepAbyssPhase.NEXT }], state, manager);
       },
-      onPieceMove: (state: RoomState, manager: RoomManager, newLocation: any) => {
+      onTokenMove: (state: RoomState, manager: RoomManager, newLocation: any) => {
         // マス目をオープンにする
         manager.updateCellExploredStatus(newLocation, true);
       },
