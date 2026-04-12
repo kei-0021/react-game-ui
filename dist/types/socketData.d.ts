@@ -4,10 +4,9 @@ import type { CardState } from './cardState.js';
 import type { CellData } from './cell.js';
 import type { ComponentInfo } from './component.js';
 import type { Coordinate } from './coodinate.js';
-import type { BoardId, CardId, DeckId, DiceId, DraggableId, GameId, PieceId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
+import type { BoardId, CardId, DeckId, DiceId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
 import type { GameParam } from './gameParam.js';
 import type { Phase } from './phase.js';
-import { PieceData } from './piece.js';
 import type { RoomState } from './roomState.js';
 import type { TokenData } from './token.js';
 export type RoomMeta = {
@@ -109,16 +108,16 @@ export type BoardMovableRangeData = {
     moveRange: number;
     isExact: boolean;
 };
-export type BaordMovePieceData = {
+export type BaordMoveTokenData = {
     roomId: RoomId;
     boardId: BoardId;
-    pieceId: PieceId;
+    tokenId: TokenId;
     newLocation: any;
 };
 export type BoardUpdateData = {
     boardId: BoardId;
     board: CellData[];
-    extraPieces: PieceData[];
+    extraTokens: TokenData[];
 };
 export type TokenMoveFromBoardData = {
     roomId: RoomId;

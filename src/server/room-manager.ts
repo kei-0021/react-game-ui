@@ -68,11 +68,14 @@ export class RoomManager {
     this.io.to(this.state.roomId).emit('players:update', this.state.players);
   };
 
+  /**
+   * 盤面更新を通知する
+   */
   emitBoardUpdate = (boardId: BoardId) => {
     this.io.to(this.state.roomId).emit('board:update', {
       board: this.state.boards[boardId],
       players: this.state.players,
-      extraPieces: Object.values(this.state.pieces),
+      extraTokens: Object.values(this.state.boardTokens),
     });
   };
 

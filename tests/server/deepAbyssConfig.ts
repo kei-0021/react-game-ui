@@ -31,7 +31,6 @@ export const deepAbyssConfig: RoomConfig = {
       location: 'deck',
       drawCondition: ['field', 'back'],
       playLocation: 'discard',
-      // fieldBackCondition: ['hand', 'face'],
     };
 
     const deepAbyssSpeciesDeck = helper.createUniqueCards(
@@ -71,12 +70,22 @@ export const deepAbyssConfig: RoomConfig = {
         {
           tokenStoreId: 'ARTIFACT',
           name: '遺物',
-          tokens: helper.createTokenStore([{ id: 'ARTIFACT', name: '💰' }], 20, undefined, '#D4AF37'),
+          tokens: helper.createTokenStore(
+            [{ id: 'ARTIFACT', name: '💰', ownerId: null, position: null, movableCells: [] }],
+            20,
+            undefined,
+            '#D4AF37',
+          ),
         },
         {
           tokenStoreId: 'Hanabishi',
           name: '花火師',
-          tokens: helper.createTokenStore([{ id: '花火師', name: '🎆' }], 20, '/hanabishi.svg', '#d43737'),
+          tokens: helper.createTokenStore(
+            [{ id: '花火師', name: '🎆', ownerId: null, position: null, movableCells: [] }],
+            20,
+            '/hanabishi.svg',
+            '#d43737',
+          ),
         },
       ],
       initialResources: [
@@ -93,7 +102,7 @@ export const deepAbyssConfig: RoomConfig = {
       initialHand: { deepAbyssAction: 6 },
       initialTokens: { ARTIFACT: 2, Hanabishi: 3 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
-      initialPieces: {
+      initialTokensOnBoard: {
         piece: {
           id: 'piece',
           name: 'piece',

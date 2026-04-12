@@ -12,7 +12,6 @@ export type CardId = string;
 
 export type BoardId = string;
 export type CellId = string;
-export type PieceId = string;
 
 export type DiceId = string;
 

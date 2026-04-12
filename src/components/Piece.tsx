@@ -1,19 +1,19 @@
 // src/components/Piece.tsx
-import type { PieceId } from '@/types/definition.js';
+import { TokenId } from '@/types/definition.js';
+import { TokenData } from '@/types/token.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
-import type { PieceData } from '../types/piece.js';
 import styles from './Piece.module.css';
 
 export type PieceProps = {
-  piece: PieceData;
+  piece: TokenData;
   style: React.CSSProperties;
-  onClick: (pieceId: PieceId) => void;
-  onDoubleClick: (pieceId: PieceId) => void;
+  onClick: (pieceId: TokenId) => void;
+  onDoubleClick: (pieceId: TokenId) => void;
   isDraggable: boolean;
   isFilled?: boolean;
-  onDragStart: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
-  onDragEnd: (e: DragEvent<HTMLDivElement>, piece: PieceData) => void;
+  onDragStart: (e: DragEvent<HTMLDivElement>, piece: TokenData) => void;
+  onDragEnd: (e: DragEvent<HTMLDivElement>, piece: TokenData) => void;
 };
 
 /**

@@ -1701,9 +1701,9 @@ function GridBoard({
   const [cells, setCells] = React.useState([]);
   const [changedCells, setChangedCells] = React.useState([]);
   const [highlightedCells, setHighlightedCells] = React.useState([]);
-  const [draggingPieceId, setDraggingPieceId] = React.useState(null);
-  const [pieces, setPieces] = React.useState([]);
-  const [serverExtraPieces, setServerExtraPieces] = React.useState([]);
+  const [draggingTokenId, setDraggingTokenId] = React.useState(null);
+  const [tokens, setTokens] = React.useState([]);
+  const [serverExtraTokens, setServerExtraTokens] = React.useState([]);
   const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
   const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
   const handleCellClick = (celldata, loc) => {
@@ -1722,47 +1722,47 @@ function GridBoard({
       socket.emit("board:move-piece", {
         roomId,
         boardId,
-        pieceId: draggedPieceId,
+        tokenId: draggedPieceId,
         newLocation: { row: targetRow, col: targetCol }
       });
     }
   };
-  const requestMovableRange = (pieceId) => {
+  const requestMovableRange = (tokenId) => {
     if (!isBoardReady || !socket) return;
-    const targetPiece = pieces.find((p) => p.id === pieceId);
-    if (!targetPiece) return;
-    if (targetPiece.ownerId && targetPiece.ownerId !== myPlayerId) return;
-    const requestData = {
-      roomId,
-      boardId,
-      playerId: pieceId,
-      moveRange,
-      isExact
-    };
-    socket.emit("board:movable-range", requestData);
-  };
-  const handlePieceDragStart = (e, piece2) => {
-    if (piece2.ownerId && piece2.ownerId !== myPlayerId) {
-      e.preventDefault();
-      return;
-    }
-    e.dataTransfer.setData("pieceId", piece2.id);
-    e.dataTransfer.effectAllowed = "move";
-    setDraggingPieceId(piece2.id);
-    requestMovableRange(piece2.id);
-  };
-  const handlePieceDragEnd = () => {
-    setDraggingPieceId(null);
-  };
-  const handleTokenDoubleClick = (pieceId) => {
-    if (!isBoardReady || !socket) return;
-    const targetToken = pieces.find((p) => p.id === pieceId);
+    const targetToken = tokens.find((t) => t.id === tokenId);
     if (!targetToken) return;
     if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
     const requestData = {
       roomId,
       boardId,
-      tokenId: pieceId
+      playerId: tokenId,
+      moveRange,
+      isExact
+    };
+    socket.emit("board:movable-range", requestData);
+  };
+  const handleTokenDragStart = (e, token) => {
+    if (token.ownerId && token.ownerId !== myPlayerId) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData("pieceId", token.id);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggingTokenId(token.id);
+    requestMovableRange(token.id);
+  };
+  const handlePieceDragEnd = () => {
+    setDraggingTokenId(null);
+  };
+  const handleTokenDoubleClick = (tokenId) => {
+    if (!isBoardReady || !socket) return;
+    const targetToken = tokens.find((p) => p.id === tokenId);
+    if (!targetToken) return;
+    if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
+    const requestData = {
+      roomId,
+      boardId,
+      tokenId
     };
     socket.emit("token:move-from-board", requestData);
   };
@@ -1772,8 +1772,8 @@ function GridBoard({
         setCells(data.board);
         setIsBoardReady(true);
       }
-      if (data.extraPieces) {
-        setServerExtraPieces(data.extraPieces);
+      if (data.extraTokens) {
+        setServerExtraTokens(data.extraTokens);
       }
     };
     socket.on("board:update", handleInitBoard);
@@ -1791,9 +1791,9 @@ function GridBoard({
     };
   }, [socket]);
   React.useEffect(() => {
-    const safePieces = Array.isArray(serverExtraPieces) ? serverExtraPieces : [];
-    setPieces(safePieces);
-  }, [serverExtraPieces]);
+    const safePieces = Array.isArray(serverExtraTokens) ? serverExtraTokens : [];
+    setTokens(safePieces);
+  }, [serverExtraTokens]);
   const boardStyle = {
     "--board-rows": rows,
     "--board-cols": cols,
@@ -1825,7 +1825,7 @@ function GridBoard({
       const r = match ? parseInt(match[1], 10) : 0;
       const c = match ? parseInt(match[2], 10) : 0;
       const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
-      const isHighlighted = pieces.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false;
+      const isHighlighted = tokens.find((p) => p.id === draggingTokenId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false;
       const cellDataForRenderer = {
         ...cell2,
         content: isChanged ? cell2.changedContent : cell2.content
@@ -1839,17 +1839,17 @@ function GridBoard({
           onDoubleClick: () => handleCellDoubleClick(),
           onDrop: (e) => handleCellDrop(e, r, c),
           onDragOver: (e) => e.preventDefault(),
-          highlighted: isHighlighted && !!draggingPieceId,
+          highlighted: isHighlighted && !!draggingTokenId,
           changed: isChanged,
           children: renderCell(cellDataForRenderer, r, c)
         },
         cell2.id
       );
     }),
-    pieces.map((piece2) => {
+    tokens.map((piece2) => {
       const pos = piece2.position;
       if (!pos) return null;
-      const sameLocationPieces = pieces.filter((p) => {
+      const sameLocationPieces = tokens.filter((p) => {
         const pPos = p.position;
         return pPos && pPos.row === pos.row && pPos.col === pos.col;
       });
@@ -1880,7 +1880,7 @@ function GridBoard({
           onDoubleClick: () => handleTokenDoubleClick(piece2.id),
           isDraggable: allowPieceDrag,
           isFilled: true,
-          onDragStart: handlePieceDragStart,
+          onDragStart: handleTokenDragStart,
           onDragEnd: handlePieceDragEnd
         },
         piece2.id
@@ -4059,11 +4059,14 @@ class RoomManager {
   emitPlayerUpdate = () => {
     this.io.to(this.state.roomId).emit("players:update", this.state.players);
   };
+  /**
+   * 盤面更新を通知する
+   */
   emitBoardUpdate = (boardId) => {
     this.io.to(this.state.roomId).emit("board:update", {
       board: this.state.boards[boardId],
       players: this.state.players,
-      extraPieces: Object.values(this.state.pieces)
+      extraTokens: Object.values(this.state.boardTokens)
     });
   };
   shuffleDeck = (deckId) => {

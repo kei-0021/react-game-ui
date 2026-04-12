@@ -34,18 +34,19 @@ export function registerTokenListeners(
     const roomManager = new RoomManager(io, param, state);
 
     const player = state?.players.find((p) => p.socketId === socket.id);
-    const piece = state?.pieces[tokenId];
+    const piece = state?.boardTokens[tokenId];
     if (state && player) {
       const token: TokenData = {
         id: tokenId,
         name: piece.name,
+        ownerId: player.id,
         image: piece.image,
         color: piece.color,
         position: null,
         movableCells: [],
       };
       player.tokens.push(token);
-      delete state?.pieces[tokenId];
+      delete state?.boardTokens[tokenId];
 
       // 更新を通知
       roomManager.emitPlayerUpdate();

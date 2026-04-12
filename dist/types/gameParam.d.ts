@@ -2,14 +2,14 @@ import type { RoomManager } from '@/server/room-manager.js';
 import type { CellData } from './cell.js';
 import type { ComponentInfo } from './component.js';
 import type { DeckData } from './deck.js';
-import type { BoardId, DeckId, DraggableId, GameId, PieceId, PlayerId, TokenId } from './definition.js';
+import type { BoardId, DeckId, DraggableId, GameId, PlayerId, TokenId } from './definition.js';
 import type { DraggableData } from './draggable.js';
 import type { Instruction } from './instruction.js';
 import type { Phase } from './phase.js';
-import { PieceData } from './piece.js';
 import type { Resource } from './resource.js';
 import type { RoomState } from './roomState.js';
 import type { CardPlayData, DeckDrawData } from './socketData.js';
+import { TokenData } from './token.js';
 import type { TokenStoreData } from './tokenStore.js';
 /**
  * ゲームルーム作成時の初期設定パラメータ。
@@ -24,7 +24,7 @@ import type { TokenStoreData } from './tokenStore.js';
  * @param initialBoard - ボードの初期レイアウト。
  * @param shuffleAndReconnectBoard - シャッフルと再接続を利用するボードとその戦略関数。
  * @param pieceImage - ボード上のプレイヤーコマに使用する画像URL。
- * @param initialPieces - ボード上の駒に使用するデータ。
+ * @param initialTokensOnBoard - ボード上のトークン。
  * @param draggable - ドラッグ可能オブジェクト。
  * @param initialPhase - 初期フェーズ。
  * @param cardEffects - カードの特殊効果定義。
@@ -50,7 +50,7 @@ export type GameParam = {
     initialBoard?: Record<BoardId, CellData[]>;
     shuffleAndReconnectBoard?: Record<BoardId, (cells: CellData[]) => CellData[]>;
     pieceImage?: string;
-    initialPieces?: Record<PieceId, PieceData>;
+    initialTokensOnBoard?: Record<TokenId, TokenData>;
     draggables?: Record<DraggableId, DraggableData>;
     initialPhase?: Phase;
     cardEffects?: Record<string, any>;

@@ -87,7 +87,7 @@ export function createState(roomId, param) {
         discardPile: discardPile,
         holdCards: holdCards,
         boards: Cells,
-        pieces: Object.fromEntries(Object.entries(param.initialPieces || {}).filter(([_, p]) => p.ownerId !== 'player')),
+        boardTokens: Object.fromEntries(Object.entries(param.initialTokensOnBoard || {}).filter(([_, p]) => p.ownerId !== 'player')),
         exploredCells: [],
         tokenStores: tokenStores,
         draggables: draggables,
@@ -140,11 +140,11 @@ export function createPlayer(param, state, playerName, socketId) {
         }
     }
     // 駒の配布処理
-    if (param.initialPieces) {
-        const templates = Object.entries(param.initialPieces).filter(([_, p]) => p.ownerId === 'player');
+    if (param.initialTokensOnBoard) {
+        const templates = Object.entries(param.initialTokensOnBoard).filter(([_, p]) => p.ownerId === 'player');
         templates.forEach(([templateId, template]) => {
             const pieceId = `${templateId}_${playerId}`;
-            state.pieces[pieceId] = {
+            state.boardTokens[pieceId] = {
                 ...template,
                 id: pieceId,
                 ownerId: playerId,
