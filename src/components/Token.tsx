@@ -4,13 +4,6 @@ import type { DragEvent } from 'react';
 import React from 'react';
 import styles from './Token.module.css';
 
-type TokenProps = {
-  token: TokenData;
-  onClick?: any;
-  onDoubleClick?: any;
-  onDragEnd?: (e: DragEvent<HTMLDivElement>, token: TokenData) => void;
-};
-
 const TokenDisplayContent = React.memo(({ token }: { token: TokenData }) => {
   // 画像がある場合
   if (token.image) {
@@ -31,17 +24,56 @@ const TokenDisplayContent = React.memo(({ token }: { token: TokenData }) => {
   );
 });
 
-export const Token = ({ token, onClick, onDoubleClick, onDragEnd }: TokenProps) => {
-  const handleDragStart = (e: DragEvent<HTMLDivElement>) => {};
+type TokenProps = {
+  token: TokenData;
+  style?: React.CSSProperties;
+  onClick?: any;
+  onDoubleClick?: any;
+  isDraggable?: boolean;
+  onDragStart?: any;
+  onDragEnd?: (e: DragEvent<HTMLDivElement>, token: TokenData) => void;
+};
+
+export const Token = ({ token, style, onClick, onDoubleClick, isDraggable, onDragStart, onDragEnd }: TokenProps) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClick(token.id);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDoubleClick(token.id);
+  };
+
+  const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
+    if (isDraggable) {
+      e.stopPropagation();
+      e.dataTransfer.setData('pieceId', token.id);
+      e.dataTransfer.effectAllowed = 'move';
+
+      if (token.image) {
+        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
+      }
+
+      onDragStart?.(e, token);
+    }
+  };
+
+  const handleDragEnd = (e: DragEvent<HTMLDivElement>) => {
+    onDragEnd?.(e, token);
+  };
 
   return (
     <div
       className={styles.tokenContainer}
-      onClick={(e) => onClick?.(e, token)}
-      onDoubleClick={(e) => onDoubleClick?.(e, token)}
+      style={{
+        ...style,
+      }}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       draggable={true}
       onDragStart={handleDragStart}
-      onDragEnd={(e) => onDragEnd?.(e, token)}
+      onDragEnd={handleDragEnd}
     >
       <TokenDisplayContent token={token} />
     </div>

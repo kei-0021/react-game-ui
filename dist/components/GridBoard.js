@@ -191,7 +191,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowT
                     offsetX = radius * Math.cos(angle);
                     offsetY = radius * Math.sin(angle);
                 }
-                const pieceStyle = {
+                const tokenStyle = {
                     // 確定した座標 pos を使用
                     gridArea: `${pos.row + 1} / ${pos.col + 1} / span 1 / span 1`,
                     alignSelf: 'center',
@@ -199,6 +199,8 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowT
                     transform: `translate(${offsetX}px, ${offsetY}px)`,
                     transition: 'transform 0.3s ease-in-out',
                 };
-                return (_jsx(Piece, { piece: token, style: pieceStyle, onClick: requestMovableRange, onDoubleClick: () => handleTokenDoubleClick(token.id), isDraggable: allowTokenDrag, isFilled: true, onDragStart: handleTokenDragStart, onDragEnd: handleTokenDragEnd }, token.id));
+                return (_jsx(Piece, { piece: token, style: tokenStyle, onClick: requestMovableRange, onDoubleClick: () => handleTokenDoubleClick(token.id), isDraggable: allowTokenDrag, 
+                    // isFilled={true}
+                    onDragStart: handleTokenDragStart, onDragEnd: handleTokenDragEnd }, token.id));
             })] }));
 }

@@ -289,7 +289,7 @@ export function GridBoard({
           offsetY = radius * Math.sin(angle);
         }
 
-        const pieceStyle: React.CSSProperties = {
+        const tokenStyle: React.CSSProperties = {
           // 確定した座標 pos を使用
           gridArea: `${pos.row + 1} / ${pos.col + 1} / span 1 / span 1`,
           alignSelf: 'center',
@@ -302,11 +302,11 @@ export function GridBoard({
           <Piece
             key={token.id}
             piece={token}
-            style={pieceStyle}
+            style={tokenStyle}
             onClick={requestMovableRange}
             onDoubleClick={() => handleTokenDoubleClick(token.id)}
             isDraggable={allowTokenDrag}
-            isFilled={true}
+            // isFilled={true}
             onDragStart={handleTokenDragStart}
             onDragEnd={handleTokenDragEnd}
           />

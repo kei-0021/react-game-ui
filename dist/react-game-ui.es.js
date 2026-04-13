@@ -1863,7 +1863,7 @@ function GridBoard({
         offsetX = radius * Math.cos(angle);
         offsetY = radius * Math.sin(angle);
       }
-      const pieceStyle = {
+      const tokenStyle = {
         // 確定した座標 pos を使用
         gridArea: `${pos.row + 1} / ${pos.col + 1} / span 1 / span 1`,
         alignSelf: "center",
@@ -1875,11 +1875,10 @@ function GridBoard({
         Piece,
         {
           piece: token,
-          style: pieceStyle,
+          style: tokenStyle,
           onClick: requestMovableRange,
           onDoubleClick: () => handleTokenDoubleClick(token.id),
           isDraggable: allowTokenDrag,
-          isFilled: true,
           onDragStart: handleTokenDragStart,
           onDragEnd: handleTokenDragEnd
         },
@@ -2382,18 +2381,41 @@ const TokenDisplayContent = React__default.memo(({ token }) => {
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$3.text, children: token.name }) }) });
 });
-const Token = ({ token, onClick, onDoubleClick, onDragEnd }) => {
+const Token = ({ token, style, onClick, onDoubleClick, isDraggable, onDragStart, onDragEnd }) => {
+  const handleClick = (e) => {
+    e.stopPropagation();
+    onClick(token.id);
+  };
+  const handleDoubleClick = (e) => {
+    e.stopPropagation();
+    onDoubleClick(token.id);
+  };
   const handleDragStart = (e) => {
+    if (isDraggable) {
+      e.stopPropagation();
+      e.dataTransfer.setData("pieceId", token.id);
+      e.dataTransfer.effectAllowed = "move";
+      if (token.image) {
+        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
+      }
+      onDragStart?.(e, token);
+    }
+  };
+  const handleDragEnd = (e) => {
+    onDragEnd?.(e, token);
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
       className: styles$3.tokenContainer,
-      onClick: (e) => onClick?.(e, token),
-      onDoubleClick: (e) => onDoubleClick?.(e, token),
+      style: {
+        ...style
+      },
+      onClick: handleClick,
+      onDoubleClick: handleDoubleClick,
       draggable: true,
       onDragStart: handleDragStart,
-      onDragEnd: (e) => onDragEnd?.(e, token),
+      onDragEnd: handleDragEnd,
       children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token })
     }
   );
