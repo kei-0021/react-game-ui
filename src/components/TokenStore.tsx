@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import { RoomId, TokenId, TokenStoreId } from '../types/definition.js';
 import { TokenData } from '../types/token.js';
-import { TokenDisplayContent } from './Token.js';
+import { Token } from './Token.js';
 import styles from './TokenStore.module.css';
 
 type TokenStoreProps = {
@@ -66,7 +66,6 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
 
           return (
             <div
-              key={t.id}
               style={{
                 position: 'absolute',
                 left: `calc(40% + ${offsetX}px)`,
@@ -74,10 +73,13 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
                 transform: `rotate(${rotation}deg)`,
                 zIndex: i,
               }}
-              onClick={() => handleClick(t.id)}
-              onDoubleClick={() => handleDoubleClick(t.id)}
             >
-              <TokenDisplayContent token={t} />
+              <Token
+                key={t.id}
+                token={t}
+                onClick={() => handleClick(t.id)}
+                onDoubleClick={() => handleDoubleClick(t.id)}
+              />
             </div>
           );
         })}

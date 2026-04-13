@@ -36,10 +36,6 @@ export declare class RoomManager {
      */
     emitPlayerUpdate: () => void;
     /**
-     * 盤面更新を通知する
-     */
-    emitBoardUpdate: (boardId: BoardId) => void;
-    /**
      * デッキ更新を通知する
      */
     emitDeckUpdate: (deckId: DeckId) => void;
@@ -47,6 +43,10 @@ export declare class RoomManager {
      * トークン置き場更新を通知する
      */
     emitTokenStoreUpdate: (tokenStoreId: TokenStoreId) => void;
+    /**
+     * 盤面更新を通知する
+     */
+    emitBoardUpdate: (boardId: BoardId) => void;
     /**
      * セルの状態更新を通知する
      */

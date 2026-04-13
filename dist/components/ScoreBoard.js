@@ -2,7 +2,7 @@ import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
 import * as React from 'react';
 import { CardDisplayContent } from './Card.js';
 import scoreBoardStyles from './ScoreBoard.module.css';
-import { TokenDisplayContent } from './Token.js';
+import { Token } from './Token.js';
 const PlayerListItem = React.memo(({ socket, roomId, player, currentPlayerId, myPlayerId, playCardButton, selectedCards, heldCards, toggleCardSelection, isDebug, enabled, }) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = player.color || '#aaaaaa';
@@ -43,13 +43,7 @@ const PlayerListItem = React.memo(({ socket, roomId, player, currentPlayerId, my
     return (_jsxs("li", { className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ''}`, style: customStyles, children: [_jsxs("div", { className: scoreBoardStyles.playerHeader, children: [_jsxs("span", { className: scoreBoardStyles.playerName, children: [isActive && 'ᐅ ', isOwner && '★ ME ', player.name] }), _jsxs("div", { className: scoreBoardStyles.scoreArea, children: [_jsxs("div", { className: scoreBoardStyles.scoreWrapper, style: { position: 'relative', display: 'inline-block' }, children: [_jsxs("span", { className: scoreBoardStyles.playerScore, children: ["\u30B9\u30B3\u30A2: ", player.score] }), scoreDiff !== null && (_jsx("span", { className: `
       ${scoreBoardStyles.scoreChange} 
       ${scoreDiff > 0 ? scoreBoardStyles.plus : scoreBoardStyles.minus}
-    `, children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff }))] }), isDebug && (_jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: scoreBoardStyles.resourceSection, children: _jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx("div", { className: scoreBoardStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => (_jsx("div", { onClick: () => {
-                        socket.emit('token:reclaim', {
-                            roomId,
-                            playerId: myPlayerId,
-                            tokenId: tokenId,
-                        });
-                    }, children: _jsx(TokenDisplayContent, { token: token }) }, tokenId))) }), player.isHolding && _jsx("p", { className: scoreBoardStyles.isHoldMessage, children: "\u30AB\u30FC\u30C9\u3092\u30DB\u30FC\u30EB\u30C9\u3057\u3066\u3044\u307E\u3059" }), _jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card) => {
+    `, children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff }))] }), isDebug && (_jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: scoreBoardStyles.resourceSection, children: _jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx("div", { className: scoreBoardStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => (_jsx(Token, { token: token }, tokenId))) }), player.isHolding && _jsx("p", { className: scoreBoardStyles.isHoldMessage, children: "\u30AB\u30FC\u30C9\u3092\u30DB\u30FC\u30EB\u30C9\u3057\u3066\u3044\u307E\u3059" }), _jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card) => {
                     const isSelected = selectedCards.includes(card.id);
                     const isHeld = heldCards.includes(card.id);
                     const canSeeFront = !!card.isFaceUp || isOwner;

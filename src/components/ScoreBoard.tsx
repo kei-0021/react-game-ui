@@ -9,7 +9,7 @@ import { CardId, PlayerId, RoomId } from '../types/definition.js';
 import type { Resource } from '../types/resource.js';
 import { CardDisplayContent } from './Card.js';
 import scoreBoardStyles from './ScoreBoard.module.css';
-import { TokenDisplayContent } from './Token.js';
+import { Token } from './Token.js';
 
 type PlayerListItemProps = {
   socket: Socket;
@@ -136,18 +136,7 @@ const PlayerListItem = React.memo(
 
         <div className={scoreBoardStyles.tokenList}>
           {Object.entries(player.tokens || {}).map(([tokenId, token]) => (
-            <div
-              key={tokenId}
-              onClick={() => {
-                socket.emit('token:reclaim', {
-                  roomId,
-                  playerId: myPlayerId,
-                  tokenId: tokenId,
-                });
-              }}
-            >
-              <TokenDisplayContent token={token} />
-            </div>
+            <Token key={tokenId} token={token} />
           ))}
         </div>
 

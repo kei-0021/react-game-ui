@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useMemo, useState } from 'react';
-import { TokenDisplayContent } from './Token.js';
+import { Token } from './Token.js';
 import styles from './TokenStore.module.css';
 /**
  * トークンストアを表示および管理するコンポーネント。
@@ -49,6 +49,6 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
                             top: `calc(50% + ${offsetY}px)`,
                             transform: `rotate(${rotation}deg)`,
                             zIndex: i,
-                        }, onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: _jsx(TokenDisplayContent, { token: t }) }, t.id));
+                        }, children: _jsx(Token, { token: t, onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id) }, t.id) }));
                 }) })] }));
 }

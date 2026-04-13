@@ -72,16 +72,6 @@ export class RoomManager {
   };
 
   /**
-   * 盤面更新を通知する
-   */
-  emitBoardUpdate = (boardId: BoardId) => {
-    this.io.to(this.state.roomId).emit('board:update', {
-      board: this.state.boards[boardId],
-      boardTokens: Object.values(this.state.boardTokens),
-    } as BoardUpdateData);
-  };
-
-  /**
    * デッキ更新を通知する
    */
   emitDeckUpdate = (deckId: DeckId) => {
@@ -99,6 +89,16 @@ export class RoomManager {
   emitTokenStoreUpdate = (tokenStoreId: TokenStoreId) => {
     const updateData: TokenStoreUpdateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
     this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
+  };
+
+  /**
+   * 盤面更新を通知する
+   */
+  emitBoardUpdate = (boardId: BoardId) => {
+    this.io.to(this.state.roomId).emit('board:update', {
+      board: this.state.boards[boardId],
+      boardTokens: Object.values(this.state.boardTokens),
+    } as BoardUpdateData);
   };
 
   /**

@@ -2382,6 +2382,22 @@ const TokenDisplayContent = React__default.memo(({ token }) => {
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$3.text, children: token.name }) }) });
 });
+const Token = ({ token, onClick, onDoubleClick, onDragEnd }) => {
+  const handleDragStart = (e) => {
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: styles$3.tokenContainer,
+      onClick: (e) => onClick?.(e, token),
+      onDoubleClick: (e) => onDoubleClick?.(e, token),
+      draggable: true,
+      onDragStart: handleDragStart,
+      onDragEnd: (e) => onDragEnd?.(e, token),
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token })
+    }
+  );
+};
 const PlayerListItem = React.memo(
   ({
     socket,
@@ -2473,20 +2489,7 @@ const PlayerListItem = React.memo(
             " / ",
             resource.maxValue
           ] }, resource.resourceId)) }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              onClick: () => {
-                socket.emit("token:reclaim", {
-                  roomId,
-                  playerId: myPlayerId,
-                  tokenId
-                });
-              },
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token })
-            },
-            tokenId
-          )) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => /* @__PURE__ */ jsxRuntimeExports.jsx(Token, { token }, tokenId)) }),
           player.isHolding && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: scoreBoardStyles.isHoldMessage, children: "カードをホールドしています" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card2) => {
             const isSelected = selectedCards.includes(card2.id);
@@ -2839,11 +2842,16 @@ function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
             transform: `rotate(${rotation}deg)`,
             zIndex: i
           },
-          onClick: () => handleClick(t.id),
-          onDoubleClick: () => handleDoubleClick(t.id),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t })
-        },
-        t.id
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Token,
+            {
+              token: t,
+              onClick: () => handleClick(t.id),
+              onDoubleClick: () => handleDoubleClick(t.id)
+            },
+            t.id
+          )
+        }
       );
     }) })
   ] });
@@ -4347,15 +4355,6 @@ class RoomManager {
     this.io.to(this.state.roomId).emit("players:update", this.state.players);
   };
   /**
-   * 盤面更新を通知する
-   */
-  emitBoardUpdate = (boardId) => {
-    this.io.to(this.state.roomId).emit("board:update", {
-      board: this.state.boards[boardId],
-      boardTokens: Object.values(this.state.boardTokens)
-    });
-  };
-  /**
    * デッキ更新を通知する
    */
   emitDeckUpdate = (deckId) => {
@@ -4372,6 +4371,15 @@ class RoomManager {
   emitTokenStoreUpdate = (tokenStoreId) => {
     const updateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
     this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
+  };
+  /**
+   * 盤面更新を通知する
+   */
+  emitBoardUpdate = (boardId) => {
+    this.io.to(this.state.roomId).emit("board:update", {
+      board: this.state.boards[boardId],
+      boardTokens: Object.values(this.state.boardTokens)
+    });
   };
   /**
    * セルの状態更新を通知する
