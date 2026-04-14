@@ -2,15 +2,15 @@
 import { TokenData } from '@/types/token.js';
 import type { DragEvent } from 'react';
 import React from 'react';
-import styles from './Token.module.css';
+import tokenStyles from './Token.module.css';
 
 const TokenDisplayContent = React.memo(({ token, isFilled }: { token: TokenData; isFilled: boolean }) => {
   // 画像がない場合
   if (!token.image) {
     return (
-      <div className={styles.contentWrapper} style={{ backgroundColor: token.color || '#4f4848ff' }}>
-        <div className={styles.textWrapper}>
-          <strong className={styles.text}>{token.name}</strong>
+      <div className={tokenStyles.contentWrapper} style={{ backgroundColor: token.color || '#4f4848ff' }}>
+        <div className={tokenStyles.textWrapper}>
+          <strong className={tokenStyles.text}>{token.name}</strong>
         </div>
       </div>
     );
@@ -23,9 +23,9 @@ const TokenDisplayContent = React.memo(({ token, isFilled }: { token: TokenData;
 
   // 画像がある場合
   return (
-    <div className={styles.contentWrapper} style={{ backgroundColor: '#4f4848ff', overflow: 'hidden' }}>
+    <div className={tokenStyles.contentWrapper} style={{ backgroundColor: '#4f4848ff', overflow: 'hidden' }}>
       {/* 元の画像（下層） */}
-      <img src={token.image} alt={token.name} className={styles.image} />
+      <img src={token.image} alt={token.name} className={tokenStyles.image} />
 
       {/* 塗りつぶしレイヤー */}
       {isFilled && (
@@ -109,7 +109,7 @@ export const Token = ({
 
   return (
     <div
-      className={styles.tokenContainer}
+      className={tokenStyles.tokenContainer}
       style={{
         ...style,
       }}

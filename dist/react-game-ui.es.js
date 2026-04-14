@@ -931,7 +931,7 @@ function requireJsxRuntime() {
 var jsxRuntimeExports = requireJsxRuntime();
 const boardContainer = "_boardContainer_14tjg_8";
 const cell = "_cell_14tjg_18";
-const styles$6 = {
+const styles$5 = {
   boardContainer,
   cell
 };
@@ -959,7 +959,7 @@ const Cell = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
-      className: styles$6.cell,
+      className: styles$5.cell,
       onClick: handleClick,
       onDoubleClick: handleDoubleClick,
       onDrop,
@@ -1189,7 +1189,7 @@ const diceNotRolling = "_diceNotRolling_109vb_74";
 const faceImage = "_faceImage_109vb_78";
 const faceContainer = "_faceContainer_109vb_85";
 const defaultText = "_defaultText_109vb_93";
-const styles$5 = {
+const styles$4 = {
   diceWrapper,
   diceTitle,
   dice,
@@ -1253,18 +1253,18 @@ function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll,
   };
   const renderDiceFace = () => {
     if (customFaces && customFaces[value - 1]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.faceContainer, children: customFaces[value - 1] });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.faceContainer, children: customFaces[value - 1] });
     }
     if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$5.faceImage });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$4.faceImage });
     }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$5.defaultText, children: value });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$4.defaultText, children: value });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.diceWrapper, children: [
-    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.diceTitle, children: title2 }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$5.dice} ${rolling ? styles$5.diceRolling : styles$5.diceNotRolling}`, onClick: roll, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.diceWrapper, children: [
+    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.diceTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$4.dice} ${rolling ? styles$4.diceRolling : styles$4.diceNotRolling}`, onClick: roll, children: [
       renderDiceFace(),
-      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.tooltip, children: tooltipText })
+      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.tooltip, children: tooltipText })
     ] })
   ] });
 }
@@ -1578,27 +1578,27 @@ function Draggable({
     )
   ] });
 }
-const image = "_image_ebu76_2";
-const textWrapper = "_textWrapper_ebu76_10";
-const text = "_text_ebu76_10";
-const tokenContainer = "_tokenContainer_ebu76_26";
-const contentWrapper = "_contentWrapper_ebu76_37";
-const styles$4 = {
-  image,
+const tokenContainer = "_tokenContainer_9179f_8";
+const contentWrapper = "_contentWrapper_9179f_23";
+const textWrapper = "_textWrapper_9179f_57";
+const text = "_text_9179f_57";
+const image = "_image_9179f_73";
+const tokenStyles = {
+  tokenContainer,
+  contentWrapper,
   textWrapper,
   text,
-  tokenContainer,
-  contentWrapper
+  image
 };
 const TokenDisplayContent = React__default.memo(({ token, isFilled }) => {
   if (!token.image) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$4.text, children: token.name }) }) });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: tokenStyles.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: tokenStyles.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: tokenStyles.text, children: token.name }) }) });
   }
   const MASK_IMAGE_PROP = ["mask", "Image"].join("");
   const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
   const URL_FUNC = ["u", "r", "l"].join("");
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.contentWrapper, style: { backgroundColor: "#4f4848ff", overflow: "hidden" }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: styles$4.image }),
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: tokenStyles.contentWrapper, style: { backgroundColor: "#4f4848ff", overflow: "hidden" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: tokenStyles.image }),
     isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
@@ -1653,7 +1653,7 @@ const Token = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
-      className: styles$4.tokenContainer,
+      className: tokenStyles.tokenContainer,
       style: {
         ...style
       },
@@ -1812,7 +1812,7 @@ function GridBoard({
       }
     );
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.boardContainer, style: boardStyle, children: [
     cells.map((cell2) => {
       const match = cell2.id.match(/r(\d+)c(\d+)/);
       const r = match ? parseInt(match[1], 10) : 0;
