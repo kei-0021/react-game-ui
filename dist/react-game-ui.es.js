@@ -2292,37 +2292,28 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const container = "_container_k18kw_7";
-const title$2 = "_title_k18kw_19";
-const playerList = "_playerList_k18kw_28";
-const playerItem = "_playerItem_k18kw_38";
-const activePlayer = "_activePlayer_k18kw_51";
-const playerHeader = "_playerHeader_k18kw_59";
-const playerName = "_playerName_k18kw_65";
-const scoreArea = "_scoreArea_k18kw_75";
-const playerScore = "_playerScore_k18kw_81";
-const plus = "_plus_k18kw_102";
-const minus = "_minus_k18kw_107";
-const scoreChange = "_scoreChange_k18kw_128";
-const debugScoreButtons = "_debugScoreButtons_k18kw_157";
-const debugBtn = "_debugBtn_k18kw_162";
-const resourceSection = "_resourceSection_k18kw_193";
-const resourceList = "_resourceList_k18kw_198";
-const resourceBadge = "_resourceBadge_k18kw_204";
-const tokenList = "_tokenList_k18kw_212";
-const isHoldMessage = "_isHoldMessage_k18kw_222";
-const cardList = "_cardList_k18kw_229";
-const cardBase = "_cardBase_k18kw_237";
-const cardSelected = "_cardSelected_k18kw_269";
-const cardIsHeld = "_cardIsHeld_k18kw_275";
-const tooltip = "_tooltip_k18kw_287";
-const buttonArea = "_buttonArea_k18kw_312";
-const limitMessage = "_limitMessage_k18kw_319";
-const buttonGroup = "_buttonGroup_k18kw_326";
-const scoreBoardStyles = {
-  container,
-  title: title$2,
-  playerList,
+const playerItem = "_playerItem_n70rh_7";
+const activePlayer = "_activePlayer_n70rh_20";
+const playerHeader = "_playerHeader_n70rh_28";
+const playerName = "_playerName_n70rh_34";
+const scoreArea = "_scoreArea_n70rh_48";
+const playerScore = "_playerScore_n70rh_54";
+const plus = "_plus_n70rh_75";
+const minus = "_minus_n70rh_80";
+const scoreChange = "_scoreChange_n70rh_101";
+const debugScoreButtons = "_debugScoreButtons_n70rh_130";
+const debugBtn = "_debugBtn_n70rh_135";
+const resourceSection = "_resourceSection_n70rh_170";
+const resourceList = "_resourceList_n70rh_175";
+const resourceBadge = "_resourceBadge_n70rh_181";
+const tokenList = "_tokenList_n70rh_193";
+const isHoldMessage = "_isHoldMessage_n70rh_207";
+const cardList = "_cardList_n70rh_214";
+const cardBase = "_cardBase_n70rh_222";
+const cardSelected = "_cardSelected_n70rh_254";
+const cardIsHeld = "_cardIsHeld_n70rh_260";
+const tooltip = "_tooltip_n70rh_272";
+const playerListItemStyles = {
   playerItem,
   activePlayer,
   playerHeader,
@@ -2343,10 +2334,7 @@ const scoreBoardStyles = {
   cardBase,
   cardSelected,
   cardIsHeld,
-  tooltip,
-  buttonArea,
-  limitMessage,
-  buttonGroup
+  tooltip
 };
 const PlayerListItem = React.memo(
   ({
@@ -2398,39 +2386,54 @@ const PlayerListItem = React.memo(
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "li",
       {
-        className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ""}`,
+        className: `${playerListItemStyles.playerItem} ${isActive ? playerListItemStyles.activePlayer : ""}`,
         style: customStyles,
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.playerHeader, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerName, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playerListItemStyles.playerHeader, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: playerListItemStyles.playerName, children: [
               isActive && "ᐅ ",
               isOwner && "★ ME ",
               player.name
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreArea, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreWrapper, style: { position: "relative", display: "inline-block" }, children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerScore, children: [
-                  "スコア: ",
-                  player.score
-                ] }),
-                scoreDiff !== null && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "span",
-                  {
-                    className: `
-      ${scoreBoardStyles.scoreChange} 
-      ${scoreDiff > 0 ? scoreBoardStyles.plus : scoreBoardStyles.minus}
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playerListItemStyles.scoreArea, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  className: playerListItemStyles.scoreWrapper,
+                  style: { position: "relative", display: "inline-block" },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: playerListItemStyles.playerScore, children: [
+                      "スコア: ",
+                      player.score
+                    ] }),
+                    scoreDiff !== null && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "span",
+                      {
+                        className: `
+      ${playerListItemStyles.scoreChange} 
+      ${scoreDiff > 0 ? playerListItemStyles.plus : playerListItemStyles.minus}
     `,
-                    children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff
+                        children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff
+                      }
+                    )
+                  ]
+                }
+              ),
+              isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playerListItemStyles.debugScoreButtons, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "button",
+                  {
+                    onClick: () => handleAddScore(-1),
+                    disabled: !enabled,
+                    className: playerListItemStyles.debugBtn,
+                    children: "-"
                   }
-                )
-              ] }),
-              isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "+" })
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: playerListItemStyles.debugBtn, children: "+" })
               ] })
             ] })
           ] }),
-          player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.resourceSection, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [
+          player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.resourceSection, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.resourceList, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: playerListItemStyles.resourceBadge, children: [
             resource.icon,
             " ",
             resource.name,
@@ -2439,9 +2442,9 @@ const PlayerListItem = React.memo(
             " / ",
             resource.maxValue
           ] }, resource.resourceId)) }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => /* @__PURE__ */ jsxRuntimeExports.jsx(Token, { token }, tokenId)) }),
-          player.isHolding && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: scoreBoardStyles.isHoldMessage, children: "カードをホールドしています" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card2) => {
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => /* @__PURE__ */ jsxRuntimeExports.jsx(Token, { token }, tokenId)) }),
+          player.isHolding && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: playerListItemStyles.isHoldMessage, children: "カードをホールドしています" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.cardList, children: player.cards.map((card2) => {
             const isSelected = selectedCards.includes(card2.id);
             const isHeld = heldCards.includes(card2.id);
             const canSeeFront = !!card2.isFaceUp || isOwner;
@@ -2456,8 +2459,8 @@ const PlayerListItem = React.memo(
                   e.dataTransfer.effectAllowed = "move";
                 },
                 className: `
-                  ${scoreBoardStyles.cardBase} 
-                  ${isSelected ? scoreBoardStyles.cardSelected : ""}
+                  ${playerListItemStyles.cardBase} 
+                  ${isSelected ? playerListItemStyles.cardSelected : ""}
                 `,
                 style: {
                   // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
@@ -2475,8 +2478,8 @@ const PlayerListItem = React.memo(
                 onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner),
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
-                  isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardIsHeld, children: "🔐" }),
-                  canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: scoreBoardStyles.tooltip, children: card2.description })
+                  isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.cardIsHeld, children: "🔐" }),
+                  canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playerListItemStyles.tooltip, children: card2.description })
                 ]
               },
               card2.id
@@ -2487,6 +2490,20 @@ const PlayerListItem = React.memo(
     );
   }
 );
+const container = "_container_12nv3_7";
+const title$2 = "_title_12nv3_19";
+const playerList = "_playerList_12nv3_28";
+const buttonArea = "_buttonArea_12nv3_38";
+const limitMessage = "_limitMessage_12nv3_45";
+const buttonGroup = "_buttonGroup_12nv3_52";
+const scoreBoardStyles = {
+  container,
+  title: title$2,
+  playerList,
+  buttonArea,
+  limitMessage,
+  buttonGroup
+};
 function ScoreBoard({
   socket,
   roomId,
