@@ -199,8 +199,6 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowT
                     transform: `translate(${offsetX}px, ${offsetY}px)`,
                     transition: 'transform 0.3s ease-in-out',
                 };
-                return (_jsx(Token, { token: token, style: tokenStyle, onClick: requestMovableRange, onDoubleClick: () => handleTokenDoubleClick(token.id), isDraggable: allowTokenDrag, 
-                    // isFilled={true}
-                    onDragStart: handleTokenDragStart, onDragEnd: handleTokenDragEnd }, token.id));
+                return (_jsx(Token, { token: token, style: tokenStyle, isFilled: true, onClick: requestMovableRange, onDoubleClick: () => handleTokenDoubleClick(token.id), isDraggable: allowTokenDrag, onDragStart: handleTokenDragStart, onDragEnd: handleTokenDragEnd }, token.id));
             })] }));
 }

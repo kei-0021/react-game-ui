@@ -303,10 +303,10 @@ export function GridBoard({
             key={token.id}
             token={token}
             style={tokenStyle}
+            isFilled={true}
             onClick={requestMovableRange}
             onDoubleClick={() => handleTokenDoubleClick(token.id)}
             isDraggable={allowTokenDrag}
-            // isFilled={true}
             onDragStart={handleTokenDragStart}
             onDragEnd={handleTokenDragEnd}
           />

@@ -1590,13 +1590,47 @@ const styles$4 = {
   tokenContainer,
   contentWrapper
 };
-const TokenDisplayContent = React__default.memo(({ token }) => {
-  if (token.image) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: styles$4.image }) });
+const TokenDisplayContent = React__default.memo(({ token, isFilled }) => {
+  if (!token.image) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$4.text, children: token.name }) }) });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$4.text, children: token.name }) }) });
+  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
+  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
+  const URL_FUNC = ["u", "r", "l"].join("");
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.contentWrapper, style: { backgroundColor: "#4f4848ff", overflow: "hidden" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: styles$4.image }),
+    isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        style: {
+          position: "absolute",
+          inset: 0,
+          backgroundColor: token.color || "red",
+          [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
+          [MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+          mixBlendMode: "multiply",
+          pointerEvents: "none"
+        }
+      }
+    )
+  ] });
 });
-const Token = ({ token, style, onClick, onDoubleClick, isDraggable, onDragStart, onDragEnd }) => {
+const Token = ({
+  token,
+  style,
+  isFilled = false,
+  onClick,
+  onDoubleClick,
+  isDraggable,
+  onDragStart,
+  onDragEnd
+}) => {
   const handleClick = (e) => {
     e.stopPropagation();
     onClick(token.id);
@@ -1628,7 +1662,7 @@ const Token = ({ token, style, onClick, onDoubleClick, isDraggable, onDragStart,
       draggable: isDraggable,
       onDragStart: handleDragStart,
       onDragEnd: handleDragEnd,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token })
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token, isFilled })
     }
   );
 };
@@ -1824,6 +1858,7 @@ function GridBoard({
         {
           token,
           style: tokenStyle,
+          isFilled: true,
           onClick: requestMovableRange,
           onDoubleClick: () => handleTokenDoubleClick(token.id),
           isDraggable: allowTokenDrag,
