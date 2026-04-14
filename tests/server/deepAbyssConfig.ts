@@ -71,7 +71,7 @@ export const deepAbyssConfig: RoomConfig = {
           tokenStoreId: 'ARTIFACT',
           name: '遺物',
           tokens: helper.createTokenStore(
-            [{ id: 'ARTIFACT', name: '💰', ownerId: null, position: null, movableCells: [] }],
+            [{ id: 'ARTIFACT', tokenStoreId: 'ARTIFACT', name: '💰', ownerId: null, position: null, movableCells: [] }],
             20,
             undefined,
             '#D4AF37',
@@ -81,7 +81,7 @@ export const deepAbyssConfig: RoomConfig = {
           tokenStoreId: 'Hanabishi',
           name: '花火師',
           tokens: helper.createTokenStore(
-            [{ id: '花火師', name: '🎆', ownerId: null, position: null, movableCells: [] }],
+            [{ id: '花火師', tokenStoreId: 'HANABISHI', name: '🎆', ownerId: null, position: null, movableCells: [] }],
             20,
             '/hanabishi.svg',
             '#d43737',

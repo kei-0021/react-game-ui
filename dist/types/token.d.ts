@@ -1,8 +1,9 @@
-import type { PlayerId, TokenId } from './definition.js';
+import type { PlayerId, TokenId, TokenStoreId } from './definition.js';
 import { Position } from './position.js';
 /**
  * トークンのデータ構造
  * @property {TokenId} id - 一意な識別子
+ * @property {TokenStoreId} tokenStoreId - トークン置き場ID
  * @property {string} name - トークン名
  * @property {PlayerId | null} - 現在このトークンを保持しているプレイヤーID
  * @property {string} [image] - トークンの画像URL（省略時は名前を表示）
@@ -13,6 +14,7 @@ import { Position } from './position.js';
  */
 export type TokenData = {
     id: TokenId;
+    tokenStoreId: TokenStoreId;
     name: string;
     ownerId: PlayerId | null;
     image?: string;

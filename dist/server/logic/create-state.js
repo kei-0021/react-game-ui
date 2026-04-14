@@ -164,12 +164,19 @@ export function createPlayer(param, state, playerName, socketId) {
     if (initialTokens) {
         for (const [tokenId, count] of Object.entries(initialTokens)) {
             const masterTokenList = state.tokenStores[tokenId];
-            if (masterTokenList && masterTokenList.length > 0) {
-                // 配列の最初の要素（Tokenオブジェクト）を取り出す
-                const masterToken = masterTokenList[0];
+            if (masterTokenList) {
                 for (let i = 0; i < count; i++) {
-                    // オブジェクトをコピーして push
-                    newPlayer.tokens.push(masterToken);
+                    // リストが空でないか確認し、先頭から要素を一つ取り出す
+                    if (masterTokenList.length > 0) {
+                        const token = masterTokenList.shift();
+                        if (token !== undefined) {
+                            newPlayer.tokens.push(token);
+                        }
+                    }
+                    else {
+                        // 在庫が切れた場合の処理が必要であればここに記述
+                        break;
+                    }
                 }
             }
         }
