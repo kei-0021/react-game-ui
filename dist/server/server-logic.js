@@ -1,4 +1,3 @@
-import { registerBoardListeners } from './listener/board-listener.js';
 import { registerDeckListeners } from './listener/deck-listener.js';
 import { registerDiceListeners } from './listener/dice-listener.js';
 import { registerDraggableListeners } from './listener/draggable-listener.js';
@@ -63,8 +62,6 @@ export function initGameServer(io, options, activeRooms) {
         registerDeckListeners(socket, io, gameParams, activeRooms);
         // トークン関連
         registerTokenListeners(socket, io, gameParams, activeRooms);
-        // ボード関連
-        registerBoardListeners(socket, io, gameParams, activeRooms);
         // ダイス関連
         registerDiceListeners(socket, io, gameParams, activeRooms);
         // ドラッグ可能オブジェクト関連
