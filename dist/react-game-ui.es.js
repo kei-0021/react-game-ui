@@ -4288,6 +4288,26 @@ class TokenManager {
     }
   }
   /**
+   * 手持ちから盤面へトークンを移動する
+   */
+  playToken(tokenId, playerId, newLocation) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return;
+    const targetToken = player.tokens.find((t) => t.id === tokenId);
+    if (!targetToken) return;
+    player.tokens = player.tokens.filter((t) => t.id !== tokenId);
+    this.state.boardTokens[tokenId] = {
+      ...targetToken,
+      position: newLocation
+    };
+    server_log(
+      "token",
+      this.state.gameId,
+      this.state.roomId,
+      `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${newLocation.row}, ${newLocation.col})`
+    );
+  }
+  /**
    * 指定したセルから一定歩数で行けるセルIDをすべて取得する
    * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
    */

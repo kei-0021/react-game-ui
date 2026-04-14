@@ -9,6 +9,7 @@ import {
   TokenPlayData,
 } from '@/types/socketData.js';
 import { Server, Socket } from 'socket.io';
+import { TokenManager } from '../logic/token-manager.js';
 import { RoomManager } from '../room-manager.js';
 
 export function registerTokenListeners(
@@ -63,23 +64,11 @@ export function registerTokenListeners(
     const param = gameParams[state.gameId];
     const roomManager = new RoomManager(io, param, state);
 
-    const player = state.players.find((p) => p.id === playerId);
-    if (player) {
-      const targetToken = player.tokens.find((t) => t.id === tokenId);
+    const tokenManager = new TokenManager(state);
+    tokenManager.playToken(tokenId, playerId, newLocation);
 
-      if (targetToken) {
-        // プレイヤーのリストから除外
-        player.tokens = player.tokens.filter((t) => t.id !== tokenId);
-
-        state.boardTokens[tokenId] = {
-          ...targetToken,
-          position: newLocation,
-        };
-
-        roomManager.emitPlayerUpdate();
-        roomManager.emitBoardUpdate(boardId);
-      }
-    }
+    roomManager.emitPlayerUpdate();
+    roomManager.emitBoardUpdate(boardId);
   });
 
   // 盤面 → 盤面

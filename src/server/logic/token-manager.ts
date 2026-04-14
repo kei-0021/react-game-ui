@@ -1,5 +1,6 @@
 // src/server/logic/toke-manager.ts
 import { BoardId, CellId, PlayerId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/roomState.js';
 import { server_log } from '../log/logger.js';
 
@@ -36,6 +37,34 @@ export class TokenManager {
         `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${acquiredToken.id} を獲得しました。`,
       );
     }
+  }
+
+  /**
+   * 手持ちから盤面へトークンを移動する
+   */
+  playToken(tokenId: TokenId, playerId: PlayerId, newLocation: Position): void {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return;
+
+    // 先に対象のトークンを確保する
+    const targetToken = player.tokens.find((t) => t.id === tokenId);
+    if (!targetToken) return;
+
+    // プレイヤーのリストから除外
+    player.tokens = player.tokens.filter((t) => t.id !== tokenId);
+
+    // 盤面に移動（Recordに追加）
+    this.state.boardTokens[tokenId] = {
+      ...targetToken,
+      position: newLocation,
+    };
+
+    server_log(
+      'token',
+      this.state.gameId,
+      this.state.roomId,
+      `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${newLocation.row}, ${newLocation.col})`,
+    );
   }
 
   /**

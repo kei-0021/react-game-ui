@@ -1,4 +1,5 @@
 import { BoardId, CellId, PlayerId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { Position } from '@/types/position.js';
 import { RoomState } from '@/types/roomState.js';
 export declare class TokenManager {
     private state;
@@ -10,6 +11,10 @@ export declare class TokenManager {
      * @param playerId - プレイヤーID
      */
     acquireToken(tokenStoreId: TokenStoreId, tokenId: (TokenId | null) | undefined, playerId: PlayerId): void;
+    /**
+     * 手持ちから盤面へトークンを移動する
+     */
+    playToken(tokenId: TokenId, playerId: PlayerId, newLocation: Position): void;
     /**
      * 指定したセルから一定歩数で行けるセルIDをすべて取得する
      * isExact: true の場合、moveRange と同じ歩数のセルのみを返す

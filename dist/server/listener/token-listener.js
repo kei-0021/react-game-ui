@@ -1,3 +1,4 @@
+import { TokenManager } from '../logic/token-manager.js';
 import { RoomManager } from '../room-manager.js';
 export function registerTokenListeners(socket, io, gameParams, activeRooms) {
     // トークン置き場 → 手持ち
@@ -42,20 +43,10 @@ export function registerTokenListeners(socket, io, gameParams, activeRooms) {
             return;
         const param = gameParams[state.gameId];
         const roomManager = new RoomManager(io, param, state);
-        const player = state.players.find((p) => p.id === playerId);
-        if (player) {
-            const targetToken = player.tokens.find((t) => t.id === tokenId);
-            if (targetToken) {
-                // プレイヤーのリストから除外
-                player.tokens = player.tokens.filter((t) => t.id !== tokenId);
-                state.boardTokens[tokenId] = {
-                    ...targetToken,
-                    position: newLocation,
-                };
-                roomManager.emitPlayerUpdate();
-                roomManager.emitBoardUpdate(boardId);
-            }
-        }
+        const tokenManager = new TokenManager(state);
+        tokenManager.playToken(tokenId, playerId, newLocation);
+        roomManager.emitPlayerUpdate();
+        roomManager.emitBoardUpdate(boardId);
     });
     // 盤面 → 盤面
     socket.on('token:move-on-board', ({ roomId, boardId, tokenId, newLocation }) => {
