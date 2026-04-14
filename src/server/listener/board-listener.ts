@@ -1,7 +1,7 @@
 // src/server/listner/board-lister.ts
 import { GameParam, RoomState } from '@/index.js';
 import { GameId, RoomId } from '@/types/definition.js';
-import { TokenMovableRangeData, TokenMoveOnBoardData } from '@/types/socketData.js';
+import { TokenMovableRangeData, TokenMoveOnBoardData, TokenPlayData } from '@/types/socketData.js';
 import { Server, Socket } from 'socket.io';
 import { RoomManager } from '../room-manager.js';
 
@@ -15,6 +15,32 @@ export function registerBoardListeners(
   gameParams: Record<GameId, GameParam>,
   activeRooms: Map<RoomId, RoomState>,
 ) {
+  // トークンのプレイ
+  socket.on('token:play', ({ roomId, boardId, tokenId, playerId, newLocation }: TokenPlayData) => {
+    const state = activeRooms.get(roomId);
+    if (!state) return;
+    const param = gameParams[state.gameId];
+    const roomManager = new RoomManager(io, param, state);
+
+    const player = state.players.find((p) => p.id === playerId);
+    if (player) {
+      const targetToken = player.tokens.find((t) => t.id === tokenId);
+
+      if (targetToken) {
+        // プレイヤーのリストから除外
+        player.tokens = player.tokens.filter((t) => t.id !== tokenId);
+
+        state.boardTokens[tokenId] = {
+          ...targetToken,
+          position: newLocation,
+        };
+
+        roomManager.emitPlayerUpdate();
+        roomManager.emitBoardUpdate(boardId);
+      }
+    }
+  });
+
   // トークンの移動
   socket.on('token:move-on-board', ({ roomId, boardId, tokenId, newLocation }: TokenMoveOnBoardData) => {
     const state = activeRooms.get(roomId);

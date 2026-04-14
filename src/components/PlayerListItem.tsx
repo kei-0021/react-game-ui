@@ -1,5 +1,7 @@
 // src/components/PlayerListItem.tsx
 import { Player } from '@/types/player.js';
+import { TokenData } from '@/types/token.js';
+import type { DragEvent } from 'react';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import { CardData } from '../types/card.js';
@@ -47,6 +49,8 @@ export const PlayerListItem = React.memo(
     const [isScoreUpdating, setIsScoreUpdating] = React.useState(false);
     const prevScoreRef = React.useRef(player.score);
 
+    if (!myPlayerId) return;
+
     React.useEffect(() => {
       const prevScore = prevScoreRef.current;
       if (prevScore !== player.score) {
@@ -74,6 +78,14 @@ export const PlayerListItem = React.memo(
       });
     };
 
+    // トークン移動
+    const handleTokenDragStart = (e: DragEvent<HTMLDivElement>, token: TokenData) => {
+      e.dataTransfer.setData('tokenId', token.id);
+      e.dataTransfer.setData('source', 'ScoreBoard');
+      e.dataTransfer.setData('playerId', myPlayerId);
+      e.dataTransfer.effectAllowed = 'move';
+    };
+
     const customStyles = {
       '--player-color': playerColor,
       '--player-color-bg': playerColor.replace('hsl', 'hsla').replace(')', ', 0.3)'),
@@ -91,6 +103,8 @@ export const PlayerListItem = React.memo(
             {isOwner && '★ ME '}
             {player.name}
           </span>
+
+          {/* スコア表示 */}
           <div className={playerListItemStyles.scoreArea}>
             <div
               className={playerListItemStyles.scoreWrapper}
@@ -98,7 +112,6 @@ export const PlayerListItem = React.memo(
             >
               <span className={playerListItemStyles.playerScore}>スコア: {player.score}</span>
 
-              {/* ここで plus / minus クラスを付与して色を変える */}
               {scoreDiff !== null && (
                 <span
                   className={`
@@ -127,6 +140,7 @@ export const PlayerListItem = React.memo(
           </div>
         </div>
 
+        {/* リソース表示 */}
         {player.resources?.length > 0 && (
           <div className={playerListItemStyles.resourceSection}>
             <div className={playerListItemStyles.resourceList}>
@@ -139,12 +153,14 @@ export const PlayerListItem = React.memo(
           </div>
         )}
 
+        {/* トークン表示 */}
         <div className={playerListItemStyles.tokenList}>
           {Object.entries(player.tokens || {}).map(([tokenId, token]) => (
-            <Token key={tokenId} token={token} />
+            <Token key={tokenId} token={token} isDraggable={isOwner} onDragStart={handleTokenDragStart} />
           ))}
         </div>
 
+        {/* カード表示 */}
         {player.isHolding && <p className={playerListItemStyles.isHoldMessage}>カードをホールドしています</p>}
         <div className={playerListItemStyles.cardList}>
           {player.cards.map((card: CardData) => {

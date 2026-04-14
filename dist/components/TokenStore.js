@@ -38,6 +38,12 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
         const data = { roomId, tokenStoreId, tokenId };
         socket.emit('token:aquire', data);
     };
+    // トークン移動
+    const handleTokenDragStart = (e, token) => {
+        e.dataTransfer.setData('tokenId', token.id);
+        e.dataTransfer.setData('source', 'tokenStore');
+        e.dataTransfer.effectAllowed = 'move';
+    };
     return (_jsxs("section", { className: styles.section, children: [_jsx("h3", { className: styles.title, children: name }), _jsx("div", { className: styles.list, children: tokenStoreTokens.map((t, i) => {
                     // インデックスを利用して擬似的に散らばった位置を計算
                     const offsetX = (i % 5) * 40 - 80;
@@ -49,6 +55,6 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
                             top: `calc(50% + ${offsetY}px)`,
                             transform: `rotate(${rotation}deg)`,
                             zIndex: i,
-                        }, children: _jsx(Token, { token: t, onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id) }, t.id) }));
+                        }, children: _jsx(Token, { token: t, onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), isDraggable: true, onDragStart: handleTokenDragStart }, t.id) }));
                 }) })] }));
 }

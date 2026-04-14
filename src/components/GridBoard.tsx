@@ -6,6 +6,7 @@ import {
   TokenMovableRangeData,
   TokenMoveFromBoardData,
   TokenMoveOnBoardData,
+  TokenPlayData,
 } from '@/types/socketData.js';
 import { TokenData } from '@/types/token.js';
 import type { DragEvent } from 'react';
@@ -87,15 +88,29 @@ export function GridBoard({
     e.preventDefault();
     if (!isBoardReady || !socket) return;
 
-    const draggedTokenId = e.dataTransfer.getData('tokenId');
-    if (draggedTokenId) {
+    const tokenId = e.dataTransfer.getData('tokenId');
+    const source = e.dataTransfer.getData('source');
+    const playerId = e.dataTransfer.getData('playerId');
+
+    if (!tokenId) return;
+
+    if (source === 'ScoreBoard') {
+      // ScoreBoardからのドロップ
+      socket.emit('token:play', {
+        roomId,
+        boardId,
+        tokenId,
+        playerId,
+        newLocation: { row: targetRow, col: targetCol },
+      } as TokenPlayData);
+    } else {
+      // Board内でのドロップ
       // ドロップ（移動確定）したらハイライトを消す
       setHighlightedCells([]);
-
       socket.emit('token:move-on-board', {
         roomId,
-        boardId: boardId,
-        tokenId: draggedTokenId,
+        boardId,
+        tokenId,
         newLocation: { row: targetRow, col: targetCol },
       } as TokenMoveOnBoardData);
     }

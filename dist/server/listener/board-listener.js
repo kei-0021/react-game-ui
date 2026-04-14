@@ -4,6 +4,28 @@ import { RoomManager } from '../room-manager.js';
  * トークンの移動・移動可能範囲の計算を行うアクションを制御する。
  */
 export function registerBoardListeners(socket, io, gameParams, activeRooms) {
+    // トークンのプレイ
+    socket.on('token:play', ({ roomId, boardId, tokenId, playerId, newLocation }) => {
+        const state = activeRooms.get(roomId);
+        if (!state)
+            return;
+        const param = gameParams[state.gameId];
+        const roomManager = new RoomManager(io, param, state);
+        const player = state.players.find((p) => p.id === playerId);
+        if (player) {
+            const targetToken = player.tokens.find((t) => t.id === tokenId);
+            if (targetToken) {
+                // プレイヤーのリストから除外
+                player.tokens = player.tokens.filter((t) => t.id !== tokenId);
+                state.boardTokens[tokenId] = {
+                    ...targetToken,
+                    position: newLocation,
+                };
+                roomManager.emitPlayerUpdate();
+                roomManager.emitBoardUpdate(boardId);
+            }
+        }
+    });
     // トークンの移動
     socket.on('token:move-on-board', ({ roomId, boardId, tokenId, newLocation }) => {
         const state = activeRooms.get(roomId);

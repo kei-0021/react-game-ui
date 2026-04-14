@@ -1,5 +1,6 @@
 // src/components/TokenStore.tsx
 import { TokenAcquireData, TokenStoreUpdateData } from '@/types/socketData.js';
+import type { DragEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import { RoomId, TokenId, TokenStoreId } from '../types/definition.js';
@@ -54,6 +55,13 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
     socket.emit('token:aquire', data);
   };
 
+  // トークン移動
+  const handleTokenDragStart = (e: DragEvent<HTMLDivElement>, token: TokenData) => {
+    e.dataTransfer.setData('tokenId', token.id);
+    e.dataTransfer.setData('source', 'tokenStore');
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
   return (
     <section className={styles.section}>
       <h3 className={styles.title}>{name}</h3>
@@ -79,6 +87,8 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
                 token={t}
                 onClick={() => handleClick(t.id)}
                 onDoubleClick={() => handleDoubleClick(t.id)}
+                isDraggable={true}
+                onDragStart={handleTokenDragStart}
               />
             </div>
           );

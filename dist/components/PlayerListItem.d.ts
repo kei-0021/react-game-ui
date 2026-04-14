@@ -15,6 +15,6 @@ type PlayerListItemProps = {
     isDebug?: boolean;
     enabled: boolean;
 };
-export declare const PlayerListItem: React.MemoExoticComponent<({ socket, roomId, player, currentPlayerId, myPlayerId, playCardButton, selectedCards, heldCards, toggleCardSelection, isDebug, enabled, }: PlayerListItemProps) => import("react/jsx-runtime").JSX.Element>;
+export declare const PlayerListItem: React.MemoExoticComponent<({ socket, roomId, player, currentPlayerId, myPlayerId, playCardButton, selectedCards, heldCards, toggleCardSelection, isDebug, enabled, }: PlayerListItemProps) => import("react/jsx-runtime").JSX.Element | undefined>;
 export {};
 //# sourceMappingURL=PlayerListItem.d.ts.map

@@ -199,6 +199,19 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.tokenList :global([class*='tokenContainer']) {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /*
  * ===========================================
  * カード関連

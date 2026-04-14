@@ -108,6 +108,13 @@ export type TokenMovableRangeData = {
     moveRange: number;
     isExact: boolean;
 };
+export type TokenPlayData = {
+    roomId: RoomId;
+    boardId: BoardId;
+    tokenId: TokenId;
+    playerId: PlayerId;
+    newLocation: any;
+};
 export type TokenMoveOnBoardData = {
     roomId: RoomId;
     boardId: BoardId;

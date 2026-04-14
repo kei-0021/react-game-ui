@@ -12,6 +12,8 @@ export const PlayerListItem = React.memo(({ socket, roomId, player, currentPlaye
     const [scoreDiff, setScoreDiff] = React.useState(null);
     const [isScoreUpdating, setIsScoreUpdating] = React.useState(false);
     const prevScoreRef = React.useRef(player.score);
+    if (!myPlayerId)
+        return;
     React.useEffect(() => {
         const prevScore = prevScoreRef.current;
         if (prevScore !== player.score) {
@@ -35,6 +37,13 @@ export const PlayerListItem = React.memo(({ socket, roomId, player, currentPlaye
             points,
         });
     };
+    // トークン移動
+    const handleTokenDragStart = (e, token) => {
+        e.dataTransfer.setData('tokenId', token.id);
+        e.dataTransfer.setData('source', 'ScoreBoard');
+        e.dataTransfer.setData('playerId', myPlayerId);
+        e.dataTransfer.effectAllowed = 'move';
+    };
     const customStyles = {
         '--player-color': playerColor,
         '--player-color-bg': playerColor.replace('hsl', 'hsla').replace(')', ', 0.3)'),
@@ -43,7 +52,7 @@ export const PlayerListItem = React.memo(({ socket, roomId, player, currentPlaye
     return (_jsxs("li", { className: `${playerListItemStyles.playerItem} ${isActive ? playerListItemStyles.activePlayer : ''}`, style: customStyles, children: [_jsxs("div", { className: playerListItemStyles.playerHeader, children: [_jsxs("span", { className: playerListItemStyles.playerName, children: [isActive && 'ᐅ ', isOwner && '★ ME ', player.name] }), _jsxs("div", { className: playerListItemStyles.scoreArea, children: [_jsxs("div", { className: playerListItemStyles.scoreWrapper, style: { position: 'relative', display: 'inline-block' }, children: [_jsxs("span", { className: playerListItemStyles.playerScore, children: ["\u30B9\u30B3\u30A2: ", player.score] }), scoreDiff !== null && (_jsx("span", { className: `
       ${playerListItemStyles.scoreChange} 
       ${scoreDiff > 0 ? playerListItemStyles.plus : playerListItemStyles.minus}
-    `, children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff }))] }), isDebug && (_jsxs("div", { className: playerListItemStyles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: playerListItemStyles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: playerListItemStyles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: playerListItemStyles.resourceSection, children: _jsx("div", { className: playerListItemStyles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: playerListItemStyles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx("div", { className: playerListItemStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => (_jsx(Token, { token: token }, tokenId))) }), player.isHolding && _jsx("p", { className: playerListItemStyles.isHoldMessage, children: "\u30AB\u30FC\u30C9\u3092\u30DB\u30FC\u30EB\u30C9\u3057\u3066\u3044\u307E\u3059" }), _jsx("div", { className: playerListItemStyles.cardList, children: player.cards.map((card) => {
+    `, children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff }))] }), isDebug && (_jsxs("div", { className: playerListItemStyles.debugScoreButtons, children: [_jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: playerListItemStyles.debugBtn, children: "-" }), _jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: playerListItemStyles.debugBtn, children: "+" })] }))] })] }), player.resources?.length > 0 && (_jsx("div", { className: playerListItemStyles.resourceSection, children: _jsx("div", { className: playerListItemStyles.resourceList, children: player.resources.map((resource) => (_jsxs("span", { className: playerListItemStyles.resourceBadge, children: [resource.icon, " ", resource.name, ": ", resource.currentValue, " / ", resource.maxValue] }, resource.resourceId))) }) })), _jsx("div", { className: playerListItemStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => (_jsx(Token, { token: token, isDraggable: isOwner, onDragStart: handleTokenDragStart }, tokenId))) }), player.isHolding && _jsx("p", { className: playerListItemStyles.isHoldMessage, children: "\u30AB\u30FC\u30C9\u3092\u30DB\u30FC\u30EB\u30C9\u3057\u3066\u3044\u307E\u3059" }), _jsx("div", { className: playerListItemStyles.cardList, children: player.cards.map((card) => {
                     const isSelected = selectedCards.includes(card.id);
                     const isHeld = heldCards.includes(card.id);
                     const canSeeFront = !!card.isFaceUp || isOwner;

@@ -1698,13 +1698,24 @@ function GridBoard({
   const handleCellDrop = (e, targetRow, targetCol) => {
     e.preventDefault();
     if (!isBoardReady || !socket) return;
-    const draggedTokenId = e.dataTransfer.getData("tokenId");
-    if (draggedTokenId) {
+    const tokenId = e.dataTransfer.getData("tokenId");
+    const source = e.dataTransfer.getData("source");
+    const playerId = e.dataTransfer.getData("playerId");
+    if (!tokenId) return;
+    if (source === "ScoreBoard") {
+      socket.emit("token:play", {
+        roomId,
+        boardId,
+        tokenId,
+        playerId,
+        newLocation: { row: targetRow, col: targetCol }
+      });
+    } else {
       setHighlightedCells([]);
       socket.emit("token:move-on-board", {
         roomId,
         boardId,
-        tokenId: draggedTokenId,
+        tokenId,
         newLocation: { row: targetRow, col: targetCol }
       });
     }
@@ -2292,27 +2303,27 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const playerItem = "_playerItem_n70rh_7";
-const activePlayer = "_activePlayer_n70rh_20";
-const playerHeader = "_playerHeader_n70rh_28";
-const playerName = "_playerName_n70rh_34";
-const scoreArea = "_scoreArea_n70rh_48";
-const playerScore = "_playerScore_n70rh_54";
-const plus = "_plus_n70rh_75";
-const minus = "_minus_n70rh_80";
-const scoreChange = "_scoreChange_n70rh_101";
-const debugScoreButtons = "_debugScoreButtons_n70rh_130";
-const debugBtn = "_debugBtn_n70rh_135";
-const resourceSection = "_resourceSection_n70rh_170";
-const resourceList = "_resourceList_n70rh_175";
-const resourceBadge = "_resourceBadge_n70rh_181";
-const tokenList = "_tokenList_n70rh_193";
-const isHoldMessage = "_isHoldMessage_n70rh_207";
-const cardList = "_cardList_n70rh_214";
-const cardBase = "_cardBase_n70rh_222";
-const cardSelected = "_cardSelected_n70rh_254";
-const cardIsHeld = "_cardIsHeld_n70rh_260";
-const tooltip = "_tooltip_n70rh_272";
+const playerItem = "_playerItem_gdntl_7";
+const activePlayer = "_activePlayer_gdntl_20";
+const playerHeader = "_playerHeader_gdntl_28";
+const playerName = "_playerName_gdntl_34";
+const scoreArea = "_scoreArea_gdntl_48";
+const playerScore = "_playerScore_gdntl_54";
+const plus = "_plus_gdntl_75";
+const minus = "_minus_gdntl_80";
+const scoreChange = "_scoreChange_gdntl_101";
+const debugScoreButtons = "_debugScoreButtons_gdntl_130";
+const debugBtn = "_debugBtn_gdntl_135";
+const resourceSection = "_resourceSection_gdntl_170";
+const resourceList = "_resourceList_gdntl_175";
+const resourceBadge = "_resourceBadge_gdntl_181";
+const tokenList = "_tokenList_gdntl_193";
+const isHoldMessage = "_isHoldMessage_gdntl_220";
+const cardList = "_cardList_gdntl_227";
+const cardBase = "_cardBase_gdntl_235";
+const cardSelected = "_cardSelected_gdntl_267";
+const cardIsHeld = "_cardIsHeld_gdntl_273";
+const tooltip = "_tooltip_gdntl_285";
 const playerListItemStyles = {
   playerItem,
   activePlayer,
@@ -2357,6 +2368,7 @@ const PlayerListItem = React.memo(
     const [scoreDiff, setScoreDiff] = React.useState(null);
     const [isScoreUpdating, setIsScoreUpdating] = React.useState(false);
     const prevScoreRef = React.useRef(player.score);
+    if (!myPlayerId) return;
     React.useEffect(() => {
       const prevScore = prevScoreRef.current;
       if (prevScore !== player.score) {
@@ -2377,6 +2389,12 @@ const PlayerListItem = React.memo(
         targetPlayerId: player.id,
         points
       });
+    };
+    const handleTokenDragStart = (e, token) => {
+      e.dataTransfer.setData("tokenId", token.id);
+      e.dataTransfer.setData("source", "ScoreBoard");
+      e.dataTransfer.setData("playerId", myPlayerId);
+      e.dataTransfer.effectAllowed = "move";
     };
     const customStyles = {
       "--player-color": playerColor,
@@ -2442,7 +2460,7 @@ const PlayerListItem = React.memo(
             " / ",
             resource.maxValue
           ] }, resource.resourceId)) }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => /* @__PURE__ */ jsxRuntimeExports.jsx(Token, { token }, tokenId)) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => /* @__PURE__ */ jsxRuntimeExports.jsx(Token, { token, isDraggable: isOwner, onDragStart: handleTokenDragStart }, tokenId)) }),
           player.isHolding && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: playerListItemStyles.isHoldMessage, children: "カードをホールドしています" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.cardList, children: player.cards.map((card2) => {
             const isSelected = selectedCards.includes(card2.id);
@@ -2793,6 +2811,11 @@ function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
     const data = { roomId, tokenStoreId, tokenId };
     socket.emit("token:aquire", data);
   };
+  const handleTokenDragStart = (e, token) => {
+    e.dataTransfer.setData("tokenId", token.id);
+    e.dataTransfer.setData("source", "tokenStore");
+    e.dataTransfer.effectAllowed = "move";
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$1.section, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles$1.title, children: name }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.list, children: tokenStoreTokens.map((t, i) => {
@@ -2814,7 +2837,9 @@ function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
             {
               token: t,
               onClick: () => handleClick(t.id),
-              onDoubleClick: () => handleDoubleClick(t.id)
+              onDoubleClick: () => handleDoubleClick(t.id),
+              isDraggable: true,
+              onDragStart: handleTokenDragStart
             },
             t.id
           )
