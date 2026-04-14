@@ -13,7 +13,7 @@ import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import styles from './Board.module.css';
 import { Cell } from './Cell.js';
-import { Piece } from './Piece.js';
+import { Token } from './Token.js';
 
 type GridLocation = {
   row: number;
@@ -299,9 +299,9 @@ export function GridBoard({
         };
 
         return (
-          <Piece
+          <Token
             key={token.id}
-            piece={token}
+            token={token}
             style={tokenStyle}
             onClick={requestMovableRange}
             onDoubleClick={() => handleTokenDoubleClick(token.id)}

@@ -30,7 +30,7 @@ type TokenProps = {
   onClick?: any;
   onDoubleClick?: any;
   isDraggable?: boolean;
-  onDragStart?: any;
+  onDragStart?: (e: DragEvent<HTMLDivElement>, token: TokenData) => void;
   onDragEnd?: (e: DragEvent<HTMLDivElement>, token: TokenData) => void;
 };
 
@@ -48,12 +48,8 @@ export const Token = ({ token, style, onClick, onDoubleClick, isDraggable, onDra
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
     if (isDraggable) {
       e.stopPropagation();
-      e.dataTransfer.setData('pieceId', token.id);
+      e.dataTransfer.setData('tokenId', token.id);
       e.dataTransfer.effectAllowed = 'move';
-
-      if (token.image) {
-        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
-      }
 
       onDragStart?.(e, token);
     }
@@ -71,7 +67,7 @@ export const Token = ({ token, style, onClick, onDoubleClick, isDraggable, onDra
       }}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
-      draggable={true}
+      draggable={isDraggable}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >

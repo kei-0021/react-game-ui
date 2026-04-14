@@ -7,7 +7,7 @@ type TokenProps = {
     onClick?: any;
     onDoubleClick?: any;
     isDraggable?: boolean;
-    onDragStart?: any;
+    onDragStart?: (e: DragEvent<HTMLDivElement>, token: TokenData) => void;
     onDragEnd?: (e: DragEvent<HTMLDivElement>, token: TokenData) => void;
 };
 export declare const Token: ({ token, style, onClick, onDoubleClick, isDraggable, onDragStart, onDragEnd }: TokenProps) => import("react/jsx-runtime").JSX.Element;

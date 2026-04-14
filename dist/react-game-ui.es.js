@@ -931,7 +931,7 @@ function requireJsxRuntime() {
 var jsxRuntimeExports = requireJsxRuntime();
 const boardContainer = "_boardContainer_14tjg_8";
 const cell = "_cell_14tjg_18";
-const styles$7 = {
+const styles$6 = {
   boardContainer,
   cell
 };
@@ -959,7 +959,7 @@ const Cell = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
-      className: styles$7.cell,
+      className: styles$6.cell,
       onClick: handleClick,
       onDoubleClick: handleDoubleClick,
       onDrop,
@@ -1189,7 +1189,7 @@ const diceNotRolling = "_diceNotRolling_109vb_74";
 const faceImage = "_faceImage_109vb_78";
 const faceContainer = "_faceContainer_109vb_85";
 const defaultText = "_defaultText_109vb_93";
-const styles$6 = {
+const styles$5 = {
   diceWrapper,
   diceTitle,
   dice,
@@ -1253,18 +1253,18 @@ function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll,
   };
   const renderDiceFace = () => {
     if (customFaces && customFaces[value - 1]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.faceContainer, children: customFaces[value - 1] });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.faceContainer, children: customFaces[value - 1] });
     }
     if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$6.faceImage });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$5.faceImage });
     }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$6.defaultText, children: value });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$5.defaultText, children: value });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.diceWrapper, children: [
-    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.diceTitle, children: title2 }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$6.dice} ${rolling ? styles$6.diceRolling : styles$6.diceNotRolling}`, onClick: roll, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.diceWrapper, children: [
+    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.diceTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$5.dice} ${rolling ? styles$5.diceRolling : styles$5.diceNotRolling}`, onClick: roll, children: [
       renderDiceFace(),
-      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.tooltip, children: tooltipText })
+      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$5.tooltip, children: tooltipText })
     ] })
   ] });
 }
@@ -1578,112 +1578,60 @@ function Draggable({
     )
   ] });
 }
-const piece = "_piece_138ki_3";
-const styles$5 = {
-  piece
+const image = "_image_ebu76_2";
+const textWrapper = "_textWrapper_ebu76_10";
+const text = "_text_ebu76_10";
+const tokenContainer = "_tokenContainer_ebu76_26";
+const contentWrapper = "_contentWrapper_ebu76_37";
+const styles$4 = {
+  image,
+  textWrapper,
+  text,
+  tokenContainer,
+  contentWrapper
 };
-function Piece({
-  piece: piece2,
-  style,
-  onClick,
-  onDoubleClick,
-  isDraggable,
-  isFilled = false,
-  onDragStart,
-  onDragEnd
-}) {
+const TokenDisplayContent = React__default.memo(({ token }) => {
+  if (token.image) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: styles$4.image }) });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$4.text, children: token.name }) }) });
+});
+const Token = ({ token, style, onClick, onDoubleClick, isDraggable, onDragStart, onDragEnd }) => {
   const handleClick = (e) => {
     e.stopPropagation();
-    onClick(piece2.id);
+    onClick(token.id);
   };
   const handleDoubleClick = (e) => {
     e.stopPropagation();
-    onDoubleClick(piece2.id);
+    onDoubleClick(token.id);
   };
   const handleDragStart = (e) => {
     if (isDraggable) {
       e.stopPropagation();
-      e.dataTransfer.setData("pieceId", piece2.id);
+      e.dataTransfer.setData("tokenId", token.id);
       e.dataTransfer.effectAllowed = "move";
-      if (piece2.image) {
-        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
-      }
-      onDragStart(e, piece2);
+      onDragStart?.(e, token);
     }
   };
-  const pieceClasses = [styles$5.piece, isDraggable ? styles$5.draggable : styles$5.clickable].join(" ");
-  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
-  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
-  const URL_FUNC = ["u", "r", "l"].join("");
+  const handleDragEnd = (e) => {
+    onDragEnd?.(e, token);
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
-      className: pieceClasses,
+      className: styles$4.tokenContainer,
       style: {
-        ...style,
-        backgroundColor: piece2.image ? "transparent" : piece2.color,
-        filter: "none",
-        border: "none",
-        outline: "none",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: piece2.image ? "none" : "0 2px 4px rgba(0,0,0,0.2)"
+        ...style
       },
       onClick: handleClick,
       onDoubleClick: handleDoubleClick,
       draggable: isDraggable,
       onDragStart: handleDragStart,
-      onDragEnd: (e) => onDragEnd(e, piece2),
-      children: piece2.image ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          style: {
-            width: "100%",
-            height: "100%",
-            position: "relative",
-            pointerEvents: "none"
-          },
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "img",
-              {
-                src: piece2.image,
-                alt: "",
-                style: {
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  display: "block"
-                }
-              }
-            ),
-            isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "div",
-              {
-                style: {
-                  position: "absolute",
-                  inset: 0,
-                  backgroundColor: piece2.color,
-                  [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
-                  [MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
-                  WebkitMaskSize: "contain",
-                  maskSize: "contain",
-                  WebkitMaskRepeat: "no-repeat",
-                  maskRepeat: "no-repeat",
-                  WebkitMaskPosition: "center",
-                  maskPosition: "center",
-                  mixBlendMode: "multiply",
-                  pointerEvents: "none"
-                }
-              }
-            )
-          ]
-        }
-      ) : piece2.name.substring(0, 1)
+      onDragEnd: handleDragEnd,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token })
     }
   );
-}
+};
 function GridBoard({
   socket,
   roomId,
@@ -1819,7 +1767,7 @@ function GridBoard({
       }
     );
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$7.boardContainer, style: boardStyle, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.boardContainer, style: boardStyle, children: [
     cells.map((cell2) => {
       const match = cell2.id.match(/r(\d+)c(\d+)/);
       const r = match ? parseInt(match[1], 10) : 0;
@@ -1872,9 +1820,9 @@ function GridBoard({
         transition: "transform 0.3s ease-in-out"
       };
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Piece,
+        Token,
         {
-          piece: token,
+          token,
           style: tokenStyle,
           onClick: requestMovableRange,
           onDoubleClick: () => handleTokenDoubleClick(token.id),
@@ -2251,7 +2199,7 @@ const container$1 = "_container_17uio_2";
 const cursorWrapper = "_cursorWrapper_17uio_13";
 const icon = "_icon_17uio_21";
 const label$1 = "_label_17uio_29";
-const styles$4 = {
+const styles$3 = {
   container: container$1,
   cursorWrapper,
   icon,
@@ -2296,15 +2244,15 @@ const RemoteCursor = React__default.memo(
       return () => window.removeEventListener("mousemove", handleMove);
     }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
     if (!visible) return null;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
       const player = players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
       const name = player ? player.name : "接続中...";
       const color = player?.color || "#000000";
       const left = isRelative ? `${coords.x * 100}%` : coords.x;
       const top = isRelative ? `${coords.y * 100}%` : coords.y;
-      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.cursorWrapper, style: { left, top }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.icon, style: { color }, children: "👆" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.label, style: { backgroundColor: color }, children: name })
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$3.cursorWrapper, style: { left, top }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.icon, style: { color }, children: "👆" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.label, style: { backgroundColor: color }, children: name })
       ] }, id);
     }) });
   }
@@ -2364,61 +2312,6 @@ const scoreBoardStyles = {
   buttonArea,
   limitMessage,
   buttonGroup
-};
-const image = "_image_965of_2";
-const textWrapper = "_textWrapper_965of_10";
-const text = "_text_965of_10";
-const contentWrapper = "_contentWrapper_965of_26";
-const styles$3 = {
-  image,
-  textWrapper,
-  text,
-  contentWrapper
-};
-const TokenDisplayContent = React__default.memo(({ token }) => {
-  if (token.image) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: styles$3.image }) });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$3.text, children: token.name }) }) });
-});
-const Token = ({ token, style, onClick, onDoubleClick, isDraggable, onDragStart, onDragEnd }) => {
-  const handleClick = (e) => {
-    e.stopPropagation();
-    onClick(token.id);
-  };
-  const handleDoubleClick = (e) => {
-    e.stopPropagation();
-    onDoubleClick(token.id);
-  };
-  const handleDragStart = (e) => {
-    if (isDraggable) {
-      e.stopPropagation();
-      e.dataTransfer.setData("pieceId", token.id);
-      e.dataTransfer.effectAllowed = "move";
-      if (token.image) {
-        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
-      }
-      onDragStart?.(e, token);
-    }
-  };
-  const handleDragEnd = (e) => {
-    onDragEnd?.(e, token);
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      className: styles$3.tokenContainer,
-      style: {
-        ...style
-      },
-      onClick: handleClick,
-      onDoubleClick: handleDoubleClick,
-      draggable: true,
-      onDragStart: handleDragStart,
-      onDragEnd: handleDragEnd,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token })
-    }
-  );
 };
 const PlayerListItem = React.memo(
   ({

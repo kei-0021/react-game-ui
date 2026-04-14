@@ -21,11 +21,8 @@ export const Token = ({ token, style, onClick, onDoubleClick, isDraggable, onDra
     const handleDragStart = (e) => {
         if (isDraggable) {
             e.stopPropagation();
-            e.dataTransfer.setData('pieceId', token.id);
+            e.dataTransfer.setData('tokenId', token.id);
             e.dataTransfer.effectAllowed = 'move';
-            if (token.image) {
-                e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
-            }
             onDragStart?.(e, token);
         }
     };
@@ -34,5 +31,5 @@ export const Token = ({ token, style, onClick, onDoubleClick, isDraggable, onDra
     };
     return (_jsx("div", { className: styles.tokenContainer, style: {
             ...style,
-        }, onClick: handleClick, onDoubleClick: handleDoubleClick, draggable: true, onDragStart: handleDragStart, onDragEnd: handleDragEnd, children: _jsx(TokenDisplayContent, { token: token }) }));
+        }, onClick: handleClick, onDoubleClick: handleDoubleClick, draggable: isDraggable, onDragStart: handleDragStart, onDragEnd: handleDragEnd, children: _jsx(TokenDisplayContent, { token: token }) }));
 };

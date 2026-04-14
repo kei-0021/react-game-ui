@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
 import styles from './Board.module.css';
 import { Cell } from './Cell.js';
-import { Piece } from './Piece.js';
+import { Token } from './Token.js';
 /**
  * 盤面（グリッド）を表示し、セルや駒のインタラクション、ドラッグ＆ドロップを管理する
  * @param {Socket} socket - Socket.ioのインスタンス
@@ -199,7 +199,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowT
                     transform: `translate(${offsetX}px, ${offsetY}px)`,
                     transition: 'transform 0.3s ease-in-out',
                 };
-                return (_jsx(Piece, { piece: token, style: tokenStyle, onClick: requestMovableRange, onDoubleClick: () => handleTokenDoubleClick(token.id), isDraggable: allowTokenDrag, 
+                return (_jsx(Token, { token: token, style: tokenStyle, onClick: requestMovableRange, onDoubleClick: () => handleTokenDoubleClick(token.id), isDraggable: allowTokenDrag, 
                     // isFilled={true}
                     onDragStart: handleTokenDragStart, onDragEnd: handleTokenDragEnd }, token.id));
             })] }));
