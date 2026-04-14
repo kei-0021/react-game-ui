@@ -6,8 +6,8 @@
  * ===========================================
  */
 .tokenContainer {
-  width: 45px;
-  height: 45px;
+  width: 60px;
+  height: 60px;
   position: absolute;
   z-index: 10;
   display: flex;
@@ -32,7 +32,6 @@
   transition: transform 0.1s ease;
   cursor: pointer;
 
-  /* position: absolute; は不要になるため削除、または relative に */
   position: relative;
 
   box-shadow:

@@ -2,16 +2,24 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React from 'react';
 import tokenStyles from './Token.module.css';
 const TokenDisplayContent = React.memo(({ token, isFilled }) => {
+    // SVGかどうかを判定（簡易的な判定）
+    const isSvg = token.image?.toLowerCase().endsWith('.svg');
     // 画像がない場合
     if (!token.image) {
-        return (_jsx("div", { className: tokenStyles.contentWrapper, style: { backgroundColor: token.color || '#4f4848ff' }, children: _jsx("div", { className: tokenStyles.textWrapper, children: _jsx("strong", { className: tokenStyles.text, children: token.name }) }) }));
+        return (_jsx("div", { className: tokenStyles.contentWrapper, style: { backgroundColor: token.color || '#4f4848ff', borderRadius: '50%' }, children: _jsx("div", { className: tokenStyles.textWrapper, children: _jsx("strong", { className: tokenStyles.text, children: token.name }) }) }));
     }
     // ビルド時の最適化回避用
     const MASK_IMAGE_PROP = ['mask', 'Image'].join('');
     const WEBKIT_MASK_IMAGE_PROP = ['Webkit', 'Mask', 'Image'].join('');
     const URL_FUNC = ['u', 'r', 'l'].join('');
     // 画像がある場合
-    return (_jsxs("div", { className: tokenStyles.contentWrapper, style: { backgroundColor: '#4f4848ff', overflow: 'hidden' }, children: [_jsx("img", { src: token.image, alt: token.name, className: tokenStyles.image }), isFilled && (_jsx("div", { style: {
+    return (_jsxs("div", { className: tokenStyles.contentWrapper, style: {
+            // SVGなら背景と丸めを無効化、それ以外なら従来通り
+            backgroundColor: isSvg ? 'transparent' : '#4f4848ff',
+            borderRadius: isSvg ? '0' : '50%',
+            boxShadow: isSvg ? 'none' : undefined,
+            overflow: 'visible', // SVGの端が切れないように
+        }, children: [_jsx("img", { src: token.image, alt: token.name, className: tokenStyles.image }), isFilled && (_jsx("div", { style: {
                     position: 'absolute',
                     inset: 0,
                     backgroundColor: token.color || 'red',

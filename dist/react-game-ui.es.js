@@ -1578,11 +1578,11 @@ function Draggable({
     )
   ] });
 }
-const tokenContainer = "_tokenContainer_9179f_8";
-const contentWrapper = "_contentWrapper_9179f_23";
-const textWrapper = "_textWrapper_9179f_57";
-const text = "_text_9179f_57";
-const image = "_image_9179f_73";
+const tokenContainer = "_tokenContainer_11yla_8";
+const contentWrapper = "_contentWrapper_11yla_23";
+const textWrapper = "_textWrapper_11yla_56";
+const text = "_text_11yla_56";
+const image = "_image_11yla_72";
 const tokenStyles = {
   tokenContainer,
   contentWrapper,
@@ -1591,35 +1591,57 @@ const tokenStyles = {
   image
 };
 const TokenDisplayContent = React__default.memo(({ token, isFilled }) => {
+  const isSvg = token.image?.toLowerCase().endsWith(".svg");
   if (!token.image) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: tokenStyles.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: tokenStyles.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: tokenStyles.text, children: token.name }) }) });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        className: tokenStyles.contentWrapper,
+        style: { backgroundColor: token.color || "#4f4848ff", borderRadius: "50%" },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: tokenStyles.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: tokenStyles.text, children: token.name }) })
+      }
+    );
   }
   const MASK_IMAGE_PROP = ["mask", "Image"].join("");
   const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
   const URL_FUNC = ["u", "r", "l"].join("");
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: tokenStyles.contentWrapper, style: { backgroundColor: "#4f4848ff", overflow: "hidden" }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: tokenStyles.image }),
-    isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        style: {
-          position: "absolute",
-          inset: 0,
-          backgroundColor: token.color || "red",
-          [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
-          [MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
-          WebkitMaskSize: "contain",
-          maskSize: "contain",
-          WebkitMaskRepeat: "no-repeat",
-          maskRepeat: "no-repeat",
-          WebkitMaskPosition: "center",
-          maskPosition: "center",
-          mixBlendMode: "multiply",
-          pointerEvents: "none"
-        }
-      }
-    )
-  ] });
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      className: tokenStyles.contentWrapper,
+      style: {
+        // SVGなら背景と丸めを無効化、それ以外なら従来通り
+        backgroundColor: isSvg ? "transparent" : "#4f4848ff",
+        borderRadius: isSvg ? "0" : "50%",
+        boxShadow: isSvg ? "none" : void 0,
+        overflow: "visible"
+        // SVGの端が切れないように
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: tokenStyles.image }),
+        isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            style: {
+              position: "absolute",
+              inset: 0,
+              backgroundColor: token.color || "red",
+              [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
+              [MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
+              WebkitMaskSize: "contain",
+              maskSize: "contain",
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+              WebkitMaskPosition: "center",
+              maskPosition: "center",
+              mixBlendMode: "multiply",
+              pointerEvents: "none"
+            }
+          }
+        )
+      ]
+    }
+  );
 });
 const Token = ({
   token,
