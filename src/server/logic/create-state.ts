@@ -151,7 +151,6 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
   };
 
   server_log('room', state.gameId, roomId, `ルーム初期化完了`);
-  console.log(JSON.stringify(boardTokens, null, 2));
   return state;
 }
 
@@ -203,32 +202,43 @@ export function createPlayer(param: GameParam, state: RoomState, playerName: str
 
   // 駒の配布処理
   if (param.initialTokensOnBoard) {
-    const templates = Object.entries(param.initialTokensOnBoard).filter(([_, p]) =>
-      p.some((t) => t.ownerId === ('player' as any)),
-    );
+    const boardIds = Object.keys(state.boards);
+    const defaultBoardId = boardIds[0];
 
-    templates.forEach(([key, p]) => {
-      const template = p.find((t) => t.ownerId === ('player' as any));
+    Object.entries(param.initialTokensOnBoard).forEach(([key, p]) => {
+      // 設定データが配列でない場合を考慮
+      const tokens = Array.isArray(p) ? p : [p];
+      const template = tokens.find((t) => t.ownerId === ('player' as any));
+
       if (!template) return;
 
       const tokenId = `${key}_${playerId}`;
 
-      state.boardTokens[tokenId] = [
-        {
+      // トークンに紐づく boardId を取得、なければデフォルトを使用
+      const targetBoardId = (template as any).boardId || defaultBoardId;
+
+      // 既存の盤面データに対して新しいプレイヤーの駒を push する
+      if (state.boardTokens[targetBoardId]) {
+        state.boardTokens[targetBoardId].push({
           ...template,
           id: tokenId,
           ownerId: playerId,
-          name: newPlayer.name,
+          name: `${template.name} (${newPlayer.name})`,
           color: newPlayer.color,
           position: {
             row: template.position?.row ?? 0,
             col: (template.position?.col ?? 0) + state.players.length,
           },
           movableCells: [],
-        },
-      ];
+        });
+      }
 
-      server_log('cell', state.gameId, state.roomId, `プレイヤー ${newPlayer.name} 用の駒を生成しました`);
+      server_log(
+        'token',
+        state.gameId,
+        state.roomId,
+        `プレイヤー ${newPlayer.name} 用の駒を盤面(${targetBoardId})に追加しました`,
+      );
     });
   }
 

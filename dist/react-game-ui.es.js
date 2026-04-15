@@ -4280,7 +4280,8 @@ class DeckManager {
   }
 }
 class TokenManager {
-  constructor(state) {
+  constructor(param, state) {
+    this.param = param;
     this.state = state;
   }
   /**
@@ -4309,6 +4310,50 @@ class TokenManager {
       );
     }
   }
+  // 盤面 → 盤面
+  MoveOnBoardToken(boardId, tokenId, newLocation, roomManager) {
+    const token = this.state.boardTokens[boardId].find((t) => t.id == tokenId);
+    if (!token) return;
+    const oldLocation = token.position;
+    if (!oldLocation) return;
+    token.position = newLocation;
+    const cellEffects = this.param.cellEffects;
+    if (cellEffects && token.ownerId) {
+      roomManager.applyCellEffect(boardId, token.ownerId, newLocation, cellEffects);
+    }
+    const onTokenMove = this.param.onTokenMove;
+    if (onTokenMove) {
+      onTokenMove(this.state, roomManager, newLocation);
+    }
+    server_log(
+      "token",
+      this.state.gameId,
+      this.state.roomId,
+      `MOVEON: ${token.name} (ID:${token.id}) (${oldLocation.row}, ${oldLocation.col}-> ${newLocation.row}, ${newLocation.col})`
+    );
+  }
+  // 盤面 → 手持ち
+  MoveFromBoardToken(boardId, tokenId, socketId) {
+    const player = this.state.players.find((p) => p.socketId === socketId);
+    const boardTokens = this.state.boardTokens[boardId];
+    if (!boardTokens || !player) return;
+    const index = boardTokens.findIndex((t) => t.id === tokenId);
+    if (index === -1) return;
+    const [token] = boardTokens.splice(index, 1);
+    token.ownerId = player.id;
+    token.position = null;
+    token.movableCells = [];
+    if (!Array.isArray(player.tokens)) {
+      player.tokens = [];
+    }
+    player.tokens.push(token);
+    server_log(
+      "token",
+      this.state.gameId,
+      this.state.roomId,
+      `MOVEFROM: ${token.name} (ID:${token.id}) (${boardId} -> ${player.id})`
+    );
+  }
   /**
    * 手持ちから盤面へトークンを移動する
    */
@@ -4326,7 +4371,7 @@ class TokenManager {
       "token",
       this.state.gameId,
       this.state.roomId,
-      `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${newLocation.row}, ${newLocation.col})`
+      `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${boardId} ${newLocation.row}, ${newLocation.col})`
     );
   }
   /**
@@ -4495,7 +4540,7 @@ class RoomManager {
    * @param playerId - プレイヤーID
    */
   acquireToken(tokenStoreId, tokenId = null, playerId) {
-    const tokenManager = new TokenManager(this.state);
+    const tokenManager = new TokenManager(this.param, this.state);
     tokenManager.acquireToken(tokenStoreId, tokenId, playerId);
     this.emitTokenStoreUpdate(tokenStoreId);
   }
@@ -4504,7 +4549,7 @@ class RoomManager {
    * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
    */
   getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
-    const tokenManager = new TokenManager(this.state);
+    const tokenManager = new TokenManager(this.param, this.state);
     return tokenManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
   };
   /**

@@ -32,31 +32,6 @@ export function registerTokenListeners(
     }
   });
 
-  // 盤面 → 手持ち
-  socket.on('token:move-from-board', ({ roomId, boardId, tokenId }: TokenMoveFromBoardData) => {
-    const state = activeRooms.get(roomId);
-    if (!state) return;
-    const param = gameParams[state.gameId];
-    const roomManager = new RoomManager(io, param, state);
-
-    const player = state?.players.find((p) => p.socketId === socket.id);
-    const token = state?.boardTokens[boardId].find((t) => t.id == tokenId);
-    if (player && token) {
-      // 属性を書き換える
-      token.ownerId = player.id;
-      token.position = null;
-      token.movableCells = [];
-
-      // トークンの所在を書き換える
-      player.tokens.push(token);
-      delete state?.boardTokens[tokenId];
-
-      // 更新を通知
-      roomManager.emitPlayerUpdate();
-      roomManager.emitBoardUpdate(boardId);
-    }
-  });
-
   // 手持ち → 盤面
   socket.on('token:play', ({ roomId, boardId, tokenId, playerId, newLocation }: TokenPlayData) => {
     const state = activeRooms.get(roomId);
@@ -64,9 +39,24 @@ export function registerTokenListeners(
     const param = gameParams[state.gameId];
     const roomManager = new RoomManager(io, param, state);
 
-    const tokenManager = new TokenManager(state);
+    const tokenManager = new TokenManager(param, state);
     tokenManager.playToken(boardId, tokenId, playerId, newLocation);
 
+    roomManager.emitPlayerUpdate();
+    roomManager.emitBoardUpdate(boardId);
+  });
+
+  // 盤面 → 手持ち
+  socket.on('token:move-from-board', ({ roomId, boardId, tokenId }: TokenMoveFromBoardData) => {
+    const state = activeRooms.get(roomId);
+    if (!state) return;
+    const param = gameParams[state.gameId];
+    const roomManager = new RoomManager(io, param, state);
+
+    const tokenManager = new TokenManager(param, state);
+    tokenManager.MoveFromBoardToken(boardId, tokenId, socket.id);
+
+    // 更新を通知
     roomManager.emitPlayerUpdate();
     roomManager.emitBoardUpdate(boardId);
   });
@@ -78,26 +68,11 @@ export function registerTokenListeners(
     const param = gameParams[state.gameId];
     const roomManager = new RoomManager(io, param, state);
 
-    const token = state.boardTokens[boardId].find((t) => t.id == tokenId);
-    if (token) {
-      // 座標を更新
-      token.position = newLocation;
+    const tokenManager = new TokenManager(param, state);
+    tokenManager.MoveOnBoardToken(boardId, tokenId, newLocation, roomManager);
 
-      // セル効果
-      const cellEffects = param.cellEffects;
-      if (cellEffects && token.ownerId) {
-        roomManager.applyCellEffect(boardId, token.ownerId, newLocation, cellEffects);
-      }
-
-      // カスタムフック
-      const onTokenMove = param.onTokenMove;
-      if (onTokenMove) {
-        onTokenMove(state, roomManager, newLocation);
-      }
-
-      // 盤面全体を同期
-      roomManager.emitBoardUpdate(boardId);
-    }
+    // 盤面全体を同期
+    roomManager.emitBoardUpdate(boardId);
   });
 
   // 駒の移動可能範囲リクエスト

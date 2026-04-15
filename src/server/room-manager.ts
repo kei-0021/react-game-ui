@@ -191,7 +191,7 @@ export class RoomManager {
    * @param playerId - プレイヤーID
    */
   acquireToken(tokenStoreId: TokenStoreId, tokenId: TokenId | null = null, playerId: PlayerId) {
-    const tokenManager = new TokenManager(this.state);
+    const tokenManager = new TokenManager(this.param, this.state);
     tokenManager.acquireToken(tokenStoreId, tokenId, playerId);
     this.emitTokenStoreUpdate(tokenStoreId);
   }
@@ -201,7 +201,7 @@ export class RoomManager {
    * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
    */
   getMovableCellIds = (boardId: BoardId, startCellId: CellId, moveRange: number, isExact: boolean): CellId[] => {
-    const tokenManager = new TokenManager(this.state);
+    const tokenManager = new TokenManager(this.param, this.state);
     return tokenManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
   };
 
