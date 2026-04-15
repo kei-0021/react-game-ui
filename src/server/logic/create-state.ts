@@ -114,6 +114,19 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
   }
 
   const initialMaxZIndex = Object.values(draggables).reduce((max, d) => Math.max(max, d.zIndex || 0), 0);
+  const boardTokens: Record<BoardId, TokenData[]> = Object.fromEntries(Object.keys(Cells).map((id) => [id, []]));
+
+  // 全ての initialTokensOnBoard を、ひとまず最初のボードに突っ込む
+  const defaultBoardId = Object.keys(Cells)[0];
+
+  Object.entries(param.initialTokensOnBoard || {}).forEach(([_, p]) => {
+    const tokens = Array.isArray(p) ? p : [p];
+    const npcTokens = tokens.filter((t) => t.ownerId !== ('player' as any));
+
+    if (boardTokens[defaultBoardId]) {
+      boardTokens[defaultBoardId].push(...npcTokens);
+    }
+  });
 
   const state: RoomState = {
     roomId: roomId,
@@ -128,9 +141,7 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     discardPile: discardPile,
     holdCards: holdCards,
     boards: Cells,
-    boardTokens: Object.fromEntries(
-      Object.entries(param.initialTokensOnBoard || {}).filter(([_, p]) => p.ownerId !== ('player' as any)),
-    ),
+    boardTokens: boardTokens,
     exploredCells: [],
     tokenStores: tokenStores,
     draggables: draggables,
@@ -140,6 +151,7 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
   };
 
   server_log('room', state.gameId, roomId, `ルーム初期化完了`);
+  console.log(JSON.stringify(boardTokens, null, 2));
   return state;
 }
 
@@ -191,23 +203,30 @@ export function createPlayer(param: GameParam, state: RoomState, playerName: str
 
   // 駒の配布処理
   if (param.initialTokensOnBoard) {
-    const templates = Object.entries(param.initialTokensOnBoard).filter(([_, p]) => p.ownerId === ('player' as any));
+    const templates = Object.entries(param.initialTokensOnBoard).filter(([_, p]) =>
+      p.some((t) => t.ownerId === ('player' as any)),
+    );
 
-    templates.forEach(([templateId, template]) => {
-      const tokenId = `${templateId}_${playerId}`;
+    templates.forEach(([key, p]) => {
+      const template = p.find((t) => t.ownerId === ('player' as any));
+      if (!template) return;
 
-      state.boardTokens[tokenId] = {
-        ...template,
-        id: tokenId,
-        ownerId: playerId,
-        name: newPlayer.name,
-        color: newPlayer.color,
-        position: {
-          row: template.position?.row ?? 0,
-          col: (template.position?.col ?? 0) + state.players.length,
+      const tokenId = `${key}_${playerId}`;
+
+      state.boardTokens[tokenId] = [
+        {
+          ...template,
+          id: tokenId,
+          ownerId: playerId,
+          name: newPlayer.name,
+          color: newPlayer.color,
+          position: {
+            row: template.position?.row ?? 0,
+            col: (template.position?.col ?? 0) + state.players.length,
+          },
+          movableCells: [],
         },
-        movableCells: [],
-      };
+      ];
 
       server_log('cell', state.gameId, state.roomId, `プレイヤー ${newPlayer.name} 用の駒を生成しました`);
     });

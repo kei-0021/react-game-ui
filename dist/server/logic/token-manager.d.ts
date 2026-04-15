@@ -14,7 +14,7 @@ export declare class TokenManager {
     /**
      * 手持ちから盤面へトークンを移動する
      */
-    playToken(tokenId: TokenId, playerId: PlayerId, newLocation: Position): void;
+    playToken(boardId: BoardId, tokenId: TokenId, playerId: PlayerId, newLocation: Position): void;
     /**
      * 指定したセルから一定歩数で行けるセルIDをすべて取得する
      * isExact: true の場合、moveRange と同じ歩数のセルのみを返す

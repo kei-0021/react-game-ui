@@ -48,7 +48,7 @@ export type GameParam = {
     initialTokens?: Record<TokenId, number>;
     initialBoard?: Record<BoardId, CellData[]>;
     shuffleAndReconnectBoard?: Record<BoardId, (cells: CellData[]) => CellData[]>;
-    initialTokensOnBoard?: Record<TokenId, TokenData>;
+    initialTokensOnBoard?: Record<DeckId, TokenData[]>;
     draggables?: Record<DraggableId, DraggableData>;
     initialPhase?: Phase;
     cardEffects?: Record<string, any>;

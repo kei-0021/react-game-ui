@@ -4312,16 +4312,16 @@ class TokenManager {
   /**
    * 手持ちから盤面へトークンを移動する
    */
-  playToken(tokenId, playerId, newLocation) {
+  playToken(boardId, tokenId, playerId, newLocation) {
     const player = this.state.players.find((p) => p.id === playerId);
     if (!player) return;
     const targetToken = player.tokens.find((t) => t.id === tokenId);
     if (!targetToken) return;
     player.tokens = player.tokens.filter((t) => t.id !== tokenId);
-    this.state.boardTokens[tokenId] = {
+    this.state.boardTokens[boardId].push({
       ...targetToken,
       position: newLocation
-    };
+    });
     server_log(
       "token",
       this.state.gameId,
@@ -4412,7 +4412,7 @@ class RoomManager {
   emitBoardUpdate = (boardId) => {
     this.io.to(this.state.roomId).emit("board:update", {
       board: this.state.boards[boardId],
-      boardTokens: Object.values(this.state.boardTokens)
+      boardTokens: Object.values(this.state.boardTokens).flat()
     });
   };
   /**

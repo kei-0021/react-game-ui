@@ -31,7 +31,7 @@ export class TokenManager {
     /**
      * 手持ちから盤面へトークンを移動する
      */
-    playToken(tokenId, playerId, newLocation) {
+    playToken(boardId, tokenId, playerId, newLocation) {
         const player = this.state.players.find((p) => p.id === playerId);
         if (!player)
             return;
@@ -42,10 +42,10 @@ export class TokenManager {
         // プレイヤーのリストから除外
         player.tokens = player.tokens.filter((t) => t.id !== tokenId);
         // 盤面に移動（Recordに追加）
-        this.state.boardTokens[tokenId] = {
+        this.state.boardTokens[boardId].push({
             ...targetToken,
             position: newLocation,
-        };
+        });
         server_log('token', this.state.gameId, this.state.roomId, `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${newLocation.row}, ${newLocation.col})`);
     }
     /**

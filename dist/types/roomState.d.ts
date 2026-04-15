@@ -40,7 +40,7 @@ export type RoomState = {
     discardPile: Record<PlayerId, CardData[]>;
     holdCards: Record<PlayerId, Record<DeckId, CardId[]>>;
     boards: Record<BoardId, CellData[]>;
-    boardTokens: Record<BoardId, TokenData>;
+    boardTokens: Record<BoardId, TokenData[]>;
     exploredCells: Position[];
     tokenStores: Record<TokenStoreId, TokenData[]>;
     draggables: Record<DraggableId, DraggableData>;

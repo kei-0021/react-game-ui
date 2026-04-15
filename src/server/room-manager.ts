@@ -97,7 +97,7 @@ export class RoomManager {
   emitBoardUpdate = (boardId: BoardId) => {
     this.io.to(this.state.roomId).emit('board:update', {
       board: this.state.boards[boardId],
-      boardTokens: Object.values(this.state.boardTokens),
+      boardTokens: Object.values(this.state.boardTokens).flat(),
     } as BoardUpdateData);
   };
 

@@ -40,8 +40,8 @@ export function registerTokenListeners(
     const roomManager = new RoomManager(io, param, state);
 
     const player = state?.players.find((p) => p.socketId === socket.id);
-    const token = state?.boardTokens[tokenId];
-    if (state && player) {
+    const token = state?.boardTokens[boardId].find((t) => t.id == tokenId);
+    if (player && token) {
       // 属性を書き換える
       token.ownerId = player.id;
       token.position = null;
@@ -65,7 +65,7 @@ export function registerTokenListeners(
     const roomManager = new RoomManager(io, param, state);
 
     const tokenManager = new TokenManager(state);
-    tokenManager.playToken(tokenId, playerId, newLocation);
+    tokenManager.playToken(boardId, tokenId, playerId, newLocation);
 
     roomManager.emitPlayerUpdate();
     roomManager.emitBoardUpdate(boardId);
@@ -78,7 +78,7 @@ export function registerTokenListeners(
     const param = gameParams[state.gameId];
     const roomManager = new RoomManager(io, param, state);
 
-    const token = state.boardTokens[tokenId];
+    const token = state.boardTokens[boardId].find((t) => t.id == tokenId);
     if (token) {
       // 座標を更新
       token.position = newLocation;
@@ -109,7 +109,7 @@ export function registerTokenListeners(
       const param = gameParams[state.gameId];
       const roomManager = new RoomManager(io, param, state);
 
-      const token = state.boardTokens[tokenId];
+      const token = state.boardTokens[boardId].find((t) => t.id == tokenId);
       if (!token || !token.position) return;
 
       const { row, col } = token.position;
