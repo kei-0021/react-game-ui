@@ -1015,6 +1015,25 @@ const cardStyles = {
   previewContent,
   previewDescription
 };
+const rgPlayFieldContainer = "_rgPlayFieldContainer_mzyzy_13";
+const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_mzyzy_25";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_mzyzy_34";
+const contextMenu$1 = "_contextMenu_mzyzy_58";
+const menuItem$1 = "_menuItem_mzyzy_73";
+const menuIcon = "_menuIcon_mzyzy_90";
+const separator$1 = "_separator_mzyzy_98";
+const debugLabel$1 = "_debugLabel_mzyzy_126";
+const playFieldStyles = {
+  "rg-playfield": "_rg-playfield_mzyzy_3",
+  rgPlayFieldContainer,
+  rgPlayFieldCardWrapper,
+  rgPlayFieldOwnerBadge,
+  contextMenu: contextMenu$1,
+  menuItem: menuItem$1,
+  menuIcon,
+  separator: separator$1,
+  debugLabel: debugLabel$1
+};
 const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
   if (!canSeeFront) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card2.backColor || "#333" } });
@@ -1024,6 +1043,37 @@ const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) =>
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
 });
+const Card = ({
+  card: card2,
+  style,
+  isActuallyFreeShape,
+  canSeeFront,
+  onClick,
+  onPointerUp,
+  onPointerDown,
+  onDragStart,
+  isDraggable,
+  onContextMenu
+}) => {
+  const handleClick = (e) => {
+    e.stopPropagation();
+    onClick?.(card2.id);
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: `${isActuallyFreeShape ? "" : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`,
+      style,
+      onClick: handleClick,
+      onPointerUp,
+      onPointerDown,
+      onDragStart,
+      draggable: isDraggable,
+      onContextMenu,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront })
+    }
+  );
+};
 const CardPreview = ({ card: card2, children }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
@@ -1269,16 +1319,16 @@ function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll,
   ] });
 }
 const draggable = "_draggable_datou_3";
-const contextMenu$1 = "_contextMenu_datou_28";
-const menuItem$1 = "_menuItem_datou_42";
-const separator$1 = "_separator_datou_63";
-const debugLabel$1 = "_debugLabel_datou_85";
+const contextMenu = "_contextMenu_datou_28";
+const menuItem = "_menuItem_datou_42";
+const separator = "_separator_datou_63";
+const debugLabel = "_debugLabel_datou_85";
 const draggableStyles = {
   draggable,
-  contextMenu: contextMenu$1,
-  menuItem: menuItem$1,
-  separator: separator$1,
-  debugLabel: debugLabel$1
+  contextMenu,
+  menuItem,
+  separator,
+  debugLabel
 };
 function Draggable({
   socket,
@@ -1903,25 +1953,6 @@ function GridBoard({
     })
   ] });
 }
-const rgPlayFieldContainer = "_rgPlayFieldContainer_mzyzy_13";
-const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_mzyzy_25";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_mzyzy_34";
-const contextMenu = "_contextMenu_mzyzy_58";
-const menuItem = "_menuItem_mzyzy_73";
-const menuIcon = "_menuIcon_mzyzy_90";
-const separator = "_separator_mzyzy_98";
-const debugLabel = "_debugLabel_mzyzy_126";
-const playFieldStyles = {
-  "rg-playfield": "_rg-playfield_mzyzy_3",
-  rgPlayFieldContainer,
-  rgPlayFieldCardWrapper,
-  rgPlayFieldOwnerBadge,
-  contextMenu,
-  menuItem,
-  menuIcon,
-  separator,
-  debugLabel
-};
 function throttle(func, limit) {
   let inThrottle;
   return function(...args) {
@@ -2109,24 +2140,15 @@ function PlayField({
                   // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                   transition: isDragging ? "none" : "left 0.2s ease, top 0.2s ease"
                 } : {};
+                const cardStyle = { width: "80px", height: "112px", background: "transparent" };
                 return /* @__PURE__ */ jsxRuntimeExports.jsxs(
                   "div",
                   {
-                    draggable: false,
-                    onDragStart: (e) => e.preventDefault(),
-                    onPointerDown: (e) => handlePointerDown(e, card2),
-                    onPointerUp: handlePointerUp,
-                    onContextMenu: (e) => handleContextMenu(e, card2),
-                    onPointerCancel: handlePointerUp,
-                    className: `${isActuallyFreeShape ? "" : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`,
                     style: {
                       "--owner-color": owner?.color || "#aaaaaa",
                       ...freeStyle,
                       touchAction: "none",
                       cursor: isDragging ? "grabbing" : layoutMode === "free" ? "grab" : "default",
-                      width: "80px",
-                      height: "112px",
-                      background: "transparent",
                       border: isActuallyFreeShape ? "none" : void 0,
                       boxShadow: isActuallyFreeShape && isDragging ? "0 0 15px var(--owner-color)" : "none",
                       padding: 0,
@@ -2135,7 +2157,21 @@ function PlayField({
                       zIndex: currentZIndex
                     },
                     children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: card2.isFaceUp }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Card,
+                        {
+                          card: card2,
+                          style: cardStyle,
+                          isActuallyFreeShape,
+                          canSeeFront: card2.isFaceUp,
+                          onPointerUp: handlePointerUp,
+                          onPointerDown: (e) => handlePointerDown(e, card2),
+                          onDragStart: (e) => e.preventDefault(),
+                          isDraggable: false,
+                          onContextMenu: (e) => handleContextMenu(e, card2)
+                        },
+                        card2.id
+                      ),
                       card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
                       isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: [
                         "Z:",
@@ -2143,8 +2179,7 @@ function PlayField({
                       ] }),
                       card2.description && !isDragging && card2.isFaceUp && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description })
                     ]
-                  },
-                  card2.id
+                  }
                 );
               }),
               contextMenu2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(

@@ -13,7 +13,7 @@ import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { CardData } from '../types/card.js';
 import type { CardId, DeckId, PlayerId, RoomId } from '../types/definition.js';
-import { CardDisplayContent } from './Card.js';
+import { Card } from './Card.js';
 import cardStyles from './Card.module.css';
 import playFieldStyles from './PlayField.module.css';
 
@@ -304,25 +304,16 @@ export function PlayField({
                 }
               : {};
 
+          const cardStyle = { width: '80px', height: '112px', background: 'transparent' };
+
           return (
             <div
-              key={card.id}
-              draggable={false}
-              onDragStart={(e) => e.preventDefault()}
-              onPointerDown={(e) => handlePointerDown(e, card)}
-              onPointerUp={handlePointerUp}
-              onContextMenu={(e) => handleContextMenu(e, card)}
-              onPointerCancel={handlePointerUp}
-              className={`${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`}
               style={
                 {
                   '--owner-color': owner?.color || '#aaaaaa',
                   ...freeStyle,
                   touchAction: 'none',
                   cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
-                  width: '80px',
-                  height: '112px',
-                  background: 'transparent',
                   border: isActuallyFreeShape ? 'none' : undefined,
                   boxShadow: isActuallyFreeShape && isDragging ? '0 0 15px var(--owner-color)' : 'none',
                   padding: 0,
@@ -332,7 +323,18 @@ export function PlayField({
                 } as React.CSSProperties
               }
             >
-              <CardDisplayContent card={card} canSeeFront={card.isFaceUp} />
+              <Card
+                key={card.id}
+                card={card}
+                style={cardStyle}
+                isActuallyFreeShape={isActuallyFreeShape}
+                canSeeFront={card.isFaceUp}
+                onPointerUp={handlePointerUp}
+                onPointerDown={(e) => handlePointerDown(e, card)}
+                onDragStart={(e) => e.preventDefault()}
+                isDraggable={false}
+                onContextMenu={(e) => handleContextMenu(e, card)}
+              />
 
               {/* オーナーバッジ */}
               {card.ownerId && (

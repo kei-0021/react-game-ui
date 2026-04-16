@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
-import { CardDisplayContent } from './Card.js';
+import { Card } from './Card.js';
 import cardStyles from './Card.module.css';
 import playFieldStyles from './PlayField.module.css';
 // 通信量制限用の throttle
@@ -199,21 +199,19 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                 transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                             }
                             : {};
-                        return (_jsxs("div", { draggable: false, onDragStart: (e) => e.preventDefault(), onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, onContextMenu: (e) => handleContextMenu(e, card), onPointerCancel: handlePointerUp, className: `${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`, style: {
+                        const cardStyle = { width: '80px', height: '112px', background: 'transparent' };
+                        return (_jsxs("div", { style: {
                                 '--owner-color': owner?.color || '#aaaaaa',
                                 ...freeStyle,
                                 touchAction: 'none',
                                 cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
-                                width: '80px',
-                                height: '112px',
-                                background: 'transparent',
                                 border: isActuallyFreeShape ? 'none' : undefined,
                                 boxShadow: isActuallyFreeShape && isDragging ? '0 0 15px var(--owner-color)' : 'none',
                                 padding: 0,
                                 display: 'block',
                                 position: layoutMode === 'free' ? 'absolute' : 'relative',
                                 zIndex: currentZIndex,
-                            }, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: card.isFaceUp }), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && (_jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: ["Z:", currentZIndex] })), card.description && !isDragging && card.isFaceUp && (_jsx("span", { className: cardStyles.tooltip, children: card.description }))] }, card.id));
+                            }, children: [_jsx(Card, { card: card, style: cardStyle, isActuallyFreeShape: isActuallyFreeShape, canSeeFront: card.isFaceUp, onPointerUp: handlePointerUp, onPointerDown: (e) => handlePointerDown(e, card), onDragStart: (e) => e.preventDefault(), isDraggable: false, onContextMenu: (e) => handleContextMenu(e, card) }, card.id), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && (_jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: ["Z:", currentZIndex] })), card.description && !isDragging && card.isFaceUp && (_jsx("span", { className: cardStyles.tooltip, children: card.description }))] }));
                     }), contextMenu && (_jsxs("div", { className: playFieldStyles.contextMenu, style: {
                             top: contextMenu.y,
                             left: contextMenu.x,
