@@ -52,7 +52,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowT
                 boardId,
                 tokenId,
                 playerId,
-                newLocation: { row: targetRow, col: targetCol },
+                newPosition: { row: targetRow, col: targetCol },
             });
         }
         else {
@@ -63,7 +63,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowT
                 roomId,
                 boardId,
                 tokenId,
-                newLocation: { row: targetRow, col: targetCol },
+                newPosition: { row: targetRow, col: targetCol },
             });
         }
     };

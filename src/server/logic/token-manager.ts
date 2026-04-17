@@ -45,32 +45,32 @@ export class TokenManager {
   }
 
   // 盤面 → 盤面
-  MoveOnBoardToken(boardId: BoardId, tokenId: TokenId, newLocation: Position, roomManager: RoomManager): void {
+  MoveOnBoardToken(boardId: BoardId, tokenId: TokenId, newPosition: Position, roomManager: RoomManager): void {
     const token = this.state.boardTokens[boardId].find((t) => t.id == tokenId);
     if (!token) return;
 
     // 座標を更新
     const oldLocation = token.position;
     if (!oldLocation) return;
-    token.position = newLocation;
+    token.position = newPosition;
 
     // セル効果
     const cellEffects = this.param.cellEffects;
     if (cellEffects && token.ownerId) {
-      roomManager.applyCellEffect(boardId, token.ownerId, newLocation, cellEffects);
+      roomManager.applyCellEffect(boardId, token.ownerId, newPosition, cellEffects);
     }
 
     // カスタムフック
     const onTokenMove = this.param.onTokenMove;
     if (onTokenMove) {
-      onTokenMove(this.state, roomManager, newLocation);
+      onTokenMove(this.state, roomManager, newPosition);
     }
 
     server_log(
       'token',
       this.state.gameId,
       this.state.roomId,
-      `MOVEON: ${token.name} (ID:${token.id}) (${oldLocation.row}, ${oldLocation.col}-> ${newLocation.row}, ${newLocation.col})`,
+      `MOVEON: ${token.name} (ID:${token.id}) (${oldLocation.row}, ${oldLocation.col}-> ${newPosition.row}, ${newPosition.col})`,
     );
   }
 
@@ -110,7 +110,7 @@ export class TokenManager {
   /**
    * 手持ちから盤面へトークンを移動する
    */
-  playToken(boardId: BoardId, tokenId: TokenId, playerId: PlayerId, newLocation: Position): void {
+  playToken(boardId: BoardId, tokenId: TokenId, playerId: PlayerId, newPosition: Position): void {
     const player = this.state.players.find((p) => p.id === playerId);
     if (!player) return;
 
@@ -124,14 +124,14 @@ export class TokenManager {
     // 盤面に移動（Recordに追加）
     this.state.boardTokens[boardId].push({
       ...targetToken,
-      position: newLocation,
+      position: newPosition,
     });
 
     server_log(
       'token',
       this.state.gameId,
       this.state.roomId,
-      `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${boardId} ${newLocation.row}, ${newLocation.col})`,
+      `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${boardId} ${newPosition.row}, ${newPosition.col})`,
     );
   }
 

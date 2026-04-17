@@ -20,6 +20,7 @@ import type {
 } from './definition.js';
 import type { GameParam } from './gameParam.js';
 import type { Phase } from './phase.js';
+import { Position } from './position.js';
 import type { RoomState } from './roomState.js';
 import type { TokenData } from './token.js';
 
@@ -169,14 +170,14 @@ export type TokenPlayData = {
   boardId: BoardId;
   tokenId: TokenId;
   playerId: PlayerId;
-  newLocation: any;
+  newPosition: Position;
 };
 
 export type TokenMoveOnBoardData = {
   roomId: RoomId;
   boardId: BoardId;
   tokenId: TokenId;
-  newLocation: any;
+  newPosition: Position;
 };
 
 export type TokenMoveFromBoardData = {

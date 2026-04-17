@@ -10,7 +10,7 @@ import { Position } from './position.js';
  * @property {string} [color] - トークンの背景用のカラーコード
  * @property {string} [description] - トークンの説明文
  * @property {Position | null} - 盤面上の位置
- * @property {any[]} - 盤面上で移動可能なマスの一覧
+ * @property {Position[]} - 盤面上で移動可能なマスの一覧
  */
 export type TokenData = {
     id: TokenId;
@@ -21,6 +21,6 @@ export type TokenData = {
     color?: string;
     description?: string;
     position: Position | null;
-    movableCells: any[];
+    movableCells: Position[];
 };
 //# sourceMappingURL=token.d.ts.map

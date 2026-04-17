@@ -15,14 +15,14 @@ export function registerTokenListeners(socket, io, gameParams, activeRooms) {
         }
     });
     // 手持ち → 盤面
-    socket.on('token:play', ({ roomId, boardId, tokenId, playerId, newLocation }) => {
+    socket.on('token:play', ({ roomId, boardId, tokenId, playerId, newPosition: newPosition }) => {
         const state = activeRooms.get(roomId);
         if (!state)
             return;
         const param = gameParams[state.gameId];
         const roomManager = new RoomManager(io, param, state);
         const tokenManager = new TokenManager(param, state);
-        tokenManager.playToken(boardId, tokenId, playerId, newLocation);
+        tokenManager.playToken(boardId, tokenId, playerId, newPosition);
         roomManager.emitPlayerUpdate();
         roomManager.emitBoardUpdate(boardId);
     });
@@ -40,14 +40,14 @@ export function registerTokenListeners(socket, io, gameParams, activeRooms) {
         roomManager.emitBoardUpdate(boardId);
     });
     // 盤面 → 盤面
-    socket.on('token:move-on-board', ({ roomId, boardId, tokenId, newLocation }) => {
+    socket.on('token:move-on-board', ({ roomId, boardId, tokenId, newPosition }) => {
         const state = activeRooms.get(roomId);
         if (!state)
             return;
         const param = gameParams[state.gameId];
         const roomManager = new RoomManager(io, param, state);
         const tokenManager = new TokenManager(param, state);
-        tokenManager.MoveOnBoardToken(boardId, tokenId, newLocation, roomManager);
+        tokenManager.MoveOnBoardToken(boardId, tokenId, newPosition, roomManager);
         // 盤面全体を同期
         roomManager.emitBoardUpdate(boardId);
     });
@@ -66,7 +66,7 @@ export function registerTokenListeners(socket, io, gameParams, activeRooms) {
         // 移動範囲を計算
         const movableIds = roomManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
         // 位置情報形式に変換
-        const movableLocs = movableIds.map((id) => {
+        const movableCells = movableIds.map((id) => {
             const m = id.match(/r(\d+)c(\d+)/);
             return {
                 row: parseInt(m[1], 10),
@@ -74,7 +74,7 @@ export function registerTokenListeners(socket, io, gameParams, activeRooms) {
             };
         });
         // 移動可能範囲をセット
-        token.movableCells = movableLocs;
+        token.movableCells = movableCells;
         // 盤面全体を同期
         roomManager.emitBoardUpdate(boardId);
     });

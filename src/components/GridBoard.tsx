@@ -101,7 +101,7 @@ export function GridBoard({
         boardId,
         tokenId,
         playerId,
-        newLocation: { row: targetRow, col: targetCol },
+        newPosition: { row: targetRow, col: targetCol },
       } as TokenPlayData);
     } else {
       // Board内でのドロップ
@@ -111,7 +111,7 @@ export function GridBoard({
         roomId,
         boardId,
         tokenId,
-        newLocation: { row: targetRow, col: targetCol },
+        newPosition: { row: targetRow, col: targetCol },
       } as TokenMoveOnBoardData);
     }
   };

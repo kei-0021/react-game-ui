@@ -1780,7 +1780,7 @@ function GridBoard({
         boardId,
         tokenId,
         playerId,
-        newLocation: { row: targetRow, col: targetCol }
+        newPosition: { row: targetRow, col: targetCol }
       });
     } else {
       setHighlightedCells([]);
@@ -1788,7 +1788,7 @@ function GridBoard({
         roomId,
         boardId,
         tokenId,
-        newLocation: { row: targetRow, col: targetCol }
+        newPosition: { row: targetRow, col: targetCol }
       });
     }
   };
@@ -4346,25 +4346,25 @@ class TokenManager {
     }
   }
   // 盤面 → 盤面
-  MoveOnBoardToken(boardId, tokenId, newLocation, roomManager) {
+  MoveOnBoardToken(boardId, tokenId, newPosition, roomManager) {
     const token = this.state.boardTokens[boardId].find((t) => t.id == tokenId);
     if (!token) return;
     const oldLocation = token.position;
     if (!oldLocation) return;
-    token.position = newLocation;
+    token.position = newPosition;
     const cellEffects = this.param.cellEffects;
     if (cellEffects && token.ownerId) {
-      roomManager.applyCellEffect(boardId, token.ownerId, newLocation, cellEffects);
+      roomManager.applyCellEffect(boardId, token.ownerId, newPosition, cellEffects);
     }
     const onTokenMove = this.param.onTokenMove;
     if (onTokenMove) {
-      onTokenMove(this.state, roomManager, newLocation);
+      onTokenMove(this.state, roomManager, newPosition);
     }
     server_log(
       "token",
       this.state.gameId,
       this.state.roomId,
-      `MOVEON: ${token.name} (ID:${token.id}) (${oldLocation.row}, ${oldLocation.col}-> ${newLocation.row}, ${newLocation.col})`
+      `MOVEON: ${token.name} (ID:${token.id}) (${oldLocation.row}, ${oldLocation.col}-> ${newPosition.row}, ${newPosition.col})`
     );
   }
   // 盤面 → 手持ち
@@ -4392,7 +4392,7 @@ class TokenManager {
   /**
    * 手持ちから盤面へトークンを移動する
    */
-  playToken(boardId, tokenId, playerId, newLocation) {
+  playToken(boardId, tokenId, playerId, newPosition) {
     const player = this.state.players.find((p) => p.id === playerId);
     if (!player) return;
     const targetToken = player.tokens.find((t) => t.id === tokenId);
@@ -4400,13 +4400,13 @@ class TokenManager {
     player.tokens = player.tokens.filter((t) => t.id !== tokenId);
     this.state.boardTokens[boardId].push({
       ...targetToken,
-      position: newLocation
+      position: newPosition
     });
     server_log(
       "token",
       this.state.gameId,
       this.state.roomId,
-      `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${boardId} ${newLocation.row}, ${newLocation.col})`
+      `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${boardId} ${newPosition.row}, ${newPosition.col})`
     );
   }
   /**

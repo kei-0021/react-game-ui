@@ -31,7 +31,7 @@ export class TokenManager {
         }
     }
     // 盤面 → 盤面
-    MoveOnBoardToken(boardId, tokenId, newLocation, roomManager) {
+    MoveOnBoardToken(boardId, tokenId, newPosition, roomManager) {
         const token = this.state.boardTokens[boardId].find((t) => t.id == tokenId);
         if (!token)
             return;
@@ -39,18 +39,18 @@ export class TokenManager {
         const oldLocation = token.position;
         if (!oldLocation)
             return;
-        token.position = newLocation;
+        token.position = newPosition;
         // セル効果
         const cellEffects = this.param.cellEffects;
         if (cellEffects && token.ownerId) {
-            roomManager.applyCellEffect(boardId, token.ownerId, newLocation, cellEffects);
+            roomManager.applyCellEffect(boardId, token.ownerId, newPosition, cellEffects);
         }
         // カスタムフック
         const onTokenMove = this.param.onTokenMove;
         if (onTokenMove) {
-            onTokenMove(this.state, roomManager, newLocation);
+            onTokenMove(this.state, roomManager, newPosition);
         }
-        server_log('token', this.state.gameId, this.state.roomId, `MOVEON: ${token.name} (ID:${token.id}) (${oldLocation.row}, ${oldLocation.col}-> ${newLocation.row}, ${newLocation.col})`);
+        server_log('token', this.state.gameId, this.state.roomId, `MOVEON: ${token.name} (ID:${token.id}) (${oldLocation.row}, ${oldLocation.col}-> ${newPosition.row}, ${newPosition.col})`);
     }
     // 盤面 → 手持ち
     MoveFromBoardToken(boardId, tokenId, socketId) {
@@ -78,7 +78,7 @@ export class TokenManager {
     /**
      * 手持ちから盤面へトークンを移動する
      */
-    playToken(boardId, tokenId, playerId, newLocation) {
+    playToken(boardId, tokenId, playerId, newPosition) {
         const player = this.state.players.find((p) => p.id === playerId);
         if (!player)
             return;
@@ -91,9 +91,9 @@ export class TokenManager {
         // 盤面に移動（Recordに追加）
         this.state.boardTokens[boardId].push({
             ...targetToken,
-            position: newLocation,
+            position: newPosition,
         });
-        server_log('token', this.state.gameId, this.state.roomId, `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${boardId} ${newLocation.row}, ${newLocation.col})`);
+        server_log('token', this.state.gameId, this.state.roomId, `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${boardId} ${newPosition.row}, ${newPosition.col})`);
     }
     /**
      * 指定したセルから一定歩数で行けるセルIDをすべて取得する

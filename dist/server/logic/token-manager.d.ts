@@ -14,12 +14,12 @@ export declare class TokenManager {
      * @param playerId - プレイヤーID
      */
     acquireToken(tokenStoreId: TokenStoreId, tokenId: (TokenId | null) | undefined, playerId: PlayerId): void;
-    MoveOnBoardToken(boardId: BoardId, tokenId: TokenId, newLocation: Position, roomManager: RoomManager): void;
+    MoveOnBoardToken(boardId: BoardId, tokenId: TokenId, newPosition: Position, roomManager: RoomManager): void;
     MoveFromBoardToken(boardId: BoardId, tokenId: TokenId, socketId: string): void;
     /**
      * 手持ちから盤面へトークンを移動する
      */
-    playToken(boardId: BoardId, tokenId: TokenId, playerId: PlayerId, newLocation: Position): void;
+    playToken(boardId: BoardId, tokenId: TokenId, playerId: PlayerId, newPosition: Position): void;
     /**
      * 指定したセルから一定歩数で行けるセルIDをすべて取得する
      * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
