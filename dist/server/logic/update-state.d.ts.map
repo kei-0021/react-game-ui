@@ -1,1 +1,1 @@
-{"version":3,"file":"update-state.d.ts","sourceRoot":"","sources":["../../../src/server/logic/update-state.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,SAAS,EAAE,MAAM,mBAAmB,CAAC;AAG9C,wBAAgB,WAAW,CAAC,QAAQ,EAAE,SAAS,EAAE,QAAQ,EAAE,SAAS,GAAG,IAAI,CAG1E"}
+{"version":3,"file":"update-state.d.ts","sourceRoot":"","sources":["../../../src/server/logic/update-state.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,SAAS,EAAE,MAAM,YAAY,CAAC;AAGvC,wBAAgB,WAAW,CAAC,QAAQ,EAAE,SAAS,EAAE,QAAQ,EAAE,SAAS,GAAG,IAAI,CAG1E"}

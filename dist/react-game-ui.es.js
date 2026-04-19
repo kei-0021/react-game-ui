@@ -931,7 +931,7 @@ function requireJsxRuntime() {
 var jsxRuntimeExports = requireJsxRuntime();
 const boardContainer = "_boardContainer_14tjg_8";
 const cell = "_cell_14tjg_18";
-const styles$7 = {
+const styles$5 = {
   boardContainer,
   cell
 };
@@ -959,7 +959,7 @@ const Cell = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
-      className: styles$7.cell,
+      className: styles$5.cell,
       onClick: handleClick,
       onDoubleClick: handleDoubleClick,
       onDrop,
@@ -1015,6 +1015,25 @@ const cardStyles = {
   previewContent,
   previewDescription
 };
+const rgPlayFieldContainer = "_rgPlayFieldContainer_mzyzy_13";
+const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_mzyzy_25";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_mzyzy_34";
+const contextMenu$1 = "_contextMenu_mzyzy_58";
+const menuItem$1 = "_menuItem_mzyzy_73";
+const menuIcon = "_menuIcon_mzyzy_90";
+const separator$1 = "_separator_mzyzy_98";
+const debugLabel$1 = "_debugLabel_mzyzy_126";
+const playFieldStyles = {
+  "rg-playfield": "_rg-playfield_mzyzy_3",
+  rgPlayFieldContainer,
+  rgPlayFieldCardWrapper,
+  rgPlayFieldOwnerBadge,
+  contextMenu: contextMenu$1,
+  menuItem: menuItem$1,
+  menuIcon,
+  separator: separator$1,
+  debugLabel: debugLabel$1
+};
 const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
   if (!canSeeFront) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card2.backColor || "#333" } });
@@ -1024,6 +1043,37 @@ const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) =>
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
 });
+const Card = ({
+  card: card2,
+  style,
+  isActuallyFreeShape,
+  canSeeFront,
+  onClick,
+  onPointerUp,
+  onPointerDown,
+  onDragStart,
+  isDraggable,
+  onContextMenu
+}) => {
+  const handleClick = (e) => {
+    e.stopPropagation();
+    onClick?.(card2.id);
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: `${isActuallyFreeShape ? "" : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`,
+      style,
+      onClick: handleClick,
+      onPointerUp,
+      onPointerDown,
+      onDragStart,
+      draggable: isDraggable,
+      onContextMenu,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront })
+    }
+  );
+};
 const CardPreview = ({ card: card2, children }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
@@ -1052,15 +1102,27 @@ const CardPreview = ({ card: card2, children }) => {
     ] }) })
   ] });
 };
-const deckSection = "_deckSection_1e8ta_3";
-const deckTitle = "_deckTitle_1e8ta_15";
-const deckWrapperFlex = "_deckWrapperFlex_1e8ta_20";
-const deckControls = "_deckControls_1e8ta_34";
+const deckSection = "_deckSection_6l4k7_4";
+const deckWrapperFlex = "_deckWrapperFlex_6l4k7_16";
+const deckTitle = "_deckTitle_6l4k7_21";
+const deckControls = "_deckControls_6l4k7_27";
+const deckCountBadge = "_deckCountBadge_6l4k7_32";
+const discardModalOverlay = "_discardModalOverlay_6l4k7_61";
+const discardModalContent = "_discardModalContent_6l4k7_74";
+const discardModalHeader = "_discardModalHeader_6l4k7_85";
+const discardModalGrid = "_discardModalGrid_6l4k7_99";
+const discardModalCard = "_discardModalCard_6l4k7_106";
 const deckStyles = {
   deckSection,
-  deckTitle,
   deckWrapperFlex,
-  deckControls
+  deckTitle,
+  deckControls,
+  deckCountBadge,
+  discardModalOverlay,
+  discardModalContent,
+  discardModalHeader,
+  discardModalGrid,
+  discardModalCard
 };
 function Deck({
   socket,
@@ -1074,6 +1136,7 @@ function Deck({
 }) {
   const [deckCards, setDeckCards] = React.useState([]);
   const [discardPile, setDiscardPile] = React.useState([]);
+  const [showDiscardModal, setShowDiscardModal] = React.useState(false);
   useEffect(() => {
     socket.on(`deck:update:${deckId}`, (data) => {
       setDeckCards(data.currentDeck.map((c) => ({ ...c, deckId })));
@@ -1105,6 +1168,11 @@ function Deck({
   };
   const shuffle = () => socket.emit("deck:shuffle", { roomId, deckId });
   const resetDeck = () => socket.emit("deck:reset", { roomId, deckId });
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+    if (discardPile.length === 0) return;
+    setShowDiscardModal(true);
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: deckStyles.deckSection, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: deckStyles.deckTitle, children: title2 }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.deckControls, children: [
@@ -1112,36 +1180,53 @@ function Deck({
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: resetDeck, disabled: !enabled, children: "山札に戻す" })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.deckWrapperFlex, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {
           className: `${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ""}`,
           onClick: () => enabled && draw(),
-          children: deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              className: cardStyles.deckCard,
-              style: {
-                zIndex: deckCards.length - i,
-                transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                backgroundColor: c.backColor
-              }
-            },
-            c.id
-          ))
+          children: [
+            deckCards.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.deckCountBadge, children: deckCards.length }),
+            deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                className: cardStyles.deckCard,
+                style: {
+                  zIndex: deckCards.length - i,
+                  transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
+                  backgroundColor: c.backColor
+                }
+              },
+              c.id
+            ))
+          ]
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: c, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
-          className: cardStyles.deckCardFront,
-          style: {
-            zIndex: i + 1,
-            transform: `translate(${i * -0.3}px, ${i * -0.3}px)`
-          },
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true })
+          className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`,
+          onContextMenu: handleContextMenu,
+          children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: c, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: cardStyles.deckCardFront,
+              style: {
+                zIndex: i + 1,
+                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`
+              },
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true })
+            }
+          ) }, c.id))
         }
-      ) }, c.id)) })
+      ),
+      showDiscardModal && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.discardModalOverlay, onClick: () => setShowDiscardModal(false), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.discardModalContent, onClick: (e) => e.stopPropagation(), children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.discardModalHeader, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { children: "捨て札の内容" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => setShowDiscardModal(false), children: "閉じる" })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.discardModalGrid, children: discardPile.slice().reverse().map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.discardModalCard, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true }) }, c.id)) })
+      ] }) })
     ] })
   ] });
 }
@@ -1154,7 +1239,7 @@ const diceNotRolling = "_diceNotRolling_109vb_74";
 const faceImage = "_faceImage_109vb_78";
 const faceContainer = "_faceContainer_109vb_85";
 const defaultText = "_defaultText_109vb_93";
-const styles$6 = {
+const styles$4 = {
   diceWrapper,
   diceTitle,
   dice,
@@ -1218,32 +1303,32 @@ function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll,
   };
   const renderDiceFace = () => {
     if (customFaces && customFaces[value - 1]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.faceContainer, children: customFaces[value - 1] });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.faceContainer, children: customFaces[value - 1] });
     }
     if (value >= 1 && value <= 6 && defaultDiceImages[value]) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$6.faceImage });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: defaultDiceImages[value], alt: `Dice face ${value}`, className: styles$4.faceImage });
     }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$6.defaultText, children: value });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: styles$4.defaultText, children: value });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$6.diceWrapper, children: [
-    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.diceTitle, children: title2 }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$6.dice} ${rolling ? styles$6.diceRolling : styles$6.diceNotRolling}`, onClick: roll, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.diceWrapper, children: [
+    title2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.diceTitle, children: title2 }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `${styles$4.dice} ${rolling ? styles$4.diceRolling : styles$4.diceNotRolling}`, onClick: roll, children: [
       renderDiceFace(),
-      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$6.tooltip, children: tooltipText })
+      tooltipText && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.tooltip, children: tooltipText })
     ] })
   ] });
 }
 const draggable = "_draggable_datou_3";
-const contextMenu$1 = "_contextMenu_datou_28";
-const menuItem$1 = "_menuItem_datou_42";
+const contextMenu = "_contextMenu_datou_28";
+const menuItem = "_menuItem_datou_42";
 const separator = "_separator_datou_63";
-const debugLabel$1 = "_debugLabel_datou_85";
+const debugLabel = "_debugLabel_datou_85";
 const draggableStyles = {
   draggable,
-  contextMenu: contextMenu$1,
-  menuItem: menuItem$1,
+  contextMenu,
+  menuItem,
   separator,
-  debugLabel: debugLabel$1
+  debugLabel
 };
 function Draggable({
   socket,
@@ -1543,113 +1628,123 @@ function Draggable({
     )
   ] });
 }
-const piece = "_piece_138ki_3";
-const styles$5 = {
-  piece
+const tokenContainer = "_tokenContainer_11yla_8";
+const contentWrapper = "_contentWrapper_11yla_23";
+const textWrapper = "_textWrapper_11yla_56";
+const text = "_text_11yla_56";
+const image = "_image_11yla_72";
+const tokenStyles = {
+  tokenContainer,
+  contentWrapper,
+  textWrapper,
+  text,
+  image
 };
-function Piece({
-  piece: piece2,
+const TokenDisplayContent = React__default.memo(({ token, isFilled }) => {
+  const isSvg = token.image?.toLowerCase().endsWith(".svg");
+  if (!token.image) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        className: tokenStyles.contentWrapper,
+        style: { backgroundColor: token.color || "#4f4848ff", borderRadius: "50%" },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: tokenStyles.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: tokenStyles.text, children: token.name }) })
+      }
+    );
+  }
+  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
+  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
+  const URL_FUNC = ["u", "r", "l"].join("");
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      className: tokenStyles.contentWrapper,
+      style: {
+        // SVGなら背景と丸めを無効化、それ以外なら従来通り
+        backgroundColor: isSvg ? "transparent" : "#4f4848ff",
+        borderRadius: isSvg ? "0" : "50%",
+        boxShadow: isSvg ? "none" : void 0,
+        overflow: "visible"
+        // SVGの端が切れないように
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: tokenStyles.image }),
+        isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            style: {
+              position: "absolute",
+              inset: 0,
+              backgroundColor: token.color || "red",
+              [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
+              [MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
+              WebkitMaskSize: "contain",
+              maskSize: "contain",
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+              WebkitMaskPosition: "center",
+              maskPosition: "center",
+              mixBlendMode: "multiply",
+              pointerEvents: "none"
+            }
+          }
+        )
+      ]
+    }
+  );
+});
+const Token = ({
+  token,
   style,
-  onClick,
-  isDraggable,
   isFilled = false,
+  onClick,
+  onDoubleClick,
+  isDraggable,
   onDragStart,
   onDragEnd
-}) {
+}) => {
   const handleClick = (e) => {
     e.stopPropagation();
-    onClick(piece2.id);
+    onClick(token.id);
+  };
+  const handleDoubleClick = (e) => {
+    e.stopPropagation();
+    onDoubleClick(token.id);
   };
   const handleDragStart = (e) => {
     if (isDraggable) {
       e.stopPropagation();
-      e.dataTransfer.setData("pieceId", piece2.id);
+      e.dataTransfer.setData("tokenId", token.id);
       e.dataTransfer.effectAllowed = "move";
-      if (piece2.image) {
-        e.dataTransfer.setDragImage(e.currentTarget, 45, 45);
-      }
-      onDragStart(e, piece2);
+      onDragStart?.(e, token);
     }
   };
-  const pieceClasses = [styles$5.piece, isDraggable ? styles$5.draggable : styles$5.clickable].join(" ");
-  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
-  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
-  const URL_FUNC = ["u", "r", "l"].join("");
+  const handleDragEnd = (e) => {
+    onDragEnd?.(e, token);
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
-      className: pieceClasses,
+      className: tokenStyles.tokenContainer,
       style: {
-        ...style,
-        backgroundColor: piece2.image ? "transparent" : piece2.color,
-        filter: "none",
-        border: "none",
-        outline: "none",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: piece2.image ? "none" : "0 2px 4px rgba(0,0,0,0.2)"
+        ...style
       },
       onClick: handleClick,
+      onDoubleClick: handleDoubleClick,
       draggable: isDraggable,
       onDragStart: handleDragStart,
-      onDragEnd: (e) => onDragEnd(e, piece2),
-      children: piece2.image ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          style: {
-            width: "100%",
-            height: "100%",
-            position: "relative",
-            pointerEvents: "none"
-          },
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "img",
-              {
-                src: piece2.image,
-                alt: "",
-                style: {
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  display: "block"
-                }
-              }
-            ),
-            isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "div",
-              {
-                style: {
-                  position: "absolute",
-                  inset: 0,
-                  backgroundColor: piece2.color,
-                  [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
-                  [MASK_IMAGE_PROP]: `${URL_FUNC}("${piece2.image}")`,
-                  WebkitMaskSize: "contain",
-                  maskSize: "contain",
-                  WebkitMaskRepeat: "no-repeat",
-                  maskRepeat: "no-repeat",
-                  WebkitMaskPosition: "center",
-                  maskPosition: "center",
-                  mixBlendMode: "multiply",
-                  pointerEvents: "none"
-                }
-              }
-            )
-          ]
-        }
-      ) : piece2.name.substring(0, 1)
+      onDragEnd: handleDragEnd,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token, isFilled })
     }
   );
-}
+};
 function GridBoard({
   socket,
   roomId,
   boardId,
   players,
   myPlayerId,
-  allowPieceDrag = false,
+  allowTokenDrag = false,
   moveRange = 2,
   isExact = true,
   width = 800,
@@ -1660,8 +1755,9 @@ function GridBoard({
   const [cells, setCells] = React.useState([]);
   const [changedCells, setChangedCells] = React.useState([]);
   const [highlightedCells, setHighlightedCells] = React.useState([]);
-  const [draggingPieceId, setDraggingPieceId] = React.useState(null);
-  const [pieces, setPieces] = React.useState([]);
+  const [draggingTokenId, setDraggingTokenId] = React.useState(null);
+  const [tokens, setTokens] = React.useState([]);
+  const [serverExtraTokens, setServerExtraTokens] = React.useState([]);
   const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
   const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
   const handleCellClick = (celldata, loc) => {
@@ -1674,42 +1770,75 @@ function GridBoard({
   const handleCellDrop = (e, targetRow, targetCol) => {
     e.preventDefault();
     if (!isBoardReady || !socket) return;
-    const draggedPieceId = e.dataTransfer.getData("pieceId");
-    if (draggedPieceId) {
-      setHighlightedCells([]);
-      socket.emit("board:move-player", {
+    const tokenId = e.dataTransfer.getData("tokenId");
+    const source = e.dataTransfer.getData("source");
+    const playerId = e.dataTransfer.getData("playerId");
+    if (!tokenId) return;
+    if (source === "ScoreBoard") {
+      socket.emit("token:play", {
         roomId,
         boardId,
-        playerId: draggedPieceId,
-        newLocation: { row: targetRow, col: targetCol }
+        tokenId,
+        playerId,
+        newPosition: { row: targetRow, col: targetCol }
+      });
+    } else {
+      setHighlightedCells([]);
+      socket.emit("token:move-on-board", {
+        roomId,
+        boardId,
+        tokenId,
+        newPosition: { row: targetRow, col: targetCol }
       });
     }
   };
-  const handlePieceClick = (pieceId) => {
-    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
+  const requestMovableRange = (tokenId) => {
+    if (!isBoardReady || !socket) return;
+    const targetToken = tokens.find((t) => t.id === tokenId);
+    if (!targetToken) return;
+    if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
     const requestData = {
       roomId,
       boardId,
-      playerId: pieceId,
+      playerId: tokenId,
       moveRange,
       isExact
     };
-    socket.emit("board:movable-range", requestData);
+    socket.emit("token:movable-range", requestData);
   };
-  const handlePieceDragStart = (e, piece2) => {
-    e.dataTransfer.setData("pieceId", piece2.id);
+  const handleTokenDragStart = (e, token) => {
+    if (token.ownerId && token.ownerId !== myPlayerId) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData("tokenId", token.id);
     e.dataTransfer.effectAllowed = "move";
-    setDraggingPieceId(piece2.id);
-    handlePieceClick(piece2.id);
+    setDraggingTokenId(token.id);
+    requestMovableRange(token.id);
   };
-  const handlePieceDragEnd = () => {
-    setDraggingPieceId(null);
+  const handleTokenDragEnd = () => {
+    setDraggingTokenId(null);
+  };
+  const handleTokenDoubleClick = (tokenId) => {
+    if (!isBoardReady || !socket) return;
+    const targetToken = tokens.find((p) => p.id === tokenId);
+    if (!targetToken) return;
+    if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
+    const requestData = {
+      roomId,
+      boardId,
+      tokenId
+    };
+    socket.emit("token:move-from-board", requestData);
   };
   React.useEffect(() => {
     const handleInitBoard = (data) => {
       if (data.board && data.board.length > 0) {
         setCells(data.board);
         setIsBoardReady(true);
+      }
+      if (data.boardTokens) {
+        setServerExtraTokens(data.boardTokens);
       }
     };
     socket.on("board:update", handleInitBoard);
@@ -1727,25 +1856,9 @@ function GridBoard({
     };
   }, [socket]);
   React.useEffect(() => {
-    setPieces((prevPieces) => {
-      if (!players) return [];
-      return players.map((p) => {
-        const existingPiece = prevPieces.find((piece2) => piece2.id === p.id);
-        const location = p.position;
-        const playerColor = p.color || existingPiece?.color || "#aaaaaa";
-        const playerName2 = p.name || existingPiece?.name || `P?`;
-        const playerImage = p.pieceImage || existingPiece?.image;
-        return {
-          ...existingPiece,
-          id: p.id,
-          name: playerName2,
-          color: playerColor,
-          image: playerImage,
-          location
-        };
-      });
-    });
-  }, [players]);
+    const safeTokens = Array.isArray(serverExtraTokens) ? serverExtraTokens : [];
+    setTokens(safeTokens);
+  }, [serverExtraTokens]);
   const boardStyle = {
     "--board-rows": rows,
     "--board-cols": cols,
@@ -1771,40 +1884,42 @@ function GridBoard({
       }
     );
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$7.boardContainer, style: boardStyle, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.boardContainer, style: boardStyle, children: [
     cells.map((cell2) => {
       const match = cell2.id.match(/r(\d+)c(\d+)/);
       const r = match ? parseInt(match[1], 10) : 0;
       const c = match ? parseInt(match[2], 10) : 0;
       const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
-      const isHighlighted = players ? players.find((p) => p.id === draggingPieceId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false : false;
+      const isHighlighted = tokens.find((p) => p.id === draggingTokenId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false;
       const cellDataForRenderer = {
         ...cell2,
         content: isChanged ? cell2.changedContent : cell2.content
       };
-      const loc = { row: r, col: c };
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
         Cell,
         {
-          locationData: loc,
+          locationData: { row: r, col: c },
           cellData: cellDataForRenderer,
           onClick: () => handleCellClick(),
           onDoubleClick: () => handleCellDoubleClick(),
           onDrop: (e) => handleCellDrop(e, r, c),
           onDragOver: (e) => e.preventDefault(),
-          highlighted: isHighlighted,
+          highlighted: isHighlighted && !!draggingTokenId,
           changed: isChanged,
           children: renderCell(cellDataForRenderer, r, c)
         },
         cell2.id
       );
     }),
-    pieces.map((piece2) => {
-      const sameLocationPieces = pieces.filter(
-        (p) => p.location.row === piece2.location.row && p.location.col === piece2.location.col
-      );
-      const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece2.id);
-      const groupCount = sameLocationPieces.length;
+    tokens.map((token) => {
+      const pos = token.position;
+      if (!pos) return null;
+      const sameLocationTokens = tokens.filter((p) => {
+        const pPos = p.position;
+        return pPos && pPos.row === pos.row && pPos.col === pos.col;
+      });
+      const groupIndex = sameLocationTokens.findIndex((p) => p.id === token.id);
+      const groupCount = sameLocationTokens.length;
       let offsetX = 0;
       let offsetY = 0;
       if (groupCount > 1) {
@@ -1813,46 +1928,31 @@ function GridBoard({
         offsetX = radius * Math.cos(angle);
         offsetY = radius * Math.sin(angle);
       }
-      const pieceStyle = {
-        gridArea: `${piece2.location.row + 1} / ${piece2.location.col + 1} / span 1 / span 1`,
+      const tokenStyle = {
+        // 確定した座標 pos を使用
+        gridArea: `${pos.row + 1} / ${pos.col + 1} / span 1 / span 1`,
         alignSelf: "center",
         justifySelf: "center",
         transform: `translate(${offsetX}px, ${offsetY}px)`,
         transition: "transform 0.3s ease-in-out"
       };
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Piece,
+        Token,
         {
-          piece: piece2,
-          style: pieceStyle,
-          onClick: handlePieceClick,
-          isDraggable: allowPieceDrag,
+          token,
+          style: tokenStyle,
           isFilled: true,
-          onDragStart: handlePieceDragStart,
-          onDragEnd: handlePieceDragEnd
+          onClick: requestMovableRange,
+          onDoubleClick: () => handleTokenDoubleClick(token.id),
+          isDraggable: allowTokenDrag,
+          onDragStart: handleTokenDragStart,
+          onDragEnd: handleTokenDragEnd
         },
-        piece2.id
+        token.id
       );
     })
   ] });
 }
-const rgPlayFieldContainer = "_rgPlayFieldContainer_vpljf_13";
-const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_vpljf_21";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_vpljf_30";
-const contextMenu = "_contextMenu_vpljf_54";
-const menuItem = "_menuItem_vpljf_69";
-const menuIcon = "_menuIcon_vpljf_86";
-const debugLabel = "_debugLabel_vpljf_122";
-const playFieldStyles = {
-  "rg-playfield": "_rg-playfield_vpljf_3",
-  rgPlayFieldContainer,
-  rgPlayFieldCardWrapper,
-  rgPlayFieldOwnerBadge,
-  contextMenu,
-  menuItem,
-  menuIcon,
-  debugLabel
-};
 function throttle(func, limit) {
   let inThrottle;
   return function(...args) {
@@ -1873,6 +1973,8 @@ function PlayField({
   layoutMode = "free",
   backgroundImage,
   zIndex = 100,
+  width = 300,
+  height = 600,
   isDebug = false
 }) {
   const [playedCards, setPlayedCards] = React.useState([]);
@@ -1910,20 +2012,24 @@ function PlayField({
     setMaxZ((prev) => prev === void 0 ? zIndex : Math.max(prev, zIndex));
   }, [zIndex]);
   const emitMove = React.useMemo(
-    () => throttle((cardId, clientX, clientY, rId, dId) => {
-      if (!containerRef.current || !rId || !dId) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      let x = (clientX - rect.left) / rect.width * 100;
-      let y = (clientY - rect.top) / rect.height * 100;
-      x = Math.max(0, Math.min(100, x));
-      y = Math.max(0, Math.min(100, y));
-      socket.emit("card:move-on-field", {
-        roomId: rId,
-        deckId: dId,
-        cardId,
-        coordinate: { x, y }
-      });
-    }, 30),
+    () => throttle(
+      (cardId, clientX, clientY, rId, dId, currentRotation) => {
+        if (!containerRef.current || !rId || !dId) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        let x = (clientX - rect.left) / rect.width * 100;
+        let y = (clientY - rect.top) / rect.height * 100;
+        x = Math.max(0, Math.min(100, x));
+        y = Math.max(0, Math.min(100, y));
+        socket.emit("card:move-on-field", {
+          roomId: rId,
+          deckId: dId,
+          cardId,
+          coordinate: { x, y },
+          rotation: currentRotation
+        });
+      },
+      30
+    ),
     [socket]
   );
   const handlePointerDown = (e, card2) => {
@@ -1941,14 +2047,18 @@ function PlayField({
   const handlePointerMove = (e) => {
     if (!draggingIdRef.current || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
+    const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+    const currentRot = draggingCard?.rotation ?? 0;
     const x = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
     const y = Math.max(0, Math.min(100, (e.clientY - rect.top) / rect.height * 100));
     setDragPos({ x, y });
-    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
   };
   const handlePointerUp = (e) => {
     if (!draggingIdRef.current) return;
-    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+    const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+    const currentRot = draggingCard?.rotation ?? 0;
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
     e.currentTarget.releasePointerCapture(e.pointerId);
     draggingIdRef.current = null;
     setActiveDraggingId(null);
@@ -1998,7 +2108,9 @@ function PlayField({
       className: playFieldStyles["rg-playfield"],
       style: {
         ...backgroundImage ? { background: `url(${backgroundImage}) center/cover no-repeat` } : {},
-        position: "relative"
+        position: "relative",
+        width: typeof width === "number" ? `${width}px` : width,
+        height: typeof height === "number" ? `${height}px` : height
       },
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title2 !== void 0 && title2 !== null ? title2 : `プレイフィールド (deckId=${deckId})` }),
@@ -2010,12 +2122,6 @@ function PlayField({
             onPointerMove: handlePointerMove,
             onDrop: handleDrop,
             onDragOver: handleDragOver,
-            style: {
-              position: "relative",
-              minHeight: "600px",
-              touchAction: "none",
-              overflow: "visible"
-            },
             children: [
               playedCards.map((card2) => {
                 const owner = players.find((p) => p.id === card2.ownerId);
@@ -2030,28 +2136,19 @@ function PlayField({
                   top: `${displayY}%`,
                   zIndex: currentZIndex,
                   // マウスの先端ではなく、カードの中心を掴むように補正
-                  transform: "translate(-50%, -50%)",
+                  transform: `translate(-50%, -50%) rotate(${card2.rotation || 0}deg)`,
                   // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                   transition: isDragging ? "none" : "left 0.2s ease, top 0.2s ease"
                 } : {};
+                const cardStyle = { width: "80px", height: "112px", background: "transparent" };
                 return /* @__PURE__ */ jsxRuntimeExports.jsxs(
                   "div",
                   {
-                    draggable: false,
-                    onDragStart: (e) => e.preventDefault(),
-                    onPointerDown: (e) => handlePointerDown(e, card2),
-                    onPointerUp: handlePointerUp,
-                    onContextMenu: (e) => handleContextMenu(e, card2),
-                    onPointerCancel: handlePointerUp,
-                    className: `${isActuallyFreeShape ? "" : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`,
                     style: {
                       "--owner-color": owner?.color || "#aaaaaa",
                       ...freeStyle,
                       touchAction: "none",
                       cursor: isDragging ? "grabbing" : layoutMode === "free" ? "grab" : "default",
-                      width: "80px",
-                      height: "112px",
-                      background: "transparent",
                       border: isActuallyFreeShape ? "none" : void 0,
                       boxShadow: isActuallyFreeShape && isDragging ? "0 0 15px var(--owner-color)" : "none",
                       padding: 0,
@@ -2060,7 +2157,21 @@ function PlayField({
                       zIndex: currentZIndex
                     },
                     children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: card2.isFaceUp }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Card,
+                        {
+                          card: card2,
+                          style: cardStyle,
+                          isActuallyFreeShape,
+                          canSeeFront: card2.isFaceUp,
+                          onPointerUp: handlePointerUp,
+                          onPointerDown: (e) => handlePointerDown(e, card2),
+                          onDragStart: (e) => e.preventDefault(),
+                          isDraggable: false,
+                          onContextMenu: (e) => handleContextMenu(e, card2)
+                        },
+                        card2.id
+                      ),
                       card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
                       isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: [
                         "Z:",
@@ -2068,8 +2179,7 @@ function PlayField({
                       ] }),
                       card2.description && !isDragging && card2.isFaceUp && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description })
                     ]
-                  },
-                  card2.id
+                  }
                 );
               }),
               contextMenu2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -2103,6 +2213,28 @@ function PlayField({
                         ]
                       }
                     ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "div",
+                      {
+                        className: playFieldStyles.menuItem,
+                        onClick: () => {
+                          const nextRot = (contextMenu2.card.rotation || 0) + 90;
+                          socket.emit("card:move-on-field", {
+                            roomId,
+                            deckId: contextMenu2.card.deckId || deckId,
+                            cardId: contextMenu2.card.id,
+                            rotation: nextRot,
+                            coordinate: contextMenu2.card.coordinate
+                          });
+                          setContextMenu(null);
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playFieldStyles.menuIcon, children: "🔄" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "90度回転" })
+                        ]
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.separator }),
                     /* @__PURE__ */ jsxRuntimeExports.jsxs(
                       "div",
                       {
@@ -2170,7 +2302,7 @@ const container$1 = "_container_17uio_2";
 const cursorWrapper = "_cursorWrapper_17uio_13";
 const icon = "_icon_17uio_21";
 const label$1 = "_label_17uio_29";
-const styles$4 = {
+const styles$3 = {
   container: container$1,
   cursorWrapper,
   icon,
@@ -2215,50 +2347,41 @@ const RemoteCursor = React__default.memo(
       return () => window.removeEventListener("mousemove", handleMove);
     }, [socket, roomId, myPlayerId, scale, fixedContainerRef, isRelative]);
     if (!visible) return null;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.container, children: Object.entries(remoteCursors).map(([id, coords]) => {
       const player = players.find((p) => String(p.socketId) === String(id)) || players.find((p) => p.socketId !== myPlayerId);
       const name = player ? player.name : "接続中...";
       const color = player?.color || "#000000";
       const left = isRelative ? `${coords.x * 100}%` : coords.x;
       const top = isRelative ? `${coords.y * 100}%` : coords.y;
-      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$4.cursorWrapper, style: { left, top }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.icon, style: { color }, children: "👆" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$4.label, style: { backgroundColor: color }, children: name })
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$3.cursorWrapper, style: { left, top }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.icon, style: { color }, children: "👆" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.label, style: { backgroundColor: color }, children: name })
       ] }, id);
     }) });
   }
 );
-const container = "_container_k18kw_7";
-const title$2 = "_title_k18kw_19";
-const playerList = "_playerList_k18kw_28";
-const playerItem = "_playerItem_k18kw_38";
-const activePlayer = "_activePlayer_k18kw_51";
-const playerHeader = "_playerHeader_k18kw_59";
-const playerName = "_playerName_k18kw_65";
-const scoreArea = "_scoreArea_k18kw_75";
-const playerScore = "_playerScore_k18kw_81";
-const plus = "_plus_k18kw_102";
-const minus = "_minus_k18kw_107";
-const scoreChange = "_scoreChange_k18kw_128";
-const debugScoreButtons = "_debugScoreButtons_k18kw_157";
-const debugBtn = "_debugBtn_k18kw_162";
-const resourceSection = "_resourceSection_k18kw_193";
-const resourceList = "_resourceList_k18kw_198";
-const resourceBadge = "_resourceBadge_k18kw_204";
-const tokenList = "_tokenList_k18kw_212";
-const isHoldMessage = "_isHoldMessage_k18kw_222";
-const cardList = "_cardList_k18kw_229";
-const cardBase = "_cardBase_k18kw_237";
-const cardSelected = "_cardSelected_k18kw_269";
-const cardIsHeld = "_cardIsHeld_k18kw_275";
-const tooltip = "_tooltip_k18kw_287";
-const buttonArea = "_buttonArea_k18kw_312";
-const limitMessage = "_limitMessage_k18kw_319";
-const buttonGroup = "_buttonGroup_k18kw_326";
-const scoreBoardStyles = {
-  container,
-  title: title$2,
-  playerList,
+const playerItem = "_playerItem_gdntl_7";
+const activePlayer = "_activePlayer_gdntl_20";
+const playerHeader = "_playerHeader_gdntl_28";
+const playerName = "_playerName_gdntl_34";
+const scoreArea = "_scoreArea_gdntl_48";
+const playerScore = "_playerScore_gdntl_54";
+const plus = "_plus_gdntl_75";
+const minus = "_minus_gdntl_80";
+const scoreChange = "_scoreChange_gdntl_101";
+const debugScoreButtons = "_debugScoreButtons_gdntl_130";
+const debugBtn = "_debugBtn_gdntl_135";
+const resourceSection = "_resourceSection_gdntl_170";
+const resourceList = "_resourceList_gdntl_175";
+const resourceBadge = "_resourceBadge_gdntl_181";
+const tokenList = "_tokenList_gdntl_193";
+const isHoldMessage = "_isHoldMessage_gdntl_220";
+const cardList = "_cardList_gdntl_227";
+const cardBase = "_cardBase_gdntl_235";
+const cardSelected = "_cardSelected_gdntl_267";
+const cardIsHeld = "_cardIsHeld_gdntl_273";
+const tooltip = "_tooltip_gdntl_285";
+const playerListItemStyles = {
   playerItem,
   activePlayer,
   playerHeader,
@@ -2279,27 +2402,8 @@ const scoreBoardStyles = {
   cardBase,
   cardSelected,
   cardIsHeld,
-  tooltip,
-  buttonArea,
-  limitMessage,
-  buttonGroup
+  tooltip
 };
-const image = "_image_965of_2";
-const textWrapper = "_textWrapper_965of_10";
-const text = "_text_965of_10";
-const contentWrapper = "_contentWrapper_965of_26";
-const styles$3 = {
-  image,
-  textWrapper,
-  text,
-  contentWrapper
-};
-const TokenDisplayContent = React__default.memo(({ token }) => {
-  if (token.imageSrc) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.imageSrc, alt: token.name, className: styles$3.image }) });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.contentWrapper, style: { backgroundColor: token.color || "#4f4848ff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$3.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: styles$3.text, children: token.name }) }) });
-});
 const PlayerListItem = React.memo(
   ({
     socket,
@@ -2321,6 +2425,7 @@ const PlayerListItem = React.memo(
     const [scoreDiff, setScoreDiff] = React.useState(null);
     const [isScoreUpdating, setIsScoreUpdating] = React.useState(false);
     const prevScoreRef = React.useRef(player.score);
+    if (!myPlayerId) return;
     React.useEffect(() => {
       const prevScore = prevScoreRef.current;
       if (prevScore !== player.score) {
@@ -2342,6 +2447,12 @@ const PlayerListItem = React.memo(
         points
       });
     };
+    const handleTokenDragStart = (e, token) => {
+      e.dataTransfer.setData("tokenId", token.id);
+      e.dataTransfer.setData("source", "ScoreBoard");
+      e.dataTransfer.setData("playerId", myPlayerId);
+      e.dataTransfer.effectAllowed = "move";
+    };
     const customStyles = {
       "--player-color": playerColor,
       "--player-color-bg": playerColor.replace("hsl", "hsla").replace(")", ", 0.3)"),
@@ -2350,39 +2461,54 @@ const PlayerListItem = React.memo(
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "li",
       {
-        className: `${scoreBoardStyles.playerItem} ${isActive ? scoreBoardStyles.activePlayer : ""}`,
+        className: `${playerListItemStyles.playerItem} ${isActive ? playerListItemStyles.activePlayer : ""}`,
         style: customStyles,
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.playerHeader, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerName, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playerListItemStyles.playerHeader, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: playerListItemStyles.playerName, children: [
               isActive && "ᐅ ",
               isOwner && "★ ME ",
               player.name
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreArea, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreWrapper, style: { position: "relative", display: "inline-block" }, children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.playerScore, children: [
-                  "スコア: ",
-                  player.score
-                ] }),
-                scoreDiff !== null && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "span",
-                  {
-                    className: `
-      ${scoreBoardStyles.scoreChange} 
-      ${scoreDiff > 0 ? scoreBoardStyles.plus : scoreBoardStyles.minus}
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playerListItemStyles.scoreArea, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  className: playerListItemStyles.scoreWrapper,
+                  style: { position: "relative", display: "inline-block" },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: playerListItemStyles.playerScore, children: [
+                      "スコア: ",
+                      player.score
+                    ] }),
+                    scoreDiff !== null && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "span",
+                      {
+                        className: `
+      ${playerListItemStyles.scoreChange} 
+      ${scoreDiff > 0 ? playerListItemStyles.plus : playerListItemStyles.minus}
     `,
-                    children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff
+                        children: scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff
+                      }
+                    )
+                  ]
+                }
+              ),
+              isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playerListItemStyles.debugScoreButtons, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "button",
+                  {
+                    onClick: () => handleAddScore(-1),
+                    disabled: !enabled,
+                    className: playerListItemStyles.debugBtn,
+                    children: "-"
                   }
-                )
-              ] }),
-              isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.debugScoreButtons, children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(-1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "-" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: scoreBoardStyles.debugBtn, children: "+" })
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleAddScore(1), disabled: !enabled, className: playerListItemStyles.debugBtn, children: "+" })
               ] })
             ] })
           ] }),
-          player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.resourceSection, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.resourceList, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: scoreBoardStyles.resourceBadge, children: [
+          player.resources?.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.resourceSection, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.resourceList, children: player.resources.map((resource) => /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: playerListItemStyles.resourceBadge, children: [
             resource.icon,
             " ",
             resource.name,
@@ -2391,22 +2517,9 @@ const PlayerListItem = React.memo(
             " / ",
             resource.maxValue
           ] }, resource.resourceId)) }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              onClick: () => {
-                socket.emit("token:reclaim", {
-                  roomId,
-                  playerId: myPlayerId,
-                  tokenId
-                });
-              },
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token })
-            },
-            tokenId
-          )) }),
-          player.isHolding && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: scoreBoardStyles.isHoldMessage, children: "カードをホールドしています" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardList, children: player.cards.map((card2) => {
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.tokenList, children: Object.entries(player.tokens || {}).map(([tokenId, token]) => /* @__PURE__ */ jsxRuntimeExports.jsx(Token, { token, isDraggable: isOwner, onDragStart: handleTokenDragStart }, tokenId)) }),
+          player.isHolding && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: playerListItemStyles.isHoldMessage, children: "カードをホールドしています" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.cardList, children: player.cards.map((card2) => {
             const isSelected = selectedCards.includes(card2.id);
             const isHeld = heldCards.includes(card2.id);
             const canSeeFront = !!card2.isFaceUp || isOwner;
@@ -2421,8 +2534,8 @@ const PlayerListItem = React.memo(
                   e.dataTransfer.effectAllowed = "move";
                 },
                 className: `
-                  ${scoreBoardStyles.cardBase} 
-                  ${isSelected ? scoreBoardStyles.cardSelected : ""}
+                  ${playerListItemStyles.cardBase} 
+                  ${isSelected ? playerListItemStyles.cardSelected : ""}
                 `,
                 style: {
                   // ホールド中は禁止マーク、オーナーなら掴める、それ以外はデフォルト
@@ -2440,8 +2553,8 @@ const PlayerListItem = React.memo(
                 onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner),
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
-                  isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: scoreBoardStyles.cardIsHeld, children: "🔐" }),
-                  canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: scoreBoardStyles.tooltip, children: card2.description })
+                  isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.cardIsHeld, children: "🔐" }),
+                  canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playerListItemStyles.tooltip, children: card2.description })
                 ]
               },
               card2.id
@@ -2452,6 +2565,20 @@ const PlayerListItem = React.memo(
     );
   }
 );
+const container = "_container_12nv3_7";
+const title$2 = "_title_12nv3_19";
+const playerList = "_playerList_12nv3_28";
+const buttonArea = "_buttonArea_12nv3_38";
+const limitMessage = "_limitMessage_12nv3_45";
+const buttonGroup = "_buttonGroup_12nv3_52";
+const scoreBoardStyles = {
+  container,
+  title: title$2,
+  playerList,
+  buttonArea,
+  limitMessage,
+  buttonGroup
+};
 function ScoreBoard({
   socket,
   roomId,
@@ -2593,7 +2720,7 @@ const styles$2 = {
   messageList,
   messageItemActive
 };
-const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
+function SystemMessageWindow({ socket, roomId, displayDuration = 2e3 }) {
   const [displayMessage, setDisplayMessage] = useState("");
   const [currentData, setCurrentData] = useState(null);
   const [queue, setQueue] = useState([]);
@@ -2635,7 +2762,7 @@ const SystemMessageWindow = ({ socket, roomId, displayDuration = 2e3 }) => {
     };
   }, [isProcessing, currentData, displayDuration]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: styles$2.messageContainer, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageList, children: displayMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$2.messageItemActive, children: displayMessage }, msgKey) }) });
-};
+}
 function Timer({ socket = null, roomId, initialDuration, onFinish }) {
   const [timeLeft, setTimeLeft] = useState(initialDuration);
   useEffect(() => {
@@ -2741,6 +2868,11 @@ function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
     const data = { roomId, tokenStoreId, tokenId };
     socket.emit("token:aquire", data);
   };
+  const handleTokenDragStart = (e, token) => {
+    e.dataTransfer.setData("tokenId", token.id);
+    e.dataTransfer.setData("source", "tokenStore");
+    e.dataTransfer.effectAllowed = "move";
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: styles$1.section, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: styles$1.title, children: name }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles$1.list, children: tokenStoreTokens.map((t, i) => {
@@ -2757,11 +2889,18 @@ function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
             transform: `rotate(${rotation}deg)`,
             zIndex: i
           },
-          onClick: () => handleClick(t.id),
-          onDoubleClick: () => handleDoubleClick(t.id),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token: t })
-        },
-        t.id
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Token,
+            {
+              token: t,
+              onClick: () => handleClick(t.id),
+              onDoubleClick: () => handleDoubleClick(t.id),
+              isDraggable: true,
+              onDragStart: handleTokenDragStart
+            },
+            t.id
+          )
+        }
       );
     }) })
   ] });
@@ -2906,28 +3045,179 @@ const styles = {
   deleteCompBtn,
   divider
 };
-const ComponentFactory = ({
-  onAdd,
-  onDelete,
-  existingComponents,
-  fullGameParam,
-  containerRef
-}) => {
-  const [newCompId, setNewCompId] = useState("");
-  const [newCompType, setNewCompType] = useState("Dice");
-  const [sbPlayCard, setSbPlayCard] = useState(true);
-  const [sbHold, setSbHold] = useState(false);
-  const [sbFlip, setSbFlip] = useState(false);
-  const [sbTurnSkip, setSbTurnSkip] = useState(true);
-  const [sbRoundSkip, setSbRoundSkip] = useState(false);
-  const [newTokenCount, setNewTokenCount] = useState(10);
+const __vite_glob_0_0 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHRVFMbjBlWSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD41MTRhYmJjNy1lN2E1LTQ0NGYtYTVlOC00ZmMzNzllMTE5Yzg8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_1 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHSF9rZFRUYyZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD43NDIxNTk1MC0wNDE2LTQ0NzgtYmU1OC01ZjA2OWJmMzNiMzk8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyc+CiAgPGRjOnRpdGxlPgogICA8cmRmOkFsdD4KICAgIDxyZGY6bGkgeG1sOmxhbmc9J3gtZGVmYXVsdCc+MiAtIDQ8L3JkZjpsaT4KICAgPC9yZGY6QWx0PgogIDwvZGM6dGl0bGU+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOnBkZj0naHR0cDovL25zLmFkb2JlLmNvbS9wZGYvMS4zLyc+CiAgPHBkZjpBdXRob3I+6JCp5Y6f5ZWT5aSqPC9wZGY6QXV0aG9yPgogPC9yZGY6RGVzY3JpcHRpb24+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczp4bXA9J2h0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8nPgogIDx4bXA6Q3JlYXRvclRvb2w+Q2FudmEgKFJlbmRlcmVyKSBkb2M9REFIR0hfa2RUVGMgdXNlcj1VQUdNWi1PZ0t1USBicmFuZD1CQUdNWjBNNVI1ZzwveG1wOkNyZWF0b3JUb29sPgogPC9yZGY6RGVzY3JpcHRpb24+CjwvcmRmOlJERj4KPC94OnhtcG1ldGE+Cjw/eHBhY2tldCBlbmQ9J3InPz45+qBkAAAATmVYSWZNTQAqAAAACAAEARoABQAAAAEAAAA+ARsABQAAAAEAAABGASgAAwAAAAEAAgAAAhMAAwAAAAEAAQAAAAAAAAAAAGAAAAABAAAAYAAAAAF3Bd/nAAAFcklEQVR4nO2aTUgbWxSAz+QHzaiJRhfWgUKFvEgVgsQfbDFI0gp1kaCIFtu3kD6qoC5EodC6UNxYuqlgodVNW+iqC/8qiEYZMAiiqKUilNKqKCpaiTZm4iQ09y1G8sbxWWu803FkvtXce8OcL3cOd87MXAIhBLJFJbXAuVDspeMS2SOERkZG3rx54/f7pRI6E0fsPR4PQigzM/PRo0dSCZ0JDb9RWFjIHbx48UIKmTPzP3k/PT2dkZHx51WiQCNoe73ezs7Onp4eSWzOypG539nZqaura2lpYVk2HA5L5fT7EPxKgaZpmqa546ampoSEBGmkfhviUtU5CKH9/X1ZpA0I7BmGKS8v1+v1paWlsrhhHckcj8djs9kQQgRBjI6OOhwOCc1+hyNzn5SURJIkAMTGxiYnJ0ukdAYO7cPhcFtbm81mY1kWAEKhkMPhaGlp+fnzp6R6p3CYOdvb2xRFhUIh/phGo1leXqYoSiK30zmc+5iYmKSkJAAgCCI9PV2lUgFAYmKiTqeT0u40DiuFhISEwcHB3t7e3NzckZGR27dvz8zMOJ1O7i9FwefPn9+/f+/3+zMyzPfv/61Wq/E5/4fwbvXly5ecnJzJycnMzMyoT7q0tHTjxo3NzU2u2dzc/OzZs3NpnoDQPhAI+P1+kiS5xSc6nj9/3tjYGGkaDAav10sQRPSaJyCsMXU63flznVu4IgSDQe4ecs7THgf/cy1CyOVy8RPd5XKJoQ7Y7cfGxiwWi81m419AmqbT0tKqq6sDgQDecDhrTK/Xe+XKFUHa8KmpqXn58iWucIB37peWln6hDgATExMYwwFe+/j4eH5TrVYLlnmj0YgxHOC1N5lMJSUlkeaDfx7YbDbTXyauqdVq29vbMYYD7M9W4XB4eHh4ZWUlNy8vyLKPHz/+8OHD4OAgwzB2u/3atWsYY4GoT4a1tbXd3d3Ly8tXr14VKYRY7zFZlvX5fHdK7kxOTooUAi7bU7m8UOylQ7GXDsVeOhR76VDspUOxlw7FXjoUe+lQ7KVDsZcOxf5k5ufnKyoqKisrFxcXxTi/uO9zEELXr19Xq9WfPn36E19+sODz+dxuN8MwRUVFxcXFarV6fX2dpum4uLhbt24JXjWfB/z229vbdrt9YWEBAEiSdDqdBEGYTCbuw4nFYnG73SkpKVhi4c/7np4eTh0AGIYZGBjo7++PfPP5+PHj27dvccXCP/dra2v8JsMwgh/s7u7iioV/7u12+69/kJ2djSsWfvuysrKOjg6j0WgwGLj9DgCgUqkMBoPRaHz69KnL5cIVS6wVMxQKvXv3rrq6OtLz+vXre/fuaTQ4c1Use4SQ1Wqdm5uL9Fit1unpabyrvlj3WoIgYmNj+T0xMTFRq/v9/q2treMLgIiVgmAr9nl2Zq+urprN5simkwjiVgput3t8fBwAHA5HFHv0EEIej2doaCg7O5um6aKiorm5OafTWVBQwF3GC/3damdnx2Qyeb1elUpFUdTa2hpCKDkl5dvXr3q9HkSqc3DBsuz+/j4AhMPh1dVVrtP340cwGOSOL3R9n5qa+uTJE4qitFotAGi1WoqiWltbIzsGLnTmcMzOzt68efPg4IAkyampqaysrMjQhZ57jr29PW7rSSAQ2Nvb4w/JwD4/P7+8vFyn0929W2m1WvlDMsgcAEAIMQxDkqTgficP+5O40Csmx8HBwdjYWDAYDIVCZrPZYrFEhmSQ9wRBkCSp1+tfvXol2CUqm8ypr69vaGgwm838ThnMPQAMDAzk5eUJ1EEu9n19fVVVVcf75WEfFxe3sbGxubnpdrv5/fLI++/fv3d1dcXHxz98+JCrLjnkYX8S8sick1DspUPe9v8CVUkTEODYPN0AAAAASUVORK5CYII=";
+const __vite_glob_0_2 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTExPC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHZjhIcWpxQSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD5lMGUwNmIyNi00MGUxLTQwNjgtYmM0ZS0wOTQzZmFmZmY5ODg8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_3 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTExPC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHZ01Xc1ZhTSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD43OTIyN2VmNy0xMDVmLTQ4ZTUtOTEyYS1mOTAzNjYwOGYyNjc8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_4 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHRVFMbjBlWSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD5mODM0NWQyNC1iODkwLTQ0MmEtYjc3YS1iMjM2ZWYxNzk4OGQ8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyc+CiAgPGRjOnRpdGxlPgogICA8cmRmOkFsdD4KICAgIDxyZGY6bGkgeG1sOmxhbmc9J3gtZGVmYXVsdCc+MSAtIDI8L3JkZjpsaT4KICAgPC9yZGY6QWx0PgogIDwvZGM6dGl0bGU+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOnBkZj0naHR0cDovL25zLmFkb2JlLmNvbS9wZGYvMS4zLyc+CiAgPHBkZjpBdXRob3I+6JCp5Y6f5ZWT5aSqPC9wZGY6QXV0aG9yPgogPC9yZGY6RGVzY3JpcHRpb24+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczp4bXA9J2h0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8nPgogIDx4bXA6Q3JlYXRvclRvb2w+Q2FudmEgKFJlbmRlcmVyKSBkb2M9REFIR0VRTG4wZVkgdXNlcj1VQUdNWi1PZ0t1USBicmFuZD1CQUdNWjBNNVI1ZzwveG1wOkNyZWF0b3JUb29sPgogPC9yZGY6RGVzY3JpcHRpb24+CjwvcmRmOlJERj4KPC94OnhtcG1ldGE+Cjw/eHBhY2tldCBlbmQ9J3InPz5C2PV+AAAATmVYSWZNTQAqAAAACAAEARoABQAAAAEAAAA+ARsABQAAAAEAAABGASgAAwAAAAEAAgAAAhMAAwAAAAEAAQAAAAAAAAAAAGAAAAABAAAAYAAAAAF3Bd/nAAACzUlEQVR4nO2asUuyQRzHP6YSIRWBY1OkNDRVmw31BzRGhEiDEG4N4dAgFQ4N1d4QQUU0tEU0FggNQQTRUKi4tkgQlWA+j73D06uPWi/p+5zHyX0m7w6e+3B8n7vzx+P6/PxEWbpkC/wX2l4eHWb/+sr1tQyTVmiwPz9nf1+GSSs02M/N0dcnw6QVOiz3SlFrXy5TKGCaFAqSfJrDVXNTeH7m5ATA5WJxUZbT73F13D0nl2u7Ros02J+dEYvx9iZDpmlq7fN5trfJ59nakuTTHLX2Gxu8vACcnnJ1JUWoKWz29/dcXlabm5vtt2kWm/3ICIFAtTk7236bZrHZe70kk3i9ABMTzM/Lcvo9tbkPBonF8PlYX6dLgUtEw2llmtzdMTYmyac5Ou+sVQdtLw9tLw9tLw9tLw9tLw9tLw9t/w+yWaGPF2mfThOJkE6Lm0GYvWGQSFAskkhgGIImEWa/u0smA5DJsLcnaBIx/wzTacJhTPOr6fVyeEgw6Pg8AtbeykxFHSiVWFsTkR8B9pXM2Hl8FJEfp5NjmkxOUix+M9TTQyqF2+3gbE6vvdvNwsL3Q5GIs+oIeWsNg3C4PjyBAEdHeDzOTiUg9x4PyWTNMrvdJJOOqyNqvw8GiUarzWhUxHaJwEpgJT9iMmMh7Ky18tPdLSgzFoKrsNksw8PiHq9ryPLQ9vLQ9vLQ9vLQ9vLQ9vLQ9vJQx/72tqZGBChj//TE0hIHB3XdKtiXy6yu8v7Ozk5dRVoF++Njbm4ASqW6GqMK9tbHxRaZDA8PlZYK9vF49ff0NKOjlZYK9qEQMzMA/f2srNhHVLAH4nH8fpaX8fvt3erUFHI5hobq+tSx/w5FkvMDomp0DpNK8fGBYRAK0dtb6VZk7X0+Tk4YHPz60Pgviqz9+DgDA/ad3kKRtf8Bbd8eymUuLur61LGfmrLvNhb6tJKHtpeH2vZ/ADef0n3zjGtFAAAAAElFTkSuQmCC";
+const __vite_glob_0_5 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHSF9rZFRUYyZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD43MTMxMmFjNi02M2FkLTRlNzMtYWUxOC0zZDI0Y2M5ZDdhZGI8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_6 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTExPC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHZjhIcWpxQSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD4zNjkxZmM1NC05ZmE1LTQzMTgtOGExNi0xNzdkMWNmNDc2YTY8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_7 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTExPC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHZ01Xc1ZhTSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD44MmVlYmJjNi04NTgyLTQxZDItOGZiYy1lMGY3MzNlOGY0Y2Q8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_8 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHRVFMbjBlWSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD4zZGEzMjMwOC0wYzdlLTRiYTYtYjdmMS0zMWUyMzE3YThhNjg8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyc+CiAgPGRjOnRpdGxlPgogICA8cmRmOkFsdD4KICAgIDxyZGY6bGkgeG1sOmxhbmc9J3gtZGVmYXVsdCc+MSAtIDE8L3JkZjpsaT4KICAgPC9yZGY6QWx0PgogIDwvZGM6dGl0bGU+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOnBkZj0naHR0cDovL25zLmFkb2JlLmNvbS9wZGYvMS4zLyc+CiAgPHBkZjpBdXRob3I+6JCp5Y6f5ZWT5aSqPC9wZGY6QXV0aG9yPgogPC9yZGY6RGVzY3JpcHRpb24+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczp4bXA9J2h0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8nPgogIDx4bXA6Q3JlYXRvclRvb2w+Q2FudmEgKFJlbmRlcmVyKSBkb2M9REFIR0VRTG4wZVkgdXNlcj1VQUdNWi1PZ0t1USBicmFuZD1CQUdNWjBNNVI1ZzwveG1wOkNyZWF0b3JUb29sPgogPC9yZGY6RGVzY3JpcHRpb24+CjwvcmRmOlJERj4KPC94OnhtcG1ldGE+Cjw/eHBhY2tldCBlbmQ9J3InPz6oh5rXAAAATmVYSWZNTQAqAAAACAAEARoABQAAAAEAAAA+ARsABQAAAAEAAABGASgAAwAAAAEAAgAAAhMAAwAAAAEAAQAAAAAAAAAAAGAAAAABAAAAYAAAAAF3Bd/nAAACzUlEQVR4nO2aP0hqURzHv/dp3iSu0RAS1WTQEgU3qEEIo6ElagmshGgyIaKGpLE9EsoIGhKK6B9uDY0NNgUtF5pqCIKoEIowlKSub/CZeu291HeuP2+cz+I9v3Pg++Fw//njCqlUCoblF7XAf8Ht6fhh9rEYzs8pTMqhwP7kBDs7FCblUGDvdsNmozAphx923huKfHtVRTyOjw/E40Q+pSHkvSk8PSEcBgBBgNdL5VQ8An/PISPHPhRCTw9GR7G7i/5+jI3h9pZOrCgyZ87LCwYGoKp5kyMjWFoi0SqSzN4nElp1ALFYhW1KJWNvt6OzUzvpclVWpmQy9oKAYBAOR3ZmYgJDQyROxZNz1dps2NxEaysADA9jYYHKqXgK7vf39zg4wNwcTCYipRLgTys6uD0d3J4Obk8Ht6eD29PB7eng9nRwezpY2ysKPB7IMvr6sLaGRAJbWxgchCzD7YaisE1j+s/w6gqTk0gmsxVJymsKiSK2t9HeziqQ6d4fHuapo6Cf9faGoyOGgUztHx+/X/PwwDCQqb3d/v2apiaGgUztPR6I4r8WmM0YH2cYyNTe4UAwCKv161mzGcvLaGtjGKhDN0pRMDuL19e8osWCQABOJ9sofXpp19fw+fD8/GcoilhdRW8v8xzdOoE3N/D5EI3CasX6OmRZjxA9+5h3d/D7sbiIri6dEngXlg5uTwe3p4Pb08Ht6eD2dHB7Org9Hdy+MuztFX5pZhD7jQ0EApiZ0XykawT7/X2EQgBweYn5+dxWadXbRyJYWckOLy7g93+Oqt7++FhbOTtDNJo+rHr72tovihZL+rfq7aem0NwMSYLXi8ZGmEyYnkZ9fXqS93PoMLa9mVqgOCIRJJN4f4fTCUn6LBtk7+vqEA6jpQU1Nbllg+x9dzcaGtDRoSkbZO//ArevDKqK01NNzTj2Llfu3SYNf9bSwe3pMLb9b12RvL2Z0K4XAAAAAElFTkSuQmCC";
+const __vite_glob_0_9 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHSF9rZFRUYyZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD41ZWE0M2Y4My05NjczLTQ5YzctYTM0Ny04MDNlZWYyZDc1ZDg8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_10 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTExPC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHZjhIcWpxQSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD45N2VkY2RjOS1jMWU1LTQ1MDItYjY5ZS1lOWFlOWEzMzYzYjY8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_11 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTExPC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHZ01Xc1ZhTSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD40YmE5Y2Q4OS0zYzA3LTRlMDMtODU4Mi0zNDE4ZGJiOTk1YjE8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_12 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHRVFMbjBlWSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD4yY2VlMWIzOS1kNjE4LTQ4YmQtODYxNy03OWFlYzZlYWVjOGE8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_13 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA2PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHSF9rZFRUYyZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD4xYmI0MzRhZC0yODUyLTQwZDUtYTE0Ny0zYWExNDdkYWFkNDg8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_14 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTExPC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHZjhIcWpxQSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD5hMDQxN2FmMy05MmQ4LTRlNDUtOTVmNC0wN2Q5OTg2ZDM1YmU8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const __vite_glob_0_15 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABZCAIAAAAGkGvPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFQGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTExPC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHZ01Xc1ZhTSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBR01aLU9nS3VRJnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0JBR01aME01UjVnJnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD4xNDExYzE4ZC1lM2M3LTQxMmYtODA3ZS1kMGRhNTA3ZTgwYzQ8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4x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";
+const cardImages = /* @__PURE__ */ Object.assign({ "../../assets/trump/clubs-1.png": __vite_glob_0_0, "../../assets/trump/clubs-2.png": __vite_glob_0_1, "../../assets/trump/clubs-3.png": __vite_glob_0_2, "../../assets/trump/clubs-4.png": __vite_glob_0_3, "../../assets/trump/diamonds-1.png": __vite_glob_0_4, "../../assets/trump/diamonds-2.png": __vite_glob_0_5, "../../assets/trump/diamonds-3.png": __vite_glob_0_6, "../../assets/trump/diamonds-4.png": __vite_glob_0_7, "../../assets/trump/hearts-1.png": __vite_glob_0_8, "../../assets/trump/hearts-2.png": __vite_glob_0_9, "../../assets/trump/hearts-3.png": __vite_glob_0_10, "../../assets/trump/hearts-4.png": __vite_glob_0_11, "../../assets/trump/spades-1.png": __vite_glob_0_12, "../../assets/trump/spades-2.png": __vite_glob_0_13, "../../assets/trump/spades-3.png": __vite_glob_0_14, "../../assets/trump/spades-4.png": __vite_glob_0_15 });
+const getCardImage = (suit, num) => {
+  const targetKey = `../../assets/trump/${suit}-${num}.png`;
+  return cardImages[targetKey] || "";
+};
+const DeckFactory = ({ newCompId, onAdd, onSuccess }) => {
+  const [deckMode, setDeckMode] = useState("preset");
+  const [deckJsonData, setDeckJsonData] = useState(null);
+  const [deckFileName, setDeckFileName] = useState("");
+  const handleJsonFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setDeckFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result);
+        setDeckJsonData(Array.isArray(json) ? json : [json]);
+      } catch {
+        alert("JSON解析失敗");
+      }
+    };
+    reader.readAsText(file);
+  };
+  const executeAdd = () => {
+    if (deckMode === "json" && !deckJsonData) {
+      alert("JSONを選択してください");
+      return;
+    }
+    const fieldId = `${newCompId}-field`;
+    const companionField = {
+      id: fieldId,
+      type: "PlayField",
+      props: { deckId: newCompId, title: `${newCompId}用フィールド` }
+    };
+    let cards = [];
+    if (deckMode === "preset") {
+      const common = {
+        deckId: newCompId,
+        ownerId: null,
+        location: "deck",
+        drawCondition: ["hand", "back"],
+        fieldBackCondition: ["discard", "face"],
+        playLocation: "field",
+        isFaceUp: true,
+        backColor: "black"
+      };
+      cards = ["spades", "hearts", "diamonds", "clubs"].flatMap(
+        (suit) => [1, 2, 3, 4].map(
+          (num) => ({
+            ...common,
+            id: `${newCompId}-${suit[0]}${num}`,
+            name: `${newCompId}-${suit[0]}${num}`,
+            frontImage: getCardImage(suit, num)
+          })
+        )
+      );
+    } else {
+      cards = deckJsonData;
+    }
+    const additionalParams = {
+      initialDecks: [{ deckId: newCompId, name: "カード", backColor: "black", cards }]
+    };
+    onAdd(companionField, {});
+    onAdd({ id: newCompId, type: "Deck", props: { deckId: newCompId, title: `山札 ${newCompId}` } }, additionalParams);
+    onSuccess();
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "データ投入モード:" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "10px", marginBottom: "10px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { style: { fontSize: "12px", color: "#fff", cursor: "pointer" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", checked: deckMode === "preset", onChange: () => setDeckMode("preset") }),
+        " プリセット"
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { style: { fontSize: "12px", color: "#fff", cursor: "pointer" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", checked: deckMode === "json", onChange: () => setDeckMode("json") }),
+        " JSON"
+      ] })
+    ] }),
+    deckMode === "json" && /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: ".json", onChange: handleJsonFileChange, className: styles.select }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, style: { marginTop: "10px", width: "100%" }, onClick: executeAdd, children: "DeckとFieldを同時追加" })
+  ] });
+};
+const DiceFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => {
   const [newDiceSides, setNewDiceSides] = useState(6);
+  const handleAdd = () => {
+    const id = newCompId || `dice-${Date.now()}`;
+    const initialProps = getInitialProps("Dice", id, newDiceSides);
+    onAdd({
+      id,
+      type: "Dice",
+      props: initialProps
+    });
+    onSuccess();
+  };
+  const handleDragStart = (e) => {
+    const id = newCompId || `dice-${Date.now()}`;
+    const dragData = {
+      type: "Dice",
+      id,
+      props: {
+        ...getInitialProps("Dice", id, newDiceSides),
+        slotX: 1,
+        slotY: 1
+      }
+    };
+    e.dataTransfer.setData("application/react-game-ui", JSON.stringify(dragData));
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "面数を選択:" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "select",
+      {
+        className: styles.compTypeSelect,
+        value: newDiceSides,
+        onChange: (e) => setNewDiceSides(Number(e.target.value)),
+        style: { marginBottom: "10px" },
+        children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: n, children: [
+          n,
+          "面"
+        ] }, n))
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        draggable: true,
+        onDragStart: handleDragStart,
+        className: styles.dragSourcePreview,
+        style: {
+          width: "60px",
+          height: "60px",
+          border: "2px dashed #888",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "grab",
+          borderRadius: "8px",
+          backgroundColor: "rgba(255,255,255,0.1)",
+          marginBottom: "10px"
+        },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "20px" }, children: "🎲" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontSize: "10px", color: "#ccc" }, children: [
+            newDiceSides,
+            "面"
+          ] })
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, style: { width: "100%" }, onClick: handleAdd, disabled: !newCompId, children: "Diceを追加" })
+  ] });
+};
+const DraggableFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => {
   const [newDraggableColor, setNewDraggableColor] = useState("#ff0000");
   const [uploadImage, setUploadImage] = useState(null);
-  const [newDraggableX, setNewDraggableX] = useState(500);
-  const [newDraggableY, setNewDraggableY] = useState(500);
-  const existingIds = existingComponents.map((c) => c.id);
-  const isDuplicateId = existingIds.includes(newCompId);
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -2935,137 +3225,294 @@ const ComponentFactory = ({
     reader.onloadend = () => setUploadImage(reader.result);
     reader.readAsDataURL(file);
   };
-  const handleAddClick = () => {
-    if (!newCompId || isDuplicateId) return;
-    let initialProps = {};
-    let additionalParams = {};
-    switch (newCompType) {
-      case "Deck":
-        initialProps = {
-          deckId: newCompId,
-          title: "山札"
-        };
-        additionalParams.initialDecks = [
-          {
-            deckId: newCompId,
-            name: "カード",
-            backColor: "black",
-            cards: [
-              {
-                id: `${newCompId}-c1`,
-                deckId: newCompId,
-                name: "1",
-                ownerId: null,
-                location: "deck",
-                drawCondition: ["hand", "back"],
-                fieldBackCondition: ["discard", "face"],
-                playLocation: "field",
-                isFaceUp: true,
-                backColor: "black"
+  const getOverrides = () => ({
+    color: newDraggableColor,
+    image: uploadImage
+  });
+  const handleAdd = () => {
+    const id = newCompId || `draggable-${Date.now()}`;
+    const initialProps = getInitialProps("Draggable", id, getOverrides());
+    const additionalParams = {
+      draggables: {
+        [id]: {
+          id,
+          coordinate: { x: 500, y: 500 },
+          zIndex: 100,
+          rotation: 0
+        }
+      }
+    };
+    onAdd({ id, type: "Draggable", props: initialProps }, additionalParams);
+    onSuccess();
+    setUploadImage(null);
+  };
+  const handleDragStart = (e) => {
+    const id = newCompId || `draggable-${Date.now()}`;
+    const dragData = {
+      type: "Draggable",
+      id,
+      props: {
+        ...getInitialProps("Draggable", id, getOverrides()),
+        slotX: 1,
+        slotY: 1
+      }
+    };
+    e.dataTransfer.setData("application/react-game-ui", JSON.stringify(dragData));
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px", margin: 0 }, children: "色:" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "color",
+          value: newDraggableColor,
+          onChange: (e) => setNewDraggableColor(e.target.value),
+          style: { cursor: "pointer", border: "none", background: "none", width: "30px", height: "24px" }
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "画像アップロード:" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px", marginTop: "10px" }, children: "プレビュー (これを盤面にドラッグ):" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        draggable: true,
+        onDragStart: handleDragStart,
+        className: styles.dragSourcePreview,
+        style: {
+          width: "80px",
+          height: "80px",
+          border: `2px solid ${newDraggableColor}`,
+          backgroundColor: `${newDraggableColor}33`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "grab",
+          borderRadius: "8px",
+          overflow: "hidden",
+          position: "relative",
+          marginBottom: "10px"
+        },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "img",
+            {
+              src: uploadImage || "/hanabishi.svg",
+              alt: "preview",
+              style: {
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                pointerEvents: "none"
               }
-            ]
-          }
-        ];
-        break;
-      case "PlayField":
-        initialProps = {
-          deckId: newCompId,
-          title: newCompId
+            }
+          ),
+          !newCompId && /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              style: {
+                position: "absolute",
+                bottom: 0,
+                backgroundColor: "rgba(0,0,0,0.6)",
+                color: "#fff",
+                fontSize: "9px",
+                width: "100%",
+                textAlign: "center"
+              },
+              children: "ID未設定"
+            }
+          )
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, style: { width: "100%" }, onClick: handleAdd, disabled: !newCompId, children: "Draggableを追加" })
+  ] });
+};
+const ScoreBoardFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => {
+  const [sbPlayCard, setSbPlayCard] = useState(true);
+  const [sbHold, setSbHold] = useState(false);
+  const [sbFlip, setSbFlip] = useState(false);
+  const [sbTurnSkip, setSbTurnSkip] = useState(true);
+  const [sbRoundSkip, setSbRoundSkip] = useState(false);
+  const handleAdd = () => {
+    const id = newCompId || `sb-${Date.now()}`;
+    const overrides = {
+      sbPlayCard,
+      sbHold,
+      sbFlip,
+      sbTurnSkip,
+      sbRoundSkip
+    };
+    onAdd({
+      id,
+      type: "ScoreBoard",
+      props: getInitialProps("ScoreBoard", id, overrides)
+    });
+    onSuccess();
+  };
+  const buttonConfigs = [
+    { label: "カードプレイ", state: sbPlayCard, setter: setSbPlayCard },
+    { label: "ホールド", state: sbHold, setter: setSbHold },
+    { label: "フリップ", state: sbFlip, setter: setSbFlip },
+    { label: "ターンスキップ", state: sbTurnSkip, setter: setSbTurnSkip },
+    { label: "ラウンドスキップ", state: sbRoundSkip, setter: setSbRoundSkip }
+  ];
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px", display: "flex", flexDirection: "column", gap: "5px" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "有効にするボタン:" }),
+    buttonConfigs.map((item) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "label",
+      {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          cursor: "pointer",
+          fontSize: "12px",
+          color: "#fff"
+        },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "checkbox", checked: item.state, onChange: (e) => item.setter(e.target.checked) }),
+          item.label
+        ]
+      },
+      item.label
+    )),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "button",
+      {
+        className: styles.saveButton,
+        style: { width: "100%", marginTop: "5px" },
+        onClick: handleAdd,
+        disabled: !newCompId,
+        children: "ScoreBoardを追加"
+      }
+    )
+  ] });
+};
+const TokenStoreFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => {
+  const [newTokenCount, setNewTokenCount] = useState(10);
+  const handleAdd = () => {
+    const id = newCompId || `token-${Date.now()}`;
+    const initialProps = getInitialProps("TokenStore", id);
+    const additionalParams = {
+      initialTokenStores: [
+        {
+          tokenStoreId: id,
+          name: id,
+          tokens: Array.from({ length: newTokenCount }, (_, i) => ({
+            id: `${id}-s${i + 1}`,
+            name: "💰",
+            color: "#D4AF37"
+          }))
+        }
+      ]
+    };
+    onAdd({ id, type: "TokenStore", props: initialProps }, additionalParams);
+    onSuccess();
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "初期個数:" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", alignItems: "center", gap: "8px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "range",
+          min: "1",
+          max: "50",
+          value: newTokenCount,
+          onChange: (e) => setNewTokenCount(Number(e.target.value)),
+          className: styles.slider
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "12px", color: "#fff", minWidth: "30px" }, children: newTokenCount })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "button",
+      {
+        className: styles.saveButton,
+        style: { width: "100%", marginTop: "10px" },
+        onClick: handleAdd,
+        disabled: !newCompId,
+        children: "TokenStoreを追加"
+      }
+    )
+  ] });
+};
+const FILTERED_COMPONENT_TYPES = COMPONENT_TYPES.filter((type) => type !== "PlayField");
+const ComponentFactory = ({ onAdd, onDelete, existingComponents, fullGameParam }) => {
+  const [newCompId, setNewCompId] = useState("");
+  const [newCompType, setNewCompType] = useState("Dice");
+  const existingIds = existingComponents.map((c) => c.id);
+  const isDuplicateId = existingIds.includes(newCompId);
+  const FACTORY_MANAGED_TYPES = ["Deck", "Dice", "Draggable", "ScoreBoard", "TokenStore"];
+  const getInitialProps = (type, targetId, overrides = {}) => {
+    switch (type) {
+      case "Dice":
+        const sides = overrides.sides || 6;
+        return {
+          diceId: targetId,
+          sides,
+          title: `${sides}面ダイス`,
+          customFaces: sides === 4 ? ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"] : []
         };
-        break;
-      case "ScoreBoard":
-        initialProps = {
-          playCardButton: [sbPlayCard, true],
-          holdButton: [sbHold, true],
-          flipButton: [sbFlip, true],
-          turnSkipButton: [sbTurnSkip, true],
-          roundSkipButton: [sbRoundSkip, true]
-        };
-        break;
-      case "TokenStore":
-        initialProps = {
-          tokenStoreId: newCompId,
-          title: `トークン置き場`
-        };
-        additionalParams.initialTokenStores = [
-          {
-            tokenStoreId: newCompId,
-            name: newCompId,
-            tokens: Array.from({ length: newTokenCount }, (_, i) => ({
-              id: `${newCompId}-s${i + 1}`,
-              name: "💰",
-              color: "#D4AF37"
-            }))
-          }
-        ];
-        break;
-      case "GridBoard":
-        initialProps = {
-          boardId: newCompId,
-          allowPieceDrag: true
-        };
-        break;
       case "Draggable":
-        initialProps = {
-          draggableId: newCompId,
-          image: uploadImage || "/hanabishi.svg",
+        return {
+          draggableId: targetId,
+          image: overrides.image || "/hanabishi.svg",
           mask: true,
-          color: newDraggableColor,
+          color: overrides.color || "#ff0000",
           size: 100,
           isDebug: true
         };
-        additionalParams.draggables = {
-          [newCompId]: {
-            id: newCompId,
-            coordinate: { x: newDraggableX, y: newDraggableY },
-            zIndex: 100,
-            rotation: 0
-          }
+      case "ScoreBoard":
+        return {
+          playCardButton: [overrides.sbPlayCard ?? true, true],
+          holdButton: [overrides.sbHold ?? false, true],
+          flipButton: [overrides.sbFlip ?? false, true],
+          turnSkipButton: [overrides.sbTurnSkip ?? true, true],
+          roundSkipButton: [overrides.sbRoundSkip ?? false, true]
         };
-        break;
-      case "Dice":
-        initialProps = {
-          diceId: newCompId,
-          sides: newDiceSides,
-          title: `${newDiceSides}面ダイス`,
-          // 4面の場合は天気ダイス
-          customFaces: newDiceSides === 4 ? ["/weather_sunny.png", "/weather_cloud.png", "/weather_wind.png", "/weather_rain.png"] : []
+      case "TokenStore":
+        return {
+          tokenStoreId: targetId,
+          title: `トークン置き場`
         };
-        break;
       case "Timer":
-        initialProps = { initialDuration: 30 };
-        break;
-      case "SystemMessageWindow":
-        initialProps = {};
-        break;
+        return { initialDuration: 30 };
       default:
-        initialProps = {};
+        return {};
     }
-    const newComponent = {
-      id: newCompId,
-      type: newCompType,
-      props: initialProps
-    };
-    onAdd(newComponent, additionalParams);
+  };
+  const handleAddClick = () => {
+    if (!newCompId || isDuplicateId) return;
+    if (FACTORY_MANAGED_TYPES.includes(newCompType)) return;
+    const initialProps = getInitialProps(newCompType, newCompId);
+    onAdd({ id: newCompId, type: newCompType, props: initialProps });
     setNewCompId("");
-    setUploadImage(null);
   };
   const handleDeleteClick = (compId) => {
     const target = existingComponents.find((c) => c.id === compId);
     if (!target) return;
     let additionalParams = {};
-    if (target.type === "Draggable") {
-      const currentDraggables = { ...fullGameParam?.draggables || {} };
-      delete currentDraggables[compId];
-      additionalParams.draggables = currentDraggables;
+    if (target.type === "Deck") {
+      const originalDecks = fullGameParam?.initialDecks || [];
+      additionalParams.initialDecks = originalDecks.filter((d) => d.deckId !== compId);
     }
     if (target.type === "TokenStore") {
       additionalParams.initialTokenStores = (fullGameParam?.initialTokenStores || []).filter(
         (s) => s.tokenStoreId !== compId
       );
     }
+    if (target.type === "Draggable") {
+      const currentDraggables = { ...fullGameParam?.draggables || {} };
+      delete currentDraggables[compId];
+      additionalParams.draggables = currentDraggables;
+    }
     onDelete(compId, additionalParams);
   };
+  const isFactoryManaged = FACTORY_MANAGED_TYPES.includes(newCompType);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.addComponentBox, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "コンポーネント追加:" }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.createSection, children: [
@@ -3075,7 +3522,7 @@ const ComponentFactory = ({
           className: styles.compTypeSelect,
           value: newCompType,
           onChange: (e) => setNewCompType(e.target.value),
-          children: COMPONENT_TYPES.map((type) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: type, children: type }, type))
+          children: FILTERED_COMPONENT_TYPES.map((type) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: type, children: type }, type))
         }
       ),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -3089,206 +3536,46 @@ const ComponentFactory = ({
           onChange: (e) => setNewCompId(e.target.value)
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "追加" })
+      !isFactoryManaged && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.saveButton, onClick: handleAddClick, disabled: !newCompId || isDuplicateId, children: "追加" })
     ] }),
     isDuplicateId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#ff4444", fontSize: "12px", marginTop: "-4px" }, children: "このIDは既に使用されています" }),
-    newCompType === "ScoreBoard" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
+    newCompType === "Deck" && /* @__PURE__ */ jsxRuntimeExports.jsx(DeckFactory, { newCompId, onAdd, onSuccess: () => setNewCompId("") }),
+    newCompType === "Dice" && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      DiceFactory,
       {
-        className: styles.field,
-        style: { marginTop: "10px", display: "flex", flexDirection: "column", gap: "5px" },
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "有効にするボタン:" }),
-          [
-            { label: "カードプレイ", state: sbPlayCard, setter: setSbPlayCard },
-            { label: "ホールド", state: sbHold, setter: setSbHold },
-            { label: "フリップ", state: sbFlip, setter: setSbFlip },
-            { label: "ターンスキップ", state: sbTurnSkip, setter: setSbTurnSkip },
-            { label: "ラウンドスキップ", state: sbRoundSkip, setter: setSbRoundSkip }
-          ].map((item) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "label",
-            {
-              style: {
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                cursor: "pointer",
-                fontSize: "12px",
-                color: "#fff"
-              },
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "input",
-                  {
-                    type: "checkbox",
-                    checked: item.state,
-                    onChange: (e) => item.setter(e.target.checked),
-                    style: { cursor: "pointer" }
-                  }
-                ),
-                item.label
-              ]
-            },
-            item.label
-          ))
-        ]
+        newCompId,
+        onAdd,
+        onSuccess: () => setNewCompId(""),
+        getInitialProps: (type, id, sides) => getInitialProps(type, id, { sides })
       }
     ),
-    newCompType === "TokenStore" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "初期個数:" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", alignItems: "center", gap: "8px" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            type: "range",
-            min: "1",
-            max: "50",
-            value: newTokenCount,
-            onChange: (e) => setNewTokenCount(Number(e.target.value)),
-            className: styles.slider
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "12px", color: "#fff", minWidth: "30px" }, children: newTokenCount })
-      ] })
-    ] }),
-    newCompType === "Dice" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "面数を選択:" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "select",
-        {
-          className: styles.compTypeSelect,
-          value: newDiceSides,
-          onChange: (e) => setNewDiceSides(Number(e.target.value)),
-          style: { marginBottom: "10px" },
-          children: [2, 3, 4, 5, 6, 8, 10, 12, 20].map((n) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: n, children: [
-            n,
-            "面"
-          ] }, n))
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          draggable: true,
-          onDragStart: (e) => {
-            const dragData = {
-              type: "Dice",
-              id: newCompId || `dice-${Date.now()}`,
-              props: {
-                diceId: newCompId || `dice-${Date.now()}`,
-                sides: newDiceSides,
-                title: `${newDiceSides}面ダイス`,
-                slotX: 1,
-                slotY: 1
-              }
-            };
-            e.dataTransfer.setData("application/react-game-ui", JSON.stringify(dragData));
-          },
-          className: styles.dragSourcePreview,
-          style: {
-            width: "60px",
-            height: "60px",
-            border: "2px dashed #888",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "grab",
-            borderRadius: "8px",
-            backgroundColor: "rgba(255,255,255,0.1)"
-          },
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: "20px" }, children: "🎲" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontSize: "10px", color: "#ccc" }, children: [
-              newDiceSides,
-              "面"
-            ] })
-          ]
-        }
-      )
-    ] }),
-    newCompType === "Draggable" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.field, style: { marginTop: "10px" }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px", margin: 0 }, children: "色:" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            type: "color",
-            value: newDraggableColor,
-            onChange: (e) => setNewDraggableColor(e.target.value),
-            style: { cursor: "pointer", border: "none", background: "none", width: "30px", height: "24px" }
-          }
-        )
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px" }, children: "画像アップロード:" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: "image/*", className: styles.select, onChange: handleFileChange }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, style: { fontSize: "11px", marginTop: "10px" }, children: "プレビュー (これを盤面にドラッグ):" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          draggable: true,
-          onDragStart: (e) => {
-            const dragData = {
-              type: "Draggable",
-              id: newCompId || `drag-${Date.now()}`,
-              props: {
-                image: uploadImage || "/hanabishi.svg",
-                color: newDraggableColor,
-                size: 80
-              }
-            };
-            e.dataTransfer.setData("application/react-game-ui", JSON.stringify(dragData));
-          },
-          className: styles.dragSourcePreview,
-          style: {
-            width: "80px",
-            height: "80px",
-            border: `2px solid ${newDraggableColor}`,
-            backgroundColor: `${newDraggableColor}33`,
-            // 少し透明度を下げた背景
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "grab",
-            borderRadius: "8px",
-            overflow: "hidden",
-            position: "relative",
-            transition: "transform 0.1s ease"
-          },
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "img",
-              {
-                src: uploadImage || "/hanabishi.svg",
-                alt: "preview",
-                style: {
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  pointerEvents: "none"
-                  // imgタグがドラッグイベントを邪魔しないように
-                }
-              }
-            ),
-            !newCompId && /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "div",
-              {
-                style: {
-                  position: "absolute",
-                  bottom: 0,
-                  backgroundColor: "rgba(0,0,0,0.6)",
-                  color: "#fff",
-                  fontSize: "9px",
-                  width: "100%",
-                  textAlign: "center"
-                },
-                children: "ID未設定"
-              }
-            )
-          ]
-        }
-      )
-    ] }),
+    newCompType === "Draggable" && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      DraggableFactory,
+      {
+        newCompId,
+        onAdd,
+        onSuccess: () => setNewCompId(""),
+        getInitialProps
+      }
+    ),
+    newCompType === "ScoreBoard" && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      ScoreBoardFactory,
+      {
+        newCompId,
+        onAdd,
+        onSuccess: () => setNewCompId(""),
+        getInitialProps
+      }
+    ),
+    newCompType === "TokenStore" && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      TokenStoreFactory,
+      {
+        newCompId,
+        onAdd,
+        onSuccess: () => setNewCompId(""),
+        getInitialProps
+      }
+    ),
     existingComponents.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { marginTop: "15px" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.label, children: "配置済みコンポーネント:" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: styles.componentList, children: existingComponents.map((comp) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.componentItem, children: [
@@ -3306,7 +3593,7 @@ const ComponentFactory = ({
     ] })
   ] });
 };
-const GameFactory = ({ socket, gameMeta, selectedGameId, onSelect }) => {
+const GameFactory = ({ socket, GameParam: GameParam2, selectedGameId, onSelect }) => {
   const [newGameName, setNewGameName] = useState("");
   const [newGameIcon, setNewGameIcon] = useState("🎲");
   const [isDeleteMode, setIsDeleteMode] = useState(false);
@@ -3384,8 +3671,8 @@ const GameFactory = ({ socket, gameMeta, selectedGameId, onSelect }) => {
             value: selectedGameId,
             onChange: (e) => onSelect(e.target.value),
             children: [
-              gameMeta.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "読み込み中..." }),
-              gameMeta.map((game) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: game.gameId, children: [
+              GameParam2.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "読み込み中..." }),
+              GameParam2.map((game) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: game.gameId, children: [
                 game.gameIcon,
                 " ",
                 game.gameId
@@ -3406,9 +3693,63 @@ const GameFactory = ({ socket, gameMeta, selectedGameId, onSelect }) => {
     ] })
   ] });
 };
+const LogicFactory = ({ selectedGame, isSaving, onSync }) => {
+  const [instructions, setInstructions] = useState([]);
+  const [initialInstructions, setInitialInstructions] = useState([]);
+  const isDirty = JSON.stringify(instructions) !== JSON.stringify(initialInstructions);
+  useEffect(() => {
+    if (selectedGame && !isSaving) {
+      const rawOnCardPlay = selectedGame.onCardPlay;
+      const configOnCardPlay = Array.isArray(rawOnCardPlay) ? rawOnCardPlay : [];
+      setInitialInstructions([...configOnCardPlay]);
+      if (!isDirty) {
+        setInstructions([...configOnCardPlay]);
+      }
+    }
+  }, [selectedGame, isSaving]);
+  useEffect(() => {
+    onSync(isDirty, instructions);
+  }, [isDirty, instructions]);
+  const handleAdd = () => {
+    onChange([...instructions, { type: "ADD_SCORE", playerId: "ALL", points: 0 }]);
+  };
+  const onChange = (newInstructions) => {
+    setInstructions(newInstructions);
+  };
+  const handleUpdate = (index, patch) => {
+    const next = [...instructions];
+    next[index] = { ...next[index], ...patch };
+    onChange(next);
+  };
+  const handleDelete = (index) => {
+    onChange(instructions.filter((_, i) => i !== index));
+  };
+  if (!selectedGame) return null;
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.section, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { className: styles.subTitle, children: "onCardPlay ロジック" }),
+    instructions.map((inst, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles.effectRow, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: inst.type, onChange: (e) => handleUpdate(idx, { type: e.target.value }), children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "ADD_SCORE", children: "ADD_SCORE" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "EMIT_MSG", children: "EMIT_MSG" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "UPDATE_PHASE", children: "UPDATE_PHASE" })
+      ] }),
+      inst.type === "ADD_SCORE" && /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "number",
+          value: inst.points || 0,
+          onChange: (e) => handleUpdate(idx, { points: Number(e.target.value) }),
+          placeholder: "点数"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.deleteMini, onClick: () => handleDelete(idx), children: "削除" })
+    ] }, idx)),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: styles.addBtn, onClick: handleAdd, children: "+ 命令を追加" })
+  ] });
+};
 const ControlPanel = ({
   socket,
-  gameMeta,
+  GameParam: GameParam2,
   containerRef,
   isOpen,
   onToggle
@@ -3419,6 +3760,7 @@ const ControlPanel = ({
   const [initialTokens, setInitialTokens] = useState({});
   const [draggables, setDraggables] = useState({});
   const [localComponents, setLocalComponents] = useState([]);
+  const [logicSync, setLogicSync] = useState({ isDirty: false, data: [] });
   const [initialValues, setInitialValues] = useState({
     maxPlayers: 1,
     initialHand: {},
@@ -3429,11 +3771,11 @@ const ControlPanel = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   useEffect(() => {
-    if (gameMeta.length > 0 && !selectedGameId) {
-      setSelectedGameId(gameMeta[0].gameId);
+    if (GameParam2.length > 0 && !selectedGameId) {
+      setSelectedGameId(GameParam2[0].gameId);
     }
-  }, [gameMeta, selectedGameId]);
-  const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
+  }, [GameParam2, selectedGameId]);
+  const selectedGame = useMemo(() => GameParam2.find((g) => g.gameId === selectedGameId), [selectedGameId, GameParam2]);
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
   const isHandDirty = JSON.stringify(initialHand) !== JSON.stringify(initialValues.initialHand);
   const isTokensDirty = JSON.stringify(initialTokens) !== JSON.stringify(initialValues.initialTokens);
@@ -3444,8 +3786,8 @@ const ControlPanel = ({
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
       const configInitialHand = selectedGame.initialHand ?? {};
       const configInitialTokens = selectedGame.initialTokens ?? {};
-      const configComponents = selectedGame.components ?? [];
       const configDraggables = selectedGame.draggables ?? {};
+      const configComponents = selectedGame.components ?? [];
       setInitialValues({
         maxPlayers: configMaxPlayers,
         initialHand: { ...configInitialHand },
@@ -3488,8 +3830,9 @@ const ControlPanel = ({
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
     if (isHandDirty) newParam.initialHand = initialHand;
     if (isTokensDirty) newParam.initialTokens = initialTokens;
-    if (isComponentsDirty) newParam.components = localComponents;
     if (isDraggablesDirty) newParam.draggables = draggables;
+    if (logicSync.isDirty) newParam.onCardPlay = logicSync.data;
+    if (isComponentsDirty) newParam.components = localComponents;
     setIsSaving(true);
     socket.emit("game-param:update", {
       gameId: selectedGameId,
@@ -3498,20 +3841,24 @@ const ControlPanel = ({
   };
   const handleAddComponent = (newComponent, additionalParams) => {
     if (!selectedGameId) return;
-    const updatedComponents = [...localComponents, newComponent];
-    const updatedDraggables = {
-      ...draggables,
-      ...additionalParams?.draggables || {}
-    };
-    setLocalComponents(updatedComponents);
-    setDraggables(updatedDraggables);
-    socket.emit("game-param:update", {
-      gameId: selectedGameId,
-      newParam: {
-        ...additionalParams,
-        draggables: updatedDraggables,
-        components: updatedComponents
-      }
+    setLocalComponents((prevComponents) => {
+      const updatedComponents = [...prevComponents, newComponent];
+      setDraggables((prevDraggables) => {
+        const updatedDraggables = {
+          ...prevDraggables,
+          ...additionalParams?.draggables || {}
+        };
+        socket.emit("game-param:update", {
+          gameId: selectedGameId,
+          newParam: {
+            ...additionalParams,
+            draggables: updatedDraggables,
+            components: updatedComponents
+          }
+        });
+        return updatedDraggables;
+      });
+      return updatedComponents;
     });
   };
   const handleDeleteComponent = (compId, additionalParams) => {
@@ -3536,7 +3883,7 @@ const ControlPanel = ({
         GameFactory,
         {
           socket,
-          gameMeta,
+          GameParam: GameParam2,
           selectedGameId,
           onSelect: setSelectedGameId
         }
@@ -3631,12 +3978,22 @@ const ControlPanel = ({
           )
         ] }, `token-${tokenId}`))
       ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: styles.divider }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        LogicFactory,
+        {
+          selectedGame,
+          isSaving,
+          onSync: (isDirty, data) => setLogicSync({ isDirty, data })
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: styles.divider }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
         {
           className: styles.saveButton,
           onClick: handleSave,
-          disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isComponentsDirty,
+          disabled: !socket.connected || isSaving || !isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isComponentsDirty && !isDraggablesDirty && !logicSync.isDirty,
           children: isSaving ? "保存中..." : showSuccess ? "完了" : "変更箇所のみ反映"
         }
       )
@@ -3664,6 +4021,7 @@ let LOG_CATEGORIES = {
   resource: true,
   token: true,
   draggable: true,
+  phase: true,
   warn: true,
   popup: true,
   custom_event: true,
@@ -3705,6 +4063,383 @@ const server_log = (tag, gameId, roomId, msg, level = "INFO") => {
 const isExplored = (roomState, position) => {
   return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
 };
+class BoardManager {
+  constructor(state) {
+    this.state = state;
+  }
+  /**
+   * 特定のセルの探索状態を切り替える
+   * @param {Position} position - 操作対象の座標
+   * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
+   * @returns {boolean} 状態が実際に変化した場合は true
+   */
+  updateCellExploredStatus = (position, shouldMark) => {
+    const isCurrentlyExplored = isExplored(this.state, position);
+    if (shouldMark && !isCurrentlyExplored) {
+      this.state.exploredCells.push(position);
+      server_log(
+        "cell",
+        this.state.gameId,
+        this.state.roomId,
+        `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`
+      );
+    }
+    if (!shouldMark && isCurrentlyExplored) {
+      this.state.exploredCells = this.state.exploredCells.filter(
+        (loc) => !(loc.row === position.row && loc.col === position.col)
+      );
+      server_log(
+        "cell",
+        this.state.gameId,
+        this.state.roomId,
+        `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`
+      );
+    }
+  };
+  /**
+   * セル効果を発動する
+   */
+  applyCellEffect = (boardId, playerId, position, cellEffects, roomManager) => {
+    const { row, col } = position;
+    const targetBoard = this.state.boards[boardId];
+    if (!targetBoard) {
+      server_log("warn", this.state.gameId, this.state.roomId, "applyCellEffect: ボードがありません。");
+      return;
+    }
+    const targetId = `r${row}c${col}`;
+    const cell2 = targetBoard.find((c) => c.id === targetId);
+    if (!cell2) {
+      server_log(
+        "warn",
+        this.state.gameId,
+        this.state.roomId,
+        `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`
+      );
+      return;
+    }
+    const effect = cellEffects[cell2.name];
+    if (effect) {
+      server_log("cell", this.state.gameId, this.state.roomId, `マス効果発動: ${cell2.name} by ${playerId}`);
+      try {
+        effect(roomManager, playerId);
+      } catch (e) {
+        server_log(
+          "warn",
+          this.state.gameId,
+          this.state.roomId,
+          `マス効果の実行中にエラーが発生しました: ${cell2.name}`
+        );
+      }
+    } else {
+      server_log("cell", this.state.gameId, this.state.roomId, `マス効果なし: (${row}, ${col}) ${cell2.name}`);
+    }
+  };
+}
+const roomInterpreter = (logic, state, manager, ...args) => {
+  if (typeof logic === "function") {
+    return logic(state, manager, ...args);
+  }
+  const instList = Array.isArray(logic) ? logic : [logic];
+  instList.forEach((inst) => {
+    switch (inst.type) {
+      case "ADD_SCORE":
+        if (inst.playerId === "ALL") {
+          state.players.forEach((p) => manager.addScore(p.id, inst.points));
+        } else {
+          manager.addScore(inst.playerId, inst.points);
+        }
+        break;
+      case "EMIT_MSG":
+        manager.emitSystemMessage(inst.text, inst.duration ?? 1e3, true);
+        break;
+      case "UPDATE_PHASE":
+        manager.updatePhase(inst.newPhase);
+        break;
+      default:
+        console.warn(`未定義の命令です: ${inst.type}`);
+    }
+  });
+};
+class DeckManager {
+  constructor(param, state) {
+    this.param = param;
+    this.state = state;
+  }
+  /**
+   * カードをデッキから引く
+   */
+  drawCard(deckId, condition, playerId) {
+    const [targetLocation, targetState] = condition;
+    const currentDeck = this.state.decks[deckId].filter((c) => c.location === "deck");
+    if (!currentDeck.length) return false;
+    const card2 = currentDeck[0];
+    card2.isFaceUp = targetState === "face";
+    let destination = "";
+    if (targetLocation === "discard") {
+      card2.location = "discard";
+      card2.ownerId = null;
+      this.state.discardPile[deckId].push(card2);
+      destination = "discard";
+    } else if (playerId && targetLocation === "hand") {
+      const player = this.state.players.find((p) => p.id === playerId);
+      if (player) {
+        card2.location = "hand";
+        card2.ownerId = playerId;
+        player.cards.push(card2);
+        destination = playerId;
+      }
+    } else {
+      card2.location = "field";
+      card2.ownerId = null;
+      this.state.playFieldCards[deckId].push(card2);
+      destination = "field";
+    }
+    server_log(
+      "deck",
+      this.state.gameId,
+      this.state.roomId,
+      `DRAW: ${card2.name} (ID:${card2.id}) (deck -> ${destination}, state: ${targetState})`
+    );
+  }
+  /**
+   * デッキをシャッフルする
+   */
+  shuffleDeck = (deckId) => {
+    const targetDeck = this.state.decks[deckId];
+    if (!targetDeck) return;
+    const currentDeck = targetDeck.filter((c) => c.location === "deck");
+    const otherCards = targetDeck.filter((c) => c.location !== "deck");
+    for (let i = currentDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
+    }
+    this.state.decks[deckId] = currentDeck.concat(otherCards);
+    server_log("deck", this.state.gameId, this.state.roomId, `${deckId} をシャッフル`);
+  };
+  /**
+   * カードをプレイする
+   */
+  playCard(data, roomManager) {
+    const { deckId, cardIds, playerId, playLocation = "field", coordinate } = data;
+    const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (player?.isHolding) {
+      server_log(
+        "card",
+        this.state.gameId,
+        this.state.roomId,
+        `${playerId} はカードをホールドしているので、カードをプレイできません`
+      );
+      return;
+    }
+    ids.forEach((id) => {
+      const card2 = this.state.decks[deckId]?.find((c) => c.id === id);
+      if (!card2) return;
+      const p = this.state.players.find((p2) => p2.id === playerId);
+      if (p) p.cards = p.cards.filter((c) => c.id !== id);
+      card2.location = playLocation;
+      card2.coordinate = coordinate;
+      card2.isFaceUp = true;
+      this.state.playFieldCards[deckId] = this.state.playFieldCards[deckId].filter((c) => c.id !== id);
+      this.state.discardPile[deckId] = this.state.discardPile[deckId].filter((c) => c.id !== id);
+      if (playLocation === "discard") {
+        this.state.discardPile[deckId].push(card2);
+      } else {
+        this.state.playFieldCards[deckId].push(card2);
+      }
+      roomManager.updateZIndex("card", [deckId, card2.id], true);
+      server_log("card", this.state.gameId, this.state.roomId, `"${card2.name}" をプレイした`);
+      const effect = this.param.cardEffects?.[card2.name];
+      if (effect) {
+        server_log("card", this.state.gameId, this.state.roomId, `カード効果発揮: ${card2.name} by ${playerId}`);
+        effect({
+          playerId,
+          updateResource: (resourceId, amount) => roomManager.acquireResource(playerId, resourceId, amount),
+          updateToken: (tokenId) => roomManager.acquireToken(this.state.roomId, playerId, tokenId)
+        });
+      }
+    });
+    const onCardPlay = this.param.onCardPlay;
+    if (onCardPlay) {
+      roomInterpreter(onCardPlay, this.state, roomManager, data);
+    }
+  }
+  /**
+   * ホールド状態を解除し、カードを出す
+   */
+  unholdCards(roomManager) {
+    this.state.players.forEach((player) => {
+      player.isHolding = false;
+      const playerHoldData = this.state.holdCards[player.id];
+      if (!playerHoldData) return;
+      Object.entries(playerHoldData).forEach(([deckId, cardIds]) => {
+        const playData = {
+          roomId: this.state.roomId,
+          deckId,
+          cardIds,
+          playerId: player.id,
+          playLocation: "field",
+          coordinate: { x: 50, y: 50 }
+        };
+        roomManager.playCard(playData);
+      });
+      delete this.state.holdCards[player.id];
+    });
+    server_log("card", this.state.gameId, this.state.roomId, `プレイヤー全員のホールド状態を解除しました`);
+  }
+  /**
+   * フィールドからカードを回収（手札に戻す or 捨て札へ）
+   */
+  moveFromField(deckId, cardId, playerId) {
+    const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
+    const fieldList = playFieldCards[deckId] || [];
+    const cardIndex = fieldList.findIndex((c) => c.id === cardId);
+    if (cardIndex === -1) return;
+    const [card2] = fieldList.splice(cardIndex, 1);
+    card2.isFaceUp = card2.fieldBackCondition?.[1] === "face";
+    if (playerId) {
+      const player = players.find((p) => p.id === playerId);
+      if (!player) return;
+      card2.location = "hand";
+      card2.ownerId = playerId;
+      player.cards = player.cards || [];
+      player.cards.push(card2);
+      server_log("card", this.state.gameId, this.state.roomId, `Return: ${card2.name} -> Player:${playerId}`);
+    } else {
+      card2.location = "discard";
+      card2.ownerId = null;
+      discardPile[deckId] = discardPile[deckId] || [];
+      discardPile[deckId].push(card2);
+      server_log("card", this.state.gameId, this.state.roomId, `Discard: ${card2.name} -> discard`);
+    }
+  }
+}
+class TokenManager {
+  constructor(param, state) {
+    this.param = param;
+    this.state = state;
+  }
+  /**
+   * トークンを取得する
+   * @param tokenStoreId - トークン置き場ID
+   * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
+   * @param playerId - プレイヤーID
+   */
+  acquireToken(tokenStoreId, tokenId = null, playerId) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return;
+    const tokens = this.state.tokenStores[tokenStoreId];
+    if (tokens.length === 0) return;
+    const index = tokenId !== null ? tokens.findIndex((t) => t.id === tokenId) : Math.floor(Math.random() * tokens.length);
+    if (index !== -1) {
+      const acquiredToken = tokens.splice(index, 1)[0];
+      if (!Array.isArray(player.tokens)) {
+        player.tokens = [];
+      }
+      player.tokens.push(acquiredToken);
+      server_log(
+        "token",
+        this.state.gameId,
+        this.state.roomId,
+        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${acquiredToken.id} を獲得しました。`
+      );
+    }
+  }
+  // 盤面 → 盤面
+  MoveOnBoardToken(boardId, tokenId, newPosition, roomManager) {
+    const token = this.state.boardTokens[boardId].find((t) => t.id == tokenId);
+    if (!token) return;
+    const oldLocation = token.position;
+    if (!oldLocation) return;
+    token.position = newPosition;
+    const cellEffects = this.param.cellEffects;
+    if (cellEffects && token.ownerId) {
+      roomManager.applyCellEffect(boardId, token.ownerId, newPosition, cellEffects);
+    }
+    const onTokenMove = this.param.onTokenMove;
+    if (onTokenMove) {
+      onTokenMove(this.state, roomManager, newPosition);
+    }
+    server_log(
+      "token",
+      this.state.gameId,
+      this.state.roomId,
+      `MOVEON: ${token.name} (ID:${token.id}) (${oldLocation.row}, ${oldLocation.col}-> ${newPosition.row}, ${newPosition.col})`
+    );
+  }
+  // 盤面 → 手持ち
+  MoveFromBoardToken(boardId, tokenId, socketId) {
+    const player = this.state.players.find((p) => p.socketId === socketId);
+    const boardTokens = this.state.boardTokens[boardId];
+    if (!boardTokens || !player) return;
+    const index = boardTokens.findIndex((t) => t.id === tokenId);
+    if (index === -1) return;
+    const [token] = boardTokens.splice(index, 1);
+    token.ownerId = player.id;
+    token.position = null;
+    token.movableCells = [];
+    if (!Array.isArray(player.tokens)) {
+      player.tokens = [];
+    }
+    player.tokens.push(token);
+    server_log(
+      "token",
+      this.state.gameId,
+      this.state.roomId,
+      `MOVEFROM: ${token.name} (ID:${token.id}) (${boardId} -> ${player.id})`
+    );
+  }
+  /**
+   * 手持ちから盤面へトークンを移動する
+   */
+  playToken(boardId, tokenId, playerId, newPosition) {
+    const player = this.state.players.find((p) => p.id === playerId);
+    if (!player) return;
+    const targetToken = player.tokens.find((t) => t.id === tokenId);
+    if (!targetToken) return;
+    player.tokens = player.tokens.filter((t) => t.id !== tokenId);
+    this.state.boardTokens[boardId].push({
+      ...targetToken,
+      position: newPosition
+    });
+    server_log(
+      "token",
+      this.state.gameId,
+      this.state.roomId,
+      `PLAY: ${targetToken.name} (ID:${targetToken.id}) (${playerId} -> ${boardId} ${newPosition.row}, ${newPosition.col})`
+    );
+  }
+  /**
+   * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+   * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
+   */
+  getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
+    const targetBoard = this.state.boards[boardId];
+    const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
+    const reachable = /* @__PURE__ */ new Set();
+    const queue = [{ id: startCellId, dist: 0 }];
+    const visited = /* @__PURE__ */ new Set([startCellId]);
+    while (queue.length > 0) {
+      const { id, dist } = queue.shift();
+      if (dist > 0) {
+        if (isExact) {
+          if (dist === moveRange) reachable.add(id);
+        } else {
+          reachable.add(id);
+        }
+      }
+      if (dist >= moveRange) continue;
+      const cell2 = boardMap.get(id);
+      cell2?.adjacentCellIds.forEach((nextId) => {
+        if (!visited.has(nextId)) {
+          visited.add(nextId);
+          queue.push({ id: nextId, dist: dist + 1 });
+        }
+      });
+    }
+    return Array.from(reachable);
+  };
+}
 class RoomManager {
   constructor(io2, param, state) {
     this.io = io2;
@@ -3733,17 +4468,6 @@ class RoomManager {
   emitPlayerUpdate = () => {
     this.io.to(this.state.roomId).emit("players:update", this.state.players);
   };
-  shuffleDeck = (deckId) => {
-    if (!this.state.decks[deckId]) return;
-    this.server_log("deck", `${deckId} をシャッフル`);
-    const currentDeck = this.state.decks[deckId].filter((c) => c.location === "deck");
-    const otherCards = this.state.decks[deckId].filter((c) => c.location !== "deck");
-    for (let i = currentDeck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
-    }
-    this.state.decks[deckId] = currentDeck.concat(otherCards);
-  };
   /**
    * デッキ更新を通知する
    */
@@ -3761,6 +4485,21 @@ class RoomManager {
   emitTokenStoreUpdate = (tokenStoreId) => {
     const updateData = { tokenStore: this.state.tokenStores[tokenStoreId] };
     this.io.to(this.state.roomId).emit(`token-store:update:${tokenStoreId}`, updateData);
+  };
+  /**
+   * 盤面更新を通知する
+   */
+  emitBoardUpdate = (boardId) => {
+    this.io.to(this.state.roomId).emit("board:update", {
+      board: this.state.boards[boardId],
+      boardTokens: Object.values(this.state.boardTokens).flat()
+    });
+  };
+  /**
+   * セルの状態更新を通知する
+   */
+  emitCellUpdate = () => {
+    this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
   };
   /**
    * ドラッグ可能オブジェクトの更新を通知する
@@ -3792,133 +4531,84 @@ class RoomManager {
    * カードをデッキから引く
    */
   drawCard(deckId, condition, playerId) {
-    const [targetLocation, targetState] = condition;
-    const currentDeck = this.state.decks[deckId].filter((c) => c.location === "deck");
-    if (!currentDeck.length) return false;
-    const card2 = currentDeck[0];
-    card2.isFaceUp = targetState === "face";
-    let destination = "";
-    this.server_log("deck", `DRAW: ${card2.name} (ID:${card2.id}) (deck -> ${destination}, state: ${targetState})`);
-    if (targetLocation === "discard") {
-      card2.location = "discard";
-      card2.ownerId = null;
-      this.state.discardPile[deckId].push(card2);
-      destination = "discard";
-    } else if (playerId && targetLocation === "hand") {
-      const player = this.state.players.find((p) => p.id === playerId);
-      if (player) {
-        card2.location = "hand";
-        card2.ownerId = playerId;
-        player.cards.push(card2);
-        destination = playerId;
-      }
-    } else {
-      card2.location = "field";
-      card2.ownerId = null;
-      this.state.playFieldCards[deckId].push(card2);
-      destination = "field";
-    }
+    const deckManager = new DeckManager(this.param, this.state);
+    deckManager.drawCard(deckId, condition, playerId);
     this.emitDeckUpdate(deckId);
     this.emitPlayerUpdate();
-    return true;
   }
+  /**
+   * デッキをシャッフルする
+   */
+  shuffleDeck = (deckId) => {
+    const deckManager = new DeckManager(this.param, this.state);
+    deckManager.shuffleDeck(deckId);
+  };
   /**
    * カードをプレイする
    */
   playCard(data) {
-    const { deckId, cardIds, playerId, playLocation = "field", coordinate } = data;
-    const ids = Array.isArray(cardIds) ? cardIds : [cardIds];
-    const player = this.state.players.find((p) => p.id === playerId);
-    if (player?.isHolding) {
-      this.server_log("card", `${playerId} はカードをホールドしているので、カードをプレイできません`);
-      return;
-    }
-    ids.forEach((id) => {
-      const card2 = this.state.decks[deckId]?.find((c) => c.id === id);
-      if (!card2) return;
-      const p = this.state.players.find((p2) => p2.id === playerId);
-      if (p) p.cards = p.cards.filter((c) => c.id !== id);
-      card2.location = playLocation;
-      card2.coordinate = coordinate;
-      card2.isFaceUp = true;
-      this.state.playFieldCards[deckId] = this.state.playFieldCards[deckId].filter((c) => c.id !== id);
-      this.state.discardPile[deckId] = this.state.discardPile[deckId].filter((c) => c.id !== id);
-      if (playLocation === "discard") {
-        this.state.discardPile[deckId].push(card2);
-      } else {
-        this.state.playFieldCards[deckId].push(card2);
-      }
-      this.updateZIndex("card", [deckId, card2.id], true);
-      this.server_log("card", `"${card2.name}" をプレイした`);
-      const effect = this.param.cardEffects?.[card2.name];
-      if (effect) {
-        this.server_log("card", `カード効果発揮: ${card2.name} by ${playerId}`);
-        effect({
-          playerId,
-          updateResource: (resourceId, amount) => this.acquireResource(playerId, resourceId, amount),
-          updateToken: (tokenId) => this.acquireToken(this.state.roomId, playerId, tokenId)
-        });
-      }
-    });
-    const onCardPlay = this.param.onCardPlay;
-    if (onCardPlay) {
-      onCardPlay(this.state, this, data);
-    }
-    this.emitDeckUpdate(deckId);
+    const deckManager = new DeckManager(this.param, this.state);
+    deckManager.playCard(data, this);
+    this.emitDeckUpdate(data.deckId);
     this.emitPlayerUpdate();
   }
   /**
    * ホールド状態を解除し、カードを出す
    */
   unholdCards() {
-    this.state.players.forEach((player) => {
-      player.isHolding = false;
-      const playerHoldData = this.state.holdCards[player.id];
-      if (!playerHoldData) return;
-      Object.entries(playerHoldData).forEach(([deckId, cardIds]) => {
-        const playData = {
-          roomId: this.state.roomId,
-          deckId,
-          cardIds,
-          playerId: player.id,
-          playLocation: "field",
-          coordinate: { x: 50, y: 50 }
-        };
-        this.playCard(playData);
-      });
-      delete this.state.holdCards[player.id];
-    });
-    this.server_log("card", `プレイヤー全員のホールド状態を解除しました`);
+    const deckManager = new DeckManager(this.param, this.state);
+    deckManager.unholdCards(this);
   }
   /**
    * フィールドからカードを回収（手札に戻す or 捨て札へ）
    */
   moveFromField(deckId, cardId, playerId) {
-    const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
-    const fieldList = playFieldCards[deckId] || [];
-    const cardIndex = fieldList.findIndex((c) => c.id === cardId);
-    if (cardIndex === -1) return false;
-    const [card2] = fieldList.splice(cardIndex, 1);
-    card2.isFaceUp = card2.fieldBackCondition?.[1] === "face";
-    if (playerId) {
-      const player = players.find((p) => p.id === playerId);
-      if (!player) return false;
-      card2.location = "hand";
-      card2.ownerId = playerId;
-      player.cards = player.cards || [];
-      player.cards.push(card2);
-      this.server_log("card", `Return: ${card2.name} -> Player:${playerId}`);
-    } else {
-      card2.location = "discard";
-      card2.ownerId = null;
-      discardPile[deckId] = discardPile[deckId] || [];
-      discardPile[deckId].push(card2);
-      this.server_log("card", `Discard: ${card2.name} -> discard`);
-    }
+    const deckManager = new DeckManager(this.param, this.state);
+    deckManager.moveFromField(deckId, cardId, playerId);
     this.emitDeckUpdate(deckId);
     this.emitPlayerUpdate();
-    return true;
   }
+  /**
+   * トークンを取得する
+   * @param tokenStoreId - トークン置き場ID
+   * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
+   * @param playerId - プレイヤーID
+   */
+  acquireToken(tokenStoreId, tokenId = null, playerId) {
+    const tokenManager = new TokenManager(this.param, this.state);
+    tokenManager.acquireToken(tokenStoreId, tokenId, playerId);
+    this.emitTokenStoreUpdate(tokenStoreId);
+  }
+  /**
+   * 指定したセルから一定歩数で行けるセルIDをすべて取得する
+   * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
+   */
+  getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
+    const tokenManager = new TokenManager(this.param, this.state);
+    return tokenManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
+  };
+  /**
+   * 特定のセルの探索状態を切り替える
+   * @param {Position} position - 操作対象の座標
+   * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
+   * @returns {boolean} 状態が実際に変化した場合は true
+   */
+  updateCellExploredStatus = (position, shouldMark) => {
+    const boardManager = new BoardManager(this.state);
+    boardManager.updateCellExploredStatus(position, shouldMark);
+    this.emitCellUpdate();
+  };
+  /**
+   * セル効果を発動する
+   * @param boardId - ボードID
+   * @param playerId - 効果を発動させたプレイヤーのID
+   * @param position - 発動対象となるマスの座標
+   * @param cellEffects - 各セル名に対応する効果処理の定義集
+   */
+  applyCellEffect = (boardId, playerId, position, cellEffects) => {
+    const boardManager = new BoardManager(this.state);
+    boardManager.applyCellEffect(boardId, playerId, position, cellEffects, this);
+  };
   /**
    * スコアを加算する
    * @param playerId - 対象のプレイヤーのID
@@ -3944,117 +4634,6 @@ class RoomManager {
       resource.currentValue = Math.min(resource.maxValue, Math.max(0, resource.currentValue + amount));
       this.server_log("resource", `${player.name}: ${resource.name} 更新`);
       this.emitPlayerUpdate();
-    }
-  };
-  /**
-   * トークンを取得する
-   * @param tokenStoreId - トークン置き場ID
-   * @param tokenId - トークンID。null ならランダムでトークンを置き場から選ぶ
-   * @param playerId - プレイヤーID
-   */
-  acquireToken(tokenStoreId, tokenId = null, playerId) {
-    const player = this.state.players.find((p) => p.id === playerId);
-    if (!player) return;
-    const tokens = this.state.tokenStores[tokenStoreId];
-    if (tokens.length === 0) return;
-    const index = tokenId !== null ? tokens.findIndex((t) => t.id === tokenId) : Math.floor(Math.random() * tokens.length);
-    if (index !== -1) {
-      const acquiredToken = tokens.splice(index, 1)[0];
-      if (!Array.isArray(player.tokens)) {
-        player.tokens = [];
-      }
-      player.tokens.push(acquiredToken);
-      this.server_log(
-        "token",
-        `${player.name} (${playerId}) がストア ${tokenStoreId} からトークン ${acquiredToken.id} を獲得しました。`
-      );
-      this.emitTokenStoreUpdate(tokenStoreId);
-    }
-  }
-  /**
-   * 特定のセルの探索状態を切り替える
-   * @param {Position} position - 操作対象の座標
-   * @param {boolean} shouldMark - 探索済みにする場合は true、解除する場合は false
-   * @returns {boolean} 状態が実際に変化した場合は true
-   */
-  updateCellExploredStatus = (position, shouldMark) => {
-    const isCurrentlyExplored = isExplored(this.state, position);
-    if (shouldMark && !isCurrentlyExplored) {
-      this.state.exploredCells.push(position);
-      this.server_log("cell", `マス (${position.row}, ${position.col}) を探索済みとしてマークしました。`);
-      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
-      return;
-    }
-    if (!shouldMark && isCurrentlyExplored) {
-      this.state.exploredCells = this.state.exploredCells.filter(
-        (loc) => !(loc.row === position.row && loc.col === position.col)
-      );
-      this.server_log("cell", `マス (${position.row}, ${position.col}) の探索済みマークを解除しました。`);
-      this.io.to(this.state.roomId).emit("cell:update", this.state.exploredCells);
-      return;
-    }
-    return;
-  };
-  /**
-   * 指定したセルから一定歩数で行けるセルIDをすべて取得する
-   * isExact: true の場合、moveRange と同じ歩数のセルのみを返す
-   */
-  getMovableCellIds = (boardId, startCellId, moveRange, isExact) => {
-    const targetBoard = this.state.boards[boardId];
-    const boardMap = new Map(targetBoard.map((c) => [c.id, c]));
-    const reachable = /* @__PURE__ */ new Set();
-    const queue = [{ id: startCellId, dist: 0 }];
-    const visited = /* @__PURE__ */ new Set([startCellId]);
-    while (queue.length > 0) {
-      const { id, dist } = queue.shift();
-      if (dist > 0) {
-        if (isExact) {
-          if (dist === moveRange) reachable.add(id);
-        } else {
-          reachable.add(id);
-        }
-      }
-      if (dist >= moveRange) continue;
-      const cell2 = boardMap.get(id);
-      cell2?.adjacentCellIds.forEach((nextId) => {
-        if (!visited.has(nextId)) {
-          visited.add(nextId);
-          queue.push({ id: nextId, dist: dist + 1 });
-        }
-      });
-    }
-    return Array.from(reachable);
-  };
-  /**
-   * セル効果を発動する
-   * @param boardId - ボードID
-   * @param playerId - 効果を発動させたプレイヤーのID
-   * @param position - 発動対象となるマスの座標
-   * @param cellEffects - 各セル名に対応する効果処理の定義集
-   */
-  applyCellEffect = (boardId, playerId, position, cellEffects) => {
-    const { row, col } = position;
-    const targetBoard = this.state.boards[boardId];
-    if (!targetBoard) {
-      this.server_log("warn", "applyCellEffect: ボードがありません。");
-      return;
-    }
-    const targetId = `r${row}c${col}`;
-    const cell2 = targetBoard.find((c) => c.id === targetId);
-    if (!cell2) {
-      this.server_log("warn", `applyCellEffect: 指定座標にセルが見つかりません。ID: ${targetId}`);
-      return;
-    }
-    const effect = cellEffects[cell2.name];
-    if (effect) {
-      this.server_log("cell", `マス効果発動: ${cell2.name} by ${playerId}`);
-      try {
-        effect(this, playerId);
-      } catch (e) {
-        this.server_log("warn", `マス効果の実行中にエラーが発生しました: ${cell2.name}`);
-      }
-    } else {
-      this.server_log("cell", `マス効果なし: (${row}, ${col}) ${cell2.name}`);
     }
   };
   /**
@@ -4190,8 +4769,8 @@ class RoomManager {
   updatePhase(newPhase) {
     if (this.state.currentPhase !== newPhase) {
       this.state.currentPhase = newPhase;
-      this.server_log("room", `フェーズを更新しました: ${newPhase}`);
-      this.io.to(this.state.roomId).emit("game:phase:update", {
+      this.server_log("phase", `フェーズを更新しました: ${newPhase}`);
+      this.io.to(this.state.roomId).emit("phase:update", {
         newPhase: this.state.currentPhase
       });
     }

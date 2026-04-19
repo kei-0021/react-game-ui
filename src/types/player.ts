@@ -1,10 +1,9 @@
 // src/types/player.ts
 
-import type { Card } from './card.js';
+import type { CardData } from './card.js';
 import type { PlayerId } from './definition.js';
-import { Position } from './position.js';
 import type { Resource } from './resource.js';
-import type { Token } from './token.js';
+import type { TokenData } from './token.js';
 
 /**
  * ゲームに参加するプレイヤーの状態を管理する型定義
@@ -17,21 +16,15 @@ import type { Token } from './token.js';
  * @property {Token[]} tokens - プレイヤーが保有しているトークンのリスト
  * @property {Resource[]} resources - プレイヤーが所持している資源（リソース）のリスト
  * @property {number} score - 現在の獲得スコア
- * @property {Position} position - ボード上におけるプレイヤーの現在位置
- * @property {Position} movableCells - ボード上におけるプレイヤーが移動可能なセル
- * @property {string} [pieceImage] - ボード上のコマの画像URL
  */
 export type Player = {
   id: PlayerId;
   name: string;
   socketId: string;
   color: string;
-  cards: Card[];
+  cards: CardData[];
   isHolding: boolean;
-  tokens: Token[];
+  tokens: TokenData[];
   resources: Resource[];
   score: number;
-  position: Position;
-  movableCells: any[];
-  pieceImage?: string;
 };

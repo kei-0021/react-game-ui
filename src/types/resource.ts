@@ -1,6 +1,6 @@
 // src/types/resource.ts
 
-import { ResourceId } from './definition.js';
+import type { ResourceId } from './definition.js';
 
 export type Resource = {
   resourceId: ResourceId;

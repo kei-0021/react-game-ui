@@ -4,15 +4,16 @@ import { Player } from '@/types/player.js';
 import {
   CardFlipData,
   CardMoveFromFieldData,
+  CardMoveOnFieldData,
   CardPlayData,
   DeckUpdateData,
   ObjectBringToData,
 } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
-import type { Card } from '../types/card.js';
-import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
-import { CardDisplayContent } from './Card.js';
+import type { CardData } from '../types/card.js';
+import type { CardId, DeckId, PlayerId, RoomId } from '../types/definition.js';
+import { Card } from './Card.js';
 import cardStyles from './Card.module.css';
 import playFieldStyles from './PlayField.module.css';
 
@@ -38,6 +39,8 @@ type PlayFieldProps = {
   layoutMode?: 'grid' | 'free';
   backgroundImage?: string;
   zIndex?: number;
+  width?: number;
+  height?: number;
   isDebug?: boolean;
 };
 
@@ -52,6 +55,8 @@ type PlayFieldProps = {
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
  * @param {string} [zIndex] - カードの重ね順
+ * @param {number} [width=300] - 横幅
+ * @param {number} [height=600] - 縦幅
  * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  */
 export function PlayField({
@@ -64,9 +69,11 @@ export function PlayField({
   layoutMode = 'free',
   backgroundImage,
   zIndex = 100,
+  width = 300,
+  height = 600,
   isDebug = false,
 }: PlayFieldProps) {
-  const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
+  const [playedCards, setPlayedCards] = React.useState<CardData[]>([]);
   const [activeDraggingId, setActiveDraggingId] = React.useState<string | null>(null);
 
   // フィールド内での最大zIndexを管理するステート
@@ -76,7 +83,7 @@ export function PlayField({
   const [dragPos, setDragPos] = React.useState<{ x: number; y: number } | null>(null);
 
   // 右クリックメニュー用のステート (Draggableの仕様に合わせる)
-  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; card: Card } | null>(null);
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; card: CardData } | null>(null);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const draggingIdRef = React.useRef<string | null>(null);
@@ -113,6 +120,7 @@ export function PlayField({
       socket.off(`deck:update:${deckId}`);
     };
   }, [socket, deckId]);
+
   // propsのzIndexが変わったら同期
   React.useEffect(() => {
     setMaxZ((prev) => (prev === undefined ? zIndex : Math.max(prev, zIndex)));
@@ -122,29 +130,33 @@ export function PlayField({
   // 宛先をその都度書くスタイルにしてクロージャ問題を回避
   const emitMove = React.useMemo(
     () =>
-      throttle((cardId: string, clientX: number, clientY: number, rId: RoomId, dId: DeckId) => {
-        if (!containerRef.current || !rId || !dId) return;
+      throttle(
+        (cardId: CardId, clientX: number, clientY: number, rId: RoomId, dId: DeckId, currentRotation: number) => {
+          if (!containerRef.current || !rId || !dId) return;
 
-        const rect = containerRef.current.getBoundingClientRect();
+          const rect = containerRef.current.getBoundingClientRect();
 
-        // 座標計算 & 0-100% の範囲にクランプ
-        let x = ((clientX - rect.left) / rect.width) * 100;
-        let y = ((clientY - rect.top) / rect.height) * 100;
+          // 座標計算 & 0-100% の範囲にクランプ
+          let x = ((clientX - rect.left) / rect.width) * 100;
+          let y = ((clientY - rect.top) / rect.height) * 100;
 
-        x = Math.max(0, Math.min(100, x));
-        y = Math.max(0, Math.min(100, y));
+          x = Math.max(0, Math.min(100, x));
+          y = Math.max(0, Math.min(100, y));
 
-        socket.emit('card:move-on-field', {
-          roomId: rId,
-          deckId: dId,
-          cardId,
-          coordinate: { x, y },
-        });
-      }, 30),
+          socket.emit('card:move-on-field', {
+            roomId: rId,
+            deckId: dId,
+            cardId,
+            coordinate: { x, y },
+            rotation: currentRotation,
+          } as CardMoveOnFieldData);
+        },
+        30,
+      ),
     [socket],
   );
 
-  const handlePointerDown = (e: React.PointerEvent, card: Card) => {
+  const handlePointerDown = (e: React.PointerEvent, card: CardData) => {
     if (layoutMode !== 'free') return;
     draggingIdRef.current = card.id;
     setActiveDraggingId(card.id);
@@ -156,7 +168,7 @@ export function PlayField({
   };
 
   // 右クリックハンドラ (Draggableの形式に合わせる)
-  const handleContextMenu = (e: React.MouseEvent, card: Card) => {
+  const handleContextMenu = (e: React.MouseEvent, card: CardData) => {
     e.preventDefault();
     e.stopPropagation();
     setContextMenu({ x: e.clientX, y: e.clientY, card });
@@ -167,6 +179,9 @@ export function PlayField({
 
     const rect = containerRef.current.getBoundingClientRect();
 
+    const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+    const currentRot = draggingCard?.rotation ?? 0;
+
     // 画面更新用のローカル座標を計算
     const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
     const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
@@ -175,13 +190,17 @@ export function PlayField({
     setDragPos({ x, y });
 
     // Propsの最新値を引数として渡す
-    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (!draggingIdRef.current) return;
+
+    const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+    const currentRot = draggingCard?.rotation ?? 0;
+
     // 終了時も最新のIDを添えて送信
-    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+    emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     draggingIdRef.current = null;
     setActiveDraggingId(null);
@@ -222,7 +241,7 @@ export function PlayField({
     e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleCardBack = (card: Card) => {
+  const handleCardBack = (card: CardData) => {
     if (!myPlayerId || !card.fieldBackCondition) return;
 
     const backTo = card.fieldBackCondition[0] || 'discard';
@@ -245,6 +264,8 @@ export function PlayField({
       style={{
         ...(backgroundImage ? { background: `url(${backgroundImage}) center/cover no-repeat` } : {}),
         position: 'relative',
+        width: typeof width === 'number' ? `${width}px` : width,
+        height: typeof height === 'number' ? `${height}px` : height,
       }}
     >
       <h3 className={playFieldStyles.rgPlayfieldTitle}>
@@ -256,12 +277,6 @@ export function PlayField({
         onPointerMove={handlePointerMove}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        style={{
-          position: 'relative',
-          minHeight: '600px',
-          touchAction: 'none',
-          overflow: 'visible',
-        }}
       >
         {playedCards.map((card) => {
           const owner = players.find((p) => p.id === card.ownerId);
@@ -283,31 +298,22 @@ export function PlayField({
                   top: `${displayY}%`,
                   zIndex: currentZIndex,
                   // マウスの先端ではなく、カードの中心を掴むように補正
-                  transform: 'translate(-50%, -50%)',
+                  transform: `translate(-50%, -50%) rotate(${card.rotation || 0}deg)`,
                   // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                   transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                 }
               : {};
 
+          const cardStyle = { width: '80px', height: '112px', background: 'transparent' };
+
           return (
             <div
-              key={card.id}
-              draggable={false}
-              onDragStart={(e) => e.preventDefault()}
-              onPointerDown={(e) => handlePointerDown(e, card)}
-              onPointerUp={handlePointerUp}
-              onContextMenu={(e) => handleContextMenu(e, card)}
-              onPointerCancel={handlePointerUp}
-              className={`${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`}
               style={
                 {
                   '--owner-color': owner?.color || '#aaaaaa',
                   ...freeStyle,
                   touchAction: 'none',
                   cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
-                  width: '80px',
-                  height: '112px',
-                  background: 'transparent',
                   border: isActuallyFreeShape ? 'none' : undefined,
                   boxShadow: isActuallyFreeShape && isDragging ? '0 0 15px var(--owner-color)' : 'none',
                   padding: 0,
@@ -317,7 +323,18 @@ export function PlayField({
                 } as React.CSSProperties
               }
             >
-              <CardDisplayContent card={card} canSeeFront={card.isFaceUp} />
+              <Card
+                key={card.id}
+                card={card}
+                style={cardStyle}
+                isActuallyFreeShape={isActuallyFreeShape}
+                canSeeFront={card.isFaceUp}
+                onPointerUp={handlePointerUp}
+                onPointerDown={(e) => handlePointerDown(e, card)}
+                onDragStart={(e) => e.preventDefault()}
+                isDraggable={false}
+                onContextMenu={(e) => handleContextMenu(e, card)}
+              />
 
               {/* オーナーバッジ */}
               {card.ownerId && (
@@ -368,6 +385,26 @@ export function PlayField({
               <span className={playFieldStyles.menuIcon}>⬆️</span>
               <span>最前面へ移動</span>
             </div>
+
+            <div
+              className={playFieldStyles.menuItem}
+              onClick={() => {
+                const nextRot = (contextMenu.card.rotation || 0) + 90;
+                socket.emit('card:move-on-field', {
+                  roomId,
+                  deckId: contextMenu.card.deckId || deckId,
+                  cardId: contextMenu.card.id,
+                  rotation: nextRot,
+                  coordinate: contextMenu.card.coordinate,
+                } as CardMoveOnFieldData);
+                setContextMenu(null);
+              }}
+            >
+              <span className={playFieldStyles.menuIcon}>🔄</span>
+              <span>90度回転</span>
+            </div>
+
+            <div className={playFieldStyles.separator} />
 
             <div
               className={playFieldStyles.menuItem}

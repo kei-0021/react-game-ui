@@ -1,5 +1,5 @@
 import { GameId } from '@/types/definition.js';
-import { GameParam } from '@/types/server.js';
+import { GameParam } from '@/types/gameParam.js';
 import { GameServer, GameServerOptions } from './server.js';
 export declare class LiveGameServer {
     core: GameServer;

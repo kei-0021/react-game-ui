@@ -1,0 +1,303 @@
+/* src/Components/PlayerListItem.module.css */
+/*
+ * ===========================================
+ * 全般
+ * ===========================================
+ */
+.playerItem {
+  list-style: none;
+  margin-bottom: 12px;
+  padding: 16px;
+  background-color: var(--player-color-bg);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition:
+    transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 0.3s ease;
+  transform: translateX(0);
+}
+
+.activePlayer {
+  border: 4px solid #000000 !important;
+  box-shadow: none !important;
+  transform: translateX(-24px) !important;
+  z-index: 1;
+  background-color: var(--player-color-active, var(--player-color-bg)) !important;
+}
+
+.playerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.playerName {
+  font-weight: 900;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/*
+ * ===========================================
+ * スコア関連
+ * ===========================================
+ */
+
+.scoreArea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.playerScore {
+  color: #ffffff;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* スコア表示の箱（ここは変形させない） */
+.scoreArea {
+  position: relative;
+}
+
+/* スコアの数字自体がバウンドする演出（外枠には干渉しない） */
+.scoreUpdate {
+  display: inline-block;
+  animation: staticShock 0.3s ease-out;
+}
+
+/* プラスの時の色（青系） */
+.plus {
+  color: #002fff;
+}
+
+/* マイナスの時の色（赤系） */
+.minus {
+  color: #ff0000;
+}
+
+/* スコア本体：サイズは一切変えず、色と光だけで「跳ね」を表現 */
+@keyframes staticShock {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    color: #fff;
+    text-shadow:
+      0 0 15px #fff,
+      0 0 30px #fff;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 爆発する数字（完全に浮いているので箱は動かない） */
+.scoreChange {
+  font-size: 6rem;
+  position: absolute;
+  /* スコア表示の真ん中に重ねる */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 900;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 100;
+  animation: staticBurst 0.6s cubic-bezier(0.12, 0, 0.39, 0) forwards;
+}
+
+@keyframes staticBurst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+.debugScoreButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.debugBtn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.debugBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.debugBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/*
+ * ===========================================
+ * リソース関連
+ * ===========================================
+ */
+
+.resourceSection {
+  margin: 8px 0;
+  font-size: 0.9em;
+}
+
+.resourceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.resourceBadge {
+  padding: 4px 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/*
+ * ===========================================
+ * トークン関連
+ * ===========================================
+ */
+.tokenList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tokenList :global([class*='tokenContainer']) {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/*
+ * ===========================================
+ * カード関連
+ * ===========================================
+ */
+.isHoldMessage {
+  color: #000000;
+  font-size: 0.9em;
+  font-weight: bold;
+  margin: 0;
+}
+
+.cardList {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  overflow: visible !important;
+}
+
+.cardBase {
+  position: relative;
+  width: 80px;
+  height: 110px;
+  border-radius: 4px;
+  color: black;
+  font-size: 10px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: normal;
+  word-break: break-all;
+  text-align: center;
+  padding: 4px;
+  /* ドラッグ＆ドロップの感触を向上 */
+  cursor: grab;
+  user-select: none;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    opacity 0.2s;
+}
+
+/* ドラッグ開始時（元いた場所）の見た目 */
+.cardBase:active {
+  cursor: grabbing;
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.cardSelected {
+  outline: 3px solid #ffffff !important;
+  box-shadow: 0 0 10px var(--player-color);
+  transform: translateY(-5px);
+}
+
+.cardIsHeld {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.2);
+  font-size: 1.5rem;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  z-index: 1000;
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+  word-break: break-all;
+  white-space: normal;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}

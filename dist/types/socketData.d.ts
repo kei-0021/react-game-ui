@@ -1,25 +1,15 @@
-import { CellData, DraggableData } from '@/index.js';
-import { ComponentInfo, RoomState } from '@/types/server.js';
-import { Card } from './card.js';
-import { CardLocation } from './cardLocation.js';
-import { CardState } from './cardState.js';
-import { Coordinate } from './coodinate.js';
-import { Deck } from './deck.js';
-import { BoardId, CardId, DeckId, DiceId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
-import { Phase } from './phase.js';
-import { Token } from './token.js';
-import { TokenStore } from './tokenStore.js';
-export type GameMeta = {
-    gameId: GameId;
-    gameIcon: string;
-    maxPlayers?: number;
-    initialHand?: Record<DeckId, number>;
-    initialDecks?: Deck[];
-    initialTokenStores?: TokenStore[];
-    initialTokens?: Record<TokenStoreId, number>;
-    draggables?: Record<DraggableId, DraggableData>;
-    components?: ComponentInfo[];
-};
+import type { CardData } from './card.js';
+import type { CardLocation } from './cardLocation.js';
+import type { CardState } from './cardState.js';
+import type { CellData } from './cell.js';
+import type { ComponentInfo } from './component.js';
+import type { Coordinate } from './coodinate.js';
+import type { BoardId, CardId, DeckId, DiceId, DraggableId, GameId, PlayerId, RoomId, TokenId, TokenStoreId } from './definition.js';
+import type { GameParam } from './gameParam.js';
+import type { Phase } from './phase.js';
+import { Position } from './position.js';
+import type { RoomState } from './roomState.js';
+import type { TokenData } from './token.js';
 export type RoomMeta = {
     id: RoomId;
     gameId: GameId;
@@ -28,7 +18,7 @@ export type RoomMeta = {
     createdAt: number;
 };
 export type LobbyGameList = {
-    games: GameMeta[];
+    games: GameParam[];
 };
 export type LobbyRoomList = {
     rooms: RoomMeta[];
@@ -51,7 +41,7 @@ export type GameDeleteData = {
 };
 export type GameParamUpdateData = {
     gameId: GameId;
-    newParam: Partial<GameMeta>;
+    newParam: Partial<GameParam>;
 };
 export type DeckDrawData = {
     roomId: RoomId;
@@ -68,9 +58,9 @@ export type DeckResetData = {
     deckId: DeckId;
 };
 export type DeckUpdateData = {
-    currentDeck: Card[];
-    playFieldCards: Card[];
-    discardPile: Card[];
+    currentDeck: CardData[];
+    playFieldCards: CardData[];
+    discardPile: CardData[];
 };
 export type CardPlayData = {
     roomId: RoomId;
@@ -96,6 +86,7 @@ export type CardMoveOnFieldData = {
     cardId: string;
     coordinate?: Coordinate;
     zIndex?: number;
+    rotation?: number;
 };
 export type CardMoveFromFieldData = {
     roomId: RoomId;
@@ -103,30 +94,42 @@ export type CardMoveFromFieldData = {
     cardId: string;
     playerId?: PlayerId | null;
 };
+export type TokenStoreUpdateData = {
+    tokenStore: TokenData[];
+};
 export type TokenAcquireData = {
     roomId: RoomId;
     tokenStoreId: TokenStoreId;
     tokenId: TokenId;
 };
-export type TokenStoreUpdateData = {
-    tokenStore: Token[];
-};
-export type BoardMovableRangeData = {
+export type TokenMovableRangeData = {
     roomId: RoomId;
     boardId: BoardId;
     playerId: PlayerId;
     moveRange: number;
     isExact: boolean;
 };
-export type BaordMovePlayerData = {
+export type TokenPlayData = {
     roomId: RoomId;
     boardId: BoardId;
+    tokenId: TokenId;
     playerId: PlayerId;
-    newLocation: any;
+    newPosition: Position;
+};
+export type TokenMoveOnBoardData = {
+    roomId: RoomId;
+    boardId: BoardId;
+    tokenId: TokenId;
+    newPosition: Position;
+};
+export type TokenMoveFromBoardData = {
+    roomId: RoomId;
+    boardId: BoardId;
+    tokenId: TokenId;
 };
 export type BoardUpdateData = {
-    boardId: BoardId;
     board: CellData[];
+    boardTokens: TokenData[];
 };
 export type DraggableMovedData = {
     roomId: RoomId;
@@ -154,7 +157,7 @@ export type ObjectBringToData = {
     type: 'card' | 'draggable';
     isFront: boolean;
 };
-export type GamePhaseUpdateData = {
+export type PhaseUpdateData = {
     newPhase: Phase;
 };
 export type GameNextTrunData = {

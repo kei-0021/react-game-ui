@@ -1,4 +1,4 @@
-export const sampleData: any = {
+export const SampleData: any = {
   gameId: 'sample',
   gameIcon: '◼️',
   initialDecks: [
@@ -14,6 +14,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '1-2-s1',
@@ -23,6 +24,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '1-3-s1',
@@ -32,6 +34,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '2-1-s1',
@@ -41,6 +44,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '2-2-s1',
@@ -50,6 +54,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '2-3-s1',
@@ -59,6 +64,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '3-1-s1',
@@ -68,6 +74,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '3-2-s1',
@@ -77,6 +84,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '3-3-s1',
@@ -86,6 +94,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '4-1-s1',
@@ -95,6 +104,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '4-2-s1',
@@ -104,6 +114,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '4-3-s1',
@@ -113,6 +124,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '5-1-s1',
@@ -122,6 +134,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '5-2-s1',
@@ -131,6 +144,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '5-3-s1',
@@ -140,6 +154,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '6-1-s1',
@@ -149,6 +164,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '6-2-s1',
@@ -158,6 +174,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '6-3-s1',
@@ -167,6 +184,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '7-1-s1',
@@ -176,6 +194,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '7-2-s1',
@@ -185,6 +204,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '7-3-s1',
@@ -194,6 +214,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '8-1-s1',
@@ -203,6 +224,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '8-2-s1',
@@ -212,6 +234,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '8-3-s1',
@@ -221,6 +244,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '9-1-s1',
@@ -230,6 +254,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '9-2-s1',
@@ -239,6 +264,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '9-3-s1',
@@ -248,6 +274,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '10-1-s1',
@@ -257,6 +284,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '10-2-s1',
@@ -266,6 +294,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
         {
           id: '10-3-s1',
@@ -275,6 +304,7 @@ export const sampleData: any = {
           drawCondition: ['field', 'face'],
           playLocation: 'discard',
           fieldBackCondition: ['hand', 'face'],
+          rotation: 0,
         },
       ],
       backColor: '#000000',

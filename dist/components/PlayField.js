@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
-import { CardDisplayContent } from './Card.js';
+import { Card } from './Card.js';
 import cardStyles from './Card.module.css';
 import playFieldStyles from './PlayField.module.css';
 // 通信量制限用の throttle
@@ -25,9 +25,11 @@ function throttle(func, limit) {
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
  * @param {string} [zIndex] - カードの重ね順
+ * @param {number} [width=300] - 横幅
+ * @param {number} [height=600] - 縦幅
  * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  */
-export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', backgroundImage, zIndex = 100, isDebug = false, }) {
+export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', backgroundImage, zIndex = 100, width = 300, height = 600, isDebug = false, }) {
     const [playedCards, setPlayedCards] = React.useState([]);
     const [activeDraggingId, setActiveDraggingId] = React.useState(null);
     // フィールド内での最大zIndexを管理するステート
@@ -71,7 +73,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
     }, [zIndex]);
     // リアルタイム送信ロジック（throttleを30msに短縮して追従性を向上）
     // 宛先をその都度書くスタイルにしてクロージャ問題を回避
-    const emitMove = React.useMemo(() => throttle((cardId, clientX, clientY, rId, dId) => {
+    const emitMove = React.useMemo(() => throttle((cardId, clientX, clientY, rId, dId, currentRotation) => {
         if (!containerRef.current || !rId || !dId)
             return;
         const rect = containerRef.current.getBoundingClientRect();
@@ -85,6 +87,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
             deckId: dId,
             cardId,
             coordinate: { x, y },
+            rotation: currentRotation,
         });
     }, 30), [socket]);
     const handlePointerDown = (e, card) => {
@@ -106,19 +109,23 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
         if (!draggingIdRef.current || !containerRef.current)
             return;
         const rect = containerRef.current.getBoundingClientRect();
+        const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+        const currentRot = draggingCard?.rotation ?? 0;
         // 画面更新用のローカル座標を計算
         const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
         const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
         // 通信とは別に、自分の画面の表示を即座に更新する
         setDragPos({ x, y });
         // Propsの最新値を引数として渡す
-        emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+        emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
     };
     const handlePointerUp = (e) => {
         if (!draggingIdRef.current)
             return;
+        const draggingCard = playedCards.find((c) => c.id === draggingIdRef.current);
+        const currentRot = draggingCard?.rotation ?? 0;
         // 終了時も最新のIDを添えて送信
-        emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId);
+        emitMove(draggingIdRef.current, e.clientX, e.clientY, roomId, deckId, currentRot);
         e.currentTarget.releasePointerCapture(e.pointerId);
         draggingIdRef.current = null;
         setActiveDraggingId(null);
@@ -169,12 +176,9 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
     return (_jsxs("section", { className: playFieldStyles['rg-playfield'], style: {
             ...(backgroundImage ? { background: `url(${backgroundImage}) center/cover no-repeat` } : {}),
             position: 'relative',
-        }, children: [_jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsxs("div", { ref: containerRef, className: playFieldStyles.rgPlayFieldContainer, onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, style: {
-                    position: 'relative',
-                    minHeight: '600px',
-                    touchAction: 'none',
-                    overflow: 'visible',
-                }, children: [playedCards.map((card) => {
+            width: typeof width === 'number' ? `${width}px` : width,
+            height: typeof height === 'number' ? `${height}px` : height,
+        }, children: [_jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsxs("div", { ref: containerRef, className: playFieldStyles.rgPlayFieldContainer, onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, children: [playedCards.map((card) => {
                         const owner = players.find((p) => p.id === card.ownerId);
                         const isDragging = activeDraggingId === card.id;
                         const isActuallyFreeShape = !!(card.freeShape && card.frontImage);
@@ -190,26 +194,24 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                 top: `${displayY}%`,
                                 zIndex: currentZIndex,
                                 // マウスの先端ではなく、カードの中心を掴むように補正
-                                transform: 'translate(-50%, -50%)',
+                                transform: `translate(-50%, -50%) rotate(${card.rotation || 0}deg)`,
                                 // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                                 transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                             }
                             : {};
-                        return (_jsxs("div", { draggable: false, onDragStart: (e) => e.preventDefault(), onPointerDown: (e) => handlePointerDown(e, card), onPointerUp: handlePointerUp, onContextMenu: (e) => handleContextMenu(e, card), onPointerCancel: handlePointerUp, className: `${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`, style: {
+                        const cardStyle = { width: '80px', height: '112px', background: 'transparent' };
+                        return (_jsxs("div", { style: {
                                 '--owner-color': owner?.color || '#aaaaaa',
                                 ...freeStyle,
                                 touchAction: 'none',
                                 cursor: isDragging ? 'grabbing' : layoutMode === 'free' ? 'grab' : 'default',
-                                width: '80px',
-                                height: '112px',
-                                background: 'transparent',
                                 border: isActuallyFreeShape ? 'none' : undefined,
                                 boxShadow: isActuallyFreeShape && isDragging ? '0 0 15px var(--owner-color)' : 'none',
                                 padding: 0,
                                 display: 'block',
                                 position: layoutMode === 'free' ? 'absolute' : 'relative',
                                 zIndex: currentZIndex,
-                            }, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: card.isFaceUp }), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && (_jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: ["Z:", currentZIndex] })), card.description && !isDragging && card.isFaceUp && (_jsx("span", { className: cardStyles.tooltip, children: card.description }))] }, card.id));
+                            }, children: [_jsx(Card, { card: card, style: cardStyle, isActuallyFreeShape: isActuallyFreeShape, canSeeFront: card.isFaceUp, onPointerUp: handlePointerUp, onPointerDown: (e) => handlePointerDown(e, card), onDragStart: (e) => e.preventDefault(), isDraggable: false, onContextMenu: (e) => handleContextMenu(e, card) }, card.id), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && (_jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: ["Z:", currentZIndex] })), card.description && !isDragging && card.isFaceUp && (_jsx("span", { className: cardStyles.tooltip, children: card.description }))] }));
                     }), contextMenu && (_jsxs("div", { className: playFieldStyles.contextMenu, style: {
                             top: contextMenu.y,
                             left: contextMenu.x,
@@ -224,6 +226,16 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                     socket.emit('object:bring-to', requestData);
                                     setContextMenu(null);
                                 }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\u2B06\uFE0F" }), _jsx("span", { children: "\u6700\u524D\u9762\u3078\u79FB\u52D5" })] }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
+                                    const nextRot = (contextMenu.card.rotation || 0) + 90;
+                                    socket.emit('card:move-on-field', {
+                                        roomId,
+                                        deckId: contextMenu.card.deckId || deckId,
+                                        cardId: contextMenu.card.id,
+                                        rotation: nextRot,
+                                        coordinate: contextMenu.card.coordinate,
+                                    });
+                                    setContextMenu(null);
+                                }, children: [_jsx("span", { className: playFieldStyles.menuIcon, children: "\uD83D\uDD04" }), _jsx("span", { children: "90\u5EA6\u56DE\u8EE2" })] }), _jsx("div", { className: playFieldStyles.separator }), _jsxs("div", { className: playFieldStyles.menuItem, onClick: () => {
                                     const requestData = {
                                         roomId,
                                         objectId: [contextMenu.card.deckId, contextMenu.card.id],

@@ -1,7 +1,7 @@
-import { CardLocation } from './cardLocation.js';
-import { CardState } from './cardState.js';
-import { Coordinate } from './coodinate.js';
-import { CardId, DeckId, PlayerId } from './definition.js';
+import type { CardLocation } from './cardLocation.js';
+import type { CardState } from './cardState.js';
+import type { Coordinate } from './coodinate.js';
+import type { CardId, DeckId, PlayerId } from './definition.js';
 /**
  * @property {CardId} id - カードの一意な識別子
  * @property {DeckId} deckId - 所属するデッキのID
@@ -19,8 +19,9 @@ import { CardId, DeckId, PlayerId } from './definition.js';
  * @property {Coordinate} [coordinate] - フィールド上の座標 (0-100%)
  * @property {boolean} [freeShape] - trueの場合、カード標準の枠線や背景を排除し、画像の形状を活かす（透過PNG用）
  * @property {number} - 重なり順。
+ * @property {number} - 角度
  */
-export type Card = {
+export type CardData = {
     id: CardId;
     deckId: DeckId;
     name: string;
@@ -37,5 +38,6 @@ export type Card = {
     coordinate?: Coordinate;
     freeShape?: boolean;
     zIndex?: number;
+    rotation?: number;
 };
 //# sourceMappingURL=card.d.ts.map

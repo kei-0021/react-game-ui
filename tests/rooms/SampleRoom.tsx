@@ -145,8 +145,8 @@ export function SampleRoom() {
             props={info.props}
             socket={socket}
             roomId={roomId}
-            myPlayerId={myPlayerId}
-            currentPlayerId={currentPlayerId}
+            myPlayerId={myPlayerId!}
+            currentPlayerId={currentPlayerId!}
             players={players}
             containerRef={containerRef}
           />

@@ -27,15 +27,15 @@ export * from './types/definition.js';
 /* @ts-ignore */
 export * from './types/player.js';
 /* @ts-ignore */
-export { type PieceData } from './types/piece.js';
-/* @ts-ignore */
 export { type DraggableData } from './types/draggable.js';
 /* @ts-ignore */
-export { type ComponentInfo } from './types/server.js';
+export { type ComponentInfo } from './types/component.js';
 /* @ts-ignore */
 export { RoomManager } from './server/room-manager.js';
 /* @ts-ignore */
-export { type GameParam, type RoomState } from './types/server.js';
+export { type GameParam } from './types/gameParam.js';
+/* @ts-ignore */
+export { type RoomState } from './types/roomState.js';
 /* @ts-ignore */
 export { type CellData } from './types/cell.js';
 /* @ts-ignore */
@@ -46,11 +46,10 @@ export { useSocket } from './hooks/useSocket.js';
 export {
   type CardPlayData,
   type DeckDrawData,
-  type GameMeta,
-  type GamePhaseUpdateData,
   type GameTurnUpdateData,
   type LobbyGameList,
   type LobbyRoomList,
+  type PhaseUpdateData,
   type RoomJoinData,
   type RoomMeta,
 } from './types/socketData.js';

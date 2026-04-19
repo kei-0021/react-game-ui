@@ -1,14 +1,20 @@
 // src/components/GridBoard.tsx
 import { CellData, Player } from '@/index.js';
-import { BoardId, PieceId, PlayerId, RoomId } from '@/types/definition.js';
-import { BaordMovePlayerData, BoardMovableRangeData, BoardUpdateData } from '@/types/socketData.js';
+import { BoardId, PlayerId, RoomId, TokenId } from '@/types/definition.js';
+import {
+  BoardUpdateData,
+  TokenMovableRangeData,
+  TokenMoveFromBoardData,
+  TokenMoveOnBoardData,
+  TokenPlayData,
+} from '@/types/socketData.js';
+import { TokenData } from '@/types/token.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
-import type { PieceData } from '../types/piece.js';
 import styles from './Board.module.css';
 import { Cell } from './Cell.js';
-import { Piece } from './Piece.js';
+import { Token } from './Token.js';
 
 type GridLocation = {
   row: number;
@@ -21,7 +27,7 @@ type GridBoardProps = {
   boardId: BoardId;
   players?: Player[];
   myPlayerId: PlayerId | null;
-  allowPieceDrag?: boolean;
+  allowTokenDrag?: boolean;
   moveRange?: number;
   isExact?: boolean;
   width?: number;
@@ -36,7 +42,7 @@ type GridBoardProps = {
  * @param {string} boardId - 描画対象となる盤面の識別子
  * @param {Player[]} players - ルームに参加しているプレイヤーのリスト。指定するとプレーヤーに対応するコマを生成する
  * @param {PlayerId} myPlayerId - 操作者自身のプレイヤーID
- * @param {boolean} [allowPieceDrag=false] - 駒のドラッグ操作を許可するかどうか
+ * @param {boolean} [allowTokenDrag=false] - トークンのドラッグ操作を許可するかどうか
  * @param {boolean} [moveRange=2] - 駒が移動できるマス数
  * @param {boolean} [isExact=true] - 駒が移動できるマス数がピッタリであるべきかのフラグ
  * @param {number} widht - 横幅
@@ -49,7 +55,7 @@ export function GridBoard({
   boardId,
   players,
   myPlayerId,
-  allowPieceDrag = false,
+  allowTokenDrag = false,
   moveRange = 2,
   isExact = true,
   width = 800,
@@ -60,8 +66,10 @@ export function GridBoard({
   const [cells, setCells] = React.useState<CellData[]>([]);
   const [changedCells, setChangedCells] = React.useState<GridLocation[]>([]);
   const [highlightedCells, setHighlightedCells] = React.useState<GridLocation[]>([]);
-  const [draggingPieceId, setDraggingPieceId] = React.useState<PieceId | null>(null);
-  const [pieces, setPieces] = React.useState<PieceData[]>([]);
+  const [draggingTokenId, setDraggingTokenId] = React.useState<TokenId | null>(null);
+
+  const [tokens, setTokens] = React.useState<TokenData[]>([]);
+  const [serverExtraTokens, setServerExtraTokens] = React.useState<TokenData[]>([]);
 
   // IDから盤面の最大行列数を計算（一次元配列対応）
   const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || '0', 10))) + 1 : 0;
@@ -80,47 +88,94 @@ export function GridBoard({
     e.preventDefault();
     if (!isBoardReady || !socket) return;
 
-    const draggedPieceId = e.dataTransfer.getData('pieceId');
-    if (draggedPieceId) {
+    const tokenId = e.dataTransfer.getData('tokenId');
+    const source = e.dataTransfer.getData('source');
+    const playerId = e.dataTransfer.getData('playerId');
+
+    if (!tokenId) return;
+
+    if (source === 'ScoreBoard') {
+      // ScoreBoardからのドロップ
+      socket.emit('token:play', {
+        roomId,
+        boardId,
+        tokenId,
+        playerId,
+        newPosition: { row: targetRow, col: targetCol },
+      } as TokenPlayData);
+    } else {
+      // Board内でのドロップ
       // ドロップ（移動確定）したらハイライトを消す
       setHighlightedCells([]);
-
-      socket.emit('board:move-player', {
+      socket.emit('token:move-on-board', {
         roomId,
-        boardId: boardId,
-        playerId: draggedPieceId,
-        newLocation: { row: targetRow, col: targetCol },
-      } as BaordMovePlayerData);
+        boardId,
+        tokenId,
+        newPosition: { row: targetRow, col: targetCol },
+      } as TokenMoveOnBoardData);
     }
   };
 
   /**
-   * 駒クリック時のハンドラ
+   * トークンクリック時のハンドラ
    * 移動可能範囲を表示するためにサーバーへリクエストを飛ばす
    */
-  const handlePieceClick = (pieceId: PieceId) => {
-    if (!isBoardReady || !socket || pieceId !== myPlayerId) return;
+  const requestMovableRange = (tokenId: TokenId) => {
+    if (!isBoardReady || !socket) return;
 
-    const requestData: BoardMovableRangeData = {
+    const targetToken = tokens.find((t) => t.id === tokenId);
+    if (!targetToken) return;
+
+    // 持ち主（ownerId）が設定されている場合、自分以外ならリクエストを送らない
+    if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
+
+    const requestData: TokenMovableRangeData = {
       roomId,
       boardId,
-      playerId: pieceId,
+      playerId: tokenId,
       moveRange: moveRange,
       isExact: isExact,
     };
 
-    socket.emit('board:movable-range', requestData);
+    socket.emit('token:movable-range', requestData);
   };
 
-  const handlePieceDragStart = (e: DragEvent<HTMLDivElement>, piece: PieceData) => {
-    e.dataTransfer.setData('pieceId', piece.id);
+  const handleTokenDragStart = (e: DragEvent<HTMLDivElement>, token: TokenData) => {
+    // ドラッグ権限チェック
+    if (token.ownerId && token.ownerId !== myPlayerId) {
+      e.preventDefault();
+      return;
+    }
+
+    e.dataTransfer.setData('tokenId', token.id);
     e.dataTransfer.effectAllowed = 'move';
-    setDraggingPieceId(piece.id);
-    handlePieceClick(piece.id);
+    setDraggingTokenId(token.id);
+    requestMovableRange(token.id);
   };
 
-  const handlePieceDragEnd = () => {
-    setDraggingPieceId(null);
+  const handleTokenDragEnd = () => {
+    setDraggingTokenId(null);
+  };
+
+  /**
+   * トークンをダブルクリックした際のハンドラ
+   * 盤面から取り除き、手札等のサーバー管理領域に戻すリクエストを送信
+   */
+  const handleTokenDoubleClick = (tokenId: TokenId) => {
+    if (!isBoardReady || !socket) return;
+
+    const targetToken = tokens.find((p) => p.id === tokenId);
+    if (!targetToken) return;
+
+    if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
+
+    const requestData: TokenMoveFromBoardData = {
+      roomId,
+      boardId,
+      tokenId: tokenId,
+    };
+
+    socket.emit('token:move-from-board', requestData);
   };
 
   // ------------------- Socket Effects -------------------
@@ -131,6 +186,9 @@ export function GridBoard({
       if (data.board && data.board.length > 0) {
         setCells(data.board);
         setIsBoardReady(true);
+      }
+      if (data.boardTokens) {
+        setServerExtraTokens(data.boardTokens);
       }
     };
     socket.on('board:update', handleInitBoard);
@@ -153,27 +211,10 @@ export function GridBoard({
 
   // プレイヤー情報を描画用の駒データに変換
   React.useEffect(() => {
-    setPieces((prevPieces) => {
-      if (!players) return [];
-      return players.map((p) => {
-        const existingPiece = prevPieces.find((piece) => piece.id === p.id);
-        const location: GridLocation = p.position;
-
-        const playerColor = p.color || existingPiece?.color || '#aaaaaa';
-        const playerName = p.name || existingPiece?.name || `P?`;
-        const playerImage = p.pieceImage || existingPiece?.image;
-
-        return {
-          ...existingPiece,
-          id: p.id,
-          name: playerName,
-          color: playerColor,
-          image: playerImage,
-          location,
-        } as PieceData;
-      });
-    });
-  }, [players]);
+    // playersからmapするのではなく、サーバーから来た駒リストをそのままセット
+    const safeTokens = Array.isArray(serverExtraTokens) ? serverExtraTokens : [];
+    setTokens(safeTokens);
+  }, [serverExtraTokens]);
 
   const boardStyle: React.CSSProperties = {
     '--board-rows': rows,
@@ -211,11 +252,10 @@ export function GridBoard({
         const c = match ? parseInt(match[2], 10) : 0;
 
         const isChanged = changedCells.some((loc) => loc.row === r && loc.col === c);
-        const isHighlighted = players
-          ? (players
-              .find((p) => p.id === draggingPieceId)
-              ?.movableCells?.some((loc) => loc.row === r && loc.col === c) ?? false)
-          : false;
+
+        const isHighlighted =
+          tokens.find((p) => p.id === draggingTokenId)?.movableCells?.some((loc) => loc.row === r && loc.col === c) ??
+          false;
 
         const cellDataForRenderer: CellData = {
           ...cell,
@@ -227,13 +267,13 @@ export function GridBoard({
         return (
           <Cell<GridLocation>
             key={cell.id}
-            locationData={loc}
+            locationData={{ row: r, col: c }}
             cellData={cellDataForRenderer}
-            onClick={() => handleCellClick(cell, loc)}
+            onClick={() => handleCellClick(cell, { row: r, col: c })}
             onDoubleClick={() => handleCellDoubleClick(cell, loc)}
             onDrop={(e) => handleCellDrop(e, r, c)}
             onDragOver={(e) => e.preventDefault()}
-            highlighted={isHighlighted}
+            highlighted={isHighlighted && !!draggingTokenId}
             changed={isChanged}
           >
             {renderCell(cellDataForRenderer, r, c)}
@@ -242,12 +282,17 @@ export function GridBoard({
       })}
 
       {/* コマのレンダリング */}
-      {pieces.map((piece) => {
-        const sameLocationPieces = pieces.filter(
-          (p) => p.location.row === piece.location.row && p.location.col === piece.location.col,
-        );
-        const groupIndex = sameLocationPieces.findIndex((p) => p.id === piece.id);
-        const groupCount = sameLocationPieces.length;
+      {tokens.map((token) => {
+        const pos = (token as any).position;
+        if (!pos) return null;
+
+        const sameLocationTokens = tokens.filter((p) => {
+          const pPos = (p as any).position;
+          return pPos && pPos.row === pos.row && pPos.col === pos.col;
+        });
+
+        const groupIndex = sameLocationTokens.findIndex((p) => p.id === token.id);
+        const groupCount = sameLocationTokens.length;
 
         let offsetX = 0;
         let offsetY = 0;
@@ -259,8 +304,9 @@ export function GridBoard({
           offsetY = radius * Math.sin(angle);
         }
 
-        const pieceStyle: React.CSSProperties = {
-          gridArea: `${piece.location.row + 1} / ${piece.location.col + 1} / span 1 / span 1`,
+        const tokenStyle: React.CSSProperties = {
+          // 確定した座標 pos を使用
+          gridArea: `${pos.row + 1} / ${pos.col + 1} / span 1 / span 1`,
           alignSelf: 'center',
           justifySelf: 'center',
           transform: `translate(${offsetX}px, ${offsetY}px)`,
@@ -268,15 +314,16 @@ export function GridBoard({
         };
 
         return (
-          <Piece
-            key={piece.id}
-            piece={piece}
-            style={pieceStyle}
-            onClick={handlePieceClick}
-            isDraggable={allowPieceDrag}
+          <Token
+            key={token.id}
+            token={token}
+            style={tokenStyle}
             isFilled={true}
-            onDragStart={handlePieceDragStart}
-            onDragEnd={handlePieceDragEnd}
+            onClick={requestMovableRange}
+            onDoubleClick={() => handleTokenDoubleClick(token.id)}
+            isDraggable={allowTokenDrag}
+            onDragStart={handleTokenDragStart}
+            onDragEnd={handleTokenDragEnd}
           />
         );
       })}

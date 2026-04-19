@@ -2,7 +2,7 @@
 
 import type {
   BoardId,
-  Card,
+  CardData,
   CardId,
   CellData,
   DeckId,
@@ -15,10 +15,10 @@ import type {
   RoomState,
   TokenStoreId,
 } from '@/index.js';
-import { Deck } from '@/types/deck.js';
-import { Token } from '@/types/token.js';
-import { TokenStore } from '@/types/tokenStore.js';
-import { server_log } from '../logger.js';
+import { DeckData } from '@/types/deck.js';
+import { TokenData } from '@/types/token.js';
+import { TokenStoreData } from '@/types/tokenStore.js';
+import { server_log } from '../log/logger.js';
 import { generateColorFromId } from './utils.js';
 
 /**
@@ -28,40 +28,25 @@ import { generateColorFromId } from './utils.js';
  * @returns 初期化が完了した {@link RoomState} オブジェクト
  */
 export function createState(roomId: RoomId, param: GameParam): RoomState {
-  const initialDecks = param.initialDecks || [];
-  const initialTokenStores = param.initialTokenStores || [];
-  const initialBoard = param.initialBoard || {};
-
-  let Cells: Record<BoardId, CellData[]> = {};
-  const boardEntries = Object.entries(initialBoard);
-
   if (param.maxPlayers) {
     server_log('game', param.gameId, roomId, `参加可能人数: ${param.maxPlayers}人`);
   }
 
-  boardEntries.forEach(([boardId, boardData]) => {
-    Cells[boardId] = boardData;
-
-    // カスタムの再配置・接続関数があるか確認
-    const shuffleAndReconnector = param.shuffleAndReconnectBoard?.[boardId];
-
-    if (typeof shuffleAndReconnector === 'function') {
-      server_log('cell', param.gameId, roomId, `ボード "${boardId}" をカスタム戦略で再配置・接続します`);
-      Cells[boardId] = shuffleAndReconnector(boardData);
-    }
-
-    server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
-  });
-
-  const decks: Record<DeckId, Card[]> = {};
-  const playFieldCards: Record<DeckId, Card[]> = {};
-  const discardPile: Record<DeckId, Card[]> = {};
+  const initialDecks = param.initialDecks || [];
+  const decks: Record<DeckId, CardData[]> = {};
+  const playFieldCards: Record<DeckId, CardData[]> = {};
+  const discardPile: Record<DeckId, CardData[]> = {};
   const holdCards: Record<PlayerId, Record<DeckId, CardId[]>> = {};
 
-  const tokenStores: Record<TokenStoreId, Token[]> = {};
+  const initialBoard = param.initialBoard || {};
+  let Cells: Record<BoardId, CellData[]> = {};
 
-  initialDecks.forEach((deck: Deck) => {
-    const cards: Card[] = (deck.cards || []).map((c, index) => ({
+  const initialTokenStores = param.initialTokenStores || [];
+  const tokenStores: Record<TokenStoreId, TokenData[]> = {};
+
+  // デッキ関連の初期化
+  initialDecks.forEach((deck: DeckData) => {
+    const cards: CardData[] = (deck.cards || []).map((c, index) => ({
       ...c,
       deckId: deck.deckId,
       backColor: deck.backColor,
@@ -81,8 +66,25 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     }
   });
 
-  initialTokenStores.forEach((tokenStore: TokenStore) => {
-    const tokens: Token[] = (tokenStore.tokens || []).map((t, index) => ({
+  // ボード関連の初期化
+  const boardEntries = Object.entries(initialBoard);
+  boardEntries.forEach(([boardId, boardData]) => {
+    Cells[boardId] = boardData;
+
+    // カスタムの再配置・接続関数があるか確認
+    const shuffleAndReconnector = param.shuffleAndReconnectBoard?.[boardId];
+
+    if (typeof shuffleAndReconnector === 'function') {
+      server_log('cell', param.gameId, roomId, `ボード "${boardId}" をカスタム戦略で再配置・接続します`);
+      Cells[boardId] = shuffleAndReconnector(boardData);
+    }
+
+    server_log('cell', param.gameId, roomId, `ボード "${boardId}" を初期化完了`);
+  });
+
+  // トークン関連の初期化
+  initialTokenStores.forEach((tokenStore: TokenStoreData) => {
+    const tokens: TokenData[] = (tokenStore.tokens || []).map((t, index) => ({
       ...t,
       tokenStoreId: tokenStore.tokenStoreId,
       instanceId: `${roomId}_${tokenStore.tokenStoreId}_${index}`,
@@ -91,6 +93,7 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
   });
 
+  // ドラッグ可能オブジェクト関連の初期化
   let draggables: Record<DraggableId, DraggableData> = {};
   if (param.draggables) {
     draggables = structuredClone(param.draggables);
@@ -111,6 +114,19 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
   }
 
   const initialMaxZIndex = Object.values(draggables).reduce((max, d) => Math.max(max, d.zIndex || 0), 0);
+  const boardTokens: Record<BoardId, TokenData[]> = Object.fromEntries(Object.keys(Cells).map((id) => [id, []]));
+
+  // 全ての initialTokensOnBoard を、ひとまず最初のボードに突っ込む
+  const defaultBoardId = Object.keys(Cells)[0];
+
+  Object.entries(param.initialTokensOnBoard || {}).forEach(([_, p]) => {
+    const tokens = Array.isArray(p) ? p : [p];
+    const npcTokens = tokens.filter((t) => t.ownerId !== ('player' as any));
+
+    if (boardTokens[defaultBoardId]) {
+      boardTokens[defaultBoardId].push(...npcTokens);
+    }
+  });
 
   const state: RoomState = {
     roomId: roomId,
@@ -125,6 +141,7 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     discardPile: discardPile,
     holdCards: holdCards,
     boards: Cells,
+    boardTokens: boardTokens,
     exploredCells: [],
     tokenStores: tokenStores,
     draggables: draggables,
@@ -156,11 +173,8 @@ export function createPlayer(param: GameParam, state: RoomState, playerName: str
     cards: [],
     isHolding: false,
     score: 0,
-    resources: JSON.parse(JSON.stringify(param.initialResources || [])),
+    resources: param.initialResources || [],
     tokens: [],
-    position: { row: 0, col: 0 },
-    movableCells: [],
-    pieceImage: param.pieceImage,
   };
 
   // 初期手札配布処理
@@ -186,19 +200,66 @@ export function createPlayer(param: GameParam, state: RoomState, playerName: str
     }
   }
 
+  // 駒の配布処理
+  if (param.initialTokensOnBoard) {
+    const boardIds = Object.keys(state.boards);
+    const defaultBoardId = boardIds[0];
+
+    Object.entries(param.initialTokensOnBoard).forEach(([key, p]) => {
+      // 設定データが配列でない場合を考慮
+      const tokens = Array.isArray(p) ? p : [p];
+      const template = tokens.find((t) => t.ownerId === ('player' as any));
+
+      if (!template) return;
+
+      const tokenId = `${key}_${playerId}`;
+
+      // トークンに紐づく boardId を取得、なければデフォルトを使用
+      const targetBoardId = (template as any).boardId || defaultBoardId;
+
+      // 既存の盤面データに対して新しいプレイヤーの駒を push する
+      if (state.boardTokens[targetBoardId]) {
+        state.boardTokens[targetBoardId].push({
+          ...template,
+          id: tokenId,
+          ownerId: playerId,
+          name: `${template.name} (${newPlayer.name})`,
+          color: newPlayer.color,
+          position: {
+            row: template.position?.row ?? 0,
+            col: (template.position?.col ?? 0) + state.players.length,
+          },
+          movableCells: [],
+        });
+      }
+
+      server_log(
+        'token',
+        state.gameId,
+        state.roomId,
+        `プレイヤー ${newPlayer.name} 用の駒を盤面(${targetBoardId})に追加しました`,
+      );
+    });
+  }
+
   // 初期トークンの配布処理
   const initialTokens = param.initialTokens;
   if (initialTokens) {
     for (const [tokenId, count] of Object.entries(initialTokens)) {
       const masterTokenList = state.tokenStores[tokenId];
 
-      if (masterTokenList && masterTokenList.length > 0) {
-        // 配列の最初の要素（Tokenオブジェクト）を取り出す
-        const masterToken = masterTokenList[0];
-
+      if (masterTokenList) {
         for (let i = 0; i < count; i++) {
-          // オブジェクトをコピーして push
-          newPlayer.tokens.push(masterToken);
+          // リストが空でないか確認し、先頭から要素を一つ取り出す
+          if (masterTokenList.length > 0) {
+            const token = masterTokenList.shift();
+            if (token !== undefined) {
+              newPlayer.tokens.push(token);
+            }
+          } else {
+            // 在庫が切れた場合の処理が必要であればここに記述
+            break;
+          }
         }
       }
     }

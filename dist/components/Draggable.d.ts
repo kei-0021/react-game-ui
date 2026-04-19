@@ -1,5 +1,6 @@
 import { DraggableId, RoomId } from '@/types/definition.js';
 import type { CSSProperties, ReactNode } from 'react';
+import * as React from 'react';
 import type { Socket } from 'socket.io-client';
 interface GridBounds {
     left: number;

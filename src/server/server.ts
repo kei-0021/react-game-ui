@@ -1,12 +1,13 @@
 // src/server.ts
-import { GameId, GameParam } from '@/types/server.js';
+import { GameParam, RoomId, RoomState } from '@/index.js';
+import { GameId } from '@/types/component.js';
 import express from 'express';
 import fs from 'fs';
 import { createServer, Server as HttpServer } from 'http';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
-import { LogCategory, LogLevel } from './logger.js';
+import { LogCategory, LogLevel } from './log/logger.js';
 import { initGameServer } from './server-logic.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -49,6 +50,8 @@ export class GameServer {
   private corsOrigins: string[];
 
   public gameParams: Record<GameId, GameParam>;
+  private activeRooms: Map<RoomId, RoomState> = new Map();
+
   private customEvents: any;
   private initialLogCategories: Partial<Record<LogCategory, boolean>> | null;
   private initialLogLevel: LogLevel | null;
@@ -120,15 +123,23 @@ export class GameServer {
    */
   private initSocketLogic(): void {
     try {
-      initGameServer(this.io, {
-        gameParams: this.gameParams,
-        customEvents: this.customEvents,
-        initialLogCategories: this.initialLogCategories,
-        initialLogLevel: this.initialLogLevel,
-      });
+      initGameServer(
+        this.io,
+        {
+          gameParams: this.gameParams,
+          customEvents: this.customEvents,
+          initialLogCategories: this.initialLogCategories,
+          initialLogLevel: this.initialLogLevel,
+        },
+        this.activeRooms,
+      );
     } catch (err) {
       console.error('[Server] Failed to initialize game server logic:', err);
     }
+  }
+
+  public getActiveRooms() {
+    return this.activeRooms;
   }
 
   /**

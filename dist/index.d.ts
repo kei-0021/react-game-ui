@@ -16,13 +16,13 @@ export { type CardEffectParams } from './types/cardEffectParams.js';
 export * from './types/cardLocation.js';
 export * from './types/definition.js';
 export * from './types/player.js';
-export { type PieceData } from './types/piece.js';
 export { type DraggableData } from './types/draggable.js';
-export { type ComponentInfo } from './types/server.js';
+export { type ComponentInfo } from './types/component.js';
 export { RoomManager } from './server/room-manager.js';
-export { type GameParam, type RoomState } from './types/server.js';
+export { type GameParam } from './types/gameParam.js';
+export { type RoomState } from './types/roomState.js';
 export { type CellData } from './types/cell.js';
 export { Phase } from './types/phase.js';
 export { useSocket } from './hooks/useSocket.js';
-export { type CardPlayData, type DeckDrawData, type GameMeta, type GamePhaseUpdateData, type GameTurnUpdateData, type LobbyGameList, type LobbyRoomList, type RoomJoinData, type RoomMeta, } from './types/socketData.js';
+export { type CardPlayData, type DeckDrawData, type GameTurnUpdateData, type LobbyGameList, type LobbyRoomList, type PhaseUpdateData, type RoomJoinData, type RoomMeta, } from './types/socketData.js';
 //# sourceMappingURL=index.d.ts.map

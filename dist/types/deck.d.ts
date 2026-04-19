@@ -1,8 +1,9 @@
-import { Card } from './card.js';
-export interface Deck {
-    deckId: string;
+import type { CardData } from './card.js';
+import type { DeckId } from './definition.js';
+export type DeckData = {
+    deckId: DeckId;
     name: string;
     backColor: string;
-    cards: Card[];
-}
+    cards: CardData[];
+};
 //# sourceMappingURL=deck.d.ts.map

@@ -1,32 +1,34 @@
 // src/gui/ControlPanel.tsx
-import { ComponentId, DeckId, DraggableData, DraggableId, TokenStoreId } from '@/index.js';
-import { ComponentInfo } from '@/types/server.js';
-import { GameMeta, GameParamUpdateData } from '@/types/socketData.js';
+import { ComponentId, DeckId, DraggableData, DraggableId, GameParam, TokenStoreId } from '@/index.js';
+import { ComponentInfo } from '@/types/component.js';
+import { Instruction } from '@/types/instruction.js';
+import { GameParamUpdateData } from '@/types/socketData.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import { ComponentFactory } from './ComponentFactory.js';
 import styles from './ControlPanel.module.css';
 import { GameFactory } from './GameFactory.js';
+import { LogicFactory } from './LogicFactory.js';
 
 /**
  * ゲームの設定管理およびリアルタイム更新を行う。
  * 新規ゲームの作成、既存ゲームのパラメータ（プレイヤー数、初期手札、トークン）、
  * およびゲーム内コンポーネント（ダイスやボード等）の動的な追加・削除を管理する。
  * @param {Socket} props.socket - サーバー通信用の Socket.io クライアントインスタンス
- * @param {GameMeta[]} props.gameMeta - サーバーから取得した全ゲームのメタデータ配列
+ * @param {GameParam[]} props.GameParam - サーバーから取得した全ゲーム情報の配列
  * @param {containerRef}
  * @param {boolean} props.isOpen - パネルの開閉状態
  * @param {function} props.onToggle - パネルの開閉状態を切り替えるコールバック関数
  */
 export const ControlPanel = ({
   socket,
-  gameMeta,
+  GameParam,
   containerRef,
   isOpen,
   onToggle,
 }: {
   socket: Socket;
-  gameMeta: GameMeta[];
+  GameParam: GameParam[];
   containerRef: React.RefObject<HTMLElement | null>;
   isOpen: boolean;
   onToggle: () => void;
@@ -42,7 +44,9 @@ export const ControlPanel = ({
   const [draggables, setDraggables] = useState<Record<DraggableId, DraggableData>>({});
   const [localComponents, setLocalComponents] = useState<ComponentInfo[]>([]);
 
-  // 比較用の初期値保持
+  // ロジックセクションの状態管理
+  const [logicSync, setLogicSync] = useState({ isDirty: false, data: [] as Instruction[] });
+
   const [initialValues, setInitialValues] = useState({
     maxPlayers: 1,
     initialHand: {} as Record<string, number>,
@@ -56,13 +60,13 @@ export const ControlPanel = ({
 
   // ゲーム選択の初期化
   useEffect(() => {
-    if (gameMeta.length > 0 && !selectedGameId) {
-      setSelectedGameId(gameMeta[0].gameId);
+    if (GameParam.length > 0 && !selectedGameId) {
+      setSelectedGameId(GameParam[0].gameId);
     }
-  }, [gameMeta, selectedGameId]);
+  }, [GameParam, selectedGameId]);
 
   /** 現在選択されているゲームのオブジェクトをメモ化 */
-  const selectedGame = useMemo(() => gameMeta.find((g) => g.gameId === selectedGameId), [selectedGameId, gameMeta]);
+  const selectedGame = useMemo(() => GameParam.find((g) => g.gameId === selectedGameId), [selectedGameId, GameParam]);
 
   /** 変更検知フラグ（Dirtyチェック） */
   const isMaxPlayersDirty = maxPlayers !== initialValues.maxPlayers;
@@ -77,8 +81,8 @@ export const ControlPanel = ({
       const configMaxPlayers = selectedGame.maxPlayers ?? 1;
       const configInitialHand = selectedGame.initialHand ?? {};
       const configInitialTokens = selectedGame.initialTokens ?? {};
-      const configComponents = selectedGame.components ?? [];
       const configDraggables = selectedGame.draggables ?? {};
+      const configComponents = selectedGame.components ?? [];
 
       setInitialValues({
         maxPlayers: configMaxPlayers,
@@ -129,12 +133,13 @@ export const ControlPanel = ({
   const handleSave = () => {
     if (!socket.connected || !selectedGameId) return;
 
-    const newParam: Partial<GameMeta> = {};
+    const newParam: Partial<GameParam> = {};
     if (isMaxPlayersDirty) newParam.maxPlayers = maxPlayers;
     if (isHandDirty) newParam.initialHand = initialHand;
     if (isTokensDirty) newParam.initialTokens = initialTokens;
-    if (isComponentsDirty) newParam.components = localComponents;
     if (isDraggablesDirty) newParam.draggables = draggables;
+    if (logicSync.isDirty) newParam.onCardPlay = logicSync.data;
+    if (isComponentsDirty) newParam.components = localComponents;
 
     setIsSaving(true);
     socket.emit('game-param:update', {
@@ -145,23 +150,30 @@ export const ControlPanel = ({
 
   const handleAddComponent = (newComponent: ComponentInfo, additionalParams?: any) => {
     if (!selectedGameId) return;
-    const updatedComponents = [...localComponents, newComponent];
-    const updatedDraggables = {
-      ...draggables,
-      ...(additionalParams?.draggables || {}),
-    };
 
-    setLocalComponents(updatedComponents);
-    setDraggables(updatedDraggables);
+    setLocalComponents((prevComponents) => {
+      const updatedComponents = [...prevComponents, newComponent];
 
-    socket.emit('game-param:update', {
-      gameId: selectedGameId,
-      newParam: {
-        ...additionalParams,
-        draggables: updatedDraggables,
-        components: updatedComponents,
-      },
-    } as GameParamUpdateData);
+      setDraggables((prevDraggables) => {
+        const updatedDraggables = {
+          ...prevDraggables,
+          ...(additionalParams?.draggables || {}),
+        };
+
+        socket.emit('game-param:update', {
+          gameId: selectedGameId,
+          newParam: {
+            ...additionalParams,
+            draggables: updatedDraggables,
+            components: updatedComponents,
+          },
+        } as GameParamUpdateData);
+
+        return updatedDraggables;
+      });
+
+      return updatedComponents;
+    });
   };
 
   // コンポーネント削除ハンドラ
@@ -197,7 +209,7 @@ export const ControlPanel = ({
           {/* ゲームの箱（作成・選択・削除）を管理 */}
           <GameFactory
             socket={socket}
-            gameMeta={gameMeta}
+            GameParam={GameParam}
             selectedGameId={selectedGameId}
             onSelect={setSelectedGameId}
           />
@@ -296,6 +308,16 @@ export const ControlPanel = ({
             </>
           )}
 
+          <hr className={styles.divider} />
+
+          {/* ロジック設定 */}
+          <LogicFactory
+            selectedGame={selectedGame}
+            isSaving={isSaving}
+            onSync={(isDirty, data) => setLogicSync({ isDirty, data })}
+          />
+          <hr className={styles.divider} />
+
           {/* 保存・反映ボタン */}
           <button
             className={styles.saveButton}
@@ -303,7 +325,12 @@ export const ControlPanel = ({
             disabled={
               !socket.connected ||
               isSaving ||
-              (!isMaxPlayersDirty && !isHandDirty && !isTokensDirty && !isComponentsDirty)
+              (!isMaxPlayersDirty &&
+                !isHandDirty &&
+                !isTokensDirty &&
+                !isComponentsDirty &&
+                !isDraggablesDirty &&
+                !logicSync.isDirty)
             }
           >
             {isSaving ? '保存中...' : showSuccess ? '完了' : '変更箇所のみ反映'}

@@ -1,6 +1,7 @@
 // src/server/deepAbyssConfig.ts
 
-import { Card, CardPlayData, GameParam, Player, RoomManager, RoomState } from 'react-game-ui';
+import { roomInterpreter } from '@/server/room-interpreter.js';
+import { CardData, CardPlayData, GameParam, RoomManager, RoomState } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
 import { DeepAbyssPhase } from '../types/phase.js';
 import { cellShuffleAndReconnector } from './cellShuffleAndReConnecter.js';
@@ -26,11 +27,10 @@ export const deepAbyssConfig: RoomConfig = {
 
     const helper = new SetupHelper();
 
-    const defaults: Partial<Card> = {
+    const defaults: Partial<CardData> = {
       location: 'deck',
       drawCondition: ['field', 'back'],
       playLocation: 'discard',
-      // fieldBackCondition: ['hand', 'face'],
     };
 
     const deepAbyssSpeciesDeck = helper.createUniqueCards(
@@ -70,12 +70,22 @@ export const deepAbyssConfig: RoomConfig = {
         {
           tokenStoreId: 'ARTIFACT',
           name: '遺物',
-          tokens: helper.createTokenStore([{ id: 'ARTIFACT', name: '💰' }], 20, undefined, '#D4AF37'),
+          tokens: helper.createTokenStore(
+            [{ id: 'ARTIFACT', tokenStoreId: 'ARTIFACT', name: '💰', ownerId: null, position: null, movableCells: [] }],
+            20,
+            undefined,
+            '#D4AF37',
+          ),
         },
         {
           tokenStoreId: 'Hanabishi',
           name: '花火師',
-          tokens: helper.createTokenStore([{ id: '花火師', name: '🎆' }], 20, '/hanabishi.svg', '#d43737'),
+          tokens: helper.createTokenStore(
+            [{ id: '花火師', tokenStoreId: 'HANABISHI', name: '🎆', ownerId: null, position: null, movableCells: [] }],
+            20,
+            '/hanabishi.svg',
+            '#d43737',
+          ),
         },
       ],
       initialResources: [
@@ -92,16 +102,54 @@ export const deepAbyssConfig: RoomConfig = {
       initialHand: { deepAbyssAction: 6 },
       initialTokens: { ARTIFACT: 2, Hanabishi: 3 },
       initialBoard: { deepAbyssBoard: deepAbyssBoard },
+      initialTokensOnBoard: {
+        piece: [
+          {
+            id: 'piece',
+            name: 'piece',
+            ownerId: 'player',
+            color: '#ff4444',
+            position: { row: 2, col: 3 },
+            image: '/hanabishi.svg',
+          },
+        ],
+        'piece-2': [
+          {
+            id: 'piece-2',
+            name: 'piece-2',
+            ownerId: 'player',
+            color: '#ff4444',
+            position: { row: 2, col: 3 },
+            image: '/hanabishi.svg',
+          },
+        ],
+        'item-treasure': [
+          {
+            id: 'item-treasure',
+            name: '敵',
+            ownerId: null,
+            color: '#ffd700',
+            position: { row: 5, col: 5 },
+          },
+        ],
+        'enemy-boss': [
+          {
+            id: 'enemy-boss',
+            name: '敵',
+            ownerId: null,
+            color: '#8b0000',
+            position: { row: 0, col: 0 },
+          },
+        ],
+      },
       shuffleAndReconnectBoard: { deepAbyssBoard: cellShuffleAndReconnector },
-      pieceImage: '/hanabishi.svg',
       initialPhase: DeepAbyssPhase.START,
       cardEffects: activeCardEffects,
       cellEffects: activeCellEffects,
       onCardPlay: (state: RoomState, manager: RoomManager, data: CardPlayData) => {
         // 全員に+2点する
-        state.players.forEach((player: Player) => {
-          manager.addScore(player.id, 2);
-        });
+        roomInterpreter([{ type: 'ADD_SCORE', playerId: 'ALL', points: 2 }], state, manager);
+
         // 場のカードから名前を抽出して「、」で繋げる
         const cardNames = data.cardIds
           ?.map((id) => state.playFieldCards['deepAbyssAction'].find((c) => c.id === id)?.name)
@@ -109,9 +157,9 @@ export const deepAbyssConfig: RoomConfig = {
           .join('、');
 
         manager.emitSystemMessage(`${cardNames} を出した！`, 1000, true);
-        manager.updatePhase(DeepAbyssPhase.NEXT);
+        roomInterpreter([{ type: 'UPDATE_PHASE', newPhase: DeepAbyssPhase.NEXT }], state, manager);
       },
-      onPieceMove: (state: RoomState, manager: RoomManager, newLocation: any) => {
+      onTokenMove: (state: RoomState, manager: RoomManager, newLocation: any) => {
         // マス目をオープンにする
         manager.updateCellExploredStatus(newLocation, true);
       },

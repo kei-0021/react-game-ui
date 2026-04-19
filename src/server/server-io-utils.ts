@@ -1,12 +1,11 @@
 // src/server/server-io-utils.ts
 
-import { CellData, DraggableData } from '@/index.js';
+import { CellData, DraggableData, GameParam } from '@/index.js';
 import { Coordinate } from '@/types/coodinate.js';
 import { GameId } from '@/types/definition.js';
-import { GameParam } from '@/types/server.js';
-import { Token } from '@/types/token.js';
+import { TokenData } from '@/types/token.js';
 import fs from 'node:fs';
-import { Card } from '../types/card.js';
+import { CardData } from '../types/card.js';
 import { Resource } from '../types/resource.js';
 
 export type RoomConfig = {
@@ -17,7 +16,7 @@ export type RoomConfig = {
 
 // --- 型バリデーター関数群 ---
 export const Validators = {
-  isCardArray: (data: Card[]): data is Card[] => {
+  isCardArray: (data: CardData[]): data is CardData[] => {
     if (!Array.isArray(data)) throw new Error('Data is not an array');
 
     return data.every((item, index) => {
@@ -122,7 +121,7 @@ export class SetupHelper {
   /**
    * カードデータのバリデーション
    */
-  assertCards(data: any): Card[] {
+  assertCards(data: any): CardData[] {
     if (Validators.isCardArray(data)) return data;
     throw new Error('Invalid card data');
   }
@@ -130,7 +129,7 @@ export class SetupHelper {
   /**
    * カードに共通のプロパティ（location, drawConditionなど）をセットする
    */
-  initializeCards(cards: any[], defaults: Partial<Card>): Card[] {
+  initializeCards(cards: any[], defaults: Partial<CardData>): CardData[] {
     return cards.map((card) => ({
       ...card,
       ...defaults,
@@ -140,7 +139,7 @@ export class SetupHelper {
   /**
    * カードの複製（ユニーク化）
    */
-  createUniqueCards(cards: Card[], numSets: number): Card[] {
+  createUniqueCards(cards: CardData[], numSets: number): CardData[] {
     return replicateData(cards, numSets);
   }
 
@@ -152,11 +151,11 @@ export class SetupHelper {
    * @param color - トークンの背景用のカラーコード（省略可能）
    * @returns トークン置き場
    */
-  createTokenStore(tokens: Token[], count: number, imageSrc?: string, color?: string): Token[] {
+  createTokenStore(tokens: TokenData[], count: number, imageSrc?: string, color?: string): TokenData[] {
     const replicatedTokens = replicateData(tokens, count);
     if (imageSrc) {
       replicatedTokens.forEach((token) => {
-        token.imageSrc = imageSrc;
+        token.image = imageSrc;
       });
     }
     if (color) {

@@ -1,9 +1,11 @@
 // src/components/Card.tsx
-import { Card } from '@/types/card.js';
+import { CardData } from '@/types/card.js';
+import { CardId } from '@/types/definition.js';
 import React from 'react';
 import cardStyles from './Card.module.css';
+import playFieldStyles from './PlayField.module.css';
 
-export const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: Card; canSeeFront: boolean }) => {
+export const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: CardData; canSeeFront: boolean }) => {
   // 裏向きの場合
   if (!canSeeFront) {
     return <div className={cardStyles.deckCard} style={{ backgroundColor: card.backColor || '#333' }} />;
@@ -21,3 +23,49 @@ export const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: Car
     </div>
   );
 });
+
+type CardProps = {
+  card: CardData;
+  style?: React.CSSProperties;
+  isActuallyFreeShape?: boolean;
+  canSeeFront: boolean;
+  onClick?: (id: CardId) => void;
+  onPointerDown?: (e: React.PointerEvent) => void;
+  onPointerUp?: (e: React.PointerEvent) => void;
+  onDragStart?: React.DragEventHandler<HTMLDivElement>;
+  isDraggable?: boolean;
+  onContextMenu?: (e: React.MouseEvent) => void;
+};
+
+export const Card = ({
+  card,
+  style,
+  isActuallyFreeShape,
+  canSeeFront,
+  onClick,
+  onPointerUp,
+  onPointerDown,
+  onDragStart,
+  isDraggable,
+  onContextMenu,
+}: CardProps) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClick?.(card.id);
+  };
+
+  return (
+    <div
+      className={`${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`}
+      style={style}
+      onClick={handleClick}
+      onPointerUp={onPointerUp}
+      onPointerDown={onPointerDown}
+      onDragStart={onDragStart}
+      draggable={isDraggable}
+      onContextMenu={onContextMenu}
+    >
+      <CardDisplayContent card={card} canSeeFront={canSeeFront} />
+    </div>
+  );
+};

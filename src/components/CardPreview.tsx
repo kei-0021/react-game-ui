@@ -1,11 +1,11 @@
 // src/components/CardPreview.tsx
-import { Card } from '@/types/card.js';
+import { CardData } from '@/types/card.js';
 import React, { useRef, useState } from 'react';
 import { CardDisplayContent } from './Card.js';
 import cardStyles from './Card.module.css';
 
 type CardPreviewProps = {
-  card: Card;
+  card: CardData;
   children: React.ReactNode;
 };
 

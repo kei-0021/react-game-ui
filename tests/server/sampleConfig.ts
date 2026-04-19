@@ -1,6 +1,6 @@
 // tests/server/sampleConfig.ts
 
-import { Card, DraggableData, DraggableId, GameParam } from 'react-game-ui';
+import { CardData, DraggableData, DraggableId, GameParam } from 'react-game-ui';
 import { RoomConfig, SetupHelper } from 'react-game-ui/server-io-utils';
 
 const Z_INDX_DRAGGABLE = 201;
@@ -14,11 +14,12 @@ export const sampleConfig: RoomConfig = {
     const { sampleData } = await import(`./sampleData.js?t=${Date.now()}`);
     const helper = new SetupHelper();
 
-    const defaults: Partial<Card> = {
+    const defaults: Partial<CardData> = {
       location: 'deck',
       drawCondition: ['field', 'face'],
       playLocation: 'discard',
       fieldBackCondition: ['hand', 'face'],
+      rotation: 0,
     };
 
     const numberCards = helper.createUniqueCards(

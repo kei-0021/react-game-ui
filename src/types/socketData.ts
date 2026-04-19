@@ -1,13 +1,12 @@
 // src/types/socketData.ts
 
-import { CellData, DraggableData } from '@/index.js';
-import { ComponentInfo, RoomState } from '@/types/server.js';
-import { Card } from './card.js';
-import { CardLocation } from './cardLocation.js';
-import { CardState } from './cardState.js';
-import { Coordinate } from './coodinate.js';
-import { Deck } from './deck.js';
-import {
+import type { CardData } from './card.js';
+import type { CardLocation } from './cardLocation.js';
+import type { CardState } from './cardState.js';
+import type { CellData } from './cell.js';
+import type { ComponentInfo } from './component.js';
+import type { Coordinate } from './coodinate.js';
+import type {
   BoardId,
   CardId,
   DeckId,
@@ -19,26 +18,17 @@ import {
   TokenId,
   TokenStoreId,
 } from './definition.js';
-import { Phase } from './phase.js';
-import { Token } from './token.js';
-import { TokenStore } from './tokenStore.js';
+import type { GameParam } from './gameParam.js';
+import type { Phase } from './phase.js';
+import { Position } from './position.js';
+import type { RoomState } from './roomState.js';
+import type { TokenData } from './token.js';
 
 /*
  * ===========================================
  * ゲーム・ルーム情報
  * ===========================================
  */
-export type GameMeta = {
-  gameId: GameId;
-  gameIcon: string;
-  maxPlayers?: number;
-  initialHand?: Record<DeckId, number>;
-  initialDecks?: Deck[];
-  initialTokenStores?: TokenStore[];
-  initialTokens?: Record<TokenStoreId, number>;
-  draggables?: Record<DraggableId, DraggableData>;
-  components?: ComponentInfo[];
-};
 
 export type RoomMeta = {
   id: RoomId;
@@ -49,7 +39,7 @@ export type RoomMeta = {
 };
 
 export type LobbyGameList = {
-  games: GameMeta[];
+  games: GameParam[];
 };
 
 export type LobbyRoomList = {
@@ -83,7 +73,7 @@ export type GameDeleteData = {
 
 export type GameParamUpdateData = {
   gameId: GameId;
-  newParam: Partial<GameMeta>;
+  newParam: Partial<GameParam>;
 };
 
 /*
@@ -109,9 +99,9 @@ export type DeckResetData = {
 };
 
 export type DeckUpdateData = {
-  currentDeck: Card[];
-  playFieldCards: Card[];
-  discardPile: Card[];
+  currentDeck: CardData[];
+  playFieldCards: CardData[];
+  discardPile: CardData[];
 };
 
 export type CardPlayData = {
@@ -141,6 +131,7 @@ export type CardMoveOnFieldData = {
   cardId: string;
   coordinate?: Coordinate;
   zIndex?: number;
+  rotation?: number;
 };
 
 export type CardMoveFromFieldData = {
@@ -152,17 +143,47 @@ export type CardMoveFromFieldData = {
 
 /*
  * ===========================================
- * トークン・リソース操作関連
+ * トークン関連
  * ===========================================
  */
+
+export type TokenStoreUpdateData = {
+  tokenStore: TokenData[];
+};
+
 export type TokenAcquireData = {
   roomId: RoomId;
   tokenStoreId: TokenStoreId;
   tokenId: TokenId;
 };
 
-export type TokenStoreUpdateData = {
-  tokenStore: Token[];
+export type TokenMovableRangeData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  playerId: PlayerId;
+  moveRange: number;
+  isExact: boolean;
+};
+
+export type TokenPlayData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  tokenId: TokenId;
+  playerId: PlayerId;
+  newPosition: Position;
+};
+
+export type TokenMoveOnBoardData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  tokenId: TokenId;
+  newPosition: Position;
+};
+
+export type TokenMoveFromBoardData = {
+  roomId: RoomId;
+  boardId: BoardId;
+  tokenId: TokenId;
 };
 
 /*
@@ -171,24 +192,9 @@ export type TokenStoreUpdateData = {
  * ===========================================
  */
 
-export type BoardMovableRangeData = {
-  roomId: RoomId;
-  boardId: BoardId;
-  playerId: PlayerId;
-  moveRange: number;
-  isExact: boolean;
-};
-
-export type BaordMovePlayerData = {
-  roomId: RoomId;
-  boardId: BoardId;
-  playerId: PlayerId;
-  newLocation: any;
-};
-
 export type BoardUpdateData = {
-  boardId: BoardId;
   board: CellData[];
+  boardTokens: TokenData[];
 };
 
 /*
@@ -242,7 +248,7 @@ export type ObjectBringToData = {
  * ゲーム進行・フェーズ管理
  * ===========================================
  */
-export type GamePhaseUpdateData = {
+export type PhaseUpdateData = {
   newPhase: Phase;
 };
 

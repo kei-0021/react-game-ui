@@ -6,12 +6,12 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import styles from './Dice.module.css';
 
-import dice1Image from '../assets/dice-1.png';
-import dice2Image from '../assets/dice-2.png';
-import dice3Image from '../assets/dice-3.png';
-import dice4Image from '../assets/dice-4.png';
-import dice5Image from '../assets/dice-5.png';
-import dice6Image from '../assets/dice-6.png';
+import dice1Image from '../assets/dice/dice-1.png';
+import dice2Image from '../assets/dice/dice-2.png';
+import dice3Image from '../assets/dice/dice-3.png';
+import dice4Image from '../assets/dice/dice-4.png';
+import dice5Image from '../assets/dice/dice-5.png';
+import dice6Image from '../assets/dice/dice-6.png';
 
 const defaultDiceImages: { [key: number]: string } = {
   1: dice1Image,

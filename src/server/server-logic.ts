@@ -1,34 +1,20 @@
 // src/server/server-logic.ts
+import { GameParam, RoomState } from '@/index.js';
 import { RoomId } from '@/types/definition.js';
-import { RoomState } from '@/types/server.js';
-import {
-  DiceRollData,
-  DiceUpdateData,
-  DraggableMovedData,
-  GameComponentData,
-  GameMeta,
-  GameNextRoundData,
-  GameNextTrunData,
-  LobbyGameList,
-  LobbyRoomList,
-  ObjectBringToData,
-  RoomJoinData,
-  RoomMeta,
-} from '@/types/socketData.js';
+import { LobbyGameList, LobbyRoomList, ObjectBringToData, RoomMeta } from '@/types/socketData.js';
 import { Server, Socket } from 'socket.io';
-import { registerBoardListeners } from './listener/board-listener.js';
-import { registerDeckListeners } from './listener/deck-listenr.js';
-import { registerEditorListeners } from './listener/editor-listner.js';
+import { registerDeckListeners } from './listener/deck-listener.js';
+import { registerDiceListeners } from './listener/dice-listener.js';
+import { registerDraggableListeners } from './listener/draggable-listener.js';
+import { registerPlayerListeners } from './listener/player-listener.js';
+import { registerRoomListeners } from './listener/room-listener.js';
+import { registerTimerListeners } from './listener/timer-listener.js';
 import { registerTokenListeners } from './listener/token-listener.js';
-import { LOG_CATEGORIES, server_log, setLogLevel } from './logger.js';
-import { createPlayer, createState } from './logic/create-state.js';
-import { syncState } from './logic/sync-state.js';
+import { LOG_CATEGORIES, setLogLevel } from './log/logger.js';
 import { RoomManager } from './room-manager.js';
 import type { GameServerOptions } from './server.js';
 
-export const activeRooms = new Map<RoomId, RoomState>();
-
-export function initGameServer(io: Server, options: GameServerOptions) {
+export function initGameServer(io: Server, options: GameServerOptions, activeRooms: Map<RoomId, RoomState>) {
   const gameParams = options.gameParams || {};
 
   if (options.initialLogCategories) {
@@ -55,11 +41,9 @@ export function initGameServer(io: Server, options: GameServerOptions) {
   }
 
   io.on('connection', (socket: Socket) => {
-    registerEditorListeners(socket, gameParams);
-
     // ロビー
     socket.on('lobby:get-info', () => {
-      const gameList: GameMeta[] = Object.keys(gameParams).map((id) => ({
+      const gameList: GameParam[] = Object.keys(gameParams).map((id) => ({
         gameId: id,
         gameIcon: gameParams[id].gameIcon,
         maxPlayers: gameParams[id].maxPlayers,
@@ -89,50 +73,8 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       } as LobbyRoomList);
     });
 
-    // ルーム参加
-    socket.on('room:join', async ({ roomId, playerName, gameId }: RoomJoinData) => {
-      let state = activeRooms.get(roomId);
-      const param = gameParams[gameId];
-
-      // 初回は状態の初期化を行う
-      if (!state) {
-        state = createState(roomId, { ...param, gameId: gameId });
-        activeRooms.set(roomId, state);
-        const roomManager = new RoomManager(io, param, state);
-        Object.keys(state.decks).forEach((deckId) => roomManager.shuffleDeck(deckId));
-        io.emit('room-ready');
-      }
-
-      await socket.join(roomId);
-
-      // プレイヤークラスの初期化
-      let newPlayer = state.players.find((p) => p.socketId === socket.id);
-      if (!newPlayer) {
-        newPlayer = createPlayer(param, state, playerName, socket.id);
-        state.players.push(newPlayer);
-        server_log('room', gameId, roomId, `${newPlayer.name} (${newPlayer.id})が参加しました`);
-      } else {
-        newPlayer.socketId = socket.id;
-      }
-
-      // コンポーネント情報を伝える
-      socket.emit('game:component', {
-        state: state,
-        components: param.components,
-      } as GameComponentData);
-
-      // 準備完了を促す
-      socket.emit('client:ready-to-sync', newPlayer.id);
-    });
-
-    // 準備完了を受けた同期処理
-    socket.on('client:ready', (roomId) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-      syncState(state, roomManager, io);
-    });
+    // ルーム進行関連
+    registerRoomListeners(socket, io, gameParams, activeRooms);
 
     // デッキ関連
     registerDeckListeners(socket, io, gameParams, activeRooms);
@@ -140,61 +82,20 @@ export function initGameServer(io: Server, options: GameServerOptions) {
     // トークン関連
     registerTokenListeners(socket, io, gameParams, activeRooms);
 
-    // ボード関連
-    registerBoardListeners(socket, io, gameParams, activeRooms);
+    // ダイス関連
+    registerDiceListeners(socket, io, gameParams, activeRooms);
 
-    // ダイス
-    socket.on('dice:roll', ({ roomId, diceId, sides }: DiceRollData) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
+    // ドラッグ可能オブジェクト関連
+    registerDraggableListeners(socket, io, gameParams, activeRooms);
 
-      const data: DiceUpdateData = {
-        value: Math.floor(Math.random() * sides) + 1,
-      };
-      roomManager.server_log('dice', `Dice ${diceId} rolled. Result: ${data.value}`);
-      io.to(roomId).emit(`dice:update:${diceId}`, data);
-    });
+    // タイマー関連
+    registerTimerListeners(socket, io, gameParams, activeRooms);
 
-    // タイマー・その他同期
-    socket.on('timer:start', ({ duration, roomId }) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-
-      roomManager.stopTimer();
-      let rem = duration;
-      io.to(roomId).emit('timer:start', { duration, roomId });
-      const tick = () => {
-        if (rem <= 0) {
-          roomManager.stopTimer();
-          io.to(roomId).emit('timer:finish', { roomId });
-          return;
-        }
-        io.to(roomId).emit('timer:update', { remaining: rem, roomId });
-        rem--;
-        state.timer = setTimeout(tick, 1000);
-      };
-      tick();
-    });
+    // プレイヤー要素関連
+    registerPlayerListeners(socket, io, gameParams, activeRooms);
 
     socket.on('cursor:move', ({ roomId, x, y }) => {
       socket.to(roomId).emit('cursor:update', { playerId: socket.id, x, y });
-    });
-
-    socket.on('draggable:moved', ({ roomId, draggableId, coordinate, rotation }: DraggableMovedData) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-
-      const draggable = state.draggables[draggableId];
-      draggable.coordinate = coordinate;
-      draggable.rotation = rotation;
-
-      roomManager.emitDraggableUpdate(draggableId);
     });
 
     // 重ね順更新
@@ -205,42 +106,6 @@ export function initGameServer(io: Server, options: GameServerOptions) {
       const roomManager = new RoomManager(io, param, state);
 
       roomManager.updateZIndex(type, objectId, isFront);
-    });
-
-    // 次のターン
-    socket.on('game:next-turn', ({ roomId }: GameNextTrunData) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-      roomManager.updateTurn();
-    });
-
-    // 次のラウンド
-    socket.on('game:next-round', ({ roomId }: GameNextRoundData) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-      roomManager.updateRound();
-    });
-
-    // スコア加算
-    socket.on('player:add-score', ({ roomId, targetPlayerId, points }) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-      roomManager.addScore(targetPlayerId, points);
-    });
-
-    // リソース加算
-    socket.on('player:update-resource', ({ roomId, playerId, resourceId, amount }) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
-      roomManager.acquireResource(playerId, resourceId, amount);
     });
 
     // --- カスタムイベント ---
@@ -254,23 +119,5 @@ export function initGameServer(io: Server, options: GameServerOptions) {
         }
       });
     }
-
-    socket.on('disconnect', () => {
-      for (const [id, state] of activeRooms.entries()) {
-        const idx = state.players.findIndex((p) => p.socketId === socket.id);
-        if (idx !== -1) {
-          state.players.splice(idx, 1);
-          if (state.players.length === 0) {
-            activeRooms.delete(id);
-            io.emit('room-ready');
-          } else {
-            const param = gameParams[state.gameId];
-            const roomManager = new RoomManager(io, param, state);
-            roomManager.emitPlayerUpdate();
-          }
-          break;
-        }
-      }
-    });
   });
 }

@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useMemo, useState } from 'react';
-import { TokenDisplayContent } from './Token.js';
+import { Token } from './Token.js';
 import styles from './TokenStore.module.css';
 /**
  * トークンストアを表示および管理するコンポーネント。
@@ -10,7 +10,7 @@ import styles from './TokenStore.module.css';
  * @param {RoomId} roomId - 現在参加しているルームの識別子
  * @param {TokenStoreId} tokenStoreId - このトークンストア固有の識別子
  * @param {string} title - UIに表示するストアのタイトル
- * @param {(token: Token) => void} [onSelect] - トークンが選択された際に呼び出されるオプションのコールバック関数
+ * @param {(token: TokenData) => void} [onSelect] - トークンが選択された際に呼び出されるオプションのコールバック関数
  */
 export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect }) {
     const [tokenStoreTokens, setTokenStoreTokens] = useState([]);
@@ -38,6 +38,12 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
         const data = { roomId, tokenStoreId, tokenId };
         socket.emit('token:aquire', data);
     };
+    // トークン移動
+    const handleTokenDragStart = (e, token) => {
+        e.dataTransfer.setData('tokenId', token.id);
+        e.dataTransfer.setData('source', 'tokenStore');
+        e.dataTransfer.effectAllowed = 'move';
+    };
     return (_jsxs("section", { className: styles.section, children: [_jsx("h3", { className: styles.title, children: name }), _jsx("div", { className: styles.list, children: tokenStoreTokens.map((t, i) => {
                     // インデックスを利用して擬似的に散らばった位置を計算
                     const offsetX = (i % 5) * 40 - 80;
@@ -49,6 +55,6 @@ export function TokenStore({ socket, roomId, tokenStoreId, title: name, onSelect
                             top: `calc(50% + ${offsetY}px)`,
                             transform: `rotate(${rotation}deg)`,
                             zIndex: i,
-                        }, onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), children: _jsx(TokenDisplayContent, { token: t }) }, t.id));
+                        }, children: _jsx(Token, { token: t, onClick: () => handleClick(t.id), onDoubleClick: () => handleDoubleClick(t.id), isDraggable: true, onDragStart: handleTokenDragStart }, t.id) }));
                 }) })] }));
 }

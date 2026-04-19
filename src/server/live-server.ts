@@ -1,14 +1,13 @@
 // src/server/live-listener.ts
 import { GameId } from '@/types/definition.js';
-import { GameParam } from '@/types/server.js';
-import { GameComponentData, GameMeta, LobbyGameList } from '@/types/socketData.js';
-import { registerEditorListeners } from './listener/editor-listner.js';
-import { server_log } from './logger.js';
+import { GameParam } from '@/types/gameParam.js';
+import { GameComponentData, LobbyGameList } from '@/types/socketData.js';
+import { syncState } from './emitter/sync-state.js';
+import { registerLiveListeners } from './listener/live-listener.js';
+import { server_log } from './log/logger.js';
 import { createState } from './logic/create-state.js';
-import { syncState } from './logic/sync-state.js';
 import { updateState } from './logic/update-state.js';
 import { RoomManager } from './room-manager.js';
-import { activeRooms } from './server-logic.js';
 import { GameServer, GameServerOptions } from './server.js';
 
 export class LiveGameServer {
@@ -25,7 +24,7 @@ export class LiveGameServer {
   private setupLiveListers() {
     this.core.io.on('connection', (socket) => {
       // 編集・検証用のリスナーを差し込む
-      registerEditorListeners(socket, this.core.gameParams);
+      registerLiveListeners(socket, this.core.gameParams);
     });
   }
 
@@ -51,7 +50,7 @@ export class LiveGameServer {
 
     // GameParam・RoomStateの更新
     this.core.gameParams[gameId] = param;
-    activeRooms.forEach((state, roomId) => {
+    this.core.getActiveRooms().forEach((state, roomId) => {
       if (state.gameId === gameId) {
         const newState = createState(roomId, { ...param, gameId });
         updateState(state, newState);
@@ -74,7 +73,7 @@ export class LiveGameServer {
     });
 
     // クライアントにゲーム一覧を送信
-    const gameList: GameMeta[] = Object.keys(this.core.gameParams).map((id) => ({
+    const gameList: GameParam[] = Object.keys(this.core.gameParams).map((id) => ({
       gameId: id,
       gameIcon: this.core.gameParams[id].gameIcon,
       maxPlayers: this.core.gameParams[id].maxPlayers,

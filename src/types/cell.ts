@@ -1,6 +1,6 @@
 // src/types/cell.ts
 
-import { CellId } from './definition.js';
+import type { CellId } from './definition.js';
 
 /**
  * 各マスの基本データ構造

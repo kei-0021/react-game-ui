@@ -124,24 +124,30 @@ export const ${pascalName}Config: RoomConfig = {
 };
 `;
     // --- Room Component Template ---
-    const roomTemplate = `import { GameParamUpdateData } from '@/types/socketData';
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { ComponentInfo, GameMeta, GameTurnUpdateData, LobbyGameList, Player, RoomJoinData } from 'react-game-ui';
+    const roomTemplate = `import { DropContainer } from '@/gui/DropContainer';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type {
+  ComponentInfo,
+  GameParam,
+  GameTurnUpdateData,
+  LobbyGameList,
+  Player,
+  PlayerId,
+  RoomJoinData,
+} from 'react-game-ui';
 import {
   ControlPanel,
   Deck,
   Dice,
-  Draggable,
   DynamicComponent,
-  PlayerId,
   PlayField,
   RemoteCursor,
   ScoreBoard,
   TokenStore,
   useSocket,
 } from 'react-game-ui';
-import styles from "./${pascalName}Room.module.css";
 import { useNavigate, useParams } from 'react-router-dom';
+import styles from "./${pascalName}Room.module.css";
 
 const SERVER_URL =
   import.meta.env.MODE === "development"
@@ -157,118 +163,62 @@ export function ${pascalName}Room() {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [userName, setUserName] = useState<string>("");
+  // --- 参加・プレイヤー状態 ---
+  const [userName, setUserName] = useState<string>('');
   const [isJoining, setIsJoining] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+
+  // --- ゲーム進行状態 ---
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(1);
-  const [currentDiceValue, setCurrentDiceValue] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
 
-  // 動的コンポーネント情報の管理
+  // --- 動的コンポーネント & パラメータ管理 ---
   const [componentInfo, setComponentInfo] = useState<ComponentInfo[]>([]);
-
-  const [games, setGames] = useState<GameMeta[]>([]);
+  const [games, setGames] = useState<GameParam[]>([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
+  // 現在のゲーム設定（poker）を抽出
+  const currentGameParam = games.find((g) => g.gameId === '${lowerName}');
+
+  // ウィンドウリサイズに応じたスケーリング
   useEffect(() => {
     const handleResize = () => {
       const scaleX = window.innerWidth / BASE_WIDTH;
-      const scaleY = window.innerHeight / BASE_HEIGHT;
-      setScale(Math.min(scaleX, scaleY));
+      setScale(Math.max(scaleX, 0.5));
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
     handleResize();
-    return () => window.removeEventListener("resize", handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // 入場処理
   const handleJoinRoom = useCallback(() => {
-    if (!socket || userName.trim() === "" || isJoining) return;
+    if (!socket || userName.trim() === '' || isJoining) return;
     setIsJoining(true);
-    socket.emit("room:join", {
+    socket.emit('room:join', {
       roomId,
       gameId: "${lowerName}",
       playerName: userName.trim(),
     } as RoomJoinData);
   }, [socket, roomId, userName, isJoining]);
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const rawData = e.dataTransfer.getData('application/react-game-ui');
-      if (!rawData || !socket || !roomId) return;
-
-      try {
-        const data = JSON.parse(rawData);
-        const targetId = data.id || data.compId;
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (!rect || !targetId) return;
-
-        // マウス位置の座標（スケール補正後）
-        const x = (e.clientX - rect.left) / scale;
-        const y = (e.clientY - rect.top) / scale;
-
-        // 【スロット計算】100px単位で何番目か算出 (1始まり)
-        const slotX = Math.floor(x / 100) + 1;
-        const slotY = Math.floor(y / 100) + 1;
-
-        const newComponent: ComponentInfo = {
-          id: targetId,
-          type: data.type,
-          props: {
-            ...data.props,
-            draggableId: targetId,
-            // 座標ではなくスロット情報を優先してセット
-            slotX: slotX,
-            slotY: slotY,
-            // 必要なら coordinate は undefined にしてスロットに吸着させる
-            coordinate: undefined,
-          },
-        };
-
-        const updatedComponents = [...componentInfo, newComponent];
-
-        const currentGame = games.find((g) => g.gameId === 'poker') || games[0];
-        const updatedDraggables = {
-          ...(currentGame?.draggables || {}),
-          [targetId]: {
-            id: targetId,
-            coordinate: { x, y },
-            zIndex: 100,
-            rotation: 0,
-          },
-        };
-
-        socket.emit('game-param:update', {
-          gameId: currentGame?.gameId || 'poker',
-          newParam: {
-            draggables: updatedDraggables,
-            components: updatedComponents,
-          },
-        } as GameParamUpdateData);
-
-        setComponentInfo(updatedComponents);
-      } catch (err) {
-        console.error('Drop error:', err);
-      }
-    },
-    [socket, roomId, scale, componentInfo, games],
-  );
-
+  // Socket.IO イベントリスナー
   useEffect(() => {
     if (!socket) return;
+
     const onClientReady = (id: PlayerId) => {
       setMyPlayerId(id);
       setHasJoined(true);
       setIsJoining(false);
-      socket.emit("client:ready", roomId);
+      socket.emit('client:ready', roomId);
       socket.emit('lobby:get-info');
     };
+
     const handlePlayersUpdate = (updatedPlayers: Player[]) => setPlayers(updatedPlayers);
+
     const handleGameTurn = (data: GameTurnUpdateData) => {
       setCurrentPlayerId(data.currentPlayerId);
       setCurrentRound(data.currentRoundIndex + 1);
@@ -280,28 +230,29 @@ export function ${pascalName}Room() {
     };
 
     // ゲームリスト受信
-    socket.on('lobby:game-list', (data: LobbyGameList) => {
-      if (!Array.isArray(data) && data.games) {
-        setGames(Object.values(data.games).filter((game) => game.gameId === "${lowerName}"));
-      }
-    });
+    const handleGameList = (data: LobbyGameList) => {
+      const list = Array.isArray(data) ? data : data.games ? Object.values(data.games) : [];
+      setGames(list.filter((game) => game.gameId === 'poker'));
+    };
 
-    socket.on("client:ready-to-sync", onClientReady);
-    socket.on("players:update", handlePlayersUpdate);
-    socket.on("game:turn", handleGameTurn);
-    socket.on("game:component", handleGameComponent);
+    socket.on('client:ready-to-sync', onClientReady);
+    socket.on('players:update', handlePlayersUpdate);
+    socket.on('game:turn', handleGameTurn);
+    socket.on('game:component', handleGameComponent);
+    socket.on('lobby:game-list', handleGameList);
 
     return () => {
-      socket.off("client:ready-to-sync", onClientReady);
-      socket.off('lobby:game-list');
-      socket.off("players:update", handlePlayersUpdate);
-      socket.off("game:turn", handleGameTurn);
-      socket.off("game:component", handleGameComponent);
+      socket.off('client:ready-to-sync', onClientReady);
+      socket.off('players:update', handlePlayersUpdate);
+      socket.off('game:turn', handleGameTurn);
+      socket.off('game:component', handleGameComponent);
+      socket.off('lobby:game-list', handleGameList);
     };
   }, [socket, roomId]);
 
   if (!roomId) return null;
 
+  // 入場前画面
   if (!hasJoined) {
     return (
       <div className={styles.joinScreen}>
@@ -313,11 +264,15 @@ export function ${pascalName}Room() {
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
             placeholder="お名前"
-            onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
+            onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
             style={{ padding: '8px', borderRadius: '4px', border: 'none', color: '#000' }}
           />
-          <button onClick={handleJoinRoom} disabled={isJoining} style={{ marginLeft: '8px', padding: '8px 16px', cursor: 'pointer' }}>
-            {isJoining ? "入場中" : "入場"}
+          <button
+            onClick={handleJoinRoom}
+            disabled={isJoining}
+            style={{ marginLeft: '8px', padding: '8px 16px', cursor: 'pointer' }}
+          >
+            {isJoining ? '入場中' : '入場'}
           </button>
         </div>
       </div>
@@ -330,81 +285,122 @@ export function ${pascalName}Room() {
         ref={containerRef}
         className={styles.roomCanvas}
         style={{
-          transform: \`scale(\${scale})\`
+          transform: \`scale(\${scale})\`,
+          transformOrigin: 'top center',
+          marginRight: isPanelOpen ? '350px' : '0',
+          transition: 'margin 0.3s ease, transform 0.3s ease',
         }}
-        onDragOver={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          e.dataTransfer.dropEffect = 'move';
-        }}
-        onDrop={handleDrop}
       >
-        {/* パネルが開いている時だけ背後に敷く透明なレイヤー */}
-        {isPanelOpen && (
-          <div
-            className="panel-overlay"
-            onClick={() => setIsPanelOpen(false)}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '100vh',
-              zIndex: 998,
-              background: 'transparent',
-            }}
-          />
-        )}
-
-        <header className={styles.gameHeader}>
-          <h1>${gameIcon} ${gameName}</h1>
-          <div>Round: {currentRound}</div>
-          <button onClick={() => navigate("/")}>ロビーへ</button>
-        </header>
-
-        <main className={styles.gameMain}>
-          <aside className={styles.sidebarLeft}>
-            <Deck socket={socket!} roomId={roomId} deckId="main" title="山札" currentPlayerId={currentPlayerId} myPlayerId={myPlayerId} />
-            <Dice sides={6} socket={socket} diceId="move" roomId={roomId} onRoll={setCurrentDiceValue} />
-          </aside>
-
-          <div className={styles.playFieldContainer}>
-             <RemoteCursor socket={socket!} roomId={roomId} myPlayerId={myPlayerId} players={players.map(p => ({ name: p.name, socketId: String(p.id), color: p.color }))} scale={scale} fixedContainerRef={containerRef} visible={true} isRelative={false} />
-             <PlayField socket={socket} roomId={roomId} deckId="main" players={players} myPlayerId={myPlayerId} layoutMode="free" />
-             <Draggable socket={socket} roomId={roomId} draggableId="piece" containerRef={containerRef}/>
-          </div>
-
-          <aside className={styles.sidebarRight}>
-            <ScoreBoard
-              socket={socket!}
-              roomId={roomId}
-              players={players}
-              currentPlayerId={currentPlayerId}
-              myPlayerId={myPlayerId}
+        <DropContainer
+          scale={scale}
+          containerRef={containerRef}
+          socket={socket!}
+          roomId={roomId!}
+          componentInfo={componentInfo}
+          gameParam={currentGameParam as GameParam}
+          setComponentInfo={setComponentInfo}
+        >
+          {/* パネルが開いている時だけ背後に敷く透明なレイヤー */}
+          {isPanelOpen && (
+            <div
+              className="panel-overlay"
+              onClick={() => setIsPanelOpen(false)}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                zIndex: 998,
+                background: 'transparent',
+              }}
             />
-          </aside>
-        </main>
+          )}
 
-        <TokenStore socket={socket} roomId={roomId} tokenStoreId="chips" title="所持チップ" />
+          <header className={styles.gameHeader}>
+          <h1>${gameIcon} ${gameName}</h1>
+            <div className={styles.roundLabel}>Round: {currentRound}</div>
+            <button onClick={() => navigate('/')} className={styles.backButton}>
+              ロビーへ
+            </button>
+          </header>
 
-        {componentInfo.map((info) => (
-          <DynamicComponent
-            key={info.id}
-            type={info.type}
-            props={info.props}
-            socket={socket!}
-            roomId={roomId!}
-            myPlayerId={myPlayerId}
-            currentPlayerId={currentPlayerId}
-            players={players}
-            containerRef={containerRef}
-          />
-        ))}
+          <main className={styles.gameMain}>
+            {/* 左サイドバー：固定コンポーネント */}
+            <aside className={styles.sidebarLeft}>
+              <Deck
+                socket={socket!}
+                roomId={roomId}
+                deckId="main"
+                title="山札"
+                currentPlayerId={currentPlayerId}
+                myPlayerId={myPlayerId}
+              />
+              <Dice sides={6} socket={socket!} diceId="move" roomId={roomId} />
+            </aside>
+
+            {/* メインフィールド */}
+            <div className={styles.playFieldContainer}>
+              <RemoteCursor
+                socket={socket!}
+                roomId={roomId}
+                myPlayerId={myPlayerId}
+                players={players.map((p) => ({
+                  name: p.name,
+                  socketId: String(p.id),
+                  color: p.color,
+                }))}
+                scale={scale}
+                fixedContainerRef={containerRef}
+                visible={true}
+                isRelative={false}
+              />
+              <PlayField
+                socket={socket!}
+                roomId={roomId}
+                deckId="main"
+                players={players}
+                myPlayerId={myPlayerId}
+                layoutMode="free"
+              />
+            </div>
+
+            {/* 右サイドバー：スコア管理 */}
+            <aside className={styles.sidebarRight}>
+              <ScoreBoard
+                socket={socket!}
+                roomId={roomId}
+                players={players}
+                currentPlayerId={currentPlayerId}
+                myPlayerId={myPlayerId}
+              />
+            </aside>
+          </main>
+
+          {/* 共通トークンエリア */}
+          <TokenStore socket={socket!} roomId={roomId} tokenStoreId="chips" title="所持チップ" />
+
+          {/* 動的に配置される全コンポーネント */}
+          {componentInfo.map((info) => (
+            <DynamicComponent
+              key={info.id}
+              type={info.type}
+              props={info.props}
+              socket={socket!}
+              roomId={roomId!}
+              myPlayerId={myPlayerId!}
+              currentPlayerId={currentPlayerId!}
+              players={players}
+              containerRef={containerRef}
+            />
+          ))}
+        </DropContainer>
       </div>
 
+      {/* 管理パネル */}
       <ControlPanel
-        socket={socket}
-        gameMeta={games}
+        socket={socket!}
+        GameParam={currentGameParam ? [currentGameParam] : []}
         containerRef={containerRef}
         isOpen={isPanelOpen}
         onToggle={() => setIsPanelOpen(!isPanelOpen)}
