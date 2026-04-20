@@ -1745,7 +1745,6 @@ function GridBoard({
   socket,
   roomId,
   boardId,
-  players,
   myPlayerId,
   allowTokenDrag = false,
   moveRange = 2,
@@ -1803,7 +1802,7 @@ function GridBoard({
     const requestData = {
       roomId,
       boardId,
-      playerId: tokenId,
+      tokenId,
       moveRange,
       isExact
     };

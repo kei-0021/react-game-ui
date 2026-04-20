@@ -20,7 +20,6 @@ type GridBoardProps = {
  * @param {Socket} socket - Socket.ioのインスタンス
  * @param {RoomId} roomId - 現在のルームID
  * @param {string} boardId - 描画対象となる盤面の識別子
- * @param {Player[]} players - ルームに参加しているプレイヤーのリスト。指定するとプレーヤーに対応するコマを生成する
  * @param {PlayerId} myPlayerId - 操作者自身のプレイヤーID
  * @param {boolean} [allowTokenDrag=false] - トークンのドラッグ操作を許可するかどうか
  * @param {boolean} [moveRange=2] - 駒が移動できるマス数
@@ -29,6 +28,6 @@ type GridBoardProps = {
  * @param {number} height - 縦幅
  * @param {(cellData: CellData, row: number, col: number) => React.ReactNode} renderCell - 各マスの内部コンテンツを描画する関数
  */
-export declare function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowTokenDrag, moveRange, isExact, width, height, renderCell, }: GridBoardProps): import("react/jsx-runtime").JSX.Element;
+export declare function GridBoard({ socket, roomId, boardId, myPlayerId, allowTokenDrag, moveRange, isExact, width, height, renderCell, }: GridBoardProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=GridBoard.d.ts.map

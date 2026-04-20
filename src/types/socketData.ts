@@ -160,7 +160,7 @@ export type TokenAcquireData = {
 export type TokenMovableRangeData = {
   roomId: RoomId;
   boardId: BoardId;
-  playerId: PlayerId;
+  tokenId: TokenId;
   moveRange: number;
   isExact: boolean;
 };

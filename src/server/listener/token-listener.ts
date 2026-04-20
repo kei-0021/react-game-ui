@@ -76,37 +76,34 @@ export function registerTokenListeners(
   });
 
   // 駒の移動可能範囲リクエスト
-  socket.on(
-    'token:movable-range',
-    ({ roomId, boardId, playerId: tokenId, moveRange, isExact }: TokenMovableRangeData) => {
-      const state = activeRooms.get(roomId);
-      if (!state) return;
-      const param = gameParams[state.gameId];
-      const roomManager = new RoomManager(io, param, state);
+  socket.on('token:movable-range', ({ roomId, boardId, tokenId, moveRange, isExact }: TokenMovableRangeData) => {
+    const state = activeRooms.get(roomId);
+    if (!state) return;
+    const param = gameParams[state.gameId];
+    const roomManager = new RoomManager(io, param, state);
 
-      const token = state.boardTokens[boardId].find((t) => t.id == tokenId);
-      if (!token || !token.position) return;
+    const token = state.boardTokens[boardId].find((t) => t.id == tokenId);
+    if (!token || !token.position) return;
 
-      const { row, col } = token.position;
-      const startCellId = `r${row}c${col}`;
+    const { row, col } = token.position;
+    const startCellId = `r${row}c${col}`;
 
-      // 移動範囲を計算
-      const movableIds = roomManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
+    // 移動範囲を計算
+    const movableIds = roomManager.getMovableCellIds(boardId, startCellId, moveRange, isExact);
 
-      // 位置情報形式に変換
-      const movableCells = movableIds.map((id) => {
-        const m = id.match(/r(\d+)c(\d+)/);
-        return {
-          row: parseInt(m![1], 10),
-          col: parseInt(m![2], 10),
-        };
-      });
+    // 位置情報形式に変換
+    const movableCells = movableIds.map((id) => {
+      const m = id.match(/r(\d+)c(\d+)/);
+      return {
+        row: parseInt(m![1], 10),
+        col: parseInt(m![2], 10),
+      };
+    });
 
-      // 移動可能範囲をセット
-      token.movableCells = movableCells;
+    // 移動可能範囲をセット
+    token.movableCells = movableCells;
 
-      // 盤面全体を同期
-      roomManager.emitBoardUpdate(boardId);
-    },
-  );
+    // 盤面全体を同期
+    roomManager.emitBoardUpdate(boardId);
+  });
 }

@@ -52,7 +52,7 @@ export function registerTokenListeners(socket, io, gameParams, activeRooms) {
         roomManager.emitBoardUpdate(boardId);
     });
     // 駒の移動可能範囲リクエスト
-    socket.on('token:movable-range', ({ roomId, boardId, playerId: tokenId, moveRange, isExact }) => {
+    socket.on('token:movable-range', ({ roomId, boardId, tokenId, moveRange, isExact }) => {
         const state = activeRooms.get(roomId);
         if (!state)
             return;

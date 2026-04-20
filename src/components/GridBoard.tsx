@@ -40,7 +40,6 @@ type GridBoardProps = {
  * @param {Socket} socket - Socket.ioのインスタンス
  * @param {RoomId} roomId - 現在のルームID
  * @param {string} boardId - 描画対象となる盤面の識別子
- * @param {Player[]} players - ルームに参加しているプレイヤーのリスト。指定するとプレーヤーに対応するコマを生成する
  * @param {PlayerId} myPlayerId - 操作者自身のプレイヤーID
  * @param {boolean} [allowTokenDrag=false] - トークンのドラッグ操作を許可するかどうか
  * @param {boolean} [moveRange=2] - 駒が移動できるマス数
@@ -53,7 +52,6 @@ export function GridBoard({
   socket,
   roomId,
   boardId,
-  players,
   myPlayerId,
   allowTokenDrag = false,
   moveRange = 2,
@@ -132,7 +130,7 @@ export function GridBoard({
     const requestData: TokenMovableRangeData = {
       roomId,
       boardId,
-      playerId: tokenId,
+      tokenId: tokenId,
       moveRange: moveRange,
       isExact: isExact,
     };

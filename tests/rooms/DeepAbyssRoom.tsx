@@ -214,7 +214,6 @@ export function DeepAbyssRoom() {
           socket={socket}
           roomId={roomId}
           boardId="deepAbyssBoard"
-          players={players}
           myPlayerId={myPlayerId}
           allowTokenDrag={true}
           moveRange={3}

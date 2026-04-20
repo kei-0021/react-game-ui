@@ -8,7 +8,6 @@ import { Token } from './Token.js';
  * @param {Socket} socket - Socket.ioのインスタンス
  * @param {RoomId} roomId - 現在のルームID
  * @param {string} boardId - 描画対象となる盤面の識別子
- * @param {Player[]} players - ルームに参加しているプレイヤーのリスト。指定するとプレーヤーに対応するコマを生成する
  * @param {PlayerId} myPlayerId - 操作者自身のプレイヤーID
  * @param {boolean} [allowTokenDrag=false] - トークンのドラッグ操作を許可するかどうか
  * @param {boolean} [moveRange=2] - 駒が移動できるマス数
@@ -17,7 +16,7 @@ import { Token } from './Token.js';
  * @param {number} height - 縦幅
  * @param {(cellData: CellData, row: number, col: number) => React.ReactNode} renderCell - 各マスの内部コンテンツを描画する関数
  */
-export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowTokenDrag = false, moveRange = 2, isExact = true, width = 800, height = 800, renderCell, }) {
+export function GridBoard({ socket, roomId, boardId, myPlayerId, allowTokenDrag = false, moveRange = 2, isExact = true, width = 800, height = 800, renderCell, }) {
     const [isBoardReady, setIsBoardReady] = React.useState(false);
     const [cells, setCells] = React.useState([]);
     const [changedCells, setChangedCells] = React.useState([]);
@@ -83,7 +82,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowT
         const requestData = {
             roomId,
             boardId,
-            playerId: tokenId,
+            tokenId: tokenId,
             moveRange: moveRange,
             isExact: isExact,
         };
