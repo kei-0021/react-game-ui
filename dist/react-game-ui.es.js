@@ -929,10 +929,8 @@ function requireJsxRuntime() {
   return jsxRuntime.exports;
 }
 var jsxRuntimeExports = requireJsxRuntime();
-const boardContainer = "_boardContainer_14tjg_8";
-const cell = "_cell_14tjg_18";
-const styles$5 = {
-  boardContainer,
+const cell = "_cell_1nnjo_3";
+const cellStyles = {
   cell
 };
 const Cell = ({
@@ -951,6 +949,7 @@ const Cell = ({
   const effectiveBackgroundColor = changed ? cellData.changedColor : cellData.backgroundColor;
   const cellStyle = {
     backgroundColor: effectiveBackgroundColor,
+    // backgroundColor: 'transparent',
     position: "relative",
     overflow: "hidden",
     userSelect: "none",
@@ -959,7 +958,7 @@ const Cell = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
-      className: styles$5.cell,
+      className: cellStyles.cell,
       onClick: handleClick,
       onDoubleClick: handleDoubleClick,
       onDrop,
@@ -1628,6 +1627,10 @@ function Draggable({
     )
   ] });
 }
+const boardContainer = "_boardContainer_z3zip_3";
+const boardStyles = {
+  boardContainer
+};
 const tokenContainer = "_tokenContainer_11yla_8";
 const contentWrapper = "_contentWrapper_11yla_23";
 const textWrapper = "_textWrapper_11yla_56";
@@ -1884,7 +1887,7 @@ function GridBoard({
       }
     );
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: styles$5.boardContainer, style: boardStyle, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: boardStyles.boardContainer, style: boardStyle, children: [
     cells.map((cell2) => {
       const match = cell2.id.match(/r(\d+)c(\d+)/);
       const r = match ? parseInt(match[1], 10) : 0;

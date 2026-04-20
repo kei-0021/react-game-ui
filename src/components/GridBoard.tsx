@@ -12,7 +12,7 @@ import { TokenData } from '@/types/token.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
-import styles from './Board.module.css';
+import boardStyles from './Board.module.css';
 import { Cell } from './Cell.js';
 import { Token } from './Token.js';
 
@@ -244,7 +244,7 @@ export function GridBoard({
   }
 
   return (
-    <div className={styles.boardContainer} style={boardStyle}>
+    <div className={boardStyles.boardContainer} style={boardStyle}>
       {/* マス目のレンダリング */}
       {cells.map((cell) => {
         const match = cell.id.match(/r(\d+)c(\d+)/);

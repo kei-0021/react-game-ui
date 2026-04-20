@@ -1,7 +1,7 @@
 // src/components/Cell.tsx
 import { CellData } from '@/types/cell.js';
 import * as React from 'react';
-import styles from './Board.module.css';
+import cellStyles from './Cell.module.css';
 
 type CellProps<TLocation> = {
   locationData: TLocation;
@@ -46,6 +46,7 @@ export const Cell = <TLocation,>({
 
   const cellStyle: React.CSSProperties = {
     backgroundColor: effectiveBackgroundColor,
+    // backgroundColor: 'transparent',
     position: 'relative',
     overflow: 'hidden',
     userSelect: 'none',
@@ -54,7 +55,7 @@ export const Cell = <TLocation,>({
 
   return (
     <div
-      className={styles.cell}
+      className={cellStyles.cell}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onDrop={onDrop}

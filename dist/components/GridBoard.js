@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
-import styles from './Board.module.css';
+import boardStyles from './Board.module.css';
 import { Cell } from './Cell.js';
 import { Token } from './Token.js';
 /**
@@ -175,7 +175,7 @@ export function GridBoard({ socket, roomId, boardId, players, myPlayerId, allowT
                 color: '#e0e0e0',
             }, children: _jsx("p", { children: "\u30B5\u30FC\u30D0\u30FC\u304B\u3089\u76E4\u9762\u30C7\u30FC\u30BF\u3092\u30ED\u30FC\u30C9\u4E2D..." }) }));
     }
-    return (_jsxs("div", { className: styles.boardContainer, style: boardStyle, children: [cells.map((cell) => {
+    return (_jsxs("div", { className: boardStyles.boardContainer, style: boardStyle, children: [cells.map((cell) => {
                 const match = cell.id.match(/r(\d+)c(\d+)/);
                 const r = match ? parseInt(match[1], 10) : 0;
                 const c = match ? parseInt(match[2], 10) : 0;

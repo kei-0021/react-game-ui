@@ -17,7 +17,11 @@ export const MyCustomCellRenderer = (celldata: CellData, row: number, col: numbe
   };
 
   if (celldata.shapeType === 'circle') {
-    return <div style={{ ...baseStyle, borderRadius: '50%' }}>{celldata.content}</div>;
+    return (
+      <div style={{ ...baseStyle, borderRadius: '50%', backgroundColor: 'transparent', color: 'white' }}>
+        {celldata.content}
+      </div>
+    );
   }
 
   if (celldata.shapeType === 'custom') {

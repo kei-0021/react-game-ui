@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import styles from './Board.module.css';
+import cellStyles from './Cell.module.css';
 /**
  * 盤面を構成する最小単位の「マス（セル）」をレンダリングし、イベントを管理する
  * @template TLocation 位置情報の型定義
@@ -19,12 +19,13 @@ export const Cell = ({ locationData, cellData, onClick, onDoubleClick, children,
     const effectiveBackgroundColor = changed ? cellData.changedColor : cellData.backgroundColor;
     const cellStyle = {
         backgroundColor: effectiveBackgroundColor,
+        // backgroundColor: 'transparent',
         position: 'relative',
         overflow: 'hidden',
         userSelect: 'none',
         cursor: highlighted ? 'pointer' : 'default',
     };
-    return (_jsxs("div", { className: styles.cell, onClick: handleClick, onDoubleClick: handleDoubleClick, onDrop: onDrop, onDragOver: onDragOver, style: cellStyle, children: [highlighted && (_jsx("div", { style: {
+    return (_jsxs("div", { className: cellStyles.cell, onClick: handleClick, onDoubleClick: handleDoubleClick, onDrop: onDrop, onDragOver: onDragOver, style: cellStyle, children: [highlighted && (_jsx("div", { style: {
                     position: 'absolute',
                     inset: 0,
                     backgroundColor: 'rgba(20, 184, 166, 0.15)',
