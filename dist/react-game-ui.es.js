@@ -1263,7 +1263,7 @@ const defaultDiceImages = {
   5: dice5Image,
   6: dice6Image
 };
-function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, customFaces, tooltipText }) {
+function Dice({ socket = null, diceId, roomId, title: title2, customFaces, tooltipText }) {
   const [value, setValue] = useState(1);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef(null);
@@ -1278,7 +1278,7 @@ function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, customF
       let count = 0;
       const times = rollDuration / interval;
       animRef.current = setInterval(() => {
-        const animValue = Math.floor(Math.random() * sides) + 1;
+        const animValue = Math.floor(Math.random() * 6) + 1;
         setValue(animValue);
         count++;
         if (count >= times) {
@@ -1294,10 +1294,10 @@ function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, customF
       socket.off("dice:update", handleDiceUpdate);
       if (animRef.current) clearInterval(animRef.current);
     };
-  }, [socket, sides, diceId, roomId]);
+  }, [socket, diceId, roomId]);
   const roll = () => {
     if (!socket || rolling) return;
-    const requestData = { roomId, diceId, sides };
+    const requestData = { roomId, diceId };
     socket.emit("dice:roll", requestData);
   };
   const renderDiceFace = () => {
@@ -4328,6 +4328,26 @@ class DeckManager {
     }
   }
 }
+class DiceManager {
+  constructor(param, state) {
+    this.param = param;
+    this.state = state;
+  }
+  /**
+   * ダイスを振る
+   * @param diceId - ダイスID
+   */
+  rollDice(diceId, roomManager) {
+    const sides = this.state.dice[diceId].sides;
+    const value = Math.floor(Math.random() * sides) + 1;
+    this.state.dice[diceId].currentValue = value;
+    if (this.param.onDiceRoll) {
+      this.param.onDiceRoll(value, roomManager);
+    }
+    roomManager.server_log("dice", `Dice ${diceId} rolled. Result: ${value}`);
+    return value;
+  }
+}
 class TokenManager {
   constructor(param, state) {
     this.param = param;
@@ -4649,6 +4669,13 @@ class RoomManager {
       this.server_log("resource", `${player.name}: ${resource.name} 更新`);
       this.emitPlayerUpdate();
     }
+  };
+  /**
+   * ダイスを振る
+   */
+  rollDice = (diceId) => {
+    const diceManager = new DiceManager(this.param, this.state);
+    return diceManager.rollDice(diceId, this);
   };
   /**
    * タイマーを停止させる

@@ -27,7 +27,6 @@ type DiceProps = {
   diceId: DiceId;
   roomId: RoomId;
   title?: string;
-  sides?: number;
   customFaces?: ReactNode[];
   tooltipText?: string;
 };
@@ -38,11 +37,10 @@ type DiceProps = {
  * @param {string} diceId - ダイスを一意に識別するためのID（同期に使用）
  * @param {RoomId} roomId - 現在のルームID
  * @param {string} [title] - ダイス付近に表示するラベルやタイトル
- * @param {number} [sides=6] - ダイスの面の数。デフォルトは6面
  * @param {ReactNode[]} [customFaces] - 数値の代わりに表示するカスタム要素（画像やアイコンなど）の配列
  * @param {string} [tooltipText] - ホバー時に表示する説明テキスト
  */
-export function Dice({ socket = null, diceId, roomId, title, sides = 6, customFaces, tooltipText }: DiceProps) {
+export function Dice({ socket = null, diceId, roomId, title, customFaces, tooltipText }: DiceProps) {
   const [value, setValue] = useState<number>(1);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef<NodeJS.Timeout | null>(null);
@@ -61,7 +59,7 @@ export function Dice({ socket = null, diceId, roomId, title, sides = 6, customFa
       const times = rollDuration / interval;
 
       animRef.current = setInterval(() => {
-        const animValue = Math.floor(Math.random() * sides) + 1;
+        const animValue = Math.floor(Math.random() * 6) + 1;
         setValue(animValue);
         count++;
         if (count >= times) {
@@ -79,11 +77,11 @@ export function Dice({ socket = null, diceId, roomId, title, sides = 6, customFa
       socket.off('dice:update', handleDiceUpdate);
       if (animRef.current) clearInterval(animRef.current);
     };
-  }, [socket, sides, diceId, roomId]);
+  }, [socket, diceId, roomId]);
 
   const roll = () => {
     if (!socket || rolling) return;
-    const requestData: DiceRollData = { roomId, diceId, sides };
+    const requestData: DiceRollData = { roomId, diceId };
     socket.emit('dice:roll', requestData);
   };
 

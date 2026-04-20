@@ -1,6 +1,6 @@
 import { CardLocation } from '@/types/cardLocation.js';
 import { CardState } from '@/types/cardState.js';
-import { BoardId, CardId, CellId, DeckId, DraggableId, PlayerId, ResourceId, TokenId, TokenStoreId } from '@/types/definition.js';
+import { BoardId, CardId, CellId, DeckId, DiceId, DraggableId, PlayerId, ResourceId, TokenId, TokenStoreId } from '@/types/definition.js';
 import { GameParam } from '@/types/gameParam.js';
 import { Phase } from '@/types/phase.js';
 import { Position } from '@/types/position.js';
@@ -123,6 +123,10 @@ export declare class RoomManager {
      * @param amount - 加算する個数
      */
     acquireResource: (playerId: PlayerId, resourceId: ResourceId, amount: number) => void;
+    /**
+     * ダイスを振る
+     */
+    rollDice: (diceId: DiceId) => number;
     /**
      * タイマーを停止させる
      */

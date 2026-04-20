@@ -98,7 +98,7 @@ export function DropContainer({
           ];
         } else if (data.type === 'Dice') {
           newParam.dice = {
-            [targetId]: { id: targetId, currentValue: 1 },
+            [targetId]: { id: targetId, currentValue: 1, sides: 6 },
           };
         }
         socket.emit('game-param:update', {

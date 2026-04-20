@@ -141,7 +141,7 @@ export function SampleRoom() {
       />
 
       <div style={{ display: 'flex', gap: '16px' }}>
-        <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" />
+        <Dice socket={socket} diceId="6面" roomId={roomId} title="6面ダイス" />
       </div>
 
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>

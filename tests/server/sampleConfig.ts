@@ -46,7 +46,7 @@ export const sampleConfig: RoomConfig = {
         },
       ],
       draggables: draggables,
-      dice: { '6面': { diceId: '6面', currentValue: 1 } },
+      dice: { '6面': { diceId: '6面', currentValue: 1, sides: 6 } },
       maxPlayers: 1,
       onDiceRoll: (value: number, manager: RoomManager) => {
         if (value == 1) {

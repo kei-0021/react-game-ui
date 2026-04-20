@@ -146,7 +146,6 @@ export type DraggableUpdateData = {
 export type DiceRollData = {
     roomId: RoomId;
     diceId: DiceId;
-    sides: number;
 };
 export type DiceUpdateData = {
     diceId: DiceId;
