@@ -2,7 +2,18 @@
 
 import type { CardData } from './card.js';
 import type { CellData } from './cell.js';
-import type { BoardId, CardId, DeckId, DraggableId, GameId, PlayerId, RoomId, TokenStoreId } from './definition.js';
+import type {
+  BoardId,
+  CardId,
+  DeckId,
+  DiceId,
+  DraggableId,
+  GameId,
+  PlayerId,
+  RoomId,
+  TokenStoreId,
+} from './definition.js';
+import { Dice } from './Dice.js';
 import type { DraggableData } from './draggable.js';
 import type { Phase } from './phase.js';
 import type { Player } from './player.js';
@@ -25,6 +36,7 @@ import type { TokenData } from './token.js';
  * @param boardTokens - ボード上のトークン。
  * @param exploredCells - すでに探索・公開されたセルの座標リスト。
  * @param tokenStores - 共有トークンの現在のストック状況。
+ * @param dice - ダイス。
  * @param draggable - ドラッグ可能オブジェクト。
  * @param timer - タイマー。
  * @param maxZIndex - フィールド上の全オブジェクト（カード、ピース等）で共有する 重ね順のグローバル・カウンタ
@@ -46,6 +58,7 @@ export type RoomState = {
   boardTokens: Record<BoardId, TokenData[]>;
   exploredCells: Position[];
   tokenStores: Record<TokenStoreId, TokenData[]>;
+  dice: Record<DiceId, Dice>;
   draggables: Record<DraggableId, DraggableData>;
   timer: NodeJS.Timeout;
   maxZIndex: number;

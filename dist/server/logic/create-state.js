@@ -62,6 +62,16 @@ export function createState(roomId, param) {
         tokenStores[tokenStore.tokenStoreId] = tokens;
         server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
     });
+    const boardTokens = Object.fromEntries(Object.keys(Cells).map((id) => [id, []]));
+    // 全ての initialTokensOnBoard を、ひとまず最初のボードに突っ込む
+    const defaultBoardId = Object.keys(Cells)[0];
+    Object.entries(param.initialTokensOnBoard || {}).forEach(([_, p]) => {
+        const tokens = Array.isArray(p) ? p : [p];
+        const npcTokens = tokens.filter((t) => t.ownerId !== 'player');
+        if (boardTokens[defaultBoardId]) {
+            boardTokens[defaultBoardId].push(...npcTokens);
+        }
+    });
     // ドラッグ可能オブジェクト関連の初期化
     let draggables = {};
     if (param.draggables) {
@@ -74,16 +84,11 @@ export function createState(roomId, param) {
         }
     }
     const initialMaxZIndex = Object.values(draggables).reduce((max, d) => Math.max(max, d.zIndex || 0), 0);
-    const boardTokens = Object.fromEntries(Object.keys(Cells).map((id) => [id, []]));
-    // 全ての initialTokensOnBoard を、ひとまず最初のボードに突っ込む
-    const defaultBoardId = Object.keys(Cells)[0];
-    Object.entries(param.initialTokensOnBoard || {}).forEach(([_, p]) => {
-        const tokens = Array.isArray(p) ? p : [p];
-        const npcTokens = tokens.filter((t) => t.ownerId !== 'player');
-        if (boardTokens[defaultBoardId]) {
-            boardTokens[defaultBoardId].push(...npcTokens);
-        }
-    });
+    let dice = {};
+    if (param.dice) {
+        dice = structuredClone(param.dice);
+        server_log('dice', param.gameId, roomId, `ダイスを初期化完了`);
+    }
     const state = {
         roomId: roomId,
         gameId: param.gameId || '不明なゲーム',
@@ -101,6 +106,7 @@ export function createState(roomId, param) {
         exploredCells: [],
         tokenStores: tokenStores,
         draggables: draggables,
+        dice: dice,
         timer: {},
         maxZIndex: initialMaxZIndex,
         systemMessageHistory: [],

@@ -17,10 +17,19 @@ export function registerDiceListeners(
     const param = gameParams[state.gameId];
     const roomManager = new RoomManager(io, param, state);
 
+    const value = Math.floor(Math.random() * sides) + 1;
+    state.dice[diceId].currentValue = value;
+
     const data: DiceUpdateData = {
-      value: Math.floor(Math.random() * sides) + 1,
+      diceId: diceId,
+      value: value,
     };
-    roomManager.server_log('dice', `Dice ${diceId} rolled. Result: ${data.value}`);
-    io.to(roomId).emit(`dice:update:${diceId}`, data);
+
+    if (param.onDiceRoll) {
+      param.onDiceRoll(value);
+    }
+
+    roomManager.server_log('dice', `Dice ${diceId} rolled. Result: ${value}`);
+    io.to(roomId).emit(`dice:update`, data);
   });
 }

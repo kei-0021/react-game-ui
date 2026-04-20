@@ -7,7 +7,6 @@ type DiceProps = {
     roomId: RoomId;
     title?: string;
     sides?: number;
-    onRoll?: (value: number) => void;
     customFaces?: ReactNode[];
     tooltipText?: string;
 };
@@ -18,10 +17,9 @@ type DiceProps = {
  * @param {RoomId} roomId - 現在のルームID
  * @param {string} [title] - ダイス付近に表示するラベルやタイトル
  * @param {number} [sides=6] - ダイスの面の数。デフォルトは6面
- * @param {(value: number) => void} [onRoll] - ダイスが確定した際に実行されるコールバック関数
  * @param {ReactNode[]} [customFaces] - 数値の代わりに表示するカスタム要素（画像やアイコンなど）の配列
  * @param {string} [tooltipText] - ホバー時に表示する説明テキスト
  */
-export declare function Dice({ socket, diceId, roomId, title, sides, onRoll, customFaces, tooltipText }: DiceProps): import("react/jsx-runtime").JSX.Element;
+export declare function Dice({ socket, diceId, roomId, title, sides, customFaces, tooltipText }: DiceProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Dice.d.ts.map

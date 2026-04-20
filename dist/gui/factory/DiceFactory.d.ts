@@ -1,7 +1,7 @@
 import { ComponentInfo, ComponentType } from '@/types/component.js';
 interface DiceFactoryProps {
     newCompId: string;
-    onAdd: (newComponent: ComponentInfo) => void;
+    onAdd: (newComponent: ComponentInfo, additionalParams?: any) => void;
     onSuccess: () => void;
     getInitialProps: (type: ComponentType, targetId: string, sides: number) => any;
 }

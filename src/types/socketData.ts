@@ -228,6 +228,7 @@ export type DiceRollData = {
 };
 
 export type DiceUpdateData = {
+  diceId: DiceId;
   value: number;
 };
 

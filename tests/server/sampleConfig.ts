@@ -46,6 +46,7 @@ export const sampleConfig: RoomConfig = {
         },
       ],
       draggables: draggables,
+      dice: { '6面': { diceId: '6面', currentValue: 1 } },
       maxPlayers: 1,
       components: [
         {

@@ -1,5 +1,5 @@
 import * as React from "react";
-import React__default, { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import React__default, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { io } from "socket.io-client";
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production_min = {};
@@ -1263,14 +1263,15 @@ const defaultDiceImages = {
   5: dice5Image,
   6: dice6Image
 };
-function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll, customFaces, tooltipText }) {
+function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, customFaces, tooltipText }) {
   const [value, setValue] = useState(1);
   const [rolling, setRolling] = useState(false);
   const animRef = useRef(null);
-  const rollEventName = useMemo(() => `dice:update:${diceId}`, [diceId]);
   useEffect(() => {
     if (!socket || !roomId) return;
-    const handleRoll = (data) => {
+    const handleDiceUpdate = (data) => {
+      console.log(data);
+      if (data.diceId != diceId) return;
       setRolling(true);
       const rollDuration = 1e3;
       const interval = 50;
@@ -1285,16 +1286,15 @@ function Dice({ socket = null, diceId, roomId, title: title2, sides = 6, onRoll,
           animRef.current = null;
           setValue(data.value);
           setRolling(false);
-          onRoll?.(data.value);
         }
       }, interval);
     };
-    socket.on(rollEventName, handleRoll);
+    socket.on("dice:update", handleDiceUpdate);
     return () => {
-      socket.off(rollEventName, handleRoll);
+      socket.off("dice:update", handleDiceUpdate);
       if (animRef.current) clearInterval(animRef.current);
     };
-  }, [socket, sides, diceId, roomId, onRoll, rollEventName]);
+  }, [socket, sides, diceId, roomId]);
   const roll = () => {
     if (!socket || rolling) return;
     const requestData = { roomId, diceId, sides };
@@ -3152,11 +3152,22 @@ const DiceFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) => {
   const handleAdd = () => {
     const id = newCompId || `dice-${Date.now()}`;
     const initialProps = getInitialProps("Dice", id, newDiceSides);
-    onAdd({
-      id,
-      type: "Dice",
-      props: initialProps
-    });
+    const additionalParams = {
+      dice: {
+        [id]: {
+          id,
+          currentValue: 1
+        }
+      }
+    };
+    onAdd(
+      {
+        id,
+        type: "Dice",
+        props: initialProps
+      },
+      additionalParams
+    );
     onSuccess();
   };
   const handleDragStart = (e) => {

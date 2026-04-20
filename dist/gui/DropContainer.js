@@ -61,6 +61,11 @@ export function DropContainer({ scale, containerRef, socket, roomId, componentIn
                     ...data.additionalParams.initialTokenStores,
                 ];
             }
+            else if (data.type === 'Dice') {
+                newParam.dice = {
+                    targetId: { id: targetId, currentValue: 1 },
+                };
+            }
             socket.emit('game-param:update', {
                 gameId: gameParam.gameId,
                 newParam: newParam,

@@ -149,6 +149,7 @@ export type DiceRollData = {
     sides: number;
 };
 export type DiceUpdateData = {
+    diceId: DiceId;
     value: number;
 };
 export type ObjectBringToData = {
