@@ -26,7 +26,7 @@ export function registerDiceListeners(
     };
 
     if (param.onDiceRoll) {
-      param.onDiceRoll(value);
+      param.onDiceRoll(value, roomManager);
     }
 
     roomManager.server_log('dice', `Dice ${diceId} rolled. Result: ${value}`);

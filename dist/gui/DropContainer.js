@@ -63,7 +63,7 @@ export function DropContainer({ scale, containerRef, socket, roomId, componentIn
             }
             else if (data.type === 'Dice') {
                 newParam.dice = {
-                    targetId: { id: targetId, currentValue: 1 },
+                    [targetId]: { id: targetId, currentValue: 1 },
                 };
             }
             socket.emit('game-param:update', {

@@ -13,7 +13,7 @@ export function registerDiceListeners(socket, io, gameParams, activeRooms) {
             value: value,
         };
         if (param.onDiceRoll) {
-            param.onDiceRoll(value);
+            param.onDiceRoll(value, roomManager);
         }
         roomManager.server_log('dice', `Dice ${diceId} rolled. Result: ${value}`);
         io.to(roomId).emit(`dice:update`, data);
