@@ -7,10 +7,9 @@ import { server_log } from '../log/logger.js';
 import { deepMerge } from '../logic/utils.js';
 const execPromise = util.promisify(exec);
 /**
- * エディタ専用のイベントリスナーをSocketインスタンスに登録する。
+ * コントロールパネル専用のイベントリスナーをSocketインスタンスに登録する。
  * プラットフォームの「メタ操作（構築・管理）」を担当し、
- * ゲームの新規作成、削除、およびパラメータの動的更新（Data.tsの書き換え等）などの
- * 破壊的・創造的な操作をSocket通信経由で実行可能にする。
+ * ゲームの新規作成、削除、およびパラメータの動的更新（Data.tsの書き換え等）などを行う。
  * @param {Socket} socket - 接続されたクライアントのSocket.IOインスタンス
  * @param {Record<GameId, GameParam>} gameParams - サーバーが保持しているゲーム定義データの参照
  */
@@ -55,7 +54,6 @@ export function registerLiveListeners(socket, gameParams) {
             delete mergedParam.cardEffects;
             delete mergedParam.cellEffects;
             delete mergedParam.shuffleAndReconnectBoard;
-            delete mergedParam.initialBoard;
             const setupContent = JSON.stringify(mergedParam, null, 2);
             const pascalName = data.gameId.charAt(0).toUpperCase() + data.gameId.slice(1);
             const content = `export const ${pascalName}Data: any = ${setupContent};`;
