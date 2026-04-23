@@ -145,7 +145,6 @@ import type {
 import {
   ControlPanel,
   Deck,
-  Dice,
   DynamicComponent,
   PlayField,
   RemoteCursor,
@@ -343,7 +342,6 @@ export function ${pascalName}Room() {
                 currentPlayerId={currentPlayerId}
                 myPlayerId={myPlayerId}
               />
-              <Dice sides={6} socket={socket!} diceId="move" roomId={roomId} />
             </aside>
 
             {/* メインフィールド */}
