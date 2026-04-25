@@ -1627,7 +1627,7 @@ function Draggable({
     )
   ] });
 }
-const boardContainer = "_boardContainer_z3zip_3";
+const boardContainer = "_boardContainer_12y1y_3";
 const boardStyles = {
   boardContainer
 };
@@ -1936,7 +1936,8 @@ function GridBoard({
         alignSelf: "center",
         justifySelf: "center",
         transform: `translate(${offsetX}px, ${offsetY}px)`,
-        transition: "transform 0.3s ease-in-out"
+        transition: "transform 0.3s ease-in-out",
+        pointerEvents: draggingTokenId && draggingTokenId !== token.id ? "none" : "auto"
       };
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
         Token,

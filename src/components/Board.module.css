@@ -4,3 +4,8 @@
   background-color: #eee;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+
+.tokenInteracting {
+  /* ドラッグ操作中は、他のトークンがマウスイベントを無視するようにする */
+  pointer-events: none;
+}

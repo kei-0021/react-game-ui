@@ -309,6 +309,7 @@ export function GridBoard({
           justifySelf: 'center',
           transform: `translate(${offsetX}px, ${offsetY}px)`,
           transition: 'transform 0.3s ease-in-out',
+          pointerEvents: draggingTokenId && draggingTokenId !== token.id ? 'none' : 'auto',
         };
 
         return (

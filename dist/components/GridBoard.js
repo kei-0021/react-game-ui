@@ -212,6 +212,7 @@ export function GridBoard({ socket, roomId, boardId, myPlayerId, allowTokenDrag 
                     justifySelf: 'center',
                     transform: `translate(${offsetX}px, ${offsetY}px)`,
                     transition: 'transform 0.3s ease-in-out',
+                    pointerEvents: draggingTokenId && draggingTokenId !== token.id ? 'none' : 'auto',
                 };
                 return (_jsx(Token, { token: token, style: tokenStyle, isFilled: true, onClick: requestMovableRange, onDoubleClick: () => handleTokenDoubleClick(token.id), isDraggable: allowTokenDrag, onDragStart: handleTokenDragStart, onDragEnd: handleTokenDragEnd }, token.id));
             })] }));
