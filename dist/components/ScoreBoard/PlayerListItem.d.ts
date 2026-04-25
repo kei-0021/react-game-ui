@@ -1,7 +1,7 @@
 import { Player } from '@/types/player.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
-import { CardId, PlayerId, RoomId } from '../types/definition.js';
+import { CardId, PlayerId, RoomId } from '../../types/definition.js';
 type PlayerListItemProps = {
     socket: Socket;
     roomId: RoomId;

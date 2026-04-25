@@ -1,6 +1,6 @@
 import { Player } from '@/types/player.js';
 import { Socket } from 'socket.io-client';
-import { PlayerId, RoomId } from '../types/definition.js';
+import { PlayerId, RoomId } from '../../types/definition.js';
 /**
  * スコアボードコンポーネント
  * プレイヤーの一覧、現在のターン、各プレイヤーのスコアやトークン数を表示する

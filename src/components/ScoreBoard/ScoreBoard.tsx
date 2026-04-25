@@ -1,10 +1,10 @@
-// src/components/ScoreBoard.tsx
+// src/components/ScoreBoard/ScoreBoard.tsx
 import { CardLocation } from '@/types/cardLocation.js';
 import { Player } from '@/types/player.js';
 import { CardFlipData, CardHoldData, CardPlayData, GameNextRoundData, GameNextTrunData } from '@/types/socketData.js';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
-import { CardId, PlayerId, RoomId } from '../types/definition.js';
+import { CardId, PlayerId, RoomId } from '../../types/definition.js';
 import { PlayerListItem } from './PlayerListItem.js';
 import scoreBoardStyles from './ScoreBoard.module.css';
 

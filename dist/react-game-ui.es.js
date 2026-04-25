@@ -2365,27 +2365,27 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const playerItem = "_playerItem_1hqx7_7";
-const activePlayer = "_activePlayer_1hqx7_20";
-const playerHeader = "_playerHeader_1hqx7_28";
-const playerName = "_playerName_1hqx7_34";
-const scoreArea = "_scoreArea_1hqx7_48";
-const playerScore = "_playerScore_1hqx7_54";
-const plus = "_plus_1hqx7_75";
-const minus = "_minus_1hqx7_80";
-const scoreChange = "_scoreChange_1hqx7_101";
-const debugScoreButtons = "_debugScoreButtons_1hqx7_130";
-const debugBtn = "_debugBtn_1hqx7_135";
-const resourceSection = "_resourceSection_1hqx7_170";
-const resourceList = "_resourceList_1hqx7_175";
-const resourceBadge = "_resourceBadge_1hqx7_181";
-const tokenList = "_tokenList_1hqx7_193";
-const isHoldMessage = "_isHoldMessage_1hqx7_220";
-const cardList = "_cardList_1hqx7_227";
-const cardBase = "_cardBase_1hqx7_235";
-const cardSelected = "_cardSelected_1hqx7_267";
-const cardIsHeld = "_cardIsHeld_1hqx7_273";
-const tooltip = "_tooltip_1hqx7_285";
+const playerItem = "_playerItem_zq5r9_7";
+const activePlayer = "_activePlayer_zq5r9_20";
+const playerHeader = "_playerHeader_zq5r9_28";
+const playerName = "_playerName_zq5r9_34";
+const scoreArea = "_scoreArea_zq5r9_48";
+const playerScore = "_playerScore_zq5r9_54";
+const plus = "_plus_zq5r9_75";
+const minus = "_minus_zq5r9_80";
+const scoreChange = "_scoreChange_zq5r9_101";
+const debugScoreButtons = "_debugScoreButtons_zq5r9_130";
+const debugBtn = "_debugBtn_zq5r9_135";
+const resourceSection = "_resourceSection_zq5r9_170";
+const resourceList = "_resourceList_zq5r9_175";
+const resourceBadge = "_resourceBadge_zq5r9_181";
+const tokenList = "_tokenList_zq5r9_193";
+const isHoldMessage = "_isHoldMessage_zq5r9_220";
+const cardList = "_cardList_zq5r9_227";
+const cardBase = "_cardBase_zq5r9_235";
+const cardSelected = "_cardSelected_zq5r9_267";
+const cardIsHeld = "_cardIsHeld_zq5r9_273";
+const tooltip = "_tooltip_zq5r9_285";
 const playerListItemStyles = {
   playerItem,
   activePlayer,
@@ -2570,12 +2570,12 @@ const PlayerListItem = React.memo(
     );
   }
 );
-const container = "_container_12nv3_7";
-const title$2 = "_title_12nv3_19";
-const playerList = "_playerList_12nv3_28";
-const buttonArea = "_buttonArea_12nv3_38";
-const limitMessage = "_limitMessage_12nv3_45";
-const buttonGroup = "_buttonGroup_12nv3_52";
+const container = "_container_it03t_7";
+const title$2 = "_title_it03t_19";
+const playerList = "_playerList_it03t_28";
+const buttonArea = "_buttonArea_it03t_38";
+const limitMessage = "_limitMessage_it03t_45";
+const buttonGroup = "_buttonGroup_it03t_52";
 const scoreBoardStyles = {
   container,
   title: title$2,

@@ -1,15 +1,15 @@
-// src/components/PlayerListItem.tsx
+// src/components/ScoreBoard/PlayerListItem.tsx
 import { Player } from '@/types/player.js';
 import { TokenData } from '@/types/token.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
-import { CardData } from '../types/card.js';
-import { CardId, PlayerId, RoomId } from '../types/definition.js';
-import type { Resource } from '../types/resource.js';
-import { CardDisplayContent } from './Card.js';
+import { CardData } from '../../types/card.js';
+import { CardId, PlayerId, RoomId } from '../../types/definition.js';
+import type { Resource } from '../../types/resource.js';
+import { CardDisplayContent } from '../Card.js';
+import { Token } from '../Token.js';
 import playerListItemStyles from './PlayerListItem.module.css';
-import { Token } from './Token.js';
 
 type PlayerListItemProps = {
   socket: Socket;
