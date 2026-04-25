@@ -13,8 +13,8 @@ import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { CardData } from '../types/card.js';
 import type { CardId, DeckId, PlayerId, RoomId } from '../types/definition.js';
-import { Card } from './Card.js';
-import cardStyles from './Card.module.css';
+import { Card } from './Card/Card.js';
+import cardStyles from './Card/Card.module.css';
 import playFieldStyles from './PlayField.module.css';
 
 // 通信量制限用の throttle

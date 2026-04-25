@@ -5,9 +5,9 @@ import { useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import type { CardData } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
-import { CardDisplayContent } from './Card.js';
-import cardStyles from './Card.module.css';
-import { CardPreview } from './CardPreview.js';
+import { CardDisplayContent } from './Card/Card.js';
+import cardStyles from './Card/Card.module.css';
+import { CardPreview } from './Card/CardPreview.js';
 import deckStyles from './Deck.module.css';
 
 type DeckProps = {

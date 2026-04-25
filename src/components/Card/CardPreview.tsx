@@ -1,4 +1,4 @@
-// src/components/CardPreview.tsx
+// src/components/Card/CardPreview.tsx
 import { CardData } from '@/types/card.js';
 import React, { useRef, useState } from 'react';
 import { CardDisplayContent } from './Card.js';

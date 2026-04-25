@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
-import { Card } from './Card.js';
-import cardStyles from './Card.module.css';
+import { Card } from './Card/Card.js';
+import cardStyles from './Card/Card.module.css';
 import playFieldStyles from './PlayField.module.css';
 // 通信量制限用の throttle
 function throttle(func, limit) {

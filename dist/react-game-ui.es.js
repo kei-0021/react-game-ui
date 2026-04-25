@@ -984,17 +984,17 @@ const Cell = ({
     }
   );
 };
-const card = "_card_1knb7_8";
-const cardWrapper = "_cardWrapper_1knb7_25";
-const deckCard = "_deckCard_1knb7_43";
-const cardImage = "_cardImage_1knb7_57";
-const cardNameWrapper = "_cardNameWrapper_1knb7_67";
-const cardNameText = "_cardNameText_1knb7_80";
-const deckContainer = "_deckContainer_1knb7_110";
-const disabled = "_disabled_1knb7_117";
-const deckCardFront = "_deckCardFront_1knb7_124";
-const discardPileWrapper = "_discardPileWrapper_1knb7_154";
-const tooltip$2 = "_tooltip_1knb7_160";
+const card = "_card_qf8pw_8";
+const cardWrapper = "_cardWrapper_qf8pw_25";
+const deckCard = "_deckCard_qf8pw_43";
+const cardImage = "_cardImage_qf8pw_57";
+const cardNameWrapper = "_cardNameWrapper_qf8pw_67";
+const cardNameText = "_cardNameText_qf8pw_80";
+const deckContainer = "_deckContainer_qf8pw_110";
+const disabled = "_disabled_qf8pw_117";
+const deckCardFront = "_deckCardFront_qf8pw_124";
+const discardPileWrapper = "_discardPileWrapper_qf8pw_154";
+const tooltip$2 = "_tooltip_qf8pw_160";
 const cardStyles = {
   card,
   cardWrapper,
@@ -1048,10 +1048,10 @@ const Card = ({
     }
   );
 };
-const previewTrigger = "_previewTrigger_1n6ag_9";
-const previewOverlay = "_previewOverlay_1n6ag_13";
-const previewContent = "_previewContent_1n6ag_27";
-const previewDescription = "_previewDescription_1n6ag_31";
+const previewTrigger = "_previewTrigger_c10ve_9";
+const previewOverlay = "_previewOverlay_c10ve_13";
+const previewContent = "_previewContent_c10ve_27";
+const previewDescription = "_previewDescription_c10ve_31";
 const cardPreviewStyles = {
   previewTrigger,
   previewOverlay,

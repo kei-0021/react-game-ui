@@ -1,4 +1,4 @@
-// src/components/Card.tsx
+// src/components/Card/Card.tsx
 import { CardData } from '@/types/card.js';
 import { CardId } from '@/types/definition.js';
 import React from 'react';

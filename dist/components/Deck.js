@@ -1,9 +1,9 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
 import { useEffect } from 'react';
-import { CardDisplayContent } from './Card.js';
-import cardStyles from './Card.module.css';
-import { CardPreview } from './CardPreview.js';
+import { CardDisplayContent } from './Card/Card.js';
+import cardStyles from './Card/Card.module.css';
+import { CardPreview } from './Card/CardPreview.js';
 import deckStyles from './Deck.module.css';
 /**
  * 山札の描画、シャッフル、ドローの制御を行う。

@@ -7,7 +7,7 @@ import { Socket } from 'socket.io-client';
 import { CardData } from '../../types/card.js';
 import { CardId, PlayerId, RoomId } from '../../types/definition.js';
 import type { Resource } from '../../types/resource.js';
-import { CardDisplayContent } from '../Card.js';
+import { CardDisplayContent } from '../Card/Card.js';
 import { Token } from '../Token.js';
 import playerListItemStyles from './PlayerListItem.module.css';
 
