@@ -301,3 +301,13 @@
   white-space: normal;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
+
+/* 枠外へのはみ出しを許可する */
+.cardBase:hover {
+  overflow: visible !important;
+}
+
+/* ホバー時にツールチップを表示 */
+.cardBase:hover .tooltip {
+  display: block;
+}
