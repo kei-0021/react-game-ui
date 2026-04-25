@@ -293,7 +293,6 @@
   color: #fff;
   padding: 8px;
   border-radius: 4px;
-  z-index: 1000;
   font-size: 11px;
   line-height: 1.4;
   pointer-events: none;
@@ -305,6 +304,7 @@
 /* 枠外へのはみ出しを許可する */
 .cardBase:hover {
   overflow: visible !important;
+  z-index: 100;
 }
 
 /* ホバー時にツールチップを表示 */

@@ -2365,27 +2365,27 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const playerItem = "_playerItem_eis1t_7";
-const activePlayer = "_activePlayer_eis1t_20";
-const playerHeader = "_playerHeader_eis1t_28";
-const playerName = "_playerName_eis1t_34";
-const scoreArea = "_scoreArea_eis1t_48";
-const playerScore = "_playerScore_eis1t_54";
-const plus = "_plus_eis1t_75";
-const minus = "_minus_eis1t_80";
-const scoreChange = "_scoreChange_eis1t_101";
-const debugScoreButtons = "_debugScoreButtons_eis1t_130";
-const debugBtn = "_debugBtn_eis1t_135";
-const resourceSection = "_resourceSection_eis1t_170";
-const resourceList = "_resourceList_eis1t_175";
-const resourceBadge = "_resourceBadge_eis1t_181";
-const tokenList = "_tokenList_eis1t_193";
-const isHoldMessage = "_isHoldMessage_eis1t_220";
-const cardList = "_cardList_eis1t_227";
-const cardBase = "_cardBase_eis1t_235";
-const cardSelected = "_cardSelected_eis1t_267";
-const cardIsHeld = "_cardIsHeld_eis1t_273";
-const tooltip = "_tooltip_eis1t_285";
+const playerItem = "_playerItem_1hqx7_7";
+const activePlayer = "_activePlayer_1hqx7_20";
+const playerHeader = "_playerHeader_1hqx7_28";
+const playerName = "_playerName_1hqx7_34";
+const scoreArea = "_scoreArea_1hqx7_48";
+const playerScore = "_playerScore_1hqx7_54";
+const plus = "_plus_1hqx7_75";
+const minus = "_minus_1hqx7_80";
+const scoreChange = "_scoreChange_1hqx7_101";
+const debugScoreButtons = "_debugScoreButtons_1hqx7_130";
+const debugBtn = "_debugBtn_1hqx7_135";
+const resourceSection = "_resourceSection_1hqx7_170";
+const resourceList = "_resourceList_1hqx7_175";
+const resourceBadge = "_resourceBadge_1hqx7_181";
+const tokenList = "_tokenList_1hqx7_193";
+const isHoldMessage = "_isHoldMessage_1hqx7_220";
+const cardList = "_cardList_1hqx7_227";
+const cardBase = "_cardBase_1hqx7_235";
+const cardSelected = "_cardSelected_1hqx7_267";
+const cardIsHeld = "_cardIsHeld_1hqx7_273";
+const tooltip = "_tooltip_1hqx7_285";
 const playerListItemStyles = {
   playerItem,
   activePlayer,
