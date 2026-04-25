@@ -984,21 +984,17 @@ const Cell = ({
     }
   );
 };
-const card = "_card_1hmpa_8";
-const cardWrapper = "_cardWrapper_1hmpa_25";
-const deckCard = "_deckCard_1hmpa_43";
-const cardImage = "_cardImage_1hmpa_57";
-const cardNameWrapper = "_cardNameWrapper_1hmpa_67";
-const cardNameText = "_cardNameText_1hmpa_80";
-const previewTrigger = "_previewTrigger_1hmpa_96";
-const previewOverlay = "_previewOverlay_1hmpa_100";
-const previewContent = "_previewContent_1hmpa_114";
-const previewDescription = "_previewDescription_1hmpa_118";
-const deckContainer = "_deckContainer_1hmpa_144";
-const disabled = "_disabled_1hmpa_151";
-const deckCardFront = "_deckCardFront_1hmpa_158";
-const discardPileWrapper = "_discardPileWrapper_1hmpa_188";
-const tooltip$2 = "_tooltip_1hmpa_194";
+const card = "_card_1knb7_8";
+const cardWrapper = "_cardWrapper_1knb7_25";
+const deckCard = "_deckCard_1knb7_43";
+const cardImage = "_cardImage_1knb7_57";
+const cardNameWrapper = "_cardNameWrapper_1knb7_67";
+const cardNameText = "_cardNameText_1knb7_80";
+const deckContainer = "_deckContainer_1knb7_110";
+const disabled = "_disabled_1knb7_117";
+const deckCardFront = "_deckCardFront_1knb7_124";
+const discardPileWrapper = "_discardPileWrapper_1knb7_154";
+const tooltip$2 = "_tooltip_1knb7_160";
 const cardStyles = {
   card,
   cardWrapper,
@@ -1006,10 +1002,6 @@ const cardStyles = {
   cardImage,
   cardNameWrapper,
   cardNameText,
-  previewTrigger,
-  previewOverlay,
-  previewContent,
-  previewDescription,
   deckContainer,
   disabled,
   deckCardFront,
@@ -1056,6 +1048,16 @@ const Card = ({
     }
   );
 };
+const previewTrigger = "_previewTrigger_1n6ag_9";
+const previewOverlay = "_previewOverlay_1n6ag_13";
+const previewContent = "_previewContent_1n6ag_27";
+const previewDescription = "_previewDescription_1n6ag_31";
+const cardPreviewStyles = {
+  previewTrigger,
+  previewOverlay,
+  previewContent,
+  previewDescription
+};
 const CardPreview = ({ card: card2, children }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
@@ -1076,11 +1078,11 @@ const CardPreview = ({ card: card2, children }) => {
   if (!hasPreview) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewTrigger, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardPreviewStyles.previewTrigger, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, children: [
     children,
-    isHovered && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardStyles.previewContent, children: [
+    isHovered && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardPreviewStyles.previewContent, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
-      card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardStyles.previewDescription, children: card2.description })
+      card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardPreviewStyles.previewDescription, children: card2.description })
     ] }) })
   ] });
 };
@@ -4317,7 +4319,7 @@ class DeckManager {
    * フィールドからカードを回収（手札に戻す or 捨て札へ）
    */
   moveFromField(deckId, cardId, playerId) {
-    const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
+    const { playFieldCards, players, discardPile } = this.state;
     const fieldList = playFieldCards[deckId] || [];
     const cardIndex = fieldList.findIndex((c) => c.id === cardId);
     if (cardIndex === -1) return;

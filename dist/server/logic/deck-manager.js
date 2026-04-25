@@ -140,7 +140,7 @@ export class DeckManager {
      * フィールドからカードを回収（手札に戻す or 捨て札へ）
      */
     moveFromField(deckId, cardId, playerId) {
-        const { playFieldCards, players, discardPile, gameId, roomId } = this.state;
+        const { playFieldCards, players, discardPile } = this.state;
         // 1. フィールドから対象カードを探して抜き取る
         const fieldList = playFieldCards[deckId] || [];
         const cardIndex = fieldList.findIndex((c) => c.id === cardId);

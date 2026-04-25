@@ -2,7 +2,7 @@
 import { CardData } from '@/types/card.js';
 import React, { useRef, useState } from 'react';
 import { CardDisplayContent } from './Card.js';
-import cardStyles from './Card.module.css';
+import cardPreviewStyles from './CardPreview.module.css';
 
 type CardPreviewProps = {
   card: CardData;
@@ -36,13 +36,13 @@ export const CardPreview = ({ card, children }: CardPreviewProps) => {
   }
 
   return (
-    <div className={cardStyles.previewTrigger} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+    <div className={cardPreviewStyles.previewTrigger} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       {children}
       {isHovered && (
-        <div className={cardStyles.previewOverlay} style={{ top: `${position.y}px`, left: `${position.x}px` }}>
-          <div className={cardStyles.previewContent}>
+        <div className={cardPreviewStyles.previewOverlay} style={{ top: `${position.y}px`, left: `${position.x}px` }}>
+          <div className={cardPreviewStyles.previewContent}>
             <CardDisplayContent card={card} canSeeFront={true} />
-            {card.description && <p className={cardStyles.previewDescription}>{card.description}</p>}
+            {card.description && <p className={cardPreviewStyles.previewDescription}>{card.description}</p>}
           </div>
         </div>
       )}

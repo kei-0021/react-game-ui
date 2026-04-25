@@ -89,40 +89,6 @@
 
 /*
  * ===========================================
- * Preview
- * ===========================================
- */
-
-.previewTrigger {
-  display: inline-block;
-}
-
-.previewOverlay {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.85);
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  pointer-events: none;
-  text-align: center;
-}
-
-.previewContent {
-  width: 200px;
-}
-
-.previewDescription {
-  color: white;
-  margin-top: 10px;
-  font-size: 0.9rem;
-}
-
-/*
- * ===========================================
  * Others
  * ===========================================
  */
