@@ -22,15 +22,6 @@
   position: relative;
 }
 
-.rgPlayFieldCardWrapper {
-  cursor: pointer;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-}
-
 .rgPlayFieldOwnerBadge {
   position: absolute;
   top: -5px;
@@ -110,12 +101,6 @@
     opacity: 1;
     transform: scale(1);
   }
-}
-
-.rgPlayFieldCardWrapper {
-  /* ドラッグ操作を安定させるため */
-  user-select: none;
-  -webkit-user-drag: none;
 }
 
 /*

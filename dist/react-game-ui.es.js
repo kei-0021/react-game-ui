@@ -984,54 +984,37 @@ const Cell = ({
     }
   );
 };
-const card = "_card_zuj83_4";
-const tooltip$2 = "_tooltip_zuj83_22";
-const deckContainer = "_deckContainer_zuj83_61";
-const disabled = "_disabled_zuj83_68";
-const deckCard = "_deckCard_zuj83_75";
-const deckCardFront = "_deckCardFront_zuj83_89";
-const discardPileWrapper = "_discardPileWrapper_zuj83_105";
-const cardNameWrapper = "_cardNameWrapper_zuj83_131";
-const cardNameText = "_cardNameText_zuj83_144";
-const cardImage = "_cardImage_zuj83_155";
-const previewTrigger = "_previewTrigger_zuj83_165";
-const previewOverlay = "_previewOverlay_zuj83_169";
-const previewContent = "_previewContent_zuj83_183";
-const previewDescription = "_previewDescription_zuj83_187";
+const card = "_card_1hmpa_8";
+const cardWrapper = "_cardWrapper_1hmpa_25";
+const deckCard = "_deckCard_1hmpa_43";
+const cardImage = "_cardImage_1hmpa_57";
+const cardNameWrapper = "_cardNameWrapper_1hmpa_67";
+const cardNameText = "_cardNameText_1hmpa_80";
+const previewTrigger = "_previewTrigger_1hmpa_96";
+const previewOverlay = "_previewOverlay_1hmpa_100";
+const previewContent = "_previewContent_1hmpa_114";
+const previewDescription = "_previewDescription_1hmpa_118";
+const deckContainer = "_deckContainer_1hmpa_144";
+const disabled = "_disabled_1hmpa_151";
+const deckCardFront = "_deckCardFront_1hmpa_158";
+const discardPileWrapper = "_discardPileWrapper_1hmpa_188";
+const tooltip$2 = "_tooltip_1hmpa_194";
 const cardStyles = {
   card,
-  tooltip: tooltip$2,
-  deckContainer,
-  disabled,
+  cardWrapper,
   deckCard,
-  deckCardFront,
-  discardPileWrapper,
+  cardImage,
   cardNameWrapper,
   cardNameText,
-  cardImage,
   previewTrigger,
   previewOverlay,
   previewContent,
-  previewDescription
-};
-const rgPlayFieldContainer = "_rgPlayFieldContainer_mzyzy_13";
-const rgPlayFieldCardWrapper = "_rgPlayFieldCardWrapper_mzyzy_25";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_mzyzy_34";
-const contextMenu$1 = "_contextMenu_mzyzy_58";
-const menuItem$1 = "_menuItem_mzyzy_73";
-const menuIcon = "_menuIcon_mzyzy_90";
-const separator$1 = "_separator_mzyzy_98";
-const debugLabel$1 = "_debugLabel_mzyzy_126";
-const playFieldStyles = {
-  "rg-playfield": "_rg-playfield_mzyzy_3",
-  rgPlayFieldContainer,
-  rgPlayFieldCardWrapper,
-  rgPlayFieldOwnerBadge,
-  contextMenu: contextMenu$1,
-  menuItem: menuItem$1,
-  menuIcon,
-  separator: separator$1,
-  debugLabel: debugLabel$1
+  previewDescription,
+  deckContainer,
+  disabled,
+  deckCardFront,
+  discardPileWrapper,
+  tooltip: tooltip$2
 };
 const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
   if (!canSeeFront) {
@@ -1061,7 +1044,7 @@ const Card = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
-      className: `${isActuallyFreeShape ? "" : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`,
+      className: `${isActuallyFreeShape ? "" : cardStyles.card} ${cardStyles.cardWrapper}`,
       style,
       onClick: handleClick,
       onPointerUp,
@@ -1318,16 +1301,16 @@ function Dice({ socket = null, diceId, roomId, title: title2, customFaces, toolt
   ] });
 }
 const draggable = "_draggable_datou_3";
-const contextMenu = "_contextMenu_datou_28";
-const menuItem = "_menuItem_datou_42";
-const separator = "_separator_datou_63";
-const debugLabel = "_debugLabel_datou_85";
+const contextMenu$1 = "_contextMenu_datou_28";
+const menuItem$1 = "_menuItem_datou_42";
+const separator$1 = "_separator_datou_63";
+const debugLabel$1 = "_debugLabel_datou_85";
 const draggableStyles = {
   draggable,
-  contextMenu,
-  menuItem,
-  separator,
-  debugLabel
+  contextMenu: contextMenu$1,
+  menuItem: menuItem$1,
+  separator: separator$1,
+  debugLabel: debugLabel$1
 };
 function Draggable({
   socket,
@@ -1956,6 +1939,23 @@ function GridBoard({
     })
   ] });
 }
+const rgPlayFieldContainer = "_rgPlayFieldContainer_qw96y_13";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_qw96y_25";
+const contextMenu = "_contextMenu_qw96y_49";
+const menuItem = "_menuItem_qw96y_64";
+const menuIcon = "_menuIcon_qw96y_81";
+const separator = "_separator_qw96y_89";
+const debugLabel = "_debugLabel_qw96y_111";
+const playFieldStyles = {
+  "rg-playfield": "_rg-playfield_qw96y_3",
+  rgPlayFieldContainer,
+  rgPlayFieldOwnerBadge,
+  contextMenu,
+  menuItem,
+  menuIcon,
+  separator,
+  debugLabel
+};
 function throttle(func, limit) {
   let inThrottle;
   return function(...args) {

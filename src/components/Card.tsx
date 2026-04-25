@@ -3,7 +3,6 @@ import { CardData } from '@/types/card.js';
 import { CardId } from '@/types/definition.js';
 import React from 'react';
 import cardStyles from './Card.module.css';
-import playFieldStyles from './PlayField.module.css';
 
 export const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: CardData; canSeeFront: boolean }) => {
   // 裏向きの場合
@@ -56,7 +55,7 @@ export const Card = ({
 
   return (
     <div
-      className={`${isActuallyFreeShape ? '' : cardStyles.card} ${playFieldStyles.rgPlayFieldCardWrapper}`}
+      className={`${isActuallyFreeShape ? '' : cardStyles.card} ${cardStyles.cardWrapper}`}
       style={style}
       onClick={handleClick}
       onPointerUp={onPointerUp}
