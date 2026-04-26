@@ -281,33 +281,3 @@
   pointer-events: none;
   z-index: 10;
 }
-
-.tooltip {
-  display: none;
-  position: absolute;
-  bottom: 110%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 160px;
-  background-color: rgba(0, 0, 0, 0.9);
-  color: #fff;
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  line-height: 1.4;
-  pointer-events: none;
-  word-break: break-all;
-  white-space: normal;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-}
-
-/* 枠外へのはみ出しを許可する */
-.cardBase:hover {
-  overflow: visible !important;
-  z-index: 100;
-}
-
-/* ホバー時にツールチップを表示 */
-.cardBase:hover .tooltip {
-  display: block;
-}

@@ -984,17 +984,17 @@ const Cell = ({
     }
   );
 };
-const card = "_card_qf8pw_8";
-const cardWrapper = "_cardWrapper_qf8pw_25";
-const deckCard = "_deckCard_qf8pw_43";
-const cardImage = "_cardImage_qf8pw_57";
-const cardNameWrapper = "_cardNameWrapper_qf8pw_67";
-const cardNameText = "_cardNameText_qf8pw_80";
-const deckContainer = "_deckContainer_qf8pw_110";
-const disabled = "_disabled_qf8pw_117";
-const deckCardFront = "_deckCardFront_qf8pw_124";
-const discardPileWrapper = "_discardPileWrapper_qf8pw_154";
-const tooltip$2 = "_tooltip_qf8pw_160";
+const card = "_card_1a59g_8";
+const cardWrapper = "_cardWrapper_1a59g_25";
+const deckCard = "_deckCard_1a59g_43";
+const cardImage = "_cardImage_1a59g_57";
+const cardNameWrapper = "_cardNameWrapper_1a59g_67";
+const cardNameText = "_cardNameText_1a59g_80";
+const tooltip$1 = "_tooltip_1a59g_95";
+const deckContainer = "_deckContainer_1a59g_144";
+const disabled = "_disabled_1a59g_151";
+const deckCardFront = "_deckCardFront_1a59g_158";
+const discardPileWrapper = "_discardPileWrapper_1a59g_188";
 const cardStyles = {
   card,
   cardWrapper,
@@ -1002,11 +1002,11 @@ const cardStyles = {
   cardImage,
   cardNameWrapper,
   cardNameText,
+  tooltip: tooltip$1,
   deckContainer,
   disabled,
   deckCardFront,
-  discardPileWrapper,
-  tooltip: tooltip$2
+  discardPileWrapper
 };
 const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
   if (!canSeeFront) {
@@ -1033,7 +1033,7 @@ const Card = ({
     e.stopPropagation();
     onClick?.(card2.id);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
       className: `${isActuallyFreeShape ? "" : cardStyles.card} ${cardStyles.cardWrapper}`,
@@ -1044,7 +1044,10 @@ const Card = ({
       onDragStart,
       draggable: isDraggable,
       onContextMenu,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront })
+      children: [
+        canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront })
+      ]
     }
   );
 };
@@ -1217,7 +1220,7 @@ function Deck({
 const diceWrapper = "_diceWrapper_109vb_1";
 const diceTitle = "_diceTitle_109vb_9";
 const dice = "_dice_109vb_1";
-const tooltip$1 = "_tooltip_109vb_40";
+const tooltip = "_tooltip_109vb_40";
 const diceRolling = "_diceRolling_109vb_68";
 const diceNotRolling = "_diceNotRolling_109vb_74";
 const faceImage = "_faceImage_109vb_78";
@@ -1227,7 +1230,7 @@ const styles$4 = {
   diceWrapper,
   diceTitle,
   dice,
-  tooltip: tooltip$1,
+  tooltip,
   diceRolling,
   diceNotRolling,
   faceImage,
@@ -2365,27 +2368,26 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const playerItem = "_playerItem_zq5r9_7";
-const activePlayer = "_activePlayer_zq5r9_20";
-const playerHeader = "_playerHeader_zq5r9_28";
-const playerName = "_playerName_zq5r9_34";
-const scoreArea = "_scoreArea_zq5r9_48";
-const playerScore = "_playerScore_zq5r9_54";
-const plus = "_plus_zq5r9_75";
-const minus = "_minus_zq5r9_80";
-const scoreChange = "_scoreChange_zq5r9_101";
-const debugScoreButtons = "_debugScoreButtons_zq5r9_130";
-const debugBtn = "_debugBtn_zq5r9_135";
-const resourceSection = "_resourceSection_zq5r9_170";
-const resourceList = "_resourceList_zq5r9_175";
-const resourceBadge = "_resourceBadge_zq5r9_181";
-const tokenList = "_tokenList_zq5r9_193";
-const isHoldMessage = "_isHoldMessage_zq5r9_220";
-const cardList = "_cardList_zq5r9_227";
-const cardBase = "_cardBase_zq5r9_235";
-const cardSelected = "_cardSelected_zq5r9_267";
-const cardIsHeld = "_cardIsHeld_zq5r9_273";
-const tooltip = "_tooltip_zq5r9_285";
+const playerItem = "_playerItem_7vrgj_7";
+const activePlayer = "_activePlayer_7vrgj_20";
+const playerHeader = "_playerHeader_7vrgj_28";
+const playerName = "_playerName_7vrgj_34";
+const scoreArea = "_scoreArea_7vrgj_48";
+const playerScore = "_playerScore_7vrgj_54";
+const plus = "_plus_7vrgj_75";
+const minus = "_minus_7vrgj_80";
+const scoreChange = "_scoreChange_7vrgj_101";
+const debugScoreButtons = "_debugScoreButtons_7vrgj_130";
+const debugBtn = "_debugBtn_7vrgj_135";
+const resourceSection = "_resourceSection_7vrgj_170";
+const resourceList = "_resourceList_7vrgj_175";
+const resourceBadge = "_resourceBadge_7vrgj_181";
+const tokenList = "_tokenList_7vrgj_193";
+const isHoldMessage = "_isHoldMessage_7vrgj_220";
+const cardList = "_cardList_7vrgj_227";
+const cardBase = "_cardBase_7vrgj_235";
+const cardSelected = "_cardSelected_7vrgj_267";
+const cardIsHeld = "_cardIsHeld_7vrgj_273";
 const playerListItemStyles = {
   playerItem,
   activePlayer,
@@ -2406,8 +2408,7 @@ const playerListItemStyles = {
   cardList,
   cardBase,
   cardSelected,
-  cardIsHeld,
-  tooltip
+  cardIsHeld
 };
 const PlayerListItem = React.memo(
   ({
@@ -2549,17 +2550,22 @@ const PlayerListItem = React.memo(
                   boxShadow: card2.isFaceUp ? "0 0 10px #00ffff" : "none",
                   opacity: !enabled || isHeld ? 0.7 : 1,
                   padding: 0,
-                  overflow: "hidden",
+                  overflow: "visible",
                   position: "relative",
                   display: "flex",
                   alignItems: "stretch",
                   justifyContent: "stretch"
                 },
-                onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner),
                 children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }),
-                  isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.cardIsHeld, children: "🔐" }),
-                  canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: playerListItemStyles.tooltip, children: card2.description })
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Card,
+                    {
+                      card: card2,
+                      canSeeFront,
+                      onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner)
+                    }
+                  ),
+                  isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.cardIsHeld, children: "🔐" })
                 ]
               },
               card2.id

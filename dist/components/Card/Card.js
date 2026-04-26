@@ -1,4 +1,4 @@
-import { jsx as _jsx } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React from 'react';
 import cardStyles from './Card.module.css';
 export const CardDisplayContent = React.memo(({ card, canSeeFront }) => {
@@ -18,5 +18,5 @@ export const Card = ({ card, style, isActuallyFreeShape, canSeeFront, onClick, o
         e.stopPropagation();
         onClick?.(card.id);
     };
-    return (_jsx("div", { className: `${isActuallyFreeShape ? '' : cardStyles.card} ${cardStyles.cardWrapper}`, style: style, onClick: handleClick, onPointerUp: onPointerUp, onPointerDown: onPointerDown, onDragStart: onDragStart, draggable: isDraggable, onContextMenu: onContextMenu, children: _jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront }) }));
+    return (_jsxs("div", { className: `${isActuallyFreeShape ? '' : cardStyles.card} ${cardStyles.cardWrapper}`, style: style, onClick: handleClick, onPointerUp: onPointerUp, onPointerDown: onPointerDown, onDragStart: onDragStart, draggable: isDraggable, onContextMenu: onContextMenu, children: [canSeeFront && card.description && _jsx("span", { className: cardStyles.tooltip, children: card.description }), _jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront })] }));
 };

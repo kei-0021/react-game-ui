@@ -7,7 +7,7 @@ import { Socket } from 'socket.io-client';
 import { CardData } from '../../types/card.js';
 import { CardId, PlayerId, RoomId } from '../../types/definition.js';
 import type { Resource } from '../../types/resource.js';
-import { CardDisplayContent } from '../Card/Card.js';
+import { Card } from '../Card/Card.js';
 import { Token } from '../Token.js';
 import playerListItemStyles from './PlayerListItem.module.css';
 
@@ -191,26 +191,23 @@ export const PlayerListItem = React.memo(
                     boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
                     opacity: !enabled || isHeld ? 0.7 : 1,
                     padding: 0,
-                    overflow: 'hidden',
+                    overflow: 'visible',
                     position: 'relative',
                     display: 'flex',
                     alignItems: 'stretch',
                     justifyContent: 'stretch',
                   } as React.CSSProperties
                 }
-                // ホールド中はクリック（選択）も無効化
-                onClick={() => !isHeld && enabled && toggleCardSelection(card.id, isOwner)}
               >
                 {/* カードのメインコンテンツ */}
-                <CardDisplayContent card={card} canSeeFront={canSeeFront} />
+                <Card
+                  card={card}
+                  canSeeFront={canSeeFront}
+                  onClick={() => !isHeld && enabled && toggleCardSelection(card.id, isOwner)}
+                />
 
                 {/* 鍵マークのオーバーレイ表示 */}
                 {isHeld && <div className={playerListItemStyles.cardIsHeld}>🔐</div>}
-
-                {/* ツールチップ */}
-                {canSeeFront && card.description && (
-                  <span className={playerListItemStyles.tooltip}>{card.description}</span>
-                )}
               </div>
             );
           })}

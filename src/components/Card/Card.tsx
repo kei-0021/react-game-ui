@@ -64,6 +64,8 @@ export const Card = ({
       draggable={isDraggable}
       onContextMenu={onContextMenu}
     >
+      {/* ツールチップ */}
+      {canSeeFront && card.description && <span className={cardStyles.tooltip}>{card.description}</span>}
       <CardDisplayContent card={card} canSeeFront={canSeeFront} />
     </div>
   );

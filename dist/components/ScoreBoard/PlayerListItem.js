@@ -1,6 +1,6 @@
 import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
 import * as React from 'react';
-import { CardDisplayContent } from '../Card/Card.js';
+import { Card } from '../Card/Card.js';
 import { Token } from '../Token.js';
 import playerListItemStyles from './PlayerListItem.module.css';
 export const PlayerListItem = React.memo(({ socket, roomId, player, currentPlayerId, myPlayerId, playCardButton, selectedCards, heldCards, toggleCardSelection, isDebug, enabled, }) => {
@@ -74,13 +74,11 @@ export const PlayerListItem = React.memo(({ socket, roomId, player, currentPlaye
                             boxShadow: card.isFaceUp ? '0 0 10px #00ffff' : 'none',
                             opacity: !enabled || isHeld ? 0.7 : 1,
                             padding: 0,
-                            overflow: 'hidden',
+                            overflow: 'visible',
                             position: 'relative',
                             display: 'flex',
                             alignItems: 'stretch',
                             justifyContent: 'stretch',
-                        }, 
-                        // ホールド中はクリック（選択）も無効化
-                        onClick: () => !isHeld && enabled && toggleCardSelection(card.id, isOwner), children: [_jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront }), isHeld && _jsx("div", { className: playerListItemStyles.cardIsHeld, children: "\uD83D\uDD10" }), canSeeFront && card.description && (_jsx("span", { className: playerListItemStyles.tooltip, children: card.description }))] }, card.id));
+                        }, children: [_jsx(Card, { card: card, canSeeFront: canSeeFront, onClick: () => !isHeld && enabled && toggleCardSelection(card.id, isOwner) }), isHeld && _jsx("div", { className: playerListItemStyles.cardIsHeld, children: "\uD83D\uDD10" })] }, card.id));
                 }) })] }));
 });
