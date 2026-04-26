@@ -204,6 +204,7 @@ export const PlayerListItem = React.memo(
                   card={card}
                   canSeeFront={canSeeFront}
                   onClick={() => !isHeld && enabled && toggleCardSelection(card.id, isOwner)}
+                  showPreview={false}
                 />
 
                 {/* 鍵マークのオーバーレイ表示 */}

@@ -3,6 +3,7 @@ import { CardData } from '@/types/card.js';
 import { CardId } from '@/types/definition.js';
 import React from 'react';
 import cardStyles from './Card.module.css';
+import { CardPreview } from './CardPreview.js';
 
 export const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: CardData; canSeeFront: boolean }) => {
   // 裏向きの場合
@@ -33,6 +34,7 @@ type CardProps = {
   onPointerUp?: (e: React.PointerEvent) => void;
   onDragStart?: React.DragEventHandler<HTMLDivElement>;
   isDraggable?: boolean;
+  showPreview?: boolean;
   onContextMenu?: (e: React.MouseEvent) => void;
 };
 
@@ -46,6 +48,7 @@ export const Card = ({
   onPointerDown,
   onDragStart,
   isDraggable,
+  showPreview,
   onContextMenu,
 }: CardProps) => {
   const handleClick = (e: React.MouseEvent) => {
@@ -64,9 +67,9 @@ export const Card = ({
       draggable={isDraggable}
       onContextMenu={onContextMenu}
     >
-      {/* ツールチップ */}
-      {canSeeFront && card.description && <span className={cardStyles.tooltip}>{card.description}</span>}
-      <CardDisplayContent card={card} canSeeFront={canSeeFront} />
+      <CardPreview card={card}>
+        <CardDisplayContent card={card} canSeeFront={canSeeFront} />
+      </CardPreview>
     </div>
   );
 };

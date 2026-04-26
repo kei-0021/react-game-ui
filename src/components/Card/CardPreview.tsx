@@ -17,10 +17,10 @@ export const CardPreview = ({ card, children }: CardPreviewProps) => {
   const hasPreview = !!card.frontImage || !!card.description;
 
   // プレビューの表示はカーソル侵入から0.5秒待つ
-  const handleMouseEnter = (e: React.MouseEvent) => {
+  const handleMouseEnter = (x: number, y: number) => {
     timerRef.current = setTimeout(() => {
-      setPosition({ x: e.clientX, y: e.clientY - 180 });
       setIsHovered(true);
+      setPosition({ x, y });
     }, 500);
   };
 
@@ -36,7 +36,11 @@ export const CardPreview = ({ card, children }: CardPreviewProps) => {
   }
 
   return (
-    <div className={cardPreviewStyles.previewTrigger} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+    <div
+      className={cardPreviewStyles.previewTrigger}
+      onMouseEnter={(e) => handleMouseEnter(0, 0)}
+      onMouseLeave={handleMouseLeave}
+    >
       {children}
       {isHovered && (
         <div className={cardPreviewStyles.previewOverlay} style={{ top: `${position.y}px`, left: `${position.x}px` }}>

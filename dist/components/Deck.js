@@ -1,9 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
 import { useEffect } from 'react';
-import { CardDisplayContent } from './Card/Card.js';
+import { Card, CardDisplayContent } from './Card/Card.js';
 import cardStyles from './Card/Card.module.css';
-import { CardPreview } from './Card/CardPreview.js';
 import deckStyles from './Deck.module.css';
 /**
  * 山札の描画、シャッフル、ドローの制御を行う。
@@ -66,10 +65,10 @@ export function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerI
                                     zIndex: deckCards.length - i,
                                     transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
                                     backgroundColor: c.backColor,
-                                } }, c.id)))] }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, onContextMenu: handleContextMenu, children: discardPile.map((c, i) => (_jsx(CardPreview, { card: c, children: _jsx("div", { className: cardStyles.deckCardFront, style: {
-                                    zIndex: i + 1,
-                                    transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                                }, children: _jsx(CardDisplayContent, { card: c, canSeeFront: true }) }) }, c.id))) }), showDiscardModal && (_jsx("div", { className: deckStyles.discardModalOverlay, onClick: () => setShowDiscardModal(false), children: _jsxs("div", { className: deckStyles.discardModalContent, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: deckStyles.discardModalHeader, children: [_jsx("h4", { children: "\u6368\u3066\u672D\u306E\u5185\u5BB9" }), _jsx("button", { onClick: () => setShowDiscardModal(false), children: "\u9589\u3058\u308B" })] }), _jsx("div", { className: deckStyles.discardModalGrid, children: discardPile
+                                } }, c.id)))] }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, onContextMenu: handleContextMenu, children: discardPile.map((c, i) => (_jsx("div", { className: cardStyles.deckCardFront, style: {
+                                zIndex: i + 1,
+                                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+                            }, children: _jsx(Card, { card: c, canSeeFront: true, showPreview: true }) }))) }), showDiscardModal && (_jsx("div", { className: deckStyles.discardModalOverlay, onClick: () => setShowDiscardModal(false), children: _jsxs("div", { className: deckStyles.discardModalContent, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: deckStyles.discardModalHeader, children: [_jsx("h4", { children: "\u6368\u3066\u672D\u306E\u5185\u5BB9" }), _jsx("button", { onClick: () => setShowDiscardModal(false), children: "\u9589\u3058\u308B" })] }), _jsx("div", { className: deckStyles.discardModalGrid, children: discardPile
                                         .slice()
                                         .reverse()
                                         .map((c) => (_jsx("div", { className: deckStyles.discardModalCard, children: _jsx(CardDisplayContent, { card: c, canSeeFront: true }) }, c.id))) })] }) }))] })] }));

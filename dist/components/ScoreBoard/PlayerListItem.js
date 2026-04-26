@@ -79,6 +79,6 @@ export const PlayerListItem = React.memo(({ socket, roomId, player, currentPlaye
                             display: 'flex',
                             alignItems: 'stretch',
                             justifyContent: 'stretch',
-                        }, children: [_jsx(Card, { card: card, canSeeFront: canSeeFront, onClick: () => !isHeld && enabled && toggleCardSelection(card.id, isOwner) }), isHeld && _jsx("div", { className: playerListItemStyles.cardIsHeld, children: "\uD83D\uDD10" })] }, card.id));
+                        }, children: [_jsx(Card, { card: card, canSeeFront: canSeeFront, onClick: () => !isHeld && enabled && toggleCardSelection(card.id, isOwner), showPreview: false }), isHeld && _jsx("div", { className: playerListItemStyles.cardIsHeld, children: "\uD83D\uDD10" })] }, card.id));
                 }) })] }));
 });

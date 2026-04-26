@@ -1337,6 +1337,52 @@ const cardStyles = {
   deckCardFront,
   discardPileWrapper
 };
+const previewTrigger = "_previewTrigger_c10ve_9";
+const previewOverlay = "_previewOverlay_c10ve_13";
+const previewContent = "_previewContent_c10ve_27";
+const previewDescription = "_previewDescription_c10ve_31";
+const cardPreviewStyles = {
+  previewTrigger,
+  previewOverlay,
+  previewContent,
+  previewDescription
+};
+const CardPreview = ({ card: card2, children }) => {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+  const timerRef = useRef(null);
+  const hasPreview = !!card2.frontImage || !!card2.description;
+  const handleMouseEnter = (x, y) => {
+    timerRef.current = setTimeout(() => {
+      setIsHovered(true);
+      setPosition({ x, y });
+    }, 500);
+  };
+  const handleMouseLeave = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    setIsHovered(false);
+  };
+  if (!hasPreview) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      className: cardPreviewStyles.previewTrigger,
+      onMouseEnter: (e) => handleMouseEnter(0, 0),
+      onMouseLeave: handleMouseLeave,
+      children: [
+        children,
+        isHovered && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardPreviewStyles.previewContent, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
+          card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardPreviewStyles.previewDescription, children: card2.description })
+        ] }) })
+      ]
+    }
+  );
+};
 const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
   if (!canSeeFront) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card2.backColor || "#333" } });
@@ -1356,13 +1402,14 @@ const Card = ({
   onPointerDown,
   onDragStart,
   isDraggable,
+  showPreview,
   onContextMenu
 }) => {
   const handleClick = (e) => {
     e.stopPropagation();
     onClick?.(card2.id);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
       className: `${isActuallyFreeShape ? "" : cardStyles.card} ${cardStyles.cardWrapper}`,
@@ -1373,50 +1420,9 @@ const Card = ({
       onDragStart,
       draggable: isDraggable,
       onContextMenu,
-      children: [
-        canSeeFront && card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront })
-      ]
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: card2, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }) })
     }
   );
-};
-const previewTrigger = "_previewTrigger_c10ve_9";
-const previewOverlay = "_previewOverlay_c10ve_13";
-const previewContent = "_previewContent_c10ve_27";
-const previewDescription = "_previewDescription_c10ve_31";
-const cardPreviewStyles = {
-  previewTrigger,
-  previewOverlay,
-  previewContent,
-  previewDescription
-};
-const CardPreview = ({ card: card2, children }) => {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
-  const timerRef = useRef(null);
-  const hasPreview = !!card2.frontImage || !!card2.description;
-  const handleMouseEnter = (e) => {
-    timerRef.current = setTimeout(() => {
-      setPosition({ x: e.clientX, y: e.clientY - 180 });
-      setIsHovered(true);
-    }, 500);
-  };
-  const handleMouseLeave = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    setIsHovered(false);
-  };
-  if (!hasPreview) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardPreviewStyles.previewTrigger, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, children: [
-    children,
-    isHovered && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardPreviewStyles.previewContent, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
-      card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardPreviewStyles.previewDescription, children: card2.description })
-    ] }) })
-  ] });
 };
 const deckSection = "_deckSection_6l4k7_4";
 const deckWrapperFlex = "_deckWrapperFlex_6l4k7_16";
@@ -1523,7 +1529,7 @@ function Deck({
         {
           className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`,
           onContextMenu: handleContextMenu,
-          children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: c, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
               className: cardStyles.deckCardFront,
@@ -1531,9 +1537,9 @@ function Deck({
                 zIndex: i + 1,
                 transform: `translate(${i * -0.3}px, ${i * -0.3}px)`
               },
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true })
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { card: c, canSeeFront: true, showPreview: true })
             }
-          ) }, c.id))
+          ))
         }
       ),
       showDiscardModal && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.discardModalOverlay, onClick: () => setShowDiscardModal(false), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: deckStyles.discardModalContent, onClick: (e) => e.stopPropagation(), children: [
@@ -2562,7 +2568,8 @@ const PlayerListItem = React.memo(
                     {
                       card: card2,
                       canSeeFront,
-                      onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner)
+                      onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner),
+                      showPreview: false
                     }
                   ),
                   isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.cardIsHeld, children: "🔐" })

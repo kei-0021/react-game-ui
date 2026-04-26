@@ -5,9 +5,8 @@ import { useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import type { CardData } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
-import { CardDisplayContent } from './Card/Card.js';
+import { Card, CardDisplayContent } from './Card/Card.js';
 import cardStyles from './Card/Card.module.css';
-import { CardPreview } from './Card/CardPreview.js';
 import deckStyles from './Deck.module.css';
 
 type DeckProps = {
@@ -136,17 +135,15 @@ export function Deck({
           onContextMenu={handleContextMenu}
         >
           {discardPile.map((c, i) => (
-            <CardPreview key={c.id} card={c}>
-              <div
-                className={cardStyles.deckCardFront}
-                style={{
-                  zIndex: i + 1,
-                  transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                }}
-              >
-                <CardDisplayContent card={c} canSeeFront={true} />
-              </div>
-            </CardPreview>
+            <div
+              className={cardStyles.deckCardFront}
+              style={{
+                zIndex: i + 1,
+                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+              }}
+            >
+              <Card card={c} canSeeFront={true} showPreview={true} />
+            </div>
           ))}
         </div>
 

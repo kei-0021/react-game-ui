@@ -8,10 +8,10 @@ export const CardPreview = ({ card, children }) => {
     const timerRef = useRef(null);
     const hasPreview = !!card.frontImage || !!card.description;
     // プレビューの表示はカーソル侵入から0.5秒待つ
-    const handleMouseEnter = (e) => {
+    const handleMouseEnter = (x, y) => {
         timerRef.current = setTimeout(() => {
-            setPosition({ x: e.clientX, y: e.clientY - 180 });
             setIsHovered(true);
+            setPosition({ x, y });
         }, 500);
     };
     const handleMouseLeave = () => {
@@ -23,5 +23,5 @@ export const CardPreview = ({ card, children }) => {
     if (!hasPreview) {
         return _jsx(_Fragment, { children: children });
     }
-    return (_jsxs("div", { className: cardPreviewStyles.previewTrigger, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, children: [children, isHovered && (_jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: _jsxs("div", { className: cardPreviewStyles.previewContent, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.description && _jsx("p", { className: cardPreviewStyles.previewDescription, children: card.description })] }) }))] }));
+    return (_jsxs("div", { className: cardPreviewStyles.previewTrigger, onMouseEnter: (e) => handleMouseEnter(0, 0), onMouseLeave: handleMouseLeave, children: [children, isHovered && (_jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: _jsxs("div", { className: cardPreviewStyles.previewContent, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.description && _jsx("p", { className: cardPreviewStyles.previewDescription, children: card.description })] }) }))] }));
 };
