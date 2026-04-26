@@ -1619,11 +1619,11 @@ const boardContainer = "_boardContainer_12y1y_3";
 const boardStyles = {
   boardContainer
 };
-const tokenContainer = "_tokenContainer_11yla_8";
-const contentWrapper = "_contentWrapper_11yla_23";
-const textWrapper = "_textWrapper_11yla_56";
-const text = "_text_11yla_56";
-const image = "_image_11yla_72";
+const tokenContainer = "_tokenContainer_n19xz_8";
+const contentWrapper = "_contentWrapper_n19xz_22";
+const textWrapper = "_textWrapper_n19xz_55";
+const text = "_text_n19xz_55";
+const image = "_image_n19xz_71";
 const tokenStyles = {
   tokenContainer,
   contentWrapper,
