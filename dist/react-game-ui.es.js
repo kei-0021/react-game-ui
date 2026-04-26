@@ -984,11 +984,11 @@ const Cell = ({
     }
   );
 };
-const tokenContainer = "_tokenContainer_273im_8";
-const contentWrapper = "_contentWrapper_273im_23";
-const textWrapper = "_textWrapper_273im_56";
-const text = "_text_273im_56";
-const image = "_image_273im_72";
+const tokenContainer = "_tokenContainer_bx95h_8";
+const contentWrapper = "_contentWrapper_bx95h_23";
+const textWrapper = "_textWrapper_bx95h_56";
+const text = "_text_bx95h_56";
+const image = "_image_bx95h_72";
 const tokenStyles = {
   tokenContainer,
   contentWrapper,

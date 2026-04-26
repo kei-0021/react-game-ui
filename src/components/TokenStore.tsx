@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import { RoomId, TokenId, TokenStoreId } from '../types/definition.js';
 import { TokenData } from '../types/token.js';
-import { Token } from './Token.js';
+import { Token } from './Token/Token.js';
 import styles from './TokenStore.module.css';
 
 type TokenStoreProps = {

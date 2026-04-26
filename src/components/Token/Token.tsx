@@ -1,4 +1,4 @@
-// src/components/Token.tsx
+// src/components/Token/Token.tsx
 import { TokenData } from '@/types/token.js';
 import type { DragEvent } from 'react';
 import React from 'react';

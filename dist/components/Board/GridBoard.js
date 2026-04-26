@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
-import { Token } from '../Token.js';
+import { Token } from '../Token/Token.js';
 import boardStyles from './Board.module.css';
 import { Cell } from './Cell.js';
 /**

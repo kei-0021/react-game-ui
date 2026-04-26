@@ -1,7 +1,7 @@
 import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
 import * as React from 'react';
 import { Card } from '../Card/Card.js';
-import { Token } from '../Token.js';
+import { Token } from '../Token/Token.js';
 import playerListItemStyles from './PlayerListItem.module.css';
 export const PlayerListItem = React.memo(({ socket, roomId, player, currentPlayerId, myPlayerId, playCardButton, selectedCards, heldCards, toggleCardSelection, isDebug, enabled, }) => {
     const isActive = player.id === currentPlayerId;

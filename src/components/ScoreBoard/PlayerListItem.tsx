@@ -8,7 +8,7 @@ import { CardData } from '../../types/card.js';
 import { CardId, PlayerId, RoomId } from '../../types/definition.js';
 import type { Resource } from '../../types/resource.js';
 import { Card } from '../Card/Card.js';
-import { Token } from '../Token.js';
+import { Token } from '../Token/Token.js';
 import playerListItemStyles from './PlayerListItem.module.css';
 
 type PlayerListItemProps = {
