@@ -8,7 +8,7 @@ export { Draggable } from './components/Draggable.js';
 export { PlayField } from './components/PlayField.js';
 export { RemoteCursor } from './components/RemoteCursor.js';
 export { ScoreBoard } from './components/ScoreBoard/ScoreBoard.js';
-export { SystemMessageWindow } from './components/systemMessageWindow.js';
+export { SystemMessageWindow } from './components/SystemMessageWindow.js';
 export { Timer } from './components/Timer.js';
 export { TokenStore } from './components/TokenStore.js';
 export { DynamicComponent } from './dynamic/DynamicComponent.js';

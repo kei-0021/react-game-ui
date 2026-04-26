@@ -2730,9 +2730,9 @@ function ScoreBoard({
     ] })
   ] });
 }
-const messageContainer = "_messageContainer_1akhg_3";
-const messageList = "_messageList_1akhg_29";
-const messageItemActive = "_messageItemActive_1akhg_38";
+const messageContainer = "_messageContainer_k1r60_3";
+const messageList = "_messageList_k1r60_29";
+const messageItemActive = "_messageItemActive_k1r60_38";
 const styles$2 = {
   messageContainer,
   messageList,

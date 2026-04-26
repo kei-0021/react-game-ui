@@ -1,4 +1,4 @@
-// src/components/systemMessageWindow.tsx
+// src/components/SystemMessageWindow.tsx
 import { RoomId } from '@/types/definition.js';
 import { SystemMessageData } from '@/types/socketData.js';
 import { useEffect, useState } from 'react';
