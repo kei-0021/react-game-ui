@@ -929,7 +929,7 @@ function requireJsxRuntime() {
   return jsxRuntime.exports;
 }
 var jsxRuntimeExports = requireJsxRuntime();
-const cell = "_cell_1nnjo_3";
+const cell = "_cell_1nxmj_3";
 const cellStyles = {
   cell
 };
@@ -984,6 +984,335 @@ const Cell = ({
     }
   );
 };
+const tokenContainer = "_tokenContainer_n19xz_8";
+const contentWrapper = "_contentWrapper_n19xz_22";
+const textWrapper = "_textWrapper_n19xz_55";
+const text = "_text_n19xz_55";
+const image = "_image_n19xz_71";
+const tokenStyles = {
+  tokenContainer,
+  contentWrapper,
+  textWrapper,
+  text,
+  image
+};
+const TokenDisplayContent = React__default.memo(({ token, isFilled }) => {
+  const isSvg = token.image?.toLowerCase().endsWith(".svg");
+  if (!token.image) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        className: tokenStyles.contentWrapper,
+        style: { backgroundColor: token.color || "#4f4848ff", borderRadius: "50%" },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: tokenStyles.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: tokenStyles.text, children: token.name }) })
+      }
+    );
+  }
+  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
+  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
+  const URL_FUNC = ["u", "r", "l"].join("");
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      className: tokenStyles.contentWrapper,
+      style: {
+        // SVGなら背景と丸めを無効化、それ以外なら従来通り
+        backgroundColor: isSvg ? "transparent" : "#4f4848ff",
+        borderRadius: isSvg ? "0" : "50%",
+        boxShadow: isSvg ? "none" : void 0,
+        overflow: "visible"
+        // SVGの端が切れないように
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: tokenStyles.image }),
+        isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            style: {
+              position: "absolute",
+              inset: 0,
+              backgroundColor: token.color || "red",
+              [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
+              [MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
+              WebkitMaskSize: "contain",
+              maskSize: "contain",
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+              WebkitMaskPosition: "center",
+              maskPosition: "center",
+              mixBlendMode: "multiply",
+              pointerEvents: "none"
+            }
+          }
+        )
+      ]
+    }
+  );
+});
+const Token = ({
+  token,
+  style,
+  isFilled = false,
+  onClick,
+  onDoubleClick,
+  isDraggable,
+  onDragStart,
+  onDragEnd
+}) => {
+  const handleClick = (e) => {
+    e.stopPropagation();
+    onClick(token.id);
+  };
+  const handleDoubleClick = (e) => {
+    e.stopPropagation();
+    onDoubleClick(token.id);
+  };
+  const handleDragStart = (e) => {
+    if (isDraggable) {
+      e.stopPropagation();
+      e.dataTransfer.setData("tokenId", token.id);
+      e.dataTransfer.effectAllowed = "move";
+      onDragStart?.(e, token);
+    }
+  };
+  const handleDragEnd = (e) => {
+    onDragEnd?.(e, token);
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: tokenStyles.tokenContainer,
+      style: {
+        ...style
+      },
+      onClick: handleClick,
+      onDoubleClick: handleDoubleClick,
+      draggable: isDraggable,
+      onDragStart: handleDragStart,
+      onDragEnd: handleDragEnd,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token, isFilled })
+    }
+  );
+};
+const boardContainer = "_boardContainer_u7jlx_3";
+const boardStyles = {
+  boardContainer
+};
+function GridBoard({
+  socket,
+  roomId,
+  boardId,
+  myPlayerId,
+  allowTokenDrag = false,
+  moveRange = 2,
+  isExact = true,
+  width = 800,
+  height = 800,
+  renderCell
+}) {
+  const [isBoardReady, setIsBoardReady] = React.useState(false);
+  const [cells, setCells] = React.useState([]);
+  const [changedCells, setChangedCells] = React.useState([]);
+  const [highlightedCells, setHighlightedCells] = React.useState([]);
+  const [draggingTokenId, setDraggingTokenId] = React.useState(null);
+  const [tokens, setTokens] = React.useState([]);
+  const [serverExtraTokens, setServerExtraTokens] = React.useState([]);
+  const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
+  const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
+  const handleCellClick = (celldata, loc) => {
+    console.log("クリックされました");
+  };
+  const handleCellDoubleClick = (celldata, loc) => {
+    if (!isBoardReady || !socket) return;
+    console.log("ダブルクリックされました");
+  };
+  const handleCellDrop = (e, targetRow, targetCol) => {
+    e.preventDefault();
+    if (!isBoardReady || !socket) return;
+    const tokenId = e.dataTransfer.getData("tokenId");
+    const source = e.dataTransfer.getData("source");
+    const playerId = e.dataTransfer.getData("playerId");
+    if (!tokenId) return;
+    if (source === "ScoreBoard") {
+      socket.emit("token:play", {
+        roomId,
+        boardId,
+        tokenId,
+        playerId,
+        newPosition: { row: targetRow, col: targetCol }
+      });
+    } else {
+      setHighlightedCells([]);
+      socket.emit("token:move-on-board", {
+        roomId,
+        boardId,
+        tokenId,
+        newPosition: { row: targetRow, col: targetCol }
+      });
+    }
+  };
+  const requestMovableRange = (tokenId) => {
+    if (!isBoardReady || !socket) return;
+    const targetToken = tokens.find((t) => t.id === tokenId);
+    if (!targetToken) return;
+    if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
+    const requestData = {
+      roomId,
+      boardId,
+      tokenId,
+      moveRange,
+      isExact
+    };
+    socket.emit("token:movable-range", requestData);
+  };
+  const handleTokenDragStart = (e, token) => {
+    if (token.ownerId && token.ownerId !== myPlayerId) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData("tokenId", token.id);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggingTokenId(token.id);
+    requestMovableRange(token.id);
+  };
+  const handleTokenDragEnd = () => {
+    setDraggingTokenId(null);
+  };
+  const handleTokenDoubleClick = (tokenId) => {
+    if (!isBoardReady || !socket) return;
+    const targetToken = tokens.find((p) => p.id === tokenId);
+    if (!targetToken) return;
+    if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
+    const requestData = {
+      roomId,
+      boardId,
+      tokenId
+    };
+    socket.emit("token:move-from-board", requestData);
+  };
+  React.useEffect(() => {
+    const handleInitBoard = (data) => {
+      if (data.board && data.board.length > 0) {
+        setCells(data.board);
+        setIsBoardReady(true);
+      }
+      if (data.boardTokens) {
+        setServerExtraTokens(data.boardTokens);
+      }
+    };
+    socket.on("board:update", handleInitBoard);
+    return () => {
+      socket.off("board:update", handleInitBoard);
+    };
+  }, [socket]);
+  React.useEffect(() => {
+    const handleCellUpdate = (updatedLocs) => {
+      setChangedCells(updatedLocs);
+    };
+    socket.on("cell:update", handleCellUpdate);
+    return () => {
+      socket.off("cell:update", handleCellUpdate);
+    };
+  }, [socket]);
+  React.useEffect(() => {
+    const safeTokens = Array.isArray(serverExtraTokens) ? serverExtraTokens : [];
+    setTokens(safeTokens);
+  }, [serverExtraTokens]);
+  const boardStyle = {
+    "--board-rows": rows,
+    "--board-cols": cols,
+    display: "grid",
+    gridTemplateRows: `repeat(${rows}, 1fr)`,
+    gridTemplateColumns: `repeat(${cols}, 1fr)`,
+    gap: "4px",
+    width,
+    height,
+    position: "relative"
+  };
+  if (!isBoardReady) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        style: {
+          padding: "40px",
+          textAlign: "center",
+          fontSize: "20px",
+          color: "#e0e0e0"
+        },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "サーバーから盤面データをロード中..." })
+      }
+    );
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: boardStyles.boardContainer, style: boardStyle, children: [
+    cells.map((cell2) => {
+      const match = cell2.id.match(/r(\d+)c(\d+)/);
+      const r = match ? parseInt(match[1], 10) : 0;
+      const c = match ? parseInt(match[2], 10) : 0;
+      const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
+      const isHighlighted = tokens.find((p) => p.id === draggingTokenId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false;
+      const cellDataForRenderer = {
+        ...cell2,
+        content: isChanged ? cell2.changedContent : cell2.content
+      };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Cell,
+        {
+          locationData: { row: r, col: c },
+          cellData: cellDataForRenderer,
+          onClick: () => handleCellClick(),
+          onDoubleClick: () => handleCellDoubleClick(),
+          onDrop: (e) => handleCellDrop(e, r, c),
+          onDragOver: (e) => e.preventDefault(),
+          highlighted: isHighlighted && !!draggingTokenId,
+          changed: isChanged,
+          children: renderCell(cellDataForRenderer, r, c)
+        },
+        cell2.id
+      );
+    }),
+    tokens.map((token) => {
+      const pos = token.position;
+      if (!pos) return null;
+      const sameLocationTokens = tokens.filter((p) => {
+        const pPos = p.position;
+        return pPos && pPos.row === pos.row && pPos.col === pos.col;
+      });
+      const groupIndex = sameLocationTokens.findIndex((p) => p.id === token.id);
+      const groupCount = sameLocationTokens.length;
+      let offsetX = 0;
+      let offsetY = 0;
+      if (groupCount > 1) {
+        const radius = 18;
+        const angle = 2 * Math.PI / groupCount * groupIndex;
+        offsetX = radius * Math.cos(angle);
+        offsetY = radius * Math.sin(angle);
+      }
+      const tokenStyle = {
+        // 確定した座標 pos を使用
+        gridArea: `${pos.row + 1} / ${pos.col + 1} / span 1 / span 1`,
+        alignSelf: "center",
+        justifySelf: "center",
+        transform: `translate(${offsetX}px, ${offsetY}px)`,
+        transition: "transform 0.3s ease-in-out",
+        pointerEvents: draggingTokenId && draggingTokenId !== token.id ? "none" : "auto"
+      };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Token,
+        {
+          token,
+          style: tokenStyle,
+          isFilled: true,
+          onClick: requestMovableRange,
+          onDoubleClick: () => handleTokenDoubleClick(token.id),
+          isDraggable: allowTokenDrag,
+          onDragStart: handleTokenDragStart,
+          onDragEnd: handleTokenDragEnd
+        },
+        token.id
+      );
+    })
+  ] });
+}
 const card = "_card_1a59g_8";
 const cardWrapper = "_cardWrapper_1a59g_25";
 const deckCard = "_deckCard_1a59g_43";
@@ -1613,335 +1942,6 @@ function Draggable({
         ]
       }
     )
-  ] });
-}
-const boardContainer = "_boardContainer_12y1y_3";
-const boardStyles = {
-  boardContainer
-};
-const tokenContainer = "_tokenContainer_n19xz_8";
-const contentWrapper = "_contentWrapper_n19xz_22";
-const textWrapper = "_textWrapper_n19xz_55";
-const text = "_text_n19xz_55";
-const image = "_image_n19xz_71";
-const tokenStyles = {
-  tokenContainer,
-  contentWrapper,
-  textWrapper,
-  text,
-  image
-};
-const TokenDisplayContent = React__default.memo(({ token, isFilled }) => {
-  const isSvg = token.image?.toLowerCase().endsWith(".svg");
-  if (!token.image) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        className: tokenStyles.contentWrapper,
-        style: { backgroundColor: token.color || "#4f4848ff", borderRadius: "50%" },
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: tokenStyles.textWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: tokenStyles.text, children: token.name }) })
-      }
-    );
-  }
-  const MASK_IMAGE_PROP = ["mask", "Image"].join("");
-  const WEBKIT_MASK_IMAGE_PROP = ["Webkit", "Mask", "Image"].join("");
-  const URL_FUNC = ["u", "r", "l"].join("");
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "div",
-    {
-      className: tokenStyles.contentWrapper,
-      style: {
-        // SVGなら背景と丸めを無効化、それ以外なら従来通り
-        backgroundColor: isSvg ? "transparent" : "#4f4848ff",
-        borderRadius: isSvg ? "0" : "50%",
-        boxShadow: isSvg ? "none" : void 0,
-        overflow: "visible"
-        // SVGの端が切れないように
-      },
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: token.image, alt: token.name, className: tokenStyles.image }),
-        isFilled && /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "div",
-          {
-            style: {
-              position: "absolute",
-              inset: 0,
-              backgroundColor: token.color || "red",
-              [WEBKIT_MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
-              [MASK_IMAGE_PROP]: `${URL_FUNC}("${token.image}")`,
-              WebkitMaskSize: "contain",
-              maskSize: "contain",
-              WebkitMaskRepeat: "no-repeat",
-              maskRepeat: "no-repeat",
-              WebkitMaskPosition: "center",
-              maskPosition: "center",
-              mixBlendMode: "multiply",
-              pointerEvents: "none"
-            }
-          }
-        )
-      ]
-    }
-  );
-});
-const Token = ({
-  token,
-  style,
-  isFilled = false,
-  onClick,
-  onDoubleClick,
-  isDraggable,
-  onDragStart,
-  onDragEnd
-}) => {
-  const handleClick = (e) => {
-    e.stopPropagation();
-    onClick(token.id);
-  };
-  const handleDoubleClick = (e) => {
-    e.stopPropagation();
-    onDoubleClick(token.id);
-  };
-  const handleDragStart = (e) => {
-    if (isDraggable) {
-      e.stopPropagation();
-      e.dataTransfer.setData("tokenId", token.id);
-      e.dataTransfer.effectAllowed = "move";
-      onDragStart?.(e, token);
-    }
-  };
-  const handleDragEnd = (e) => {
-    onDragEnd?.(e, token);
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      className: tokenStyles.tokenContainer,
-      style: {
-        ...style
-      },
-      onClick: handleClick,
-      onDoubleClick: handleDoubleClick,
-      draggable: isDraggable,
-      onDragStart: handleDragStart,
-      onDragEnd: handleDragEnd,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(TokenDisplayContent, { token, isFilled })
-    }
-  );
-};
-function GridBoard({
-  socket,
-  roomId,
-  boardId,
-  myPlayerId,
-  allowTokenDrag = false,
-  moveRange = 2,
-  isExact = true,
-  width = 800,
-  height = 800,
-  renderCell
-}) {
-  const [isBoardReady, setIsBoardReady] = React.useState(false);
-  const [cells, setCells] = React.useState([]);
-  const [changedCells, setChangedCells] = React.useState([]);
-  const [highlightedCells, setHighlightedCells] = React.useState([]);
-  const [draggingTokenId, setDraggingTokenId] = React.useState(null);
-  const [tokens, setTokens] = React.useState([]);
-  const [serverExtraTokens, setServerExtraTokens] = React.useState([]);
-  const rows = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/r(\d+)/)?.[1] || "0", 10))) + 1 : 0;
-  const cols = cells.length > 0 ? Math.max(...cells.map((c) => parseInt(c.id.match(/c(\d+)/)?.[1] || "0", 10))) + 1 : 0;
-  const handleCellClick = (celldata, loc) => {
-    console.log("クリックされました");
-  };
-  const handleCellDoubleClick = (celldata, loc) => {
-    if (!isBoardReady || !socket) return;
-    console.log("ダブルクリックされました");
-  };
-  const handleCellDrop = (e, targetRow, targetCol) => {
-    e.preventDefault();
-    if (!isBoardReady || !socket) return;
-    const tokenId = e.dataTransfer.getData("tokenId");
-    const source = e.dataTransfer.getData("source");
-    const playerId = e.dataTransfer.getData("playerId");
-    if (!tokenId) return;
-    if (source === "ScoreBoard") {
-      socket.emit("token:play", {
-        roomId,
-        boardId,
-        tokenId,
-        playerId,
-        newPosition: { row: targetRow, col: targetCol }
-      });
-    } else {
-      setHighlightedCells([]);
-      socket.emit("token:move-on-board", {
-        roomId,
-        boardId,
-        tokenId,
-        newPosition: { row: targetRow, col: targetCol }
-      });
-    }
-  };
-  const requestMovableRange = (tokenId) => {
-    if (!isBoardReady || !socket) return;
-    const targetToken = tokens.find((t) => t.id === tokenId);
-    if (!targetToken) return;
-    if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
-    const requestData = {
-      roomId,
-      boardId,
-      tokenId,
-      moveRange,
-      isExact
-    };
-    socket.emit("token:movable-range", requestData);
-  };
-  const handleTokenDragStart = (e, token) => {
-    if (token.ownerId && token.ownerId !== myPlayerId) {
-      e.preventDefault();
-      return;
-    }
-    e.dataTransfer.setData("tokenId", token.id);
-    e.dataTransfer.effectAllowed = "move";
-    setDraggingTokenId(token.id);
-    requestMovableRange(token.id);
-  };
-  const handleTokenDragEnd = () => {
-    setDraggingTokenId(null);
-  };
-  const handleTokenDoubleClick = (tokenId) => {
-    if (!isBoardReady || !socket) return;
-    const targetToken = tokens.find((p) => p.id === tokenId);
-    if (!targetToken) return;
-    if (targetToken.ownerId && targetToken.ownerId !== myPlayerId) return;
-    const requestData = {
-      roomId,
-      boardId,
-      tokenId
-    };
-    socket.emit("token:move-from-board", requestData);
-  };
-  React.useEffect(() => {
-    const handleInitBoard = (data) => {
-      if (data.board && data.board.length > 0) {
-        setCells(data.board);
-        setIsBoardReady(true);
-      }
-      if (data.boardTokens) {
-        setServerExtraTokens(data.boardTokens);
-      }
-    };
-    socket.on("board:update", handleInitBoard);
-    return () => {
-      socket.off("board:update", handleInitBoard);
-    };
-  }, [socket]);
-  React.useEffect(() => {
-    const handleCellUpdate = (updatedLocs) => {
-      setChangedCells(updatedLocs);
-    };
-    socket.on("cell:update", handleCellUpdate);
-    return () => {
-      socket.off("cell:update", handleCellUpdate);
-    };
-  }, [socket]);
-  React.useEffect(() => {
-    const safeTokens = Array.isArray(serverExtraTokens) ? serverExtraTokens : [];
-    setTokens(safeTokens);
-  }, [serverExtraTokens]);
-  const boardStyle = {
-    "--board-rows": rows,
-    "--board-cols": cols,
-    display: "grid",
-    gridTemplateRows: `repeat(${rows}, 1fr)`,
-    gridTemplateColumns: `repeat(${cols}, 1fr)`,
-    gap: "4px",
-    width,
-    height,
-    position: "relative"
-  };
-  if (!isBoardReady) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        style: {
-          padding: "40px",
-          textAlign: "center",
-          fontSize: "20px",
-          color: "#e0e0e0"
-        },
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "サーバーから盤面データをロード中..." })
-      }
-    );
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: boardStyles.boardContainer, style: boardStyle, children: [
-    cells.map((cell2) => {
-      const match = cell2.id.match(/r(\d+)c(\d+)/);
-      const r = match ? parseInt(match[1], 10) : 0;
-      const c = match ? parseInt(match[2], 10) : 0;
-      const isChanged = changedCells.some((loc2) => loc2.row === r && loc2.col === c);
-      const isHighlighted = tokens.find((p) => p.id === draggingTokenId)?.movableCells?.some((loc2) => loc2.row === r && loc2.col === c) ?? false;
-      const cellDataForRenderer = {
-        ...cell2,
-        content: isChanged ? cell2.changedContent : cell2.content
-      };
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Cell,
-        {
-          locationData: { row: r, col: c },
-          cellData: cellDataForRenderer,
-          onClick: () => handleCellClick(),
-          onDoubleClick: () => handleCellDoubleClick(),
-          onDrop: (e) => handleCellDrop(e, r, c),
-          onDragOver: (e) => e.preventDefault(),
-          highlighted: isHighlighted && !!draggingTokenId,
-          changed: isChanged,
-          children: renderCell(cellDataForRenderer, r, c)
-        },
-        cell2.id
-      );
-    }),
-    tokens.map((token) => {
-      const pos = token.position;
-      if (!pos) return null;
-      const sameLocationTokens = tokens.filter((p) => {
-        const pPos = p.position;
-        return pPos && pPos.row === pos.row && pPos.col === pos.col;
-      });
-      const groupIndex = sameLocationTokens.findIndex((p) => p.id === token.id);
-      const groupCount = sameLocationTokens.length;
-      let offsetX = 0;
-      let offsetY = 0;
-      if (groupCount > 1) {
-        const radius = 18;
-        const angle = 2 * Math.PI / groupCount * groupIndex;
-        offsetX = radius * Math.cos(angle);
-        offsetY = radius * Math.sin(angle);
-      }
-      const tokenStyle = {
-        // 確定した座標 pos を使用
-        gridArea: `${pos.row + 1} / ${pos.col + 1} / span 1 / span 1`,
-        alignSelf: "center",
-        justifySelf: "center",
-        transform: `translate(${offsetX}px, ${offsetY}px)`,
-        transition: "transform 0.3s ease-in-out",
-        pointerEvents: draggingTokenId && draggingTokenId !== token.id ? "none" : "auto"
-      };
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Token,
-        {
-          token,
-          style: tokenStyle,
-          isFilled: true,
-          onClick: requestMovableRange,
-          onDoubleClick: () => handleTokenDoubleClick(token.id),
-          isDraggable: allowTokenDrag,
-          onDragStart: handleTokenDragStart,
-          onDragEnd: handleTokenDragEnd
-        },
-        token.id
-      );
-    })
   ] });
 }
 const rgPlayFieldContainer = "_rgPlayFieldContainer_qw96y_13";

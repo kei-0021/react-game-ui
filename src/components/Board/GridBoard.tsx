@@ -1,4 +1,4 @@
-// src/components/GridBoard.tsx
+// src/components/Board/GridBoard.tsx
 import { CellData, Player } from '@/index.js';
 import { BoardId, PlayerId, RoomId, TokenId } from '@/types/definition.js';
 import {
@@ -12,9 +12,9 @@ import { TokenData } from '@/types/token.js';
 import type { DragEvent } from 'react';
 import * as React from 'react';
 import { Socket } from 'socket.io-client';
+import { Token } from '../Token.js';
 import boardStyles from './Board.module.css';
 import { Cell } from './Cell.js';
-import { Token } from './Token.js';
 
 type GridLocation = {
   row: number;

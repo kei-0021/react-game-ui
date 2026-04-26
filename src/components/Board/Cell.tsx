@@ -1,4 +1,4 @@
-// src/components/Cell.tsx
+// src/components/Board/Cell.tsx
 import { CellData } from '@/types/cell.js';
 import * as React from 'react';
 import cellStyles from './Cell.module.css';

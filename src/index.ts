@@ -1,11 +1,11 @@
 // src/index.ts
 
 // コンポーネントは JS 実体に .js をつける
-export { Cell } from './components/Cell.js';
+export { Cell } from './components/Board/Cell.js';
+export { GridBoard } from './components/Board/GridBoard.js';
 export { Deck } from './components/Deck.js';
 export { Dice } from './components/Dice.js';
 export { Draggable } from './components/Draggable.js';
-export { GridBoard } from './components/GridBoard.js';
 export { PlayField } from './components/PlayField.js';
 export { RemoteCursor } from './components/RemoteCursor.js';
 export { ScoreBoard } from './components/ScoreBoard/ScoreBoard.js';
