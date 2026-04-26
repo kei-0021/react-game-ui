@@ -344,11 +344,7 @@ export function PlayField({
               )}
 
               {/* デバッグ用 z-index ラベル */}
-              {isDebug && (
-                <div className={playFieldStyles.debugLabel} style={{ zIndex: 10001 }}>
-                  Z:{currentZIndex}
-                </div>
-              )}
+              {isDebug && <div className={playFieldStyles.debugLabel}>Z:{currentZIndex}</div>}
 
               {/* ツールチップ */}
               {card.description && !isDragging && card.isFaceUp && (

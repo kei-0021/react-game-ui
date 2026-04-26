@@ -1313,17 +1313,17 @@ function GridBoard({
     })
   ] });
 }
-const card = "_card_1a59g_8";
-const cardWrapper = "_cardWrapper_1a59g_25";
-const deckCard = "_deckCard_1a59g_43";
-const cardImage = "_cardImage_1a59g_57";
-const cardNameWrapper = "_cardNameWrapper_1a59g_67";
-const cardNameText = "_cardNameText_1a59g_80";
-const tooltip$1 = "_tooltip_1a59g_95";
-const deckContainer = "_deckContainer_1a59g_144";
-const disabled = "_disabled_1a59g_151";
-const deckCardFront = "_deckCardFront_1a59g_158";
-const discardPileWrapper = "_discardPileWrapper_1a59g_188";
+const card = "_card_1h459_8";
+const cardWrapper = "_cardWrapper_1h459_25";
+const deckCard = "_deckCard_1h459_44";
+const cardImage = "_cardImage_1h459_58";
+const cardNameWrapper = "_cardNameWrapper_1h459_68";
+const cardNameText = "_cardNameText_1h459_79";
+const tooltip$1 = "_tooltip_1h459_94";
+const deckContainer = "_deckContainer_1h459_143";
+const disabled = "_disabled_1h459_150";
+const deckCardFront = "_deckCardFront_1h459_157";
+const discardPileWrapper = "_discardPileWrapper_1h459_187";
 const cardStyles = {
   card,
   cardWrapper,
@@ -1337,10 +1337,10 @@ const cardStyles = {
   deckCardFront,
   discardPileWrapper
 };
-const previewTrigger = "_previewTrigger_c10ve_9";
-const previewOverlay = "_previewOverlay_c10ve_13";
-const previewContent = "_previewContent_c10ve_27";
-const previewDescription = "_previewDescription_c10ve_31";
+const previewTrigger = "_previewTrigger_3xzty_9";
+const previewOverlay = "_previewOverlay_3xzty_13";
+const previewContent = "_previewContent_3xzty_27";
+const previewDescription = "_previewDescription_3xzty_31";
 const cardPreviewStyles = {
   previewTrigger,
   previewOverlay,
@@ -1950,15 +1950,15 @@ function Draggable({
     )
   ] });
 }
-const rgPlayFieldContainer = "_rgPlayFieldContainer_qw96y_13";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_qw96y_25";
-const contextMenu = "_contextMenu_qw96y_49";
-const menuItem = "_menuItem_qw96y_64";
-const menuIcon = "_menuIcon_qw96y_81";
-const separator = "_separator_qw96y_89";
-const debugLabel = "_debugLabel_qw96y_111";
+const rgPlayFieldContainer = "_rgPlayFieldContainer_15m0x_13";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_15m0x_25";
+const contextMenu = "_contextMenu_15m0x_49";
+const menuItem = "_menuItem_15m0x_64";
+const menuIcon = "_menuIcon_15m0x_81";
+const separator = "_separator_15m0x_89";
+const debugLabel = "_debugLabel_15m0x_111";
 const playFieldStyles = {
-  "rg-playfield": "_rg-playfield_qw96y_3",
+  "rg-playfield": "_rg-playfield_15m0x_3",
   rgPlayFieldContainer,
   rgPlayFieldOwnerBadge,
   contextMenu,
@@ -2187,7 +2187,7 @@ function PlayField({
                         card2.id
                       ),
                       card2.ownerId && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || "不明"}`, children: owner?.name?.[0] || "?" }),
-                      isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: [
+                      isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playFieldStyles.debugLabel, children: [
                         "Z:",
                         currentZIndex
                       ] }),
