@@ -1347,12 +1347,13 @@ const cardPreviewStyles = {
   previewContent,
   previewDescription
 };
-const CardPreview = ({ card: card2, children }) => {
+const CardPreview = ({ card: card2, children, disabled: disabled2 }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef(null);
   const hasPreview = !!card2.frontImage || !!card2.description;
   const handleMouseEnter = (x, y) => {
+    if (disabled2) return;
     timerRef.current = setTimeout(() => {
       setIsHovered(true);
       setPosition({ x, y });
@@ -1364,6 +1365,9 @@ const CardPreview = ({ card: card2, children }) => {
     }
     setIsHovered(false);
   };
+  if (disabled2 && isHovered) {
+    handleMouseLeave();
+  }
   if (!hasPreview) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
   }
@@ -1373,9 +1377,10 @@ const CardPreview = ({ card: card2, children }) => {
       className: cardPreviewStyles.previewTrigger,
       onMouseEnter: (e) => handleMouseEnter(0, 0),
       onMouseLeave: handleMouseLeave,
+      onPointerDown: handleMouseLeave,
       children: [
         children,
-        isHovered && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardPreviewStyles.previewContent, children: [
+        isHovered && !disabled2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardPreviewStyles.previewContent, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
           card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardPreviewStyles.previewDescription, children: card2.description })
         ] }) })
@@ -1405,9 +1410,17 @@ const Card = ({
   showPreview,
   onContextMenu
 }) => {
+  const [isDragging, setIsDragging] = React__default.useState(false);
   const handleClick = (e) => {
     e.stopPropagation();
     onClick?.(card2.id);
+  };
+  const handleDragStart = (e) => {
+    setIsDragging(true);
+    onDragStart?.(e);
+  };
+  const handleDragEnd = () => {
+    setIsDragging(false);
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
@@ -1417,10 +1430,11 @@ const Card = ({
       onClick: handleClick,
       onPointerUp,
       onPointerDown,
-      onDragStart,
+      onDragStart: handleDragStart,
+      onDragEnd: handleDragEnd,
       draggable: isDraggable,
       onContextMenu,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: card2, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }) })
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: card2, disabled: isDragging, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }) })
     }
   );
 };

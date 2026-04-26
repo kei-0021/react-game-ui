@@ -15,9 +15,17 @@ export const CardDisplayContent = React.memo(({ card, canSeeFront }) => {
     return (_jsx("div", { className: cardStyles.cardNameWrapper, children: _jsx("strong", { className: cardStyles.cardNameText, children: card.name }) }));
 });
 export const Card = ({ card, style, isActuallyFreeShape, canSeeFront, onClick, onPointerUp, onPointerDown, onDragStart, isDraggable, showPreview, onContextMenu, }) => {
+    const [isDragging, setIsDragging] = React.useState(false);
     const handleClick = (e) => {
         e.stopPropagation();
         onClick?.(card.id);
     };
-    return (_jsx("div", { className: `${isActuallyFreeShape ? '' : cardStyles.card} ${cardStyles.cardWrapper}`, style: style, onClick: handleClick, onPointerUp: onPointerUp, onPointerDown: onPointerDown, onDragStart: onDragStart, draggable: isDraggable, onContextMenu: onContextMenu, children: _jsx(CardPreview, { card: card, children: _jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront }) }) }));
+    const handleDragStart = (e) => {
+        setIsDragging(true);
+        onDragStart?.(e);
+    };
+    const handleDragEnd = () => {
+        setIsDragging(false);
+    };
+    return (_jsx("div", { className: `${isActuallyFreeShape ? '' : cardStyles.card} ${cardStyles.cardWrapper}`, style: style, onClick: handleClick, onPointerUp: onPointerUp, onPointerDown: onPointerDown, onDragStart: handleDragStart, onDragEnd: handleDragEnd, draggable: isDraggable, onContextMenu: onContextMenu, children: _jsx(CardPreview, { card: card, disabled: isDragging, children: _jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront }) }) }));
 };

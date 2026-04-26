@@ -51,9 +51,20 @@ export const Card = ({
   showPreview,
   onContextMenu,
 }: CardProps) => {
+  const [isDragging, setIsDragging] = React.useState(false);
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClick?.(card.id);
+  };
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    onDragStart?.(e);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
   };
 
   return (
@@ -63,11 +74,12 @@ export const Card = ({
       onClick={handleClick}
       onPointerUp={onPointerUp}
       onPointerDown={onPointerDown}
-      onDragStart={onDragStart}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       draggable={isDraggable}
       onContextMenu={onContextMenu}
     >
-      <CardPreview card={card}>
+      <CardPreview card={card} disabled={isDragging}>
         <CardDisplayContent card={card} canSeeFront={canSeeFront} />
       </CardPreview>
     </div>

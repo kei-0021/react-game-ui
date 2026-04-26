@@ -2,13 +2,16 @@ import { Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs } from "react/jsx-run
 import { useRef, useState } from 'react';
 import { CardDisplayContent } from './Card.js';
 import cardPreviewStyles from './CardPreview.module.css';
-export const CardPreview = ({ card, children }) => {
+export const CardPreview = ({ card, children, disabled }) => {
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
     const timerRef = useRef(null);
     const hasPreview = !!card.frontImage || !!card.description;
     // プレビューの表示はカーソル侵入から0.5秒待つ
     const handleMouseEnter = (x, y) => {
+        // disabled の場合はタイマーを開始しない
+        if (disabled)
+            return;
         timerRef.current = setTimeout(() => {
             setIsHovered(true);
             setPosition({ x, y });
@@ -20,8 +23,12 @@ export const CardPreview = ({ card, children }) => {
         }
         setIsHovered(false);
     };
+    // ドラッグ開始（disabledに変化）した瞬間に表示を消す
+    if (disabled && isHovered) {
+        handleMouseLeave();
+    }
     if (!hasPreview) {
         return _jsx(_Fragment, { children: children });
     }
-    return (_jsxs("div", { className: cardPreviewStyles.previewTrigger, onMouseEnter: (e) => handleMouseEnter(0, 0), onMouseLeave: handleMouseLeave, children: [children, isHovered && (_jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: _jsxs("div", { className: cardPreviewStyles.previewContent, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.description && _jsx("p", { className: cardPreviewStyles.previewDescription, children: card.description })] }) }))] }));
+    return (_jsxs("div", { className: cardPreviewStyles.previewTrigger, onMouseEnter: (e) => handleMouseEnter(0, 0), onMouseLeave: handleMouseLeave, onPointerDown: handleMouseLeave, children: [children, isHovered && !disabled && (_jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: _jsxs("div", { className: cardPreviewStyles.previewContent, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.description && _jsx("p", { className: cardPreviewStyles.previewDescription, children: card.description })] }) }))] }));
 };
