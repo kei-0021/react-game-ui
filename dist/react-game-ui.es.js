@@ -1,5 +1,6 @@
 import * as React from "react";
 import React__default, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { io } from "socket.io-client";
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production_min = {};
@@ -1337,10 +1338,10 @@ const cardStyles = {
   deckCardFront,
   discardPileWrapper
 };
-const previewTrigger = "_previewTrigger_3xzty_9";
-const previewOverlay = "_previewOverlay_3xzty_13";
-const previewContent = "_previewContent_3xzty_27";
-const previewDescription = "_previewDescription_3xzty_31";
+const previewTrigger = "_previewTrigger_1t05w_9";
+const previewOverlay = "_previewOverlay_1t05w_13";
+const previewContent = "_previewContent_1t05w_25";
+const previewDescription = "_previewDescription_1t05w_29";
 const cardPreviewStyles = {
   previewTrigger,
   previewOverlay,
@@ -1352,12 +1353,13 @@ const CardPreview = ({ card: card2, children, disabled: disabled2 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef(null);
   const hasPreview = !!card2.frontImage || !!card2.description;
-  const handleMouseEnter = (x, y) => {
+  const handleMouseEnter = (e) => {
     if (disabled2) return;
+    const { clientX, clientY } = e;
     timerRef.current = setTimeout(() => {
       setIsHovered(true);
-      setPosition({ x, y });
-    }, 500);
+      setPosition({ x: clientX, y: clientY });
+    }, 750);
   };
   const handleMouseLeave = () => {
     if (timerRef.current) {
@@ -1375,15 +1377,25 @@ const CardPreview = ({ card: card2, children, disabled: disabled2 }) => {
     "div",
     {
       className: cardPreviewStyles.previewTrigger,
-      onMouseEnter: (e) => handleMouseEnter(0, 0),
+      onMouseEnter: handleMouseEnter,
       onMouseLeave: handleMouseLeave,
       onPointerDown: handleMouseLeave,
       children: [
         children,
-        isHovered && !disabled2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardPreviewStyles.previewContent, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
-          card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardPreviewStyles.previewDescription, children: card2.description })
-        ] }) })
+        isHovered && !disabled2 && createPortal(
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: cardPreviewStyles.previewOverlay,
+              style: { top: `${position.y - 200}px`, left: `${position.x}px` },
+              children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardPreviewStyles.previewContent, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
+                card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardPreviewStyles.previewDescription, children: card2.description })
+              ] })
+            }
+          ),
+          document.getElementById("portal-root")
+        )
       ]
     }
   );

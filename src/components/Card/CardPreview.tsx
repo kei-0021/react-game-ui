@@ -1,6 +1,7 @@
 // src/components/Card/CardPreview.tsx
 import { CardData } from '@/types/card.js';
 import React, { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CardDisplayContent } from './Card.js';
 import cardPreviewStyles from './CardPreview.module.css';
 
@@ -17,15 +18,16 @@ export const CardPreview = ({ card, children, disabled }: CardPreviewProps) => {
 
   const hasPreview = !!card.frontImage || !!card.description;
 
-  // プレビューの表示はカーソル侵入から0.5秒待つ
-  const handleMouseEnter = (x: number, y: number) => {
-    // disabled の場合はタイマーを開始しない
+  // プレビューの表示はカーソル侵入から0.75秒待つ
+  const handleMouseEnter = (e: React.MouseEvent) => {
     if (disabled) return;
+
+    const { clientX, clientY } = e;
 
     timerRef.current = setTimeout(() => {
       setIsHovered(true);
-      setPosition({ x, y });
-    }, 500);
+      setPosition({ x: clientX, y: clientY });
+    }, 750);
   };
 
   const handleMouseLeave = () => {
@@ -47,19 +49,25 @@ export const CardPreview = ({ card, children, disabled }: CardPreviewProps) => {
   return (
     <div
       className={cardPreviewStyles.previewTrigger}
-      onMouseEnter={(e) => handleMouseEnter(0, 0)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onPointerDown={handleMouseLeave}
     >
       {children}
-      {isHovered && !disabled && (
-        <div className={cardPreviewStyles.previewOverlay} style={{ top: `${position.y}px`, left: `${position.x}px` }}>
-          <div className={cardPreviewStyles.previewContent}>
-            <CardDisplayContent card={card} canSeeFront={true} />
-            {card.description && <p className={cardPreviewStyles.previewDescription}>{card.description}</p>}
-          </div>
-        </div>
-      )}
+      {isHovered &&
+        !disabled &&
+        createPortal(
+          <div
+            className={cardPreviewStyles.previewOverlay}
+            style={{ top: `${position.y - 200}px`, left: `${position.x}px` }}
+          >
+            <div className={cardPreviewStyles.previewContent}>
+              <CardDisplayContent card={card} canSeeFront={true} />
+              {card.description && <p className={cardPreviewStyles.previewDescription}>{card.description}</p>}
+            </div>
+          </div>,
+          document.getElementById('portal-root')!,
+        )}
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import { Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CardDisplayContent } from './Card.js';
 import cardPreviewStyles from './CardPreview.module.css';
 export const CardPreview = ({ card, children, disabled }) => {
@@ -7,15 +8,15 @@ export const CardPreview = ({ card, children, disabled }) => {
     const [isHovered, setIsHovered] = useState(false);
     const timerRef = useRef(null);
     const hasPreview = !!card.frontImage || !!card.description;
-    // プレビューの表示はカーソル侵入から0.5秒待つ
-    const handleMouseEnter = (x, y) => {
-        // disabled の場合はタイマーを開始しない
+    // プレビューの表示はカーソル侵入から0.75秒待つ
+    const handleMouseEnter = (e) => {
         if (disabled)
             return;
+        const { clientX, clientY } = e;
         timerRef.current = setTimeout(() => {
             setIsHovered(true);
-            setPosition({ x, y });
-        }, 500);
+            setPosition({ x: clientX, y: clientY });
+        }, 750);
     };
     const handleMouseLeave = () => {
         if (timerRef.current) {
@@ -30,5 +31,7 @@ export const CardPreview = ({ card, children, disabled }) => {
     if (!hasPreview) {
         return _jsx(_Fragment, { children: children });
     }
-    return (_jsxs("div", { className: cardPreviewStyles.previewTrigger, onMouseEnter: (e) => handleMouseEnter(0, 0), onMouseLeave: handleMouseLeave, onPointerDown: handleMouseLeave, children: [children, isHovered && !disabled && (_jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y}px`, left: `${position.x}px` }, children: _jsxs("div", { className: cardPreviewStyles.previewContent, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.description && _jsx("p", { className: cardPreviewStyles.previewDescription, children: card.description })] }) }))] }));
+    return (_jsxs("div", { className: cardPreviewStyles.previewTrigger, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, onPointerDown: handleMouseLeave, children: [children, isHovered &&
+                !disabled &&
+                createPortal(_jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y - 200}px`, left: `${position.x}px` }, children: _jsxs("div", { className: cardPreviewStyles.previewContent, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.description && _jsx("p", { className: cardPreviewStyles.previewDescription, children: card.description })] }) }), document.getElementById('portal-root'))] }));
 };

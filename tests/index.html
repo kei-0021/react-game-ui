@@ -1,12 +1,25 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ReactGameUI</title>
+    <style>
+      /* ポータル用の箱を画面の一番手前に持ってくる設定 */
+      #portal-root {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+        pointer-events: none;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+
+    <div id="portal-root"></div>
+
     <script type="module" src="./main.tsx"></script>
   </body>
 </html>
