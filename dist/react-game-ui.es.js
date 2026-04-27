@@ -1313,17 +1313,17 @@ function GridBoard({
     })
   ] });
 }
-const card = "_card_lq9cc_8";
-const cardWrapper = "_cardWrapper_lq9cc_22";
-const deckCard = "_deckCard_lq9cc_41";
-const cardImage = "_cardImage_lq9cc_55";
-const cardNameWrapper = "_cardNameWrapper_lq9cc_65";
-const cardNameText = "_cardNameText_lq9cc_78";
-const tooltip$1 = "_tooltip_lq9cc_93";
-const deckContainer = "_deckContainer_lq9cc_142";
-const disabled = "_disabled_lq9cc_149";
-const deckCardFront = "_deckCardFront_lq9cc_156";
-const discardPileWrapper = "_discardPileWrapper_lq9cc_186";
+const card = "_card_11g73_8";
+const cardWrapper = "_cardWrapper_11g73_22";
+const deckCard = "_deckCard_11g73_40";
+const cardImage = "_cardImage_11g73_54";
+const cardNameWrapper = "_cardNameWrapper_11g73_64";
+const cardNameText = "_cardNameText_11g73_77";
+const tooltip$1 = "_tooltip_11g73_92";
+const deckContainer = "_deckContainer_11g73_141";
+const disabled = "_disabled_11g73_148";
+const deckCardFront = "_deckCardFront_11g73_155";
+const discardPileWrapper = "_discardPileWrapper_11g73_185";
 const cardStyles = {
   card,
   cardWrapper,

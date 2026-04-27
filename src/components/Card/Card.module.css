@@ -20,7 +20,6 @@
 }
 
 .cardWrapper {
-  background-color: white;
   cursor: pointer;
   position: relative;
   display: flex;
