@@ -1,7 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
 import { Card } from './Card/Card.js';
-import cardStyles from './Card/Card.module.css';
 import playFieldStyles from './PlayField.module.css';
 // 通信量制限用の throttle
 function throttle(func, limit) {
@@ -211,7 +210,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                 display: 'block',
                                 position: layoutMode === 'free' ? 'absolute' : 'relative',
                                 zIndex: currentZIndex,
-                            }, children: [_jsx(Card, { card: card, style: cardStyle, isActuallyFreeShape: isActuallyFreeShape, canSeeFront: card.isFaceUp, onPointerUp: handlePointerUp, onPointerDown: (e) => handlePointerDown(e, card), onDragStart: (e) => e.preventDefault(), isDraggable: false, onContextMenu: (e) => handleContextMenu(e, card) }, card.id), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && _jsxs("div", { className: playFieldStyles.debugLabel, children: ["Z:", currentZIndex] }), card.description && !isDragging && card.isFaceUp && (_jsx("span", { className: cardStyles.tooltip, children: card.description }))] }));
+                            }, children: [_jsx(Card, { card: card, style: cardStyle, isActuallyFreeShape: isActuallyFreeShape, canSeeFront: card.isFaceUp, onPointerUp: handlePointerUp, onPointerDown: (e) => handlePointerDown(e, card), onDragStart: (e) => e.preventDefault(), isDraggable: false, onContextMenu: (e) => handleContextMenu(e, card) }, card.id), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && _jsxs("div", { className: playFieldStyles.debugLabel, children: ["Z:", currentZIndex] })] }));
                     }), contextMenu && (_jsxs("div", { className: playFieldStyles.contextMenu, style: {
                             top: contextMenu.y,
                             left: contextMenu.x,

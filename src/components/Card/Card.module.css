@@ -86,40 +86,6 @@
 
 /*
  * ===========================================
- * tooltip
- * ===========================================
- */
-.tooltip {
-  display: none;
-  position: absolute;
-  bottom: 110%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 160px;
-  background-color: rgba(0, 0, 0, 0.9);
-  color: #fff;
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  line-height: 1.4;
-  pointer-events: none;
-  word-break: break-all;
-  white-space: normal;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-}
-
-.cardWrapper:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-  z-index: 1000;
-}
-
-.cardWrapper:hover .tooltip {
-  display: block;
-}
-
-/*
- * ===========================================
  * Others
  * ===========================================
  */
@@ -186,9 +152,4 @@
   border: 1px solid #777;
   background-color: #e0e0e0;
   overflow: visible;
-}
-
-.deckCardFront.discardTopCard:hover .tooltip {
-  visibility: visible !important;
-  opacity: 1 !important;
 }

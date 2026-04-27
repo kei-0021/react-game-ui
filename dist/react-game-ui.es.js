@@ -1314,17 +1314,16 @@ function GridBoard({
     })
   ] });
 }
-const card = "_card_11g73_8";
-const cardWrapper = "_cardWrapper_11g73_22";
-const deckCard = "_deckCard_11g73_40";
-const cardImage = "_cardImage_11g73_54";
-const cardNameWrapper = "_cardNameWrapper_11g73_64";
-const cardNameText = "_cardNameText_11g73_77";
-const tooltip$1 = "_tooltip_11g73_92";
-const deckContainer = "_deckContainer_11g73_141";
-const disabled = "_disabled_11g73_148";
-const deckCardFront = "_deckCardFront_11g73_155";
-const discardPileWrapper = "_discardPileWrapper_11g73_185";
+const card = "_card_1arnu_8";
+const cardWrapper = "_cardWrapper_1arnu_22";
+const deckCard = "_deckCard_1arnu_40";
+const cardImage = "_cardImage_1arnu_54";
+const cardNameWrapper = "_cardNameWrapper_1arnu_64";
+const cardNameText = "_cardNameText_1arnu_77";
+const deckContainer = "_deckContainer_1arnu_107";
+const disabled = "_disabled_1arnu_114";
+const deckCardFront = "_deckCardFront_1arnu_121";
+const discardPileWrapper = "_discardPileWrapper_1arnu_151";
 const cardStyles = {
   card,
   cardWrapper,
@@ -1332,7 +1331,6 @@ const cardStyles = {
   cardImage,
   cardNameWrapper,
   cardNameText,
-  tooltip: tooltip$1,
   deckContainer,
   disabled,
   deckCardFront,
@@ -2216,8 +2214,7 @@ function PlayField({
                       isDebug && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: playFieldStyles.debugLabel, children: [
                         "Z:",
                         currentZIndex
-                      ] }),
-                      card2.description && !isDragging && card2.isFaceUp && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cardStyles.tooltip, children: card2.description })
+                      ] })
                     ]
                   }
                 );

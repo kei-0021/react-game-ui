@@ -14,7 +14,6 @@ import { Socket } from 'socket.io-client';
 import type { CardData } from '../types/card.js';
 import type { CardId, DeckId, PlayerId, RoomId } from '../types/definition.js';
 import { Card } from './Card/Card.js';
-import cardStyles from './Card/Card.module.css';
 import playFieldStyles from './PlayField.module.css';
 
 // 通信量制限用の throttle
@@ -345,11 +344,6 @@ export function PlayField({
 
               {/* デバッグ用 z-index ラベル */}
               {isDebug && <div className={playFieldStyles.debugLabel}>Z:{currentZIndex}</div>}
-
-              {/* ツールチップ */}
-              {card.description && !isDragging && card.isFaceUp && (
-                <span className={cardStyles.tooltip}>{card.description}</span>
-              )}
             </div>
           );
         })}
