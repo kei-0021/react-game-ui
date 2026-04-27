@@ -6,6 +6,7 @@
  * ===========================================
  */
 
+/* ホバーを検知する箱 */
 .previewTrigger {
   display: inline-block;
 }
@@ -24,6 +25,9 @@
 
 .previewContent {
   width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .previewDescription {

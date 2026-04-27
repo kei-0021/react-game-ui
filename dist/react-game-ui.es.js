@@ -1338,10 +1338,10 @@ const cardStyles = {
   deckCardFront,
   discardPileWrapper
 };
-const previewTrigger = "_previewTrigger_1t05w_9";
-const previewOverlay = "_previewOverlay_1t05w_13";
-const previewContent = "_previewContent_1t05w_25";
-const previewDescription = "_previewDescription_1t05w_29";
+const previewTrigger = "_previewTrigger_kk87o_10";
+const previewOverlay = "_previewOverlay_kk87o_14";
+const previewContent = "_previewContent_kk87o_26";
+const previewDescription = "_previewDescription_kk87o_33";
 const cardPreviewStyles = {
   previewTrigger,
   previewOverlay,
