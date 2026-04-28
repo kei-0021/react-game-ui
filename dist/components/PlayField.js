@@ -210,7 +210,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                 display: 'block',
                                 position: layoutMode === 'free' ? 'absolute' : 'relative',
                                 zIndex: currentZIndex,
-                            }, children: [_jsx(Card, { card: card, style: cardStyle, isActuallyFreeShape: isActuallyFreeShape, canSeeFront: card.isFaceUp, onPointerUp: handlePointerUp, onPointerDown: (e) => handlePointerDown(e, card), onDragStart: (e) => e.preventDefault(), isDraggable: false, onContextMenu: (e) => handleContextMenu(e, card) }, card.id), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && _jsxs("div", { className: playFieldStyles.debugLabel, children: ["Z:", currentZIndex] })] }));
+                            }, children: [_jsx(Card, { card: card, style: cardStyle, isActuallyFreeShape: isActuallyFreeShape, canSeeFront: card.isFaceUp, onPointerUp: handlePointerUp, onPointerDown: (e) => handlePointerDown(e, card), onDragStart: (e) => e.preventDefault(), isDraggable: false, size: { width: 90, height: 120 }, onContextMenu: (e) => handleContextMenu(e, card) }, card.id), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && _jsxs("div", { className: playFieldStyles.debugLabel, children: ["Z:", currentZIndex] })] }));
                     }), contextMenu && (_jsxs("div", { className: playFieldStyles.contextMenu, style: {
                             top: contextMenu.y,
                             left: contextMenu.x,

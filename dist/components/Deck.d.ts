@@ -8,6 +8,10 @@ type DeckProps = {
     currentPlayerId: PlayerId | null;
     myPlayerId: PlayerId | null;
     alwaysDraw?: boolean;
+    size?: {
+        width: number;
+        height: number;
+    };
     enabled?: boolean;
 };
 /**
@@ -19,8 +23,9 @@ type DeckProps = {
  * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
  * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
+ * @param size={ width: 90, height: 120 } - デッキのサイズ。
  * @param enabled=true - 各種操作が有効かどうかのフラグ。
  */
-export declare function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerId, alwaysDraw, enabled, }: DeckProps): import("react/jsx-runtime").JSX.Element;
+export declare function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerId, alwaysDraw, size, enabled, }: DeckProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Deck.d.ts.map

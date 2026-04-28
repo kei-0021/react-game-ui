@@ -1,9 +1,13 @@
 import { CardData } from '@/types/card.js';
 import { CardId } from '@/types/definition.js';
 import React from 'react';
-export declare const CardDisplayContent: React.MemoExoticComponent<({ card, canSeeFront }: {
+export declare const CardDisplayContent: React.MemoExoticComponent<({ card, canSeeFront, size }: {
     card: CardData;
     canSeeFront: boolean;
+    size: {
+        width: number;
+        height: number;
+    };
 }) => import("react/jsx-runtime").JSX.Element>;
 type CardProps = {
     card: CardData;
@@ -15,9 +19,13 @@ type CardProps = {
     onPointerUp?: (e: React.PointerEvent) => void;
     onDragStart?: React.DragEventHandler<HTMLDivElement>;
     isDraggable?: boolean;
+    size: {
+        width: number;
+        height: number;
+    };
     showPreview?: boolean;
     onContextMenu?: (e: React.MouseEvent) => void;
 };
-export declare const Card: ({ card, style, isActuallyFreeShape, canSeeFront, onClick, onPointerUp, onPointerDown, onDragStart, isDraggable, showPreview, onContextMenu, }: CardProps) => import("react/jsx-runtime").JSX.Element;
+export declare const Card: ({ card, style, isActuallyFreeShape, canSeeFront, onClick, onPointerUp, onPointerDown, onDragStart, isDraggable, size, showPreview, onContextMenu, }: CardProps) => import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Card.d.ts.map

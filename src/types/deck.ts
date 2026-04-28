@@ -1,3 +1,4 @@
+// src/types/deck.ts
 import type { CardData } from './card.js';
 import type { DeckId } from './definition.js';
 

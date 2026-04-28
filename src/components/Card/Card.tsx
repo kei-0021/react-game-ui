@@ -5,24 +5,26 @@ import React from 'react';
 import cardStyles from './Card.module.css';
 import { CardPreview } from './CardPreview.js';
 
-export const CardDisplayContent = React.memo(({ card, canSeeFront }: { card: CardData; canSeeFront: boolean }) => {
-  // 裏向きの場合
-  if (!canSeeFront) {
-    return <div className={cardStyles.deckCard} style={{ backgroundColor: card.backColor || '#333' }} />;
-  }
+export const CardDisplayContent = React.memo(
+  ({ card, canSeeFront, size }: { card: CardData; canSeeFront: boolean; size: { width: number; height: number } }) => {
+    // 裏向きの場合
+    if (!canSeeFront) {
+      return <div className={cardStyles.deckCard} style={{ backgroundColor: card.backColor || '#333' }} />;
+    }
 
-  // 表向き かつ 画像がある場合：背景色を指定しない
-  if (card.frontImage) {
-    return <img src={card.frontImage} alt={card.name} className={cardStyles.cardImage} />;
-  }
+    // 表向き かつ 画像がある場合：背景色を指定しない
+    if (card.frontImage) {
+      return <img src={card.frontImage} alt={card.name} className={cardStyles.cardImage} />;
+    }
 
-  // 表向き かつ 画像がない場合：白背景のラッパーで名前を表示
-  return (
-    <div className={cardStyles.cardNameWrapper}>
-      <strong className={cardStyles.cardNameText}>{card.name}</strong>
-    </div>
-  );
-});
+    // 表向き かつ 画像がない場合：白背景のラッパーで名前を表示
+    return (
+      <div className={cardStyles.cardNameWrapper}>
+        <strong className={cardStyles.cardNameText}>{card.name}</strong>
+      </div>
+    );
+  },
+);
 
 type CardProps = {
   card: CardData;
@@ -34,6 +36,7 @@ type CardProps = {
   onPointerUp?: (e: React.PointerEvent) => void;
   onDragStart?: React.DragEventHandler<HTMLDivElement>;
   isDraggable?: boolean;
+  size: { width: number; height: number };
   showPreview?: boolean;
   onContextMenu?: (e: React.MouseEvent) => void;
 };
@@ -48,6 +51,7 @@ export const Card = ({
   onPointerDown,
   onDragStart,
   isDraggable,
+  size,
   showPreview,
   onContextMenu,
 }: CardProps) => {
@@ -79,8 +83,8 @@ export const Card = ({
       draggable={isDraggable}
       onContextMenu={onContextMenu}
     >
-      <CardPreview card={card} disabled={isDragging}>
-        <CardDisplayContent card={card} canSeeFront={canSeeFront} />
+      <CardPreview card={card} disabled={isDragging} size={size}>
+        <CardDisplayContent card={card} canSeeFront={canSeeFront} size={size} />
       </CardPreview>
     </div>
   );

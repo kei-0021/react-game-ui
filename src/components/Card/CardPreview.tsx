@@ -8,10 +8,11 @@ import cardPreviewStyles from './CardPreview.module.css';
 type CardPreviewProps = {
   card: CardData;
   children: React.ReactNode;
+  size: { width: number; height: number };
   disabled?: boolean;
 };
 
-export const CardPreview = ({ card, children, disabled }: CardPreviewProps) => {
+export const CardPreview = ({ card, children, size, disabled }: CardPreviewProps) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -62,7 +63,7 @@ export const CardPreview = ({ card, children, disabled }: CardPreviewProps) => {
             style={{ top: `${position.y - 200}px`, left: `${position.x}px` }}
           >
             <div className={cardPreviewStyles.previewContent}>
-              <CardDisplayContent card={card} canSeeFront={true} />
+              <CardDisplayContent card={card} canSeeFront={true} size={size} />
               {card.description && <p className={cardPreviewStyles.previewDescription}>{card.description}</p>}
             </div>
           </div>,

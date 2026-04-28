@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CardDisplayContent } from './Card.js';
 import cardPreviewStyles from './CardPreview.module.css';
-export const CardPreview = ({ card, children, disabled }) => {
+export const CardPreview = ({ card, children, size, disabled }) => {
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
     const timerRef = useRef(null);
@@ -33,5 +33,5 @@ export const CardPreview = ({ card, children, disabled }) => {
     }
     return (_jsxs("div", { className: cardPreviewStyles.previewTrigger, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, onPointerDown: handleMouseLeave, children: [children, isHovered &&
                 !disabled &&
-                createPortal(_jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y - 200}px`, left: `${position.x}px` }, children: _jsxs("div", { className: cardPreviewStyles.previewContent, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true }), card.description && _jsx("p", { className: cardPreviewStyles.previewDescription, children: card.description })] }) }), document.getElementById('portal-root'))] }));
+                createPortal(_jsx("div", { className: cardPreviewStyles.previewOverlay, style: { top: `${position.y - 200}px`, left: `${position.x}px` }, children: _jsxs("div", { className: cardPreviewStyles.previewContent, children: [_jsx(CardDisplayContent, { card: card, canSeeFront: true, size: size }), card.description && _jsx("p", { className: cardPreviewStyles.previewDescription, children: card.description })] }) }), document.getElementById('portal-root'))] }));
 };

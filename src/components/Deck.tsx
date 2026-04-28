@@ -17,6 +17,7 @@ type DeckProps = {
   currentPlayerId: PlayerId | null;
   myPlayerId: PlayerId | null;
   alwaysDraw?: boolean;
+  size?: { width: number; height: number };
   enabled?: boolean;
 };
 
@@ -29,6 +30,7 @@ type DeckProps = {
  * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
  * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
+ * @param size={ width: 90, height: 120 } - デッキのサイズ。
  * @param enabled=true - 各種操作が有効かどうかのフラグ。
  */
 export function Deck({
@@ -39,6 +41,7 @@ export function Deck({
   myPlayerId,
   currentPlayerId,
   alwaysDraw = false,
+  size = { width: 90, height: 120 },
   enabled = true,
 }: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<CardData[]>([]);
@@ -110,7 +113,8 @@ export function Deck({
       <div className={deckStyles.deckWrapperFlex}>
         {/* 山札 */}
         <div
-          className={`${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ''}`}
+          className={`${deckStyles.deckContainer} ${!enabled ? cardStyles.disabled : ''}`}
+          style={{ width: size.width, height: size.height }}
           onClick={() => enabled && draw()}
         >
           {/* 枚数バッジ */}
@@ -131,18 +135,21 @@ export function Deck({
 
         {/* 捨て札 */}
         <div
-          className={`${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`}
+          className={`${deckStyles.deckContainer} ${cardStyles.discardPileWrapper}`}
+          style={{ width: size.width, height: size.height }}
           onContextMenu={handleContextMenu}
         >
           {discardPile.map((c, i) => (
             <div
               className={cardStyles.deckCardFront}
               style={{
+                width: size.width,
+                height: size.height,
                 zIndex: i + 1,
                 transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
               }}
             >
-              <Card card={c} canSeeFront={true} showPreview={true} />
+              <Card card={c} canSeeFront={true} showPreview={true} size={size} />
             </div>
           ))}
         </div>
@@ -161,7 +168,7 @@ export function Deck({
                   .reverse()
                   .map((c) => (
                     <div key={c.id} className={deckStyles.discardModalCard}>
-                      <CardDisplayContent card={c} canSeeFront={true} />
+                      <CardDisplayContent card={c} canSeeFront={true} size={size} />
                     </div>
                   ))}
               </div>

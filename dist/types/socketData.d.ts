@@ -57,11 +57,6 @@ export type DeckResetData = {
     roomId: RoomId;
     deckId: DeckId;
 };
-export type DeckUpdateData = {
-    currentDeck: CardData[];
-    playFieldCards: CardData[];
-    discardPile: CardData[];
-};
 export type CardPlayData = {
     roomId: RoomId;
     deckId: DeckId;
@@ -93,6 +88,11 @@ export type CardMoveFromFieldData = {
     deckId: DeckId;
     cardId: string;
     playerId?: PlayerId | null;
+};
+export type DeckUpdateData = {
+    currentDeck: CardData[];
+    playFieldCards: CardData[];
+    discardPile: CardData[];
 };
 export type TokenStoreUpdateData = {
     tokenStore: TokenData[];

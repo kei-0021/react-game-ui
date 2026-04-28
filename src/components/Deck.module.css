@@ -1,5 +1,11 @@
 /* src/components/Deck.module.css */
 
+/* デッキコンテナ */
+.deckContainer {
+  position: relative;
+  cursor: pointer;
+}
+
 /* --- 基本レイアウト（容器と配置） --- */
 .deckSection {
   width: 280px;

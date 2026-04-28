@@ -1314,16 +1314,15 @@ function GridBoard({
     })
   ] });
 }
-const card = "_card_1arnu_8";
-const cardWrapper = "_cardWrapper_1arnu_22";
-const deckCard = "_deckCard_1arnu_40";
-const cardImage = "_cardImage_1arnu_54";
-const cardNameWrapper = "_cardNameWrapper_1arnu_64";
-const cardNameText = "_cardNameText_1arnu_77";
-const deckContainer = "_deckContainer_1arnu_107";
-const disabled = "_disabled_1arnu_114";
-const deckCardFront = "_deckCardFront_1arnu_121";
-const discardPileWrapper = "_discardPileWrapper_1arnu_151";
+const card = "_card_1jxmo_8";
+const cardWrapper = "_cardWrapper_1jxmo_22";
+const deckCard = "_deckCard_1jxmo_42";
+const cardImage = "_cardImage_1jxmo_56";
+const cardNameWrapper = "_cardNameWrapper_1jxmo_66";
+const cardNameText = "_cardNameText_1jxmo_79";
+const disabled = "_disabled_1jxmo_108";
+const deckCardFront = "_deckCardFront_1jxmo_115";
+const discardPileWrapper = "_discardPileWrapper_1jxmo_144";
 const cardStyles = {
   card,
   cardWrapper,
@@ -1331,22 +1330,21 @@ const cardStyles = {
   cardImage,
   cardNameWrapper,
   cardNameText,
-  deckContainer,
   disabled,
   deckCardFront,
   discardPileWrapper
 };
-const previewTrigger = "_previewTrigger_kk87o_10";
-const previewOverlay = "_previewOverlay_kk87o_14";
-const previewContent = "_previewContent_kk87o_26";
-const previewDescription = "_previewDescription_kk87o_33";
+const previewTrigger = "_previewTrigger_flhb7_10";
+const previewOverlay = "_previewOverlay_flhb7_16";
+const previewContent = "_previewContent_flhb7_28";
+const previewDescription = "_previewDescription_flhb7_35";
 const cardPreviewStyles = {
   previewTrigger,
   previewOverlay,
   previewContent,
   previewDescription
 };
-const CardPreview = ({ card: card2, children, disabled: disabled2 }) => {
+const CardPreview = ({ card: card2, children, size, disabled: disabled2 }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef(null);
@@ -1387,7 +1385,7 @@ const CardPreview = ({ card: card2, children, disabled: disabled2 }) => {
               className: cardPreviewStyles.previewOverlay,
               style: { top: `${position.y - 200}px`, left: `${position.x}px` },
               children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cardPreviewStyles.previewContent, children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront: true, size }),
                 card2.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cardPreviewStyles.previewDescription, children: card2.description })
               ] })
             }
@@ -1398,15 +1396,17 @@ const CardPreview = ({ card: card2, children, disabled: disabled2 }) => {
     }
   );
 };
-const CardDisplayContent = React__default.memo(({ card: card2, canSeeFront }) => {
-  if (!canSeeFront) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card2.backColor || "#333" } });
+const CardDisplayContent = React__default.memo(
+  ({ card: card2, canSeeFront, size }) => {
+    if (!canSeeFront) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card2.backColor || "#333" } });
+    }
+    if (card2.frontImage) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: cardStyles.cardImage });
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
   }
-  if (card2.frontImage) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: cardStyles.cardImage });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
-});
+);
 const Card = ({
   card: card2,
   style,
@@ -1417,6 +1417,7 @@ const Card = ({
   onPointerDown,
   onDragStart,
   isDraggable,
+  size,
   showPreview,
   onContextMenu
 }) => {
@@ -1444,21 +1445,23 @@ const Card = ({
       onDragEnd: handleDragEnd,
       draggable: isDraggable,
       onContextMenu,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: card2, disabled: isDragging, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront }) })
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: card2, disabled: isDragging, size, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront, size }) })
     }
   );
 };
-const deckSection = "_deckSection_6l4k7_4";
-const deckWrapperFlex = "_deckWrapperFlex_6l4k7_16";
-const deckTitle = "_deckTitle_6l4k7_21";
-const deckControls = "_deckControls_6l4k7_27";
-const deckCountBadge = "_deckCountBadge_6l4k7_32";
-const discardModalOverlay = "_discardModalOverlay_6l4k7_61";
-const discardModalContent = "_discardModalContent_6l4k7_74";
-const discardModalHeader = "_discardModalHeader_6l4k7_85";
-const discardModalGrid = "_discardModalGrid_6l4k7_99";
-const discardModalCard = "_discardModalCard_6l4k7_106";
+const deckContainer = "_deckContainer_1yskp_4";
+const deckSection = "_deckSection_1yskp_10";
+const deckWrapperFlex = "_deckWrapperFlex_1yskp_22";
+const deckTitle = "_deckTitle_1yskp_27";
+const deckControls = "_deckControls_1yskp_33";
+const deckCountBadge = "_deckCountBadge_1yskp_38";
+const discardModalOverlay = "_discardModalOverlay_1yskp_67";
+const discardModalContent = "_discardModalContent_1yskp_80";
+const discardModalHeader = "_discardModalHeader_1yskp_91";
+const discardModalGrid = "_discardModalGrid_1yskp_105";
+const discardModalCard = "_discardModalCard_1yskp_112";
 const deckStyles = {
+  deckContainer,
   deckSection,
   deckWrapperFlex,
   deckTitle,
@@ -1478,6 +1481,7 @@ function Deck({
   myPlayerId,
   currentPlayerId,
   alwaysDraw = false,
+  size = { width: 90, height: 120 },
   enabled = true
 }) {
   const [deckCards, setDeckCards] = React.useState([]);
@@ -1529,7 +1533,8 @@ function Deck({
       /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {
-          className: `${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ""}`,
+          className: `${deckStyles.deckContainer} ${!enabled ? cardStyles.disabled : ""}`,
+          style: { width: size.width, height: size.height },
           onClick: () => enabled && draw(),
           children: [
             deckCards.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.deckCountBadge, children: deckCards.length }),
@@ -1551,17 +1556,20 @@ function Deck({
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
-          className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`,
+          className: `${deckStyles.deckContainer} ${cardStyles.discardPileWrapper}`,
+          style: { width: size.width, height: size.height },
           onContextMenu: handleContextMenu,
           children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
               className: cardStyles.deckCardFront,
               style: {
+                width: size.width,
+                height: size.height,
                 zIndex: i + 1,
                 transform: `translate(${i * -0.3}px, ${i * -0.3}px)`
               },
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { card: c, canSeeFront: true, showPreview: true })
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { card: c, canSeeFront: true, showPreview: true, size })
             }
           ))
         }
@@ -1571,7 +1579,7 @@ function Deck({
           /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { children: "捨て札の内容" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => setShowDiscardModal(false), children: "閉じる" })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.discardModalGrid, children: discardPile.slice().reverse().map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.discardModalCard, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true }) }, c.id)) })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.discardModalGrid, children: discardPile.slice().reverse().map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.discardModalCard, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: c, canSeeFront: true, size }) }, c.id)) })
       ] }) })
     ] })
   ] });
@@ -2206,6 +2214,7 @@ function PlayField({
                           onPointerDown: (e) => handlePointerDown(e, card2),
                           onDragStart: (e) => e.preventDefault(),
                           isDraggable: false,
+                          size: { width: 90, height: 120 },
                           onContextMenu: (e) => handleContextMenu(e, card2)
                         },
                         card2.id
@@ -2592,6 +2601,7 @@ const PlayerListItem = React.memo(
                       card: card2,
                       canSeeFront,
                       onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner),
+                      size: { width: 90, height: 120 },
                       showPreview: false
                     }
                   ),
