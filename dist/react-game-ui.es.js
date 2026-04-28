@@ -1439,7 +1439,7 @@ const Card = ({
       onDragEnd: handleDragEnd,
       draggable: isDraggable,
       onContextMenu,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: card2, disabled: isDragging, size, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront, size }) })
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: card2, size, disabled: !showPreview || isDragging, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront, size }) })
     }
   );
 };
@@ -1547,7 +1547,7 @@ function Deck({
                   zIndex: deckCards.length - i,
                   transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
                 },
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { card: c, canSeeFront: false, showPreview: true, size, onClick: () => enabled && draw() })
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { card: c, canSeeFront: false, showPreview: false, size, onClick: () => enabled && draw() })
               },
               c.id
             ))

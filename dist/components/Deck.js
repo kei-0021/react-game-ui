@@ -66,7 +66,7 @@ export function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerI
                                     height: size.height,
                                     zIndex: deckCards.length - i,
                                     transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                                }, children: _jsx(Card, { card: c, canSeeFront: false, showPreview: true, size: size, onClick: () => enabled && draw() }) }, c.id)))] }), _jsx("div", { className: `${deckStyles.deckContainer} ${deckStyles.discardPileWrapper}`, style: { width: size.width, height: size.height }, onContextMenu: handleContextMenu, children: discardPile.map((c, i) => (_jsx("div", { className: deckStyles.deckCard, style: {
+                                }, children: _jsx(Card, { card: c, canSeeFront: false, showPreview: false, size: size, onClick: () => enabled && draw() }) }, c.id)))] }), _jsx("div", { className: `${deckStyles.deckContainer} ${deckStyles.discardPileWrapper}`, style: { width: size.width, height: size.height }, onContextMenu: handleContextMenu, children: discardPile.map((c, i) => (_jsx("div", { className: deckStyles.deckCard, style: {
                                 width: size.width,
                                 height: size.height,
                                 zIndex: i + 1,

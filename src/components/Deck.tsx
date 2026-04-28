@@ -129,7 +129,7 @@ export function Deck({
                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
               }}
             >
-              <Card card={c} canSeeFront={false} showPreview={true} size={size} onClick={() => enabled && draw()} />
+              <Card card={c} canSeeFront={false} showPreview={false} size={size} onClick={() => enabled && draw()} />
             </div>
           ))}
         </div>
