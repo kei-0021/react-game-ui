@@ -1314,23 +1314,19 @@ function GridBoard({
     })
   ] });
 }
-const card = "_card_1ip1o_8";
-const cardWrapper = "_cardWrapper_1ip1o_22";
-const deckCard = "_deckCard_1ip1o_42";
-const cardImage = "_cardImage_1ip1o_56";
-const cardNameWrapper = "_cardNameWrapper_1ip1o_66";
-const cardNameText = "_cardNameText_1ip1o_79";
-const deckCardFront = "_deckCardFront_1ip1o_96";
-const discardPileWrapper = "_discardPileWrapper_1ip1o_125";
+const card = "_card_12ljg_8";
+const cardWrapper = "_cardWrapper_12ljg_22";
+const deckCard = "_deckCard_12ljg_42";
+const cardImage = "_cardImage_12ljg_56";
+const cardNameWrapper = "_cardNameWrapper_12ljg_66";
+const cardNameText = "_cardNameText_12ljg_79";
 const cardStyles = {
   card,
   cardWrapper,
   deckCard,
   cardImage,
   cardNameWrapper,
-  cardNameText,
-  deckCardFront,
-  discardPileWrapper
+  cardNameText
 };
 const previewTrigger = "_previewTrigger_flhb7_10";
 const previewOverlay = "_previewOverlay_flhb7_16";
@@ -1342,13 +1338,13 @@ const cardPreviewStyles = {
   previewContent,
   previewDescription
 };
-const CardPreview = ({ card: card2, children, size, disabled }) => {
+const CardPreview = ({ card: card2, children, size, disabled: disabled2 }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef(null);
   const hasPreview = !!card2.frontImage || !!card2.description;
   const handleMouseEnter = (e) => {
-    if (disabled) return;
+    if (disabled2) return;
     const { clientX, clientY } = e;
     timerRef.current = setTimeout(() => {
       setIsHovered(true);
@@ -1361,7 +1357,7 @@ const CardPreview = ({ card: card2, children, size, disabled }) => {
     }
     setIsHovered(false);
   };
-  if (disabled && isHovered) {
+  if (disabled2 && isHovered) {
     handleMouseLeave();
   }
   if (!hasPreview) {
@@ -1376,7 +1372,7 @@ const CardPreview = ({ card: card2, children, size, disabled }) => {
       onPointerDown: handleMouseLeave,
       children: [
         children,
-        isHovered && !disabled && createPortal(
+        isHovered && !disabled2 && createPortal(
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
@@ -1447,17 +1443,20 @@ const Card = ({
     }
   );
 };
-const deckContainer = "_deckContainer_vfhcu_10";
-const deckSection = "_deckSection_vfhcu_16";
-const deckWrapperFlex = "_deckWrapperFlex_vfhcu_28";
-const deckTitle = "_deckTitle_vfhcu_33";
-const deckControls = "_deckControls_vfhcu_39";
-const deckCountBadge = "_deckCountBadge_vfhcu_44";
-const discardModalOverlay = "_discardModalOverlay_vfhcu_73";
-const discardModalContent = "_discardModalContent_vfhcu_86";
-const discardModalHeader = "_discardModalHeader_vfhcu_97";
-const discardModalGrid = "_discardModalGrid_vfhcu_111";
-const discardModalCard = "_discardModalCard_vfhcu_118";
+const deckContainer = "_deckContainer_zvma6_10";
+const deckSection = "_deckSection_zvma6_16";
+const deckWrapperFlex = "_deckWrapperFlex_zvma6_28";
+const deckTitle = "_deckTitle_zvma6_33";
+const deckControls = "_deckControls_zvma6_39";
+const deckCountBadge = "_deckCountBadge_zvma6_44";
+const deckCardFront = "_deckCardFront_zvma6_78";
+const discardPileWrapper = "_discardPileWrapper_zvma6_98";
+const discardModalOverlay = "_discardModalOverlay_zvma6_104";
+const discardModalContent = "_discardModalContent_zvma6_117";
+const discardModalHeader = "_discardModalHeader_zvma6_128";
+const discardModalGrid = "_discardModalGrid_zvma6_142";
+const discardModalCard = "_discardModalCard_zvma6_149";
+const disabled = "_disabled_zvma6_164";
 const deckStyles = {
   deckContainer,
   deckSection,
@@ -1465,11 +1464,14 @@ const deckStyles = {
   deckTitle,
   deckControls,
   deckCountBadge,
+  deckCardFront,
+  discardPileWrapper,
   discardModalOverlay,
   discardModalContent,
   discardModalHeader,
   discardModalGrid,
-  discardModalCard
+  discardModalCard,
+  disabled
 };
 function Deck({
   socket,
@@ -1531,7 +1533,7 @@ function Deck({
       /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {
-          className: `${deckStyles.deckContainer} ${!enabled ? cardStyles.disabled : ""}`,
+          className: `${deckStyles.deckContainer} ${!enabled ? deckStyles.disabled : ""}`,
           style: { width: size.width, height: size.height },
           onClick: () => enabled && draw(),
           children: [
@@ -1554,13 +1556,13 @@ function Deck({
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
-          className: `${deckStyles.deckContainer} ${cardStyles.discardPileWrapper}`,
+          className: `${deckStyles.deckContainer} ${deckStyles.discardPileWrapper}`,
           style: { width: size.width, height: size.height },
           onContextMenu: handleContextMenu,
           children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
-              className: cardStyles.deckCardFront,
+              className: deckStyles.deckCardFront,
               style: {
                 width: size.width,
                 height: size.height,

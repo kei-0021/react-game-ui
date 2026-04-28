@@ -2,7 +2,7 @@
 
 /*
  * ===========================================
- * Others
+ * Deck
  * ===========================================
  */
 
@@ -69,7 +69,38 @@
   border-radius: 4px;
 }
 
-/* --- 捨て札確認モーダル（Overlay & Content） --- */
+/*
+ * ===========================================
+ * 山札
+ * ===========================================
+ */
+
+.deckCardFront {
+  position: absolute;
+  top: 0;
+  left: 0;
+  object-fit: fill;
+  background-color: transparent;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+/*
+ * ===========================================
+ * 捨て札
+ * ===========================================
+ */
+
+.discardPileWrapper {
+  border: 1px solid #777;
+  background-color: #e0e0e0;
+  overflow: visible;
+}
+
 .discardModalOverlay {
   position: fixed;
   top: 0;

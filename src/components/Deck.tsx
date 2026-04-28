@@ -113,7 +113,7 @@ export function Deck({
       <div className={deckStyles.deckWrapperFlex}>
         {/* 山札 */}
         <div
-          className={`${deckStyles.deckContainer} ${!enabled ? cardStyles.disabled : ''}`}
+          className={`${deckStyles.deckContainer} ${!enabled ? deckStyles.disabled : ''}`}
           style={{ width: size.width, height: size.height }}
           onClick={() => enabled && draw()}
         >
@@ -135,13 +135,13 @@ export function Deck({
 
         {/* 捨て札 */}
         <div
-          className={`${deckStyles.deckContainer} ${cardStyles.discardPileWrapper}`}
+          className={`${deckStyles.deckContainer} ${deckStyles.discardPileWrapper}`}
           style={{ width: size.width, height: size.height }}
           onContextMenu={handleContextMenu}
         >
           {discardPile.map((c, i) => (
             <div
-              className={cardStyles.deckCardFront}
+              className={deckStyles.deckCardFront}
               style={{
                 width: size.width,
                 height: size.height,
