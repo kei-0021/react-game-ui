@@ -1316,14 +1316,14 @@ function GridBoard({
 }
 const card = "_card_12ljg_8";
 const cardWrapper = "_cardWrapper_12ljg_22";
-const deckCard = "_deckCard_12ljg_42";
+const deckCard$1 = "_deckCard_12ljg_42";
 const cardImage = "_cardImage_12ljg_56";
 const cardNameWrapper = "_cardNameWrapper_12ljg_66";
 const cardNameText = "_cardNameText_12ljg_79";
 const cardStyles = {
   card,
   cardWrapper,
-  deckCard,
+  deckCard: deckCard$1,
   cardImage,
   cardNameWrapper,
   cardNameText
@@ -1443,34 +1443,34 @@ const Card = ({
     }
   );
 };
-const deckContainer = "_deckContainer_zvma6_10";
-const deckSection = "_deckSection_zvma6_16";
-const deckWrapperFlex = "_deckWrapperFlex_zvma6_28";
-const deckTitle = "_deckTitle_zvma6_33";
-const deckControls = "_deckControls_zvma6_39";
-const deckCountBadge = "_deckCountBadge_zvma6_44";
-const deckCardFront = "_deckCardFront_zvma6_78";
-const discardPileWrapper = "_discardPileWrapper_zvma6_98";
-const discardModalOverlay = "_discardModalOverlay_zvma6_104";
-const discardModalContent = "_discardModalContent_zvma6_117";
-const discardModalHeader = "_discardModalHeader_zvma6_128";
-const discardModalGrid = "_discardModalGrid_zvma6_142";
-const discardModalCard = "_discardModalCard_zvma6_149";
-const disabled = "_disabled_zvma6_164";
+const deckContainer = "_deckContainer_1f2md_9";
+const deckSection = "_deckSection_1f2md_14";
+const deckWrapperFlex = "_deckWrapperFlex_1f2md_26";
+const deckTitle = "_deckTitle_1f2md_31";
+const deckCard = "_deckCard_1f2md_36";
+const discardPileWrapper = "_discardPileWrapper_1f2md_56";
+const discardModalOverlay = "_discardModalOverlay_1f2md_62";
+const discardModalContent = "_discardModalContent_1f2md_75";
+const discardModalHeader = "_discardModalHeader_1f2md_86";
+const discardModalGrid = "_discardModalGrid_1f2md_100";
+const discardModalCard = "_discardModalCard_1f2md_107";
+const deckControls = "_deckControls_1f2md_122";
+const deckCountBadge = "_deckCountBadge_1f2md_127";
+const disabled = "_disabled_1f2md_155";
 const deckStyles = {
   deckContainer,
   deckSection,
   deckWrapperFlex,
   deckTitle,
-  deckControls,
-  deckCountBadge,
-  deckCardFront,
+  deckCard,
   discardPileWrapper,
   discardModalOverlay,
   discardModalContent,
   discardModalHeader,
   discardModalGrid,
   discardModalCard,
+  deckControls,
+  deckCountBadge,
   disabled
 };
 function Deck({
@@ -1540,13 +1540,12 @@ function Deck({
             deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
               "div",
               {
-                className: cardStyles.deckCard,
+                className: deckStyles.deckCard,
                 style: {
                   width: size.width,
                   height: size.height,
                   zIndex: deckCards.length - i,
-                  transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                  backgroundColor: c.backColor
+                  transform: `translate(${i * 0.3}px, ${i * 0.3}px)`
                 },
                 children: /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { card: c, canSeeFront: false, showPreview: true, size, onClick: () => enabled && draw() })
               },
@@ -1564,7 +1563,7 @@ function Deck({
           children: discardPile.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
-              className: deckStyles.deckCardFront,
+              className: deckStyles.deckCard,
               style: {
                 width: size.width,
                 height: size.height,

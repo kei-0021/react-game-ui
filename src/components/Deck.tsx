@@ -6,7 +6,6 @@ import { Socket } from 'socket.io-client';
 import type { CardData } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
 import { Card, CardDisplayContent } from './Card/Card.js';
-import cardStyles from './Card/Card.module.css';
 import deckStyles from './Deck.module.css';
 
 type DeckProps = {
@@ -122,13 +121,12 @@ export function Deck({
           {deckCards.map((c, i) => (
             <div
               key={c.id}
-              className={cardStyles.deckCard}
+              className={deckStyles.deckCard}
               style={{
                 width: size.width,
                 height: size.height,
                 zIndex: deckCards.length - i,
                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                backgroundColor: c.backColor,
               }}
             >
               <Card card={c} canSeeFront={false} showPreview={true} size={size} onClick={() => enabled && draw()} />
@@ -144,7 +142,7 @@ export function Deck({
         >
           {discardPile.map((c, i) => (
             <div
-              className={deckStyles.deckCardFront}
+              className={deckStyles.deckCard}
               style={{
                 width: size.width,
                 height: size.height,
