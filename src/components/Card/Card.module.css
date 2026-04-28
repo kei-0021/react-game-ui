@@ -92,25 +92,6 @@
  * ===========================================
  */
 
-/* カードの裏面 */
-.cardBack {
-  width: 90px;
-  height: 120px;
-  background-color: #444;
-  border: 1px solid #222;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
 /* 表面の土台 */
 .deckCardFront {
   position: absolute;

@@ -1314,15 +1314,14 @@ function GridBoard({
     })
   ] });
 }
-const card = "_card_1jxmo_8";
-const cardWrapper = "_cardWrapper_1jxmo_22";
-const deckCard = "_deckCard_1jxmo_42";
-const cardImage = "_cardImage_1jxmo_56";
-const cardNameWrapper = "_cardNameWrapper_1jxmo_66";
-const cardNameText = "_cardNameText_1jxmo_79";
-const disabled = "_disabled_1jxmo_108";
-const deckCardFront = "_deckCardFront_1jxmo_115";
-const discardPileWrapper = "_discardPileWrapper_1jxmo_144";
+const card = "_card_1ip1o_8";
+const cardWrapper = "_cardWrapper_1ip1o_22";
+const deckCard = "_deckCard_1ip1o_42";
+const cardImage = "_cardImage_1ip1o_56";
+const cardNameWrapper = "_cardNameWrapper_1ip1o_66";
+const cardNameText = "_cardNameText_1ip1o_79";
+const deckCardFront = "_deckCardFront_1ip1o_96";
+const discardPileWrapper = "_discardPileWrapper_1ip1o_125";
 const cardStyles = {
   card,
   cardWrapper,
@@ -1330,7 +1329,6 @@ const cardStyles = {
   cardImage,
   cardNameWrapper,
   cardNameText,
-  disabled,
   deckCardFront,
   discardPileWrapper
 };
@@ -1344,13 +1342,13 @@ const cardPreviewStyles = {
   previewContent,
   previewDescription
 };
-const CardPreview = ({ card: card2, children, size, disabled: disabled2 }) => {
+const CardPreview = ({ card: card2, children, size, disabled }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef(null);
   const hasPreview = !!card2.frontImage || !!card2.description;
   const handleMouseEnter = (e) => {
-    if (disabled2) return;
+    if (disabled) return;
     const { clientX, clientY } = e;
     timerRef.current = setTimeout(() => {
       setIsHovered(true);
@@ -1363,7 +1361,7 @@ const CardPreview = ({ card: card2, children, size, disabled: disabled2 }) => {
     }
     setIsHovered(false);
   };
-  if (disabled2 && isHovered) {
+  if (disabled && isHovered) {
     handleMouseLeave();
   }
   if (!hasPreview) {
@@ -1378,7 +1376,7 @@ const CardPreview = ({ card: card2, children, size, disabled: disabled2 }) => {
       onPointerDown: handleMouseLeave,
       children: [
         children,
-        isHovered && !disabled2 && createPortal(
+        isHovered && !disabled && createPortal(
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
@@ -1449,17 +1447,17 @@ const Card = ({
     }
   );
 };
-const deckContainer = "_deckContainer_1yskp_4";
-const deckSection = "_deckSection_1yskp_10";
-const deckWrapperFlex = "_deckWrapperFlex_1yskp_22";
-const deckTitle = "_deckTitle_1yskp_27";
-const deckControls = "_deckControls_1yskp_33";
-const deckCountBadge = "_deckCountBadge_1yskp_38";
-const discardModalOverlay = "_discardModalOverlay_1yskp_67";
-const discardModalContent = "_discardModalContent_1yskp_80";
-const discardModalHeader = "_discardModalHeader_1yskp_91";
-const discardModalGrid = "_discardModalGrid_1yskp_105";
-const discardModalCard = "_discardModalCard_1yskp_112";
+const deckContainer = "_deckContainer_vfhcu_10";
+const deckSection = "_deckSection_vfhcu_16";
+const deckWrapperFlex = "_deckWrapperFlex_vfhcu_28";
+const deckTitle = "_deckTitle_vfhcu_33";
+const deckControls = "_deckControls_vfhcu_39";
+const deckCountBadge = "_deckCountBadge_vfhcu_44";
+const discardModalOverlay = "_discardModalOverlay_vfhcu_73";
+const discardModalContent = "_discardModalContent_vfhcu_86";
+const discardModalHeader = "_discardModalHeader_vfhcu_97";
+const discardModalGrid = "_discardModalGrid_vfhcu_111";
+const discardModalCard = "_discardModalCard_vfhcu_118";
 const deckStyles = {
   deckContainer,
   deckSection,

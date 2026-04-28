@@ -1,5 +1,11 @@
 /* src/components/Deck.module.css */
 
+/*
+ * ===========================================
+ * Others
+ * ===========================================
+ */
+
 /* デッキコンテナ */
 .deckContainer {
   position: relative;
@@ -116,4 +122,16 @@
   border-radius: 6px;
   position: relative;
   background-color: #fff;
+}
+
+/*
+ * ===========================================
+ * Others
+ * ===========================================
+ */
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
