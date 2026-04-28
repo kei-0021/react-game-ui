@@ -62,11 +62,13 @@ export function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerI
         // 捨て札確認モーダルを開くフラグを立てる
         setShowDiscardModal(true);
     };
-    return (_jsxs("section", { className: deckStyles.deckSection, children: [_jsx("h3", { className: deckStyles.deckTitle, children: title }), _jsxs("div", { className: deckStyles.deckControls, children: [_jsx("button", { onClick: shuffle, disabled: !enabled, children: "\u30B7\u30E3\u30C3\u30D5\u30EB" }), _jsx("button", { onClick: resetDeck, disabled: !enabled, children: "\u5C71\u672D\u306B\u623B\u3059" })] }), _jsxs("div", { className: deckStyles.deckWrapperFlex, children: [_jsxs("div", { className: `${deckStyles.deckContainer} ${!enabled ? deckStyles.disabled : ''}`, style: { width: size.width, height: size.height }, onClick: () => enabled && draw(), children: [deckCards.length > 0 && _jsx("div", { className: deckStyles.deckCountBadge, children: deckCards.length }), deckCards.map((c, i) => (_jsx("div", { className: cardStyles.deckCard, style: {
+    return (_jsxs("section", { className: deckStyles.deckSection, children: [_jsx("h3", { className: deckStyles.deckTitle, children: title }), _jsxs("div", { className: deckStyles.deckControls, children: [_jsx("button", { onClick: shuffle, disabled: !enabled, children: "\u30B7\u30E3\u30C3\u30D5\u30EB" }), _jsx("button", { onClick: resetDeck, disabled: !enabled, children: "\u5C71\u672D\u306B\u623B\u3059" })] }), _jsxs("div", { className: deckStyles.deckWrapperFlex, children: [_jsxs("div", { className: `${deckStyles.deckContainer} ${!enabled ? deckStyles.disabled : ''}`, style: { width: size.width, height: size.height }, children: [deckCards.length > 0 && _jsx("div", { className: deckStyles.deckCountBadge, children: deckCards.length }), deckCards.map((c, i) => (_jsx("div", { className: cardStyles.deckCard, style: {
+                                    width: size.width,
+                                    height: size.height,
                                     zIndex: deckCards.length - i,
                                     transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
                                     backgroundColor: c.backColor,
-                                } }, c.id)))] }), _jsx("div", { className: `${deckStyles.deckContainer} ${deckStyles.discardPileWrapper}`, style: { width: size.width, height: size.height }, onContextMenu: handleContextMenu, children: discardPile.map((c, i) => (_jsx("div", { className: deckStyles.deckCardFront, style: {
+                                }, children: _jsx(Card, { card: c, canSeeFront: false, showPreview: true, size: size, onClick: () => enabled && draw() }) }, c.id)))] }), _jsx("div", { className: `${deckStyles.deckContainer} ${deckStyles.discardPileWrapper}`, style: { width: size.width, height: size.height }, onContextMenu: handleContextMenu, children: discardPile.map((c, i) => (_jsx("div", { className: deckStyles.deckCardFront, style: {
                                 width: size.width,
                                 height: size.height,
                                 zIndex: i + 1,

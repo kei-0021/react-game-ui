@@ -1535,7 +1535,6 @@ function Deck({
         {
           className: `${deckStyles.deckContainer} ${!enabled ? deckStyles.disabled : ""}`,
           style: { width: size.width, height: size.height },
-          onClick: () => enabled && draw(),
           children: [
             deckCards.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: deckStyles.deckCountBadge, children: deckCards.length }),
             deckCards.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -1543,10 +1542,13 @@ function Deck({
               {
                 className: cardStyles.deckCard,
                 style: {
+                  width: size.width,
+                  height: size.height,
                   zIndex: deckCards.length - i,
                   transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
                   backgroundColor: c.backColor
-                }
+                },
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { card: c, canSeeFront: false, showPreview: true, size, onClick: () => enabled && draw() })
               },
               c.id
             ))

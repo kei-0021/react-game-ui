@@ -115,7 +115,6 @@ export function Deck({
         <div
           className={`${deckStyles.deckContainer} ${!enabled ? deckStyles.disabled : ''}`}
           style={{ width: size.width, height: size.height }}
-          onClick={() => enabled && draw()}
         >
           {/* 枚数バッジ */}
           {deckCards.length > 0 && <div className={deckStyles.deckCountBadge}>{deckCards.length}</div>}
@@ -125,11 +124,15 @@ export function Deck({
               key={c.id}
               className={cardStyles.deckCard}
               style={{
+                width: size.width,
+                height: size.height,
                 zIndex: deckCards.length - i,
                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
                 backgroundColor: c.backColor,
               }}
-            />
+            >
+              <Card card={c} canSeeFront={false} showPreview={true} size={size} onClick={() => enabled && draw()} />
+            </div>
           ))}
         </div>
 
