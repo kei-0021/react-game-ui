@@ -6,7 +6,6 @@
  * ===========================================
  */
 .card {
-  border: 1px solid #ccc;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -46,7 +45,6 @@
   top: 0;
   left: 0;
   background-color: #333;
-  border: 1px solid #ccc;
   border-radius: 4px;
   display: block;
   transition: transform 0.2s;
@@ -64,8 +62,6 @@
 
 /* テキスト表示用 */
 .cardNameWrapper {
-  width: 80px;
-  height: 110px;
   display: flex;
   align-items: center;
   justify-content: center;

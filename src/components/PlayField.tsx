@@ -38,6 +38,7 @@ type PlayFieldProps = {
   layoutMode?: 'grid' | 'free';
   backgroundImage?: string;
   zIndex?: number;
+  size?: { width: number; height: number };
   width?: number;
   height?: number;
   isDebug?: boolean;
@@ -54,6 +55,7 @@ type PlayFieldProps = {
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
  * @param {string} [zIndex] - カードの重ね順
+ * @param {{width: number, height: number}} [size={widht: 90, height: 120}] - カードのサイズ
  * @param {number} [width=300] - 横幅
  * @param {number} [height=600] - 縦幅
  * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
@@ -68,6 +70,7 @@ export function PlayField({
   layoutMode = 'free',
   backgroundImage,
   zIndex = 100,
+  size = { width: 90, height: 120 },
   width = 300,
   height = 600,
   isDebug = false,
@@ -303,8 +306,6 @@ export function PlayField({
                 }
               : {};
 
-          const cardStyle = { width: '80px', height: '112px', background: 'transparent' };
-
           return (
             <div
               style={
@@ -318,6 +319,7 @@ export function PlayField({
                   padding: 0,
                   display: 'block',
                   position: layoutMode === 'free' ? 'absolute' : 'relative',
+
                   zIndex: currentZIndex,
                 } as React.CSSProperties
               }
@@ -325,14 +327,14 @@ export function PlayField({
               <Card
                 key={card.id}
                 card={card}
-                style={cardStyle}
+                style={{ background: 'transparent' }}
                 isActuallyFreeShape={isActuallyFreeShape}
                 canSeeFront={card.isFaceUp}
                 onPointerUp={handlePointerUp}
                 onPointerDown={(e) => handlePointerDown(e, card)}
                 onDragStart={(e) => e.preventDefault()}
                 isDraggable={false}
-                size={{ width: 90, height: 120 }}
+                size={{ width: 180, height: 240 }}
                 onContextMenu={(e) => handleContextMenu(e, card)}
               />
 

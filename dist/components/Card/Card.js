@@ -5,14 +5,14 @@ import { CardPreview } from './CardPreview.js';
 export const CardDisplayContent = React.memo(({ card, canSeeFront, size }) => {
     // 裏向きの場合
     if (!canSeeFront) {
-        return _jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card.backColor || '#333' } });
+        return (_jsx("div", { className: cardStyles.deckCard, style: { width: size.width, height: size.height, backgroundColor: card.backColor || '#333' } }));
     }
     // 表向き かつ 画像がある場合：背景色を指定しない
     if (card.frontImage) {
-        return _jsx("img", { src: card.frontImage, alt: card.name, className: cardStyles.cardImage });
+        return (_jsx("img", { src: card.frontImage, alt: card.name, className: cardStyles.cardImage, style: { width: size.width, height: size.height } }));
     }
     // 表向き かつ 画像がない場合：白背景のラッパーで名前を表示
-    return (_jsx("div", { className: cardStyles.cardNameWrapper, children: _jsx("strong", { className: cardStyles.cardNameText, children: card.name }) }));
+    return (_jsx("div", { className: cardStyles.cardNameWrapper, style: { width: size.width, height: size.height }, children: _jsx("strong", { className: cardStyles.cardNameText, children: card.name }) }));
 });
 export const Card = ({ card, style, isActuallyFreeShape, canSeeFront, onClick, onPointerUp, onPointerDown, onDragStart, isDraggable, size, showPreview, onContextMenu, }) => {
     const [isDragging, setIsDragging] = React.useState(false);

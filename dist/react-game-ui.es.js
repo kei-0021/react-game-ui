@@ -1314,12 +1314,12 @@ function GridBoard({
     })
   ] });
 }
-const card = "_card_12ljg_8";
-const cardWrapper = "_cardWrapper_12ljg_22";
-const deckCard$1 = "_deckCard_12ljg_42";
-const cardImage = "_cardImage_12ljg_56";
-const cardNameWrapper = "_cardNameWrapper_12ljg_66";
-const cardNameText = "_cardNameText_12ljg_79";
+const card = "_card_1ra8s_8";
+const cardWrapper = "_cardWrapper_1ra8s_21";
+const deckCard$1 = "_deckCard_1ra8s_41";
+const cardImage = "_cardImage_1ra8s_54";
+const cardNameWrapper = "_cardNameWrapper_1ra8s_64";
+const cardNameText = "_cardNameText_1ra8s_75";
 const cardStyles = {
   card,
   cardWrapper,
@@ -1393,12 +1393,26 @@ const CardPreview = ({ card: card2, children, size, disabled: disabled2 }) => {
 const CardDisplayContent = React__default.memo(
   ({ card: card2, canSeeFront, size }) => {
     if (!canSeeFront) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.deckCard, style: { backgroundColor: card2.backColor || "#333" } });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          className: cardStyles.deckCard,
+          style: { width: size.width, height: size.height, backgroundColor: card2.backColor || "#333" }
+        }
+      );
     }
     if (card2.frontImage) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: card2.frontImage, alt: card2.name, className: cardStyles.cardImage });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "img",
+        {
+          src: card2.frontImage,
+          alt: card2.name,
+          className: cardStyles.cardImage,
+          style: { width: size.width, height: size.height }
+        }
+      );
     }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cardStyles.cardNameWrapper, style: { width: size.width, height: size.height }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: cardStyles.cardNameText, children: card2.name }) });
   }
 );
 const Card = ({
@@ -2020,6 +2034,7 @@ function PlayField({
   layoutMode = "free",
   backgroundImage,
   zIndex = 100,
+  size = { width: 90, height: 120 },
   width = 300,
   height = 600,
   isDebug = false
@@ -2187,7 +2202,6 @@ function PlayField({
                   // ドラッグ中はアニメーションを切り、それ以外は滑らかに戻る
                   transition: isDragging ? "none" : "left 0.2s ease, top 0.2s ease"
                 } : {};
-                const cardStyle = { width: "80px", height: "112px", background: "transparent" };
                 return /* @__PURE__ */ jsxRuntimeExports.jsxs(
                   "div",
                   {
@@ -2208,14 +2222,14 @@ function PlayField({
                         Card,
                         {
                           card: card2,
-                          style: cardStyle,
+                          style: { background: "transparent" },
                           isActuallyFreeShape,
                           canSeeFront: card2.isFaceUp,
                           onPointerUp: handlePointerUp,
                           onPointerDown: (e) => handlePointerDown(e, card2),
                           onDragStart: (e) => e.preventDefault(),
                           isDraggable: false,
-                          size: { width: 90, height: 120 },
+                          size: { width: 180, height: 240 },
                           onContextMenu: (e) => handleContextMenu(e, card2)
                         },
                         card2.id

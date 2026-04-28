@@ -9,17 +9,29 @@ export const CardDisplayContent = React.memo(
   ({ card, canSeeFront, size }: { card: CardData; canSeeFront: boolean; size: { width: number; height: number } }) => {
     // 裏向きの場合
     if (!canSeeFront) {
-      return <div className={cardStyles.deckCard} style={{ backgroundColor: card.backColor || '#333' }} />;
+      return (
+        <div
+          className={cardStyles.deckCard}
+          style={{ width: size.width, height: size.height, backgroundColor: card.backColor || '#333' }}
+        />
+      );
     }
 
     // 表向き かつ 画像がある場合：背景色を指定しない
     if (card.frontImage) {
-      return <img src={card.frontImage} alt={card.name} className={cardStyles.cardImage} />;
+      return (
+        <img
+          src={card.frontImage}
+          alt={card.name}
+          className={cardStyles.cardImage}
+          style={{ width: size.width, height: size.height }}
+        />
+      );
     }
 
     // 表向き かつ 画像がない場合：白背景のラッパーで名前を表示
     return (
-      <div className={cardStyles.cardNameWrapper}>
+      <div className={cardStyles.cardNameWrapper} style={{ width: size.width, height: size.height }}>
         <strong className={cardStyles.cardNameText}>{card.name}</strong>
       </div>
     );
