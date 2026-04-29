@@ -1997,15 +1997,15 @@ function Draggable({
     )
   ] });
 }
-const rgPlayFieldContainer = "_rgPlayFieldContainer_15m0x_13";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_15m0x_25";
-const contextMenu = "_contextMenu_15m0x_49";
-const menuItem = "_menuItem_15m0x_64";
-const menuIcon = "_menuIcon_15m0x_81";
-const separator = "_separator_15m0x_89";
-const debugLabel = "_debugLabel_15m0x_111";
+const rgPlayFieldContainer = "_rgPlayFieldContainer_etdjb_19";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_etdjb_31";
+const contextMenu = "_contextMenu_etdjb_55";
+const menuItem = "_menuItem_etdjb_70";
+const menuIcon = "_menuIcon_etdjb_87";
+const separator = "_separator_etdjb_95";
+const debugLabel = "_debugLabel_etdjb_117";
 const playFieldStyles = {
-  "rg-playfield": "_rg-playfield_15m0x_3",
+  "rg-playfield": "_rg-playfield_etdjb_9",
   rgPlayFieldContainer,
   rgPlayFieldOwnerBadge,
   contextMenu,
@@ -2475,6 +2475,7 @@ const PlayerListItem = React.memo(
     selectedCards,
     heldCards,
     toggleCardSelection,
+    size,
     isDebug,
     enabled
   }) => {
@@ -2618,7 +2619,7 @@ const PlayerListItem = React.memo(
                       card: card2,
                       canSeeFront,
                       onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner),
-                      size: { width: 90, height: 120 },
+                      size,
                       showPreview: true
                     }
                   ),
@@ -2659,6 +2660,7 @@ function ScoreBoard({
   flipButton = [false, true],
   turnSkipButton = [false, true],
   roundSkipButton = [false, true],
+  size = { width: 90, height: 120 },
   isDebug = false,
   enabled = true
 }) {
@@ -2745,6 +2747,7 @@ function ScoreBoard({
         selectedCards,
         heldCards,
         toggleCardSelection,
+        size,
         isDebug,
         enabled
       },

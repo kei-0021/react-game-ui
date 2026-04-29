@@ -8,6 +8,23 @@ import { CardId, PlayerId, RoomId } from '../../types/definition.js';
 import { PlayerListItem } from './PlayerListItem.js';
 import scoreBoardStyles from './ScoreBoard.module.css';
 
+type ScoreBoardProps = {
+  socket: Socket;
+  roomId: RoomId;
+  players: Player[];
+  currentPlayerId?: PlayerId | null;
+  myPlayerId: PlayerId | null;
+  playCardLimit?: number;
+  playCardButton?: [boolean, boolean];
+  holdButton?: [boolean, boolean];
+  flipButton?: [boolean, boolean];
+  turnSkipButton?: [boolean, boolean];
+  roundSkipButton?: [boolean, boolean];
+  size?: { width: number; height: number };
+  isDebug?: boolean;
+  enabled?: boolean;
+};
+
 /**
  * スコアボードコンポーネント
  * プレイヤーの一覧、現在のターン、各プレイヤーのスコアやトークン数を表示する
@@ -24,6 +41,7 @@ import scoreBoardStyles from './ScoreBoard.module.css';
  * @param {[boolean, boolean]} [flipButton=[false, true]] - カードをひっくり返すボタンの [表示, 有効]
  * @param {[boolean, boolean]} [turnSkipButton=[false, true]] - ターンスキップボタンの [表示, 有効]
  * @param {[boolean, boolean]} [roundSkipButton=[false, true]] - ラウンドスキップボタンの [表示, 有効]
+ * @param {{width: number, height: number}} [size={widht: 90, height: 120}] - カードのサイズ
  * @param {boolean} [isDebug=false] - スコアを手動で増減できるようにするかどうか (デバッグ用)
  * @param {boolean} [enabled=true] - 各種操作が全体的に有効かどうかのフラグ (個別設定がない場合のデフォルト)
  */
@@ -39,23 +57,10 @@ export function ScoreBoard({
   flipButton = [false, true],
   turnSkipButton = [false, true],
   roundSkipButton = [false, true],
+  size = { width: 90, height: 120 },
   isDebug = false,
   enabled = true,
-}: {
-  socket: Socket;
-  roomId: RoomId;
-  players: Player[];
-  currentPlayerId?: PlayerId | null;
-  myPlayerId: PlayerId | null;
-  playCardLimit?: number;
-  playCardButton?: [boolean, boolean];
-  holdButton?: [boolean, boolean];
-  flipButton?: [boolean, boolean];
-  turnSkipButton?: [boolean, boolean];
-  roundSkipButton?: [boolean, boolean];
-  isDebug?: boolean;
-  enabled?: boolean;
-}) {
+}: ScoreBoardProps) {
   const displayedPlayers: Player[] = React.useMemo(() => {
     return (players || []).map((p: Player) => ({
       ...p,
@@ -159,6 +164,7 @@ export function ScoreBoard({
             selectedCards={selectedCards}
             heldCards={heldCards}
             toggleCardSelection={toggleCardSelection}
+            size={size}
             isDebug={isDebug}
             enabled={enabled}
           />

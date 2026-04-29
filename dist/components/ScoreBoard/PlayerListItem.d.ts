@@ -12,9 +12,13 @@ type PlayerListItemProps = {
     selectedCards: CardId[];
     heldCards: CardId[];
     toggleCardSelection: (cardId: string, isOwner: boolean) => void;
+    size: {
+        width: number;
+        height: number;
+    };
     isDebug?: boolean;
     enabled: boolean;
 };
-export declare const PlayerListItem: React.MemoExoticComponent<({ socket, roomId, player, currentPlayerId, myPlayerId, playCardButton, selectedCards, heldCards, toggleCardSelection, isDebug, enabled, }: PlayerListItemProps) => import("react/jsx-runtime").JSX.Element | undefined>;
+export declare const PlayerListItem: React.MemoExoticComponent<({ socket, roomId, player, currentPlayerId, myPlayerId, playCardButton, selectedCards, heldCards, toggleCardSelection, size, isDebug, enabled, }: PlayerListItemProps) => import("react/jsx-runtime").JSX.Element | undefined>;
 export {};
 //# sourceMappingURL=PlayerListItem.d.ts.map

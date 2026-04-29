@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Card } from '../Card/Card.js';
 import { Token } from '../Token/Token.js';
 import playerListItemStyles from './PlayerListItem.module.css';
-export const PlayerListItem = React.memo(({ socket, roomId, player, currentPlayerId, myPlayerId, playCardButton, selectedCards, heldCards, toggleCardSelection, isDebug, enabled, }) => {
+export const PlayerListItem = React.memo(({ socket, roomId, player, currentPlayerId, myPlayerId, playCardButton, selectedCards, heldCards, toggleCardSelection, size, isDebug, enabled, }) => {
     const isActive = player.id === currentPlayerId;
     const playerColor = player.color || '#aaaaaa';
     const isOwner = player.id === myPlayerId;
@@ -80,6 +80,6 @@ export const PlayerListItem = React.memo(({ socket, roomId, player, currentPlaye
                             alignItems: 'stretch',
                             justifyContent: 'stretch',
                             gap: '10px',
-                        }, children: [_jsx(Card, { card: card, canSeeFront: canSeeFront, onClick: () => !isHeld && enabled && toggleCardSelection(card.id, isOwner), size: { width: 90, height: 120 }, showPreview: true }), isHeld && _jsx("div", { className: playerListItemStyles.cardIsHeld, children: "\uD83D\uDD10" })] }, card.id));
+                        }, children: [_jsx(Card, { card: card, canSeeFront: canSeeFront, onClick: () => !isHeld && enabled && toggleCardSelection(card.id, isOwner), size: size, showPreview: true }), isHeld && _jsx("div", { className: playerListItemStyles.cardIsHeld, children: "\uD83D\uDD10" })] }, card.id));
                 }) })] }));
 });

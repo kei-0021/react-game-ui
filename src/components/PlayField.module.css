@@ -1,5 +1,11 @@
 /* src/components/PlayField.module.css */
 
+/*
+ * ===========================================
+ * PlayField
+ * ===========================================
+ */
+
 .rg-playfield {
   background: #0a192f;
   border: 2px solid #ccc;
