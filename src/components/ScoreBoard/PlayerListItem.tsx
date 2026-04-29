@@ -196,6 +196,7 @@ export const PlayerListItem = React.memo(
                     display: 'flex',
                     alignItems: 'stretch',
                     justifyContent: 'stretch',
+                    gap: '10px',
                   } as React.CSSProperties
                 }
               >

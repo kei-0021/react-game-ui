@@ -334,7 +334,7 @@ export function PlayField({
                 onPointerDown={(e) => handlePointerDown(e, card)}
                 onDragStart={(e) => e.preventDefault()}
                 isDraggable={false}
-                size={{ width: 180, height: 240 }}
+                size={size}
                 onContextMenu={(e) => handleContextMenu(e, card)}
               />
 

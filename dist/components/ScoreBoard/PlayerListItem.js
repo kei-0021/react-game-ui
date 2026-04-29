@@ -79,6 +79,7 @@ export const PlayerListItem = React.memo(({ socket, roomId, player, currentPlaye
                             display: 'flex',
                             alignItems: 'stretch',
                             justifyContent: 'stretch',
+                            gap: '10px',
                         }, children: [_jsx(Card, { card: card, canSeeFront: canSeeFront, onClick: () => !isHeld && enabled && toggleCardSelection(card.id, isOwner), size: { width: 90, height: 120 }, showPreview: false }), isHeld && _jsx("div", { className: playerListItemStyles.cardIsHeld, children: "\uD83D\uDD10" })] }, card.id));
                 }) })] }));
 });

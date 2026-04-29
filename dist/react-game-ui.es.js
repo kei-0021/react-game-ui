@@ -2229,7 +2229,7 @@ function PlayField({
                           onPointerDown: (e) => handlePointerDown(e, card2),
                           onDragStart: (e) => e.preventDefault(),
                           isDraggable: false,
-                          size: { width: 180, height: 240 },
+                          size,
                           onContextMenu: (e) => handleContextMenu(e, card2)
                         },
                         card2.id
@@ -2421,26 +2421,26 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const playerItem = "_playerItem_7vrgj_7";
-const activePlayer = "_activePlayer_7vrgj_20";
-const playerHeader = "_playerHeader_7vrgj_28";
-const playerName = "_playerName_7vrgj_34";
-const scoreArea = "_scoreArea_7vrgj_48";
-const playerScore = "_playerScore_7vrgj_54";
-const plus = "_plus_7vrgj_75";
-const minus = "_minus_7vrgj_80";
-const scoreChange = "_scoreChange_7vrgj_101";
-const debugScoreButtons = "_debugScoreButtons_7vrgj_130";
-const debugBtn = "_debugBtn_7vrgj_135";
-const resourceSection = "_resourceSection_7vrgj_170";
-const resourceList = "_resourceList_7vrgj_175";
-const resourceBadge = "_resourceBadge_7vrgj_181";
-const tokenList = "_tokenList_7vrgj_193";
-const isHoldMessage = "_isHoldMessage_7vrgj_220";
-const cardList = "_cardList_7vrgj_227";
-const cardBase = "_cardBase_7vrgj_235";
-const cardSelected = "_cardSelected_7vrgj_267";
-const cardIsHeld = "_cardIsHeld_7vrgj_273";
+const playerItem = "_playerItem_1upim_7";
+const activePlayer = "_activePlayer_1upim_20";
+const playerHeader = "_playerHeader_1upim_28";
+const playerName = "_playerName_1upim_34";
+const scoreArea = "_scoreArea_1upim_48";
+const playerScore = "_playerScore_1upim_54";
+const plus = "_plus_1upim_75";
+const minus = "_minus_1upim_80";
+const scoreChange = "_scoreChange_1upim_101";
+const debugScoreButtons = "_debugScoreButtons_1upim_130";
+const debugBtn = "_debugBtn_1upim_135";
+const resourceSection = "_resourceSection_1upim_170";
+const resourceList = "_resourceList_1upim_175";
+const resourceBadge = "_resourceBadge_1upim_181";
+const tokenList = "_tokenList_1upim_193";
+const isHoldMessage = "_isHoldMessage_1upim_220";
+const cardList = "_cardList_1upim_227";
+const cardBase = "_cardBase_1upim_235";
+const cardSelected = "_cardSelected_1upim_265";
+const cardIsHeld = "_cardIsHeld_1upim_271";
 const playerListItemStyles = {
   playerItem,
   activePlayer,
@@ -2607,7 +2607,8 @@ const PlayerListItem = React.memo(
                   position: "relative",
                   display: "flex",
                   alignItems: "stretch",
-                  justifyContent: "stretch"
+                  justifyContent: "stretch",
+                  gap: "10px"
                 },
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(
