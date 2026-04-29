@@ -4,7 +4,7 @@
  * 全般
  * ===========================================
  */
-.container {
+.scoreBoardContainer {
   padding: 16px;
   padding-left: 40px;
   border: 1px solid #333;
@@ -23,6 +23,7 @@
   padding-bottom: 8px;
   color: #333;
   margin-left: -24px;
+  user-select: none;
 }
 
 .playerList {

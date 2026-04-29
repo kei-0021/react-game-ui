@@ -1457,23 +1457,23 @@ const Card = ({
     }
   );
 };
-const deckContainer = "_deckContainer_1f2md_9";
-const deckSection = "_deckSection_1f2md_14";
-const deckWrapperFlex = "_deckWrapperFlex_1f2md_26";
-const deckTitle = "_deckTitle_1f2md_31";
-const deckCard = "_deckCard_1f2md_36";
-const discardPileWrapper = "_discardPileWrapper_1f2md_56";
-const discardModalOverlay = "_discardModalOverlay_1f2md_62";
-const discardModalContent = "_discardModalContent_1f2md_75";
-const discardModalHeader = "_discardModalHeader_1f2md_86";
-const discardModalGrid = "_discardModalGrid_1f2md_100";
-const discardModalCard = "_discardModalCard_1f2md_107";
-const deckControls = "_deckControls_1f2md_122";
-const deckCountBadge = "_deckCountBadge_1f2md_127";
-const disabled = "_disabled_1f2md_155";
+const deckSection = "_deckSection_f2kr6_9";
+const deckContainer = "_deckContainer_f2kr6_21";
+const deckWrapperFlex = "_deckWrapperFlex_f2kr6_26";
+const deckTitle = "_deckTitle_f2kr6_31";
+const deckCard = "_deckCard_f2kr6_37";
+const discardPileWrapper = "_discardPileWrapper_f2kr6_57";
+const discardModalOverlay = "_discardModalOverlay_f2kr6_63";
+const discardModalContent = "_discardModalContent_f2kr6_76";
+const discardModalHeader = "_discardModalHeader_f2kr6_87";
+const discardModalGrid = "_discardModalGrid_f2kr6_101";
+const discardModalCard = "_discardModalCard_f2kr6_108";
+const deckControls = "_deckControls_f2kr6_123";
+const deckCountBadge = "_deckCountBadge_f2kr6_128";
+const disabled = "_disabled_f2kr6_156";
 const deckStyles = {
-  deckContainer,
   deckSection,
+  deckContainer,
   deckWrapperFlex,
   deckTitle,
   deckCard,
@@ -1997,15 +1997,17 @@ function Draggable({
     )
   ] });
 }
-const rgPlayFieldContainer = "_rgPlayFieldContainer_etdjb_19";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_etdjb_31";
-const contextMenu = "_contextMenu_etdjb_55";
-const menuItem = "_menuItem_etdjb_70";
-const menuIcon = "_menuIcon_etdjb_87";
-const separator = "_separator_etdjb_95";
-const debugLabel = "_debugLabel_etdjb_117";
+const rgPlayFieldTitle = "_rgPlayFieldTitle_1d6un_15";
+const rgPlayFieldContainer = "_rgPlayFieldContainer_1d6un_20";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_1d6un_32";
+const contextMenu = "_contextMenu_1d6un_56";
+const menuItem = "_menuItem_1d6un_71";
+const menuIcon = "_menuIcon_1d6un_88";
+const separator = "_separator_1d6un_96";
+const debugLabel = "_debugLabel_1d6un_118";
 const playFieldStyles = {
-  "rg-playfield": "_rg-playfield_etdjb_9",
+  "rg-playfield": "_rg-playfield_1d6un_9",
+  rgPlayFieldTitle,
   rgPlayFieldContainer,
   rgPlayFieldOwnerBadge,
   contextMenu,
@@ -2175,7 +2177,7 @@ function PlayField({
         height: typeof height === "number" ? `${height}px` : height
       },
       children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title2 !== void 0 && title2 !== null ? title2 : `プレイフィールド (deckId=${deckId})` }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: playFieldStyles.rgPlayFieldTitle, children: title2 !== void 0 && title2 !== null ? title2 : `プレイフィールド (deckId=${deckId})` }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs(
           "div",
           {
@@ -2360,12 +2362,12 @@ function PlayField({
     }
   );
 }
-const container$1 = "_container_17uio_2";
+const container = "_container_17uio_2";
 const cursorWrapper = "_cursorWrapper_17uio_13";
 const icon = "_icon_17uio_21";
 const label$1 = "_label_17uio_29";
 const styles$3 = {
-  container: container$1,
+  container,
   cursorWrapper,
   icon,
   label: label$1
@@ -2634,14 +2636,14 @@ const PlayerListItem = React.memo(
     );
   }
 );
-const container = "_container_it03t_7";
-const title$2 = "_title_it03t_19";
-const playerList = "_playerList_it03t_28";
-const buttonArea = "_buttonArea_it03t_38";
-const limitMessage = "_limitMessage_it03t_45";
-const buttonGroup = "_buttonGroup_it03t_52";
+const scoreBoardContainer = "_scoreBoardContainer_loyvp_7";
+const title$2 = "_title_loyvp_19";
+const playerList = "_playerList_loyvp_29";
+const buttonArea = "_buttonArea_loyvp_39";
+const limitMessage = "_limitMessage_loyvp_46";
+const buttonGroup = "_buttonGroup_loyvp_53";
 const scoreBoardStyles = {
-  container,
+  scoreBoardContainer,
   title: title$2,
   playerList,
   buttonArea,
@@ -2733,7 +2735,7 @@ function ScoreBoard({
   const isTurnSkipDisabled = canTurnSkip !== void 0 ? !canTurnSkip : !enabled;
   const isRoundSkipDisabled = canRoundSkip !== void 0 ? !canRoundSkip : !enabled;
   const isOverLimit = playCardLimit !== void 0 && selectedCards.length > playCardLimit;
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.container, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: scoreBoardStyles.scoreBoardContainer, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: scoreBoardStyles.title, children: "ゲームスコアボード" }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: scoreBoardStyles.playerList, children: displayedPlayers.map((player) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       PlayerListItem,

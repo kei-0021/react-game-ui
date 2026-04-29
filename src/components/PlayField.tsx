@@ -270,7 +270,7 @@ export function PlayField({
         height: typeof height === 'number' ? `${height}px` : height,
       }}
     >
-      <h3 className={playFieldStyles.rgPlayfieldTitle}>
+      <h3 className={playFieldStyles.rgPlayFieldTitle}>
         {title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})`}
       </h3>
       <div

@@ -178,7 +178,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
             position: 'relative',
             width: typeof width === 'number' ? `${width}px` : width,
             height: typeof height === 'number' ? `${height}px` : height,
-        }, children: [_jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsxs("div", { ref: containerRef, className: playFieldStyles.rgPlayFieldContainer, onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, children: [playedCards.map((card) => {
+        }, children: [_jsx("h3", { className: playFieldStyles.rgPlayFieldTitle, children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsxs("div", { ref: containerRef, className: playFieldStyles.rgPlayFieldContainer, onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, children: [playedCards.map((card) => {
                         const owner = players.find((p) => p.id === card.ownerId);
                         const isDragging = activeDraggingId === card.id;
                         const isActuallyFreeShape = !!(card.freeShape && card.frontImage);

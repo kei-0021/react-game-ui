@@ -149,7 +149,7 @@ export function ScoreBoard({
   const isOverLimit = playCardLimit !== undefined && selectedCards.length > playCardLimit;
 
   return (
-    <div className={scoreBoardStyles.container}>
+    <div className={scoreBoardStyles.scoreBoardContainer}>
       <h2 className={scoreBoardStyles.title}>ゲームスコアボード</h2>
       <ul className={scoreBoardStyles.playerList}>
         {displayedPlayers.map((player) => (
