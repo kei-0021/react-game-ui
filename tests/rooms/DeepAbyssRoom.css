@@ -8,10 +8,7 @@
     linear-gradient(135deg, #0a192f 0%, #1e3a5f 70%, #0a192f 100%),
     linear-gradient(to right, rgba(139, 233, 253, 0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(139, 233, 253, 0.05) 1px, transparent 1px) !important;
-  background-size:
-    auto,
-    30px 30px,
-    30px 30px !important;
+
   background-position: center !important;
   font-family: 'Roboto', sans-serif;
   color: white;
