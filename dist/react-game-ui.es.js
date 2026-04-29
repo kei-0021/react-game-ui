@@ -1349,7 +1349,7 @@ const CardPreview = ({ card: card2, children, size, disabled: disabled2 }) => {
     timerRef.current = setTimeout(() => {
       setIsHovered(true);
       setPosition({ x: clientX, y: clientY });
-    }, 750);
+    }, 1e3);
   };
   const handleMouseLeave = () => {
     if (timerRef.current) {
@@ -2230,6 +2230,7 @@ function PlayField({
                           onDragStart: (e) => e.preventDefault(),
                           isDraggable: false,
                           size,
+                          showPreview: true,
                           onContextMenu: (e) => handleContextMenu(e, card2)
                         },
                         card2.id
@@ -2618,7 +2619,7 @@ const PlayerListItem = React.memo(
                       canSeeFront,
                       onClick: () => !isHeld && enabled && toggleCardSelection(card2.id, isOwner),
                       size: { width: 90, height: 120 },
-                      showPreview: false
+                      showPreview: true
                     }
                   ),
                   isHeld && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: playerListItemStyles.cardIsHeld, children: "🔐" })

@@ -19,7 +19,7 @@ export const CardPreview = ({ card, children, size, disabled }: CardPreviewProps
 
   const hasPreview = !!card.frontImage || !!card.description;
 
-  // プレビューの表示はカーソル侵入から0.75秒待つ
+  // プレビューの表示はカーソル侵入から1秒待つ
   const handleMouseEnter = (e: React.MouseEvent) => {
     if (disabled) return;
 
@@ -28,7 +28,7 @@ export const CardPreview = ({ card, children, size, disabled }: CardPreviewProps
     timerRef.current = setTimeout(() => {
       setIsHovered(true);
       setPosition({ x: clientX, y: clientY });
-    }, 750);
+    }, 1000);
   };
 
   const handleMouseLeave = () => {

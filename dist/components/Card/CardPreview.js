@@ -8,7 +8,7 @@ export const CardPreview = ({ card, children, size, disabled }) => {
     const [isHovered, setIsHovered] = useState(false);
     const timerRef = useRef(null);
     const hasPreview = !!card.frontImage || !!card.description;
-    // プレビューの表示はカーソル侵入から0.75秒待つ
+    // プレビューの表示はカーソル侵入から1秒待つ
     const handleMouseEnter = (e) => {
         if (disabled)
             return;
@@ -16,7 +16,7 @@ export const CardPreview = ({ card, children, size, disabled }) => {
         timerRef.current = setTimeout(() => {
             setIsHovered(true);
             setPosition({ x: clientX, y: clientY });
-        }, 750);
+        }, 1000);
     };
     const handleMouseLeave = () => {
         if (timerRef.current) {
