@@ -319,7 +319,6 @@ export function PlayField({
                   padding: 0,
                   display: 'block',
                   position: layoutMode === 'free' ? 'absolute' : 'relative',
-
                   zIndex: currentZIndex,
                 } as React.CSSProperties
               }

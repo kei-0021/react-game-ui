@@ -95,7 +95,7 @@ export const Card = ({
       draggable={isDraggable}
       onContextMenu={onContextMenu}
     >
-      <CardPreview card={card} size={size} disabled={!showPreview || isDragging}>
+      <CardPreview card={card} size={size} disabled={!showPreview || isDragging || !canSeeFront}>
         <CardDisplayContent card={card} canSeeFront={canSeeFront} size={size} />
       </CardPreview>
     </div>

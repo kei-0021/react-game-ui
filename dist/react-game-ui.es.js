@@ -1453,7 +1453,7 @@ const Card = ({
       onDragEnd: handleDragEnd,
       draggable: isDraggable,
       onContextMenu,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: card2, size, disabled: !showPreview || isDragging, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront, size }) })
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardPreview, { card: card2, size, disabled: !showPreview || isDragging || !canSeeFront, children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardDisplayContent, { card: card2, canSeeFront, size }) })
     }
   );
 };

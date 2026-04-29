@@ -27,5 +27,5 @@ export const Card = ({ card, style, isActuallyFreeShape, canSeeFront, onClick, o
     const handleDragEnd = () => {
         setIsDragging(false);
     };
-    return (_jsx("div", { className: `${isActuallyFreeShape ? '' : cardStyles.card} ${cardStyles.cardWrapper}`, style: style, onClick: handleClick, onPointerUp: onPointerUp, onPointerDown: onPointerDown, onDragStart: handleDragStart, onDragEnd: handleDragEnd, draggable: isDraggable, onContextMenu: onContextMenu, children: _jsx(CardPreview, { card: card, size: size, disabled: !showPreview || isDragging, children: _jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront, size: size }) }) }));
+    return (_jsx("div", { className: `${isActuallyFreeShape ? '' : cardStyles.card} ${cardStyles.cardWrapper}`, style: style, onClick: handleClick, onPointerUp: onPointerUp, onPointerDown: onPointerDown, onDragStart: handleDragStart, onDragEnd: handleDragEnd, draggable: isDraggable, onContextMenu: onContextMenu, children: _jsx(CardPreview, { card: card, size: size, disabled: !showPreview || isDragging || !canSeeFront, children: _jsx(CardDisplayContent, { card: card, canSeeFront: canSeeFront, size: size }) }) }));
 };
