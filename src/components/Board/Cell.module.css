@@ -7,12 +7,12 @@
    * **この .cell 自体は正方形のグリッドセルを占有します。**
    */
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  padding: 2px; /* 内部要素とセルの境界の間にわずかなスペースを設ける */
   /* * マス目間の境界線は BoardContainer の gap で処理するため、
    * ここでは border は設定しません。 
    */
   overflow: hidden; /* 内部の形状がはみ出さないように */
   cursor: pointer;
-  padding: 2px; /* 内部要素とセルの境界の間にわずかなスペースを設ける */
 }

@@ -1,34 +1,34 @@
 /* src/components/SystemMessageWindow.module.css */
 
 .messageContainer {
-  width: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid #444;
-  border-radius: 8px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  width: 100%;
   /* 高さを固定して1行に特化 */
   height: 60px;
   min-height: 60px;
   max-height: 60px;
   overflow: hidden;
-  box-sizing: border-box;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .messageHeader {
-  background: rgba(255, 255, 255, 0.1);
   padding: 4px 12px;
-  font-size: 0.7rem;
-  font-weight: bold;
-  color: #aaa;
   border-bottom: 1px solid #333;
-  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.1);
+  color: #aaa;
+  font-weight: bold;
+  font-size: 0.7rem;
   letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .messageList {
-  flex: 1;
   display: flex;
+  flex: 1;
   align-items: center; /* 垂直中央 */
   justify-content: center; /* 水平中央 */
   padding: 0 12px;
@@ -36,32 +36,32 @@
 }
 
 .messageItemActive {
-  font-size: 0.95rem;
+  width: 100%;
+  overflow: hidden;
   color: #fff;
   font-weight: bold;
+  font-size: 0.95rem;
   text-align: center;
-  white-space: nowrap; /* 折り返さず1行に */
-  overflow: hidden;
   text-overflow: ellipsis; /* 長すぎる場合は三点リーダー */
-  width: 100%;
+  white-space: nowrap; /* 折り返さず1行に */
   animation: slideIn 0.3s ease-out;
 }
 
 .messagePlaceholder {
   color: #555;
-  font-size: 0.8rem;
   font-style: italic;
+  font-size: 0.8rem;
   text-align: center;
 }
 
 /* メッセージ切り替え時のアニメーション */
 @keyframes slideIn {
   from {
-    opacity: 0;
     transform: translateY(8px);
+    opacity: 0;
   }
   to {
-    opacity: 1;
     transform: translateY(0);
+    opacity: 1;
   }
 }

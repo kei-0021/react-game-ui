@@ -930,7 +930,7 @@ function requireJsxRuntime() {
   return jsxRuntime.exports;
 }
 var jsxRuntimeExports = requireJsxRuntime();
-const cell = "_cell_1nxmj_3";
+const cell = "_cell_13j28_3";
 const cellStyles = {
   cell
 };
@@ -985,11 +985,11 @@ const Cell = ({
     }
   );
 };
-const tokenContainer = "_tokenContainer_bx95h_8";
-const contentWrapper = "_contentWrapper_bx95h_23";
-const textWrapper = "_textWrapper_bx95h_56";
-const text = "_text_bx95h_56";
-const image = "_image_bx95h_72";
+const tokenContainer = "_tokenContainer_1up57_8";
+const contentWrapper = "_contentWrapper_1up57_23";
+const textWrapper = "_textWrapper_1up57_56";
+const text = "_text_1up57_56";
+const image = "_image_1up57_72";
 const tokenStyles = {
   tokenContainer,
   contentWrapper,
@@ -1314,12 +1314,12 @@ function GridBoard({
     })
   ] });
 }
-const card = "_card_1ra8s_8";
-const cardWrapper = "_cardWrapper_1ra8s_21";
-const deckCard$1 = "_deckCard_1ra8s_41";
-const cardImage = "_cardImage_1ra8s_54";
-const cardNameWrapper = "_cardNameWrapper_1ra8s_64";
-const cardNameText = "_cardNameText_1ra8s_75";
+const card = "_card_1dd4v_8";
+const cardWrapper = "_cardWrapper_1dd4v_21";
+const deckCard$1 = "_deckCard_1dd4v_41";
+const cardImage = "_cardImage_1dd4v_54";
+const cardNameWrapper = "_cardNameWrapper_1dd4v_64";
+const cardNameText = "_cardNameText_1dd4v_75";
 const cardStyles = {
   card,
   cardWrapper,
@@ -1328,10 +1328,10 @@ const cardStyles = {
   cardNameWrapper,
   cardNameText
 };
-const previewTrigger = "_previewTrigger_flhb7_10";
-const previewOverlay = "_previewOverlay_flhb7_16";
-const previewContent = "_previewContent_flhb7_28";
-const previewDescription = "_previewDescription_flhb7_35";
+const previewTrigger = "_previewTrigger_1jez7_10";
+const previewOverlay = "_previewOverlay_1jez7_16";
+const previewContent = "_previewContent_1jez7_28";
+const previewDescription = "_previewDescription_1jez7_35";
 const cardPreviewStyles = {
   previewTrigger,
   previewOverlay,
@@ -1457,20 +1457,20 @@ const Card = ({
     }
   );
 };
-const deckSection = "_deckSection_f2kr6_9";
-const deckContainer = "_deckContainer_f2kr6_21";
-const deckWrapperFlex = "_deckWrapperFlex_f2kr6_26";
-const deckTitle = "_deckTitle_f2kr6_31";
-const deckCard = "_deckCard_f2kr6_37";
-const discardPileWrapper = "_discardPileWrapper_f2kr6_57";
-const discardModalOverlay = "_discardModalOverlay_f2kr6_63";
-const discardModalContent = "_discardModalContent_f2kr6_76";
-const discardModalHeader = "_discardModalHeader_f2kr6_87";
-const discardModalGrid = "_discardModalGrid_f2kr6_101";
-const discardModalCard = "_discardModalCard_f2kr6_108";
-const deckControls = "_deckControls_f2kr6_123";
-const deckCountBadge = "_deckCountBadge_f2kr6_128";
-const disabled = "_disabled_f2kr6_156";
+const deckSection = "_deckSection_1r4yk_9";
+const deckContainer = "_deckContainer_1r4yk_21";
+const deckWrapperFlex = "_deckWrapperFlex_1r4yk_26";
+const deckTitle = "_deckTitle_1r4yk_31";
+const deckCard = "_deckCard_1r4yk_37";
+const discardPileWrapper = "_discardPileWrapper_1r4yk_57";
+const discardModalOverlay = "_discardModalOverlay_1r4yk_63";
+const discardModalContent = "_discardModalContent_1r4yk_76";
+const discardModalHeader = "_discardModalHeader_1r4yk_87";
+const discardModalGrid = "_discardModalGrid_1r4yk_101";
+const discardModalCard = "_discardModalCard_1r4yk_108";
+const deckControls = "_deckControls_1r4yk_123";
+const deckCountBadge = "_deckCountBadge_1r4yk_128";
+const disabled = "_disabled_1r4yk_156";
 const deckStyles = {
   deckSection,
   deckContainer,
@@ -1599,15 +1599,15 @@ function Deck({
     ] })
   ] });
 }
-const diceWrapper = "_diceWrapper_109vb_1";
-const diceTitle = "_diceTitle_109vb_9";
-const dice = "_dice_109vb_1";
-const tooltip = "_tooltip_109vb_40";
-const diceRolling = "_diceRolling_109vb_68";
-const diceNotRolling = "_diceNotRolling_109vb_74";
-const faceImage = "_faceImage_109vb_78";
-const faceContainer = "_faceContainer_109vb_85";
-const defaultText = "_defaultText_109vb_93";
+const diceWrapper = "_diceWrapper_wkd00_1";
+const diceTitle = "_diceTitle_wkd00_9";
+const dice = "_dice_wkd00_1";
+const tooltip = "_tooltip_wkd00_40";
+const diceRolling = "_diceRolling_wkd00_68";
+const diceNotRolling = "_diceNotRolling_wkd00_74";
+const faceImage = "_faceImage_wkd00_78";
+const faceContainer = "_faceContainer_wkd00_85";
+const defaultText = "_defaultText_wkd00_93";
 const styles$4 = {
   diceWrapper,
   diceTitle,
@@ -1687,11 +1687,11 @@ function Dice({ socket = null, diceId, roomId, title: title2, customFaces, toolt
     ] })
   ] });
 }
-const draggable = "_draggable_datou_3";
-const contextMenu$1 = "_contextMenu_datou_28";
-const menuItem$1 = "_menuItem_datou_42";
-const separator$1 = "_separator_datou_63";
-const debugLabel$1 = "_debugLabel_datou_85";
+const draggable = "_draggable_yl552_3";
+const contextMenu$1 = "_contextMenu_yl552_28";
+const menuItem$1 = "_menuItem_yl552_42";
+const separator$1 = "_separator_yl552_63";
+const debugLabel$1 = "_debugLabel_yl552_85";
 const draggableStyles = {
   draggable,
   contextMenu: contextMenu$1,
@@ -1997,16 +1997,16 @@ function Draggable({
     )
   ] });
 }
-const rgPlayFieldTitle = "_rgPlayFieldTitle_1d6un_15";
-const rgPlayFieldContainer = "_rgPlayFieldContainer_1d6un_20";
-const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_1d6un_32";
-const contextMenu = "_contextMenu_1d6un_56";
-const menuItem = "_menuItem_1d6un_71";
-const menuIcon = "_menuIcon_1d6un_88";
-const separator = "_separator_1d6un_96";
-const debugLabel = "_debugLabel_1d6un_118";
+const rgPlayFieldTitle = "_rgPlayFieldTitle_juyat_15";
+const rgPlayFieldContainer = "_rgPlayFieldContainer_juyat_20";
+const rgPlayFieldOwnerBadge = "_rgPlayFieldOwnerBadge_juyat_32";
+const contextMenu = "_contextMenu_juyat_56";
+const menuItem = "_menuItem_juyat_71";
+const menuIcon = "_menuIcon_juyat_88";
+const separator = "_separator_juyat_96";
+const debugLabel = "_debugLabel_juyat_118";
 const playFieldStyles = {
-  "rg-playfield": "_rg-playfield_1d6un_9",
+  "rg-playfield": "_rg-playfield_juyat_9",
   rgPlayFieldTitle,
   rgPlayFieldContainer,
   rgPlayFieldOwnerBadge,
@@ -2362,10 +2362,10 @@ function PlayField({
     }
   );
 }
-const container = "_container_17uio_2";
-const cursorWrapper = "_cursorWrapper_17uio_13";
-const icon = "_icon_17uio_21";
-const label$1 = "_label_17uio_29";
+const container = "_container_1peam_2";
+const cursorWrapper = "_cursorWrapper_1peam_13";
+const icon = "_icon_1peam_21";
+const label$1 = "_label_1peam_29";
 const styles$3 = {
   container,
   cursorWrapper,
@@ -2424,26 +2424,26 @@ const RemoteCursor = React__default.memo(
     }) });
   }
 );
-const playerItem = "_playerItem_1upim_7";
-const activePlayer = "_activePlayer_1upim_20";
-const playerHeader = "_playerHeader_1upim_28";
-const playerName = "_playerName_1upim_34";
-const scoreArea = "_scoreArea_1upim_48";
-const playerScore = "_playerScore_1upim_54";
-const plus = "_plus_1upim_75";
-const minus = "_minus_1upim_80";
-const scoreChange = "_scoreChange_1upim_101";
-const debugScoreButtons = "_debugScoreButtons_1upim_130";
-const debugBtn = "_debugBtn_1upim_135";
-const resourceSection = "_resourceSection_1upim_170";
-const resourceList = "_resourceList_1upim_175";
-const resourceBadge = "_resourceBadge_1upim_181";
-const tokenList = "_tokenList_1upim_193";
-const isHoldMessage = "_isHoldMessage_1upim_220";
-const cardList = "_cardList_1upim_227";
-const cardBase = "_cardBase_1upim_235";
-const cardSelected = "_cardSelected_1upim_265";
-const cardIsHeld = "_cardIsHeld_1upim_271";
+const playerItem = "_playerItem_kziaz_7";
+const activePlayer = "_activePlayer_kziaz_20";
+const playerHeader = "_playerHeader_kziaz_28";
+const playerName = "_playerName_kziaz_34";
+const scoreArea = "_scoreArea_kziaz_48";
+const playerScore = "_playerScore_kziaz_54";
+const plus = "_plus_kziaz_75";
+const minus = "_minus_kziaz_80";
+const scoreChange = "_scoreChange_kziaz_101";
+const debugScoreButtons = "_debugScoreButtons_kziaz_130";
+const debugBtn = "_debugBtn_kziaz_135";
+const resourceSection = "_resourceSection_kziaz_170";
+const resourceList = "_resourceList_kziaz_175";
+const resourceBadge = "_resourceBadge_kziaz_181";
+const tokenList = "_tokenList_kziaz_193";
+const isHoldMessage = "_isHoldMessage_kziaz_220";
+const cardList = "_cardList_kziaz_227";
+const cardBase = "_cardBase_kziaz_235";
+const cardSelected = "_cardSelected_kziaz_265";
+const cardIsHeld = "_cardIsHeld_kziaz_271";
 const playerListItemStyles = {
   playerItem,
   activePlayer,
@@ -2636,12 +2636,12 @@ const PlayerListItem = React.memo(
     );
   }
 );
-const scoreBoardContainer = "_scoreBoardContainer_loyvp_7";
-const title$2 = "_title_loyvp_19";
-const playerList = "_playerList_loyvp_29";
-const buttonArea = "_buttonArea_loyvp_39";
-const limitMessage = "_limitMessage_loyvp_46";
-const buttonGroup = "_buttonGroup_loyvp_53";
+const scoreBoardContainer = "_scoreBoardContainer_4tmwz_7";
+const title$2 = "_title_4tmwz_19";
+const playerList = "_playerList_4tmwz_29";
+const buttonArea = "_buttonArea_4tmwz_39";
+const limitMessage = "_limitMessage_4tmwz_46";
+const buttonGroup = "_buttonGroup_4tmwz_53";
 const scoreBoardStyles = {
   scoreBoardContainer,
   title: title$2,
@@ -2785,9 +2785,9 @@ function ScoreBoard({
     ] })
   ] });
 }
-const messageContainer = "_messageContainer_k1r60_3";
-const messageList = "_messageList_k1r60_29";
-const messageItemActive = "_messageItemActive_k1r60_38";
+const messageContainer = "_messageContainer_109m1_3";
+const messageList = "_messageList_109m1_29";
+const messageItemActive = "_messageItemActive_109m1_38";
 const styles$2 = {
   messageContainer,
   messageList,
@@ -2910,9 +2910,9 @@ function Timer({ socket = null, roomId, initialDuration, onFinish }) {
     }
   );
 }
-const section = "_section_5m8u8_2";
-const title$1 = "_title_5m8u8_12";
-const list = "_list_5m8u8_17";
+const section = "_section_efp7d_2";
+const title$1 = "_title_efp7d_12";
+const list = "_list_efp7d_17";
 const styles$1 = {
   section,
   title: title$1,
@@ -3068,30 +3068,30 @@ const COMPONENT_TYPES = [
   "Timer",
   "SystemMessageWindow"
 ];
-const wrapper = "_wrapper_7lrup_3";
-const open = "_open_7lrup_18";
-const scrollContainer = "_scrollContainer_7lrup_22";
-const title = "_title_7lrup_32";
-const field = "_field_7lrup_41";
-const label = "_label_7lrup_47";
-const slider = "_slider_7lrup_55";
-const hamburger = "_hamburger_7lrup_61";
-const saveButton = "_saveButton_7lrup_80";
-const select = "_select_7lrup_92";
-const createSection = "_createSection_7lrup_111";
-const iconInput = "_iconInput_7lrup_117";
-const createButton = "_createButton_7lrup_122";
-const deleteModeBtn = "_deleteModeBtn_7lrup_133";
-const addComponentBox = "_addComponentBox_7lrup_141";
-const compTypeSelect = "_compTypeSelect_7lrup_151";
-const dirtyLabel = "_dirtyLabel_7lrup_156";
-const rangeField = "_rangeField_7lrup_163";
-const rangeHeader = "_rangeHeader_7lrup_167";
-const rangeValue = "_rangeValue_7lrup_174";
-const componentList = "_componentList_7lrup_180";
-const componentItem = "_componentItem_7lrup_187";
-const deleteCompBtn = "_deleteCompBtn_7lrup_198";
-const divider = "_divider_7lrup_206";
+const wrapper = "_wrapper_fz1tm_3";
+const open = "_open_fz1tm_18";
+const scrollContainer = "_scrollContainer_fz1tm_22";
+const title = "_title_fz1tm_32";
+const field = "_field_fz1tm_41";
+const label = "_label_fz1tm_47";
+const slider = "_slider_fz1tm_55";
+const hamburger = "_hamburger_fz1tm_61";
+const saveButton = "_saveButton_fz1tm_80";
+const select = "_select_fz1tm_92";
+const createSection = "_createSection_fz1tm_111";
+const iconInput = "_iconInput_fz1tm_117";
+const createButton = "_createButton_fz1tm_122";
+const deleteModeBtn = "_deleteModeBtn_fz1tm_133";
+const addComponentBox = "_addComponentBox_fz1tm_141";
+const compTypeSelect = "_compTypeSelect_fz1tm_151";
+const dirtyLabel = "_dirtyLabel_fz1tm_156";
+const rangeField = "_rangeField_fz1tm_163";
+const rangeHeader = "_rangeHeader_fz1tm_167";
+const rangeValue = "_rangeValue_fz1tm_174";
+const componentList = "_componentList_fz1tm_180";
+const componentItem = "_componentItem_fz1tm_187";
+const deleteCompBtn = "_deleteCompBtn_fz1tm_198";
+const divider = "_divider_fz1tm_206";
 const styles = {
   wrapper,
   open,

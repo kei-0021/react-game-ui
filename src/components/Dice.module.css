@@ -2,62 +2,62 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
   width: fit-content;
+  gap: 3px;
 }
 
 .diceTitle {
-  font-size: 12px;
-  font-weight: bold;
   color: #ffffff;
+  font-weight: bold;
+  font-size: 12px;
   text-align: center;
 }
 
 .dice {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border: 2px solid #333;
   display: flex;
+  position: relative;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  font-weight: bold;
-  user-select: none;
-  background-color: #fff;
-  color: #333;
-  transition: all 0.2s;
-  font-family: 'Inter', sans-serif;
+  width: 80px;
+  height: 80px;
   overflow: visible;
-  cursor: pointer;
 
   /* 回転時の描画の乱れ（角が丸くなる・チラつく）を防止 */
   transform: translateZ(0);
+  border: 2px solid #333;
   backface-visibility: hidden;
+  background-color: #fff;
+  color: #333;
+  font-weight: bold;
+  font-size: 2rem;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
   will-change: transform;
+  user-select: none;
 }
 
 .tooltip {
   visibility: hidden;
-  opacity: 0;
+  z-index: 1000;
   position: absolute;
   top: -10px;
   left: 50%;
-  transform: translateX(-50%) translateY(-100%);
 
   width: max-content;
   max-width: 160px;
   padding: 4px 8px;
+  transform: translateX(-50%) translateY(-100%);
+  border-radius: 4px;
 
   background-color: rgba(0, 0, 0, 0.75);
   color: white;
-  border-radius: 4px;
   font-size: 0.7rem;
-  white-space: pre-wrap;
   text-align: center;
-  transition: opacity 0.2s;
-  z-index: 1000;
+  white-space: pre-wrap;
+  opacity: 0;
   pointer-events: none;
+  transition: opacity 0.2s;
 }
 
 .dice:hover .tooltip {
@@ -66,8 +66,8 @@
 }
 
 .diceRolling {
-  cursor: default;
   border-radius: 0px;
+  cursor: default;
   pointer-events: none;
 }
 
@@ -83,11 +83,11 @@
 }
 
 .faceContainer {
-  width: 100%;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .defaultText {

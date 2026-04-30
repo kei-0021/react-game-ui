@@ -5,38 +5,38 @@
  * ===========================================
  */
 .playerItem {
-  list-style: none;
   margin-bottom: 12px;
   padding: 16px;
-  background-color: var(--player-color-bg);
-  border-radius: 8px;
+  transform: translateX(0);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background-color: var(--player-color-bg);
+  list-style: none;
   transition:
     transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
     box-shadow 0.3s ease;
-  transform: translateX(0);
 }
 
 .activePlayer {
-  border: 4px solid #000000 !important;
-  box-shadow: none !important;
-  transform: translateX(-24px) !important;
   z-index: 1;
+  transform: translateX(-24px) !important;
+  border: 4px solid #000000 !important;
   background-color: var(--player-color-active, var(--player-color-bg)) !important;
+  box-shadow: none !important;
 }
 
 .playerHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
 
 .playerName {
-  font-weight: 900;
-  font-size: 1.2em;
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: 900;
+  font-size: 1.2em;
 }
 
 /*
@@ -52,11 +52,11 @@
 }
 
 .playerScore {
-  color: #ffffff;
-  font-weight: bold;
-  background: rgba(0, 0, 0, 0.4);
   padding: 4px 10px;
   border-radius: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+  font-weight: bold;
   font-size: 0.9em;
 }
 
@@ -99,31 +99,31 @@
 
 /* 爆発する数字（完全に浮いているので箱は動かない） */
 .scoreChange {
-  font-size: 6rem;
+  z-index: 100;
   position: absolute;
   /* スコア表示の真ん中に重ねる */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-weight: 900;
-  pointer-events: none;
+  font-size: 6rem;
   white-space: nowrap;
-  z-index: 100;
   animation: staticBurst 0.6s cubic-bezier(0.12, 0, 0.39, 0) forwards;
+  pointer-events: none;
 }
 
 @keyframes staticBurst {
   0% {
-    opacity: 0;
     transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
   }
   20% {
-    opacity: 1;
     transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
   }
   100% {
-    opacity: 0;
     transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0;
   }
 }
 
@@ -133,16 +133,16 @@
 }
 
 .debugBtn {
-  width: 28px;
-  height: 28px;
-  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
   border-radius: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
   font-size: 14px;
   cursor: pointer;
   transition:
@@ -151,13 +151,13 @@
 }
 
 .debugBtn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .debugBtn:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
+  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -180,8 +180,8 @@
 
 .resourceBadge {
   padding: 4px 8px;
-  background-color: #f0f0f0;
   border-radius: 4px;
+  background-color: #f0f0f0;
   white-space: nowrap;
 }
 
@@ -193,23 +193,23 @@
 .tokenList {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
   margin-top: 8px;
   padding-top: 8px;
+  gap: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .tokenList :global([class*='tokenContainer']) {
+  display: flex;
   position: relative !important;
   top: auto !important;
   left: auto !important;
-  transform: none !important;
-  pointer-events: auto !important;
-  width: 45px;
-  height: 45px;
-  display: flex;
   align-items: center;
   justify-content: center;
+  width: 45px;
+  height: 45px;
+  transform: none !important;
+  pointer-events: auto !important;
 }
 
 /*
@@ -218,64 +218,64 @@
  * ===========================================
  */
 .isHoldMessage {
-  color: #000000;
-  font-size: 0.9em;
-  font-weight: bold;
   margin: 0;
+  color: #000000;
+  font-weight: bold;
+  font-size: 0.9em;
 }
 
 .cardList {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
   flex-wrap: wrap;
+  margin-top: 8px;
   overflow: visible !important;
+  gap: 8px;
 }
 
 .cardBase {
+  box-sizing: border-box;
+  display: flex;
   position: relative;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
   border-radius: 4px;
   color: black;
   font-size: 10px;
-  flex-shrink: 0;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
   white-space: normal;
   word-break: break-all;
-  text-align: center;
-  padding: 4px;
   /* ドラッグ＆ドロップの感触を向上 */
   cursor: grab;
-  user-select: none;
   transition:
     transform 0.2s,
     box-shadow 0.2s,
     opacity 0.2s;
+  user-select: none;
 }
 
 /* ドラッグ開始時（元いた場所）の見た目 */
 .cardBase:active {
+  transform: scale(0.95);
   cursor: grabbing;
   opacity: 0.5;
-  transform: scale(0.95);
 }
 
 .cardSelected {
+  transform: translateY(-5px);
   outline: 3px solid #ffffff !important;
   box-shadow: 0 0 10px var(--player-color);
-  transform: translateY(-5px);
 }
 
 .cardIsHeld {
-  position: absolute;
-  inset: 0;
   display: flex;
+  z-index: 10;
+  position: absolute;
   align-items: center;
   justify-content: center;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.2);
   font-size: 1.5rem;
   pointer-events: none;
-  z-index: 10;
 }

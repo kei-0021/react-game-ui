@@ -6,26 +6,26 @@
  * ===========================================
  */
 .card {
-  border-radius: 4px;
   display: flex;
+  position: relative;
   align-items: center;
   justify-content: center;
+  border-radius: 4px;
   font-size: 0.8rem;
   cursor: pointer;
-  position: relative;
   transition:
     transform 0.2s,
     box-shadow 0.2s;
 }
 
 .cardWrapper {
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
   cursor: pointer;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   /* ドラッグ操作を安定させるため */
   user-select: none;
   -webkit-user-drag: none;
@@ -39,46 +39,46 @@
 
 /* デッキ内のカード */
 .deckCard {
+  display: block;
   position: absolute;
-  width: 100%;
-  height: 100%;
   top: 0;
   left: 0;
-  background-color: #333;
+  width: 100%;
+  height: 100%;
   border-radius: 4px;
-  display: block;
+  background-color: #333;
   transition: transform 0.2s;
 }
 
 /* 画像表示（PNG透過対応） */
 .cardImage {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: fill;
-  display: block;
   border-radius: inherit;
   background-color: transparent;
 }
 
 /* テキスト表示用 */
 .cardNameWrapper {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 4px;
+  border-radius: inherit;
   background-color: #fff;
   color: #000;
-  border-radius: inherit;
-  box-sizing: border-box;
-  padding: 4px;
 }
 
 .cardNameText {
   display: block;
-  text-align: center;
   width: 100%;
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.2;
+  text-align: center;
   word-break: break-all;
 }
 
@@ -89,15 +89,15 @@
  */
 
 .discardTopCard {
-  position: relative;
-  pointer-events: auto;
-  overflow: visible;
-  z-index: 1;
-  background-color: white;
-  border-color: #aaa;
   display: flex;
-  justify-content: center;
+  z-index: 1;
+  position: relative;
   align-items: center;
-  text-align: center;
+  justify-content: center;
   padding: 0;
+  overflow: visible;
+  border-color: #aaa;
+  background-color: white;
+  text-align: center;
+  pointer-events: auto;
 }

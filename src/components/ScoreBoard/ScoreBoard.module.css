@@ -5,30 +5,30 @@
  * ===========================================
  */
 .scoreBoardContainer {
+  max-width: 900px;
+  margin: 0 auto;
   padding: 16px;
   padding-left: 40px;
   border: 1px solid #333;
   border-radius: 12px;
   background-color: #f9f9f9;
-  color: #000;
-  max-width: 900px;
-  margin: 0 auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  color: #000;
 }
 
 .title {
-  font-size: 1.5em;
   margin-bottom: 12px;
-  border-bottom: 2px solid #ddd;
-  padding-bottom: 8px;
-  color: #333;
   margin-left: -24px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #ddd;
+  color: #333;
+  font-size: 1.5em;
   user-select: none;
 }
 
 .playerList {
-  list-style: none;
   padding: 0;
+  list-style: none;
 }
 
 /*
@@ -37,17 +37,17 @@
  * ===========================================
  */
 .buttonArea {
-  margin-top: 12px;
   display: flex;
   flex-direction: column;
+  margin-top: 12px;
   gap: 4px;
 }
 
 .limitMessage {
-  color: #d32f2f;
-  font-size: 0.85em;
-  font-weight: bold;
   margin: 0;
+  color: #d32f2f;
+  font-weight: bold;
+  font-size: 0.85em;
 }
 
 .buttonGroup {

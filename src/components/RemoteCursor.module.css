@@ -1,13 +1,13 @@
 /* RemoteCursor.module.css */
 .container {
+  z-index: 900;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
-  z-index: 900;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .cursorWrapper {
@@ -19,22 +19,22 @@
 }
 
 .icon {
-  font-size: 2em;
   position: absolute;
   transform: translate(-15%, -15%);
+  font-size: 2em;
   line-height: 1;
   user-select: none;
 }
 
 .label {
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  white-space: nowrap;
   position: absolute;
+  padding: 2px 8px;
   transform: translate(10px, 20px);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: white;
   font-weight: bold;
   font-size: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   line-height: 1.2;
+  white-space: nowrap;
 }
