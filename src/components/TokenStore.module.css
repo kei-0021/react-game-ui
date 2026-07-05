@@ -2,10 +2,10 @@
 .section {
   width: 320px;
   height: 150px;
-  background-color: #dededeff;
-  padding: 10px;
   margin: 15px;
+  padding: 10px;
   border-radius: 10px;
+  background-color: #dededeff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -15,11 +15,11 @@
 }
 
 .list {
-  position: relative;
-  margin: 0 auto;
-  min-height: 50px;
-  border-radius: 8px;
   display: flex;
-  justify-content: center;
+  position: relative;
   align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  margin: 0 auto;
+  border-radius: 8px;
 }

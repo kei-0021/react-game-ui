@@ -6,6 +6,7 @@ import type {
   CardId,
   CellData,
   DeckId,
+  DiceId,
   DraggableData,
   DraggableId,
   GameParam,
@@ -16,6 +17,7 @@ import type {
   TokenStoreId,
 } from '@/index.js';
 import { DeckData } from '@/types/deck.js';
+import { Dice } from '@/types/Dice.js';
 import { TokenData } from '@/types/token.js';
 import { TokenStoreData } from '@/types/tokenStore.js';
 import { server_log } from '../log/logger.js';
@@ -93,6 +95,20 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     server_log('token', param.gameId, roomId, `トークン置き場 "${tokenStore.tokenStoreId}" を初期化完了`);
   });
 
+  const boardTokens: Record<BoardId, TokenData[]> = Object.fromEntries(Object.keys(Cells).map((id) => [id, []]));
+
+  // 全ての initialTokensOnBoard を、ひとまず最初のボードに突っ込む
+  const defaultBoardId = Object.keys(Cells)[0];
+
+  Object.entries(param.initialTokensOnBoard || {}).forEach(([_, p]) => {
+    const tokens = Array.isArray(p) ? p : [p];
+    const npcTokens = tokens.filter((t) => t.ownerId !== ('player' as any));
+
+    if (boardTokens[defaultBoardId]) {
+      boardTokens[defaultBoardId].push(...npcTokens);
+    }
+  });
+
   // ドラッグ可能オブジェクト関連の初期化
   let draggables: Record<DraggableId, DraggableData> = {};
   if (param.draggables) {
@@ -114,19 +130,13 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
   }
 
   const initialMaxZIndex = Object.values(draggables).reduce((max, d) => Math.max(max, d.zIndex || 0), 0);
-  const boardTokens: Record<BoardId, TokenData[]> = Object.fromEntries(Object.keys(Cells).map((id) => [id, []]));
 
-  // 全ての initialTokensOnBoard を、ひとまず最初のボードに突っ込む
-  const defaultBoardId = Object.keys(Cells)[0];
+  let dice: Record<DiceId, Dice> = {};
+  if (param.dice) {
+    dice = structuredClone(param.dice);
 
-  Object.entries(param.initialTokensOnBoard || {}).forEach(([_, p]) => {
-    const tokens = Array.isArray(p) ? p : [p];
-    const npcTokens = tokens.filter((t) => t.ownerId !== ('player' as any));
-
-    if (boardTokens[defaultBoardId]) {
-      boardTokens[defaultBoardId].push(...npcTokens);
-    }
-  });
+    server_log('dice', param.gameId, roomId, `ダイスを初期化完了`);
+  }
 
   const state: RoomState = {
     roomId: roomId,
@@ -145,6 +155,7 @@ export function createState(roomId: RoomId, param: GameParam): RoomState {
     exploredCells: [],
     tokenStores: tokenStores,
     draggables: draggables,
+    dice: dice,
     timer: {} as NodeJS.Timeout,
     maxZIndex: initialMaxZIndex,
     systemMessageHistory: [],

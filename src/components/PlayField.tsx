@@ -13,8 +13,7 @@ import * as React from 'react';
 import { Socket } from 'socket.io-client';
 import type { CardData } from '../types/card.js';
 import type { CardId, DeckId, PlayerId, RoomId } from '../types/definition.js';
-import { Card } from './Card.js';
-import cardStyles from './Card.module.css';
+import { Card } from './Card/Card.js';
 import playFieldStyles from './PlayField.module.css';
 
 // 通信量制限用の throttle
@@ -39,6 +38,7 @@ type PlayFieldProps = {
   layoutMode?: 'grid' | 'free';
   backgroundImage?: string;
   zIndex?: number;
+  size?: { width: number; height: number };
   width?: number;
   height?: number;
   isDebug?: boolean;
@@ -55,6 +55,7 @@ type PlayFieldProps = {
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
  * @param {string} [zIndex] - カードの重ね順
+ * @param {{width: number, height: number}} [size={widht: 90, height: 120}] - カードのサイズ
  * @param {number} [width=300] - 横幅
  * @param {number} [height=600] - 縦幅
  * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
@@ -69,6 +70,7 @@ export function PlayField({
   layoutMode = 'free',
   backgroundImage,
   zIndex = 100,
+  size = { width: 90, height: 120 },
   width = 300,
   height = 600,
   isDebug = false,
@@ -268,7 +270,7 @@ export function PlayField({
         height: typeof height === 'number' ? `${height}px` : height,
       }}
     >
-      <h3 className={playFieldStyles.rgPlayfieldTitle}>
+      <h3 className={playFieldStyles.rgPlayFieldTitle}>
         {title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})`}
       </h3>
       <div
@@ -304,8 +306,6 @@ export function PlayField({
                 }
               : {};
 
-          const cardStyle = { width: '80px', height: '112px', background: 'transparent' };
-
           return (
             <div
               style={
@@ -326,13 +326,15 @@ export function PlayField({
               <Card
                 key={card.id}
                 card={card}
-                style={cardStyle}
+                style={{ background: 'transparent' }}
                 isActuallyFreeShape={isActuallyFreeShape}
                 canSeeFront={card.isFaceUp}
                 onPointerUp={handlePointerUp}
                 onPointerDown={(e) => handlePointerDown(e, card)}
                 onDragStart={(e) => e.preventDefault()}
                 isDraggable={false}
+                size={size}
+                showPreview={true}
                 onContextMenu={(e) => handleContextMenu(e, card)}
               />
 
@@ -344,16 +346,7 @@ export function PlayField({
               )}
 
               {/* デバッグ用 z-index ラベル */}
-              {isDebug && (
-                <div className={playFieldStyles.debugLabel} style={{ zIndex: 10001 }}>
-                  Z:{currentZIndex}
-                </div>
-              )}
-
-              {/* ツールチップ */}
-              {card.description && !isDragging && card.isFaceUp && (
-                <span className={cardStyles.tooltip}>{card.description}</span>
-              )}
+              {isDebug && <div className={playFieldStyles.debugLabel}>Z:{currentZIndex}</div>}
             </div>
           );
         })}

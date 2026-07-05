@@ -69,7 +69,7 @@ export const DeckFactory = ({ newCompId, onAdd, onSuccess }: DeckFactoryProps) =
       };
 
       cards = ['spades', 'hearts', 'diamonds', 'clubs'].flatMap((suit) =>
-        [1, 2, 3, 4].map(
+        [1, 2, 3, 4, 5, 6, 7].map(
           (num) =>
             ({
               ...common,

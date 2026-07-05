@@ -1,7 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
-import { Card } from './Card.js';
-import cardStyles from './Card.module.css';
+import { Card } from './Card/Card.js';
 import playFieldStyles from './PlayField.module.css';
 // 通信量制限用の throttle
 function throttle(func, limit) {
@@ -25,11 +24,12 @@ function throttle(func, limit) {
  * @param {'grid' | 'free'} [layoutMode='free'] - カードの配置モード（自由配置またはグリッド）
  * @param {string} [backgroundImage] - フィールドの背景画像URL
  * @param {string} [zIndex] - カードの重ね順
+ * @param {{width: number, height: number}} [size={widht: 90, height: 120}] - カードのサイズ
  * @param {number} [width=300] - 横幅
  * @param {number} [height=600] - 縦幅
  * @param {boolean} [isDebug=false] - z-indexをUI表示するフラグ (デバッグ用)
  */
-export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', backgroundImage, zIndex = 100, width = 300, height = 600, isDebug = false, }) {
+export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, layoutMode = 'free', backgroundImage, zIndex = 100, size = { width: 90, height: 120 }, width = 300, height = 600, isDebug = false, }) {
     const [playedCards, setPlayedCards] = React.useState([]);
     const [activeDraggingId, setActiveDraggingId] = React.useState(null);
     // フィールド内での最大zIndexを管理するステート
@@ -178,7 +178,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
             position: 'relative',
             width: typeof width === 'number' ? `${width}px` : width,
             height: typeof height === 'number' ? `${height}px` : height,
-        }, children: [_jsx("h3", { className: playFieldStyles.rgPlayfieldTitle, children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsxs("div", { ref: containerRef, className: playFieldStyles.rgPlayFieldContainer, onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, children: [playedCards.map((card) => {
+        }, children: [_jsx("h3", { className: playFieldStyles.rgPlayFieldTitle, children: title !== undefined && title !== null ? title : `プレイフィールド (deckId=${deckId})` }), _jsxs("div", { ref: containerRef, className: playFieldStyles.rgPlayFieldContainer, onPointerMove: handlePointerMove, onDrop: handleDrop, onDragOver: handleDragOver, children: [playedCards.map((card) => {
                         const owner = players.find((p) => p.id === card.ownerId);
                         const isDragging = activeDraggingId === card.id;
                         const isActuallyFreeShape = !!(card.freeShape && card.frontImage);
@@ -199,7 +199,6 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                 transition: isDragging ? 'none' : 'left 0.2s ease, top 0.2s ease',
                             }
                             : {};
-                        const cardStyle = { width: '80px', height: '112px', background: 'transparent' };
                         return (_jsxs("div", { style: {
                                 '--owner-color': owner?.color || '#aaaaaa',
                                 ...freeStyle,
@@ -211,7 +210,7 @@ export function PlayField({ socket, roomId, deckId, title, players, myPlayerId, 
                                 display: 'block',
                                 position: layoutMode === 'free' ? 'absolute' : 'relative',
                                 zIndex: currentZIndex,
-                            }, children: [_jsx(Card, { card: card, style: cardStyle, isActuallyFreeShape: isActuallyFreeShape, canSeeFront: card.isFaceUp, onPointerUp: handlePointerUp, onPointerDown: (e) => handlePointerDown(e, card), onDragStart: (e) => e.preventDefault(), isDraggable: false, onContextMenu: (e) => handleContextMenu(e, card) }, card.id), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && (_jsxs("div", { className: playFieldStyles.debugLabel, style: { zIndex: 10001 }, children: ["Z:", currentZIndex] })), card.description && !isDragging && card.isFaceUp && (_jsx("span", { className: cardStyles.tooltip, children: card.description }))] }));
+                            }, children: [_jsx(Card, { card: card, style: { background: 'transparent' }, isActuallyFreeShape: isActuallyFreeShape, canSeeFront: card.isFaceUp, onPointerUp: handlePointerUp, onPointerDown: (e) => handlePointerDown(e, card), onDragStart: (e) => e.preventDefault(), isDraggable: false, size: size, showPreview: true, onContextMenu: (e) => handleContextMenu(e, card) }, card.id), card.ownerId && (_jsx("div", { className: playFieldStyles.rgPlayFieldOwnerBadge, title: `所有者: ${owner?.name || '不明'}`, children: owner?.name?.[0] || '?' })), isDebug && _jsxs("div", { className: playFieldStyles.debugLabel, children: ["Z:", currentZIndex] })] }));
                     }), contextMenu && (_jsxs("div", { className: playFieldStyles.contextMenu, style: {
                             top: contextMenu.y,
                             left: contextMenu.x,

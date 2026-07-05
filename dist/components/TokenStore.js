@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useMemo, useState } from 'react';
-import { Token } from './Token.js';
+import { Token } from './Token/Token.js';
 import styles from './TokenStore.module.css';
 /**
  * トークンストアを表示および管理するコンポーネント。

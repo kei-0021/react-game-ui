@@ -4,7 +4,8 @@ import type { RoomManager } from '@/server/room-manager.js';
 import type { CellData } from './cell.js';
 import type { ComponentInfo } from './component.js';
 import type { DeckData } from './deck.js';
-import type { BoardId, DeckId, DraggableId, GameId, PlayerId, TokenId } from './definition.js';
+import type { BoardId, DeckId, DiceId, DraggableId, GameId, PlayerId, TokenId } from './definition.js';
+import { Dice } from './Dice.js';
 import type { DraggableData } from './draggable.js';
 import type { Instruction } from './instruction.js';
 import type { Phase } from './phase.js';
@@ -28,6 +29,7 @@ import type { TokenStoreData } from './tokenStore.js';
  * @param shuffleAndReconnectBoard - シャッフルと再接続を利用するボードとその戦略関数。
  * @param initialTokensOnBoard - ボード上のトークン。
  * @param draggable - ドラッグ可能オブジェクト。
+ * @param dice - ダイス。
  * @param initialPhase - 初期フェーズ。
  * @param cardEffects - カードの特殊効果定義。
  * @param cellEffects - セルの特殊効果定義。
@@ -35,6 +37,7 @@ import type { TokenStoreData } from './tokenStore.js';
  * @param onCardPlay - カードプレイ時のカスタムフック。
  * @param onAllPlayersCardHold - 全てのプレイヤーがホールドした時のカスタムフック。
  * @param onTokenMove - 盤面上でトークンを動かした時のカスタムフック。
+ * @param onDiceRoll - ダイスを振った時のカスタムフック。
  * @param onNextRound - 次のラウンドへ進んだ時のカスタムフック。
  * @param checkGameEnd - 終了判定ロジック。
  * @param onGameEnd - リザルト生成ロジック。
@@ -53,6 +56,7 @@ export type GameParam = {
   shuffleAndReconnectBoard?: Record<BoardId, (cells: CellData[]) => CellData[]>;
   initialTokensOnBoard?: Record<DeckId, TokenData[]>;
   draggables?: Record<DraggableId, DraggableData>;
+  dice?: Record<DiceId, Dice>;
   initialPhase?: Phase;
   cardEffects?: Record<string, any>;
   cellEffects?: Record<string, (manager: RoomManager, player: PlayerId) => void>;
@@ -60,6 +64,7 @@ export type GameParam = {
   onCardPlay?: ((state: RoomState, manager: RoomManager, data: CardPlayData) => void | Instruction[]) | Instruction[];
   onAllPlayersCardHold?: (state: RoomState, manager: RoomManager) => void;
   onTokenMove?: (state: RoomState, manager: RoomManager, newLocation: any) => void;
+  onDiceRoll?: (value: number, manager: RoomManager) => void;
   onNextRound?: (state: RoomState, manager: RoomManager) => void;
   checkGameEnd?: (state: RoomState) => void;
   onGameEnd?: (state: RoomState) => any;

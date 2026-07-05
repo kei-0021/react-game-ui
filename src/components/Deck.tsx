@@ -5,9 +5,7 @@ import { useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import type { CardData } from '../types/card.js';
 import type { DeckId, PlayerId, RoomId } from '../types/definition.js';
-import { CardDisplayContent } from './Card.js';
-import cardStyles from './Card.module.css';
-import { CardPreview } from './CardPreview.js';
+import { Card, CardDisplayContent } from './Card/Card.js';
 import deckStyles from './Deck.module.css';
 
 type DeckProps = {
@@ -18,6 +16,7 @@ type DeckProps = {
   currentPlayerId: PlayerId | null;
   myPlayerId: PlayerId | null;
   alwaysDraw?: boolean;
+  size?: { width: number; height: number };
   enabled?: boolean;
 };
 
@@ -30,6 +29,7 @@ type DeckProps = {
  * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
  * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
+ * @param size={ width: 90, height: 120 } - デッキのサイズ。
  * @param enabled=true - 各種操作が有効かどうかのフラグ。
  */
 export function Deck({
@@ -40,6 +40,7 @@ export function Deck({
   myPlayerId,
   currentPlayerId,
   alwaysDraw = false,
+  size = { width: 90, height: 120 },
   enabled = true,
 }: DeckProps) {
   const [deckCards, setDeckCards] = React.useState<CardData[]>([]);
@@ -111,8 +112,8 @@ export function Deck({
       <div className={deckStyles.deckWrapperFlex}>
         {/* 山札 */}
         <div
-          className={`${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ''}`}
-          onClick={() => enabled && draw()}
+          className={`${deckStyles.deckContainer} ${!enabled ? deckStyles.disabled : ''}`}
+          style={{ width: size.width, height: size.height }}
         >
           {/* 枚数バッジ */}
           {deckCards.length > 0 && <div className={deckStyles.deckCountBadge}>{deckCards.length}</div>}
@@ -120,33 +121,37 @@ export function Deck({
           {deckCards.map((c, i) => (
             <div
               key={c.id}
-              className={cardStyles.deckCard}
+              className={deckStyles.deckCard}
               style={{
+                width: size.width,
+                height: size.height,
                 zIndex: deckCards.length - i,
                 transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                backgroundColor: c.backColor,
               }}
-            />
+            >
+              <Card card={c} canSeeFront={false} showPreview={false} size={size} onClick={() => enabled && draw()} />
+            </div>
           ))}
         </div>
 
         {/* 捨て札 */}
         <div
-          className={`${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`}
+          className={`${deckStyles.deckContainer} ${deckStyles.discardPileWrapper}`}
+          style={{ width: size.width, height: size.height }}
           onContextMenu={handleContextMenu}
         >
           {discardPile.map((c, i) => (
-            <CardPreview key={c.id} card={c}>
-              <div
-                className={cardStyles.deckCardFront}
-                style={{
-                  zIndex: i + 1,
-                  transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                }}
-              >
-                <CardDisplayContent card={c} canSeeFront={true} />
-              </div>
-            </CardPreview>
+            <div
+              className={deckStyles.deckCard}
+              style={{
+                width: size.width,
+                height: size.height,
+                zIndex: i + 1,
+                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+              }}
+            >
+              <Card card={c} canSeeFront={true} showPreview={true} size={size} />
+            </div>
           ))}
         </div>
 
@@ -164,7 +169,7 @@ export function Deck({
                   .reverse()
                   .map((c) => (
                     <div key={c.id} className={deckStyles.discardModalCard}>
-                      <CardDisplayContent card={c} canSeeFront={true} />
+                      <CardDisplayContent card={c} canSeeFront={true} size={size} />
                     </div>
                   ))}
               </div>

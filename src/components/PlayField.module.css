@@ -1,53 +1,51 @@
 /* src/components/PlayField.module.css */
 
+/*
+ * ===========================================
+ * PlayField
+ * ===========================================
+ */
+
 .rg-playfield {
-  background: #0a192f;
-  border: 2px solid #ccc;
   padding: 12px;
+  border: 2px solid #ccc;
+  background: #0a192f;
 }
 
 .rgPlayFieldTitle {
   margin-bottom: 8px;
+  user-select: none;
 }
 
 .rgPlayFieldContainer {
   display: flex;
+  position: relative;
   flex-wrap: wrap;
-  gap: 8px; /* 横も縦も一律 8px に固定 */
   align-content: flex-start; /* 2行目以降を上に詰め寄せる */
   width: 100%;
   height: 100%;
-  touch-action: none;
   overflow: visible;
-  position: relative;
-}
-
-.rgPlayFieldCardWrapper {
-  cursor: pointer;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
+  gap: 8px; /* 横も縦も一律 8px に固定 */
+  touch-action: none;
 }
 
 .rgPlayFieldOwnerBadge {
+  display: flex;
+  z-index: 10;
   position: absolute;
   top: -5px;
   right: -5px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background-color: var(--owner-color, #aaaaaa);
-  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  font-weight: bold;
-  color: white;
+  width: 18px;
+  height: 18px;
   border: 2px solid white;
+  border-radius: 50%;
+  background-color: var(--owner-color, #aaaaaa);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-  z-index: 10;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
 }
 
 /*
@@ -56,16 +54,16 @@
  * ===========================================
  */
 .contextMenu {
-  position: fixed;
   z-index: 10001;
-  background-color: #1e1e1e;
-  color: #e0e0e0;
+  position: fixed;
+  min-width: 160px;
+  padding: 4px 0;
+  overflow: hidden;
   border: 1px solid #333;
   border-radius: 6px;
-  padding: 4px 0;
-  min-width: 160px;
+  background-color: #1e1e1e;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
+  color: #e0e0e0;
   animation: fadeIn 0.1s ease-out;
   pointer-events: auto; /* クリックを確実に拾う */
 }
@@ -73,12 +71,12 @@
 .menuItem {
   display: flex;
   align-items: center;
-  gap: 12px;
   padding: 10px 16px;
-  cursor: pointer;
-  transition: background-color 0.1s;
+  gap: 12px;
   font-size: 13px;
   white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.1s;
   user-select: none;
 }
 
@@ -97,25 +95,19 @@
 
 .separator {
   height: 1px;
-  background-color: #333;
   margin: 4px 0;
+  background-color: #333;
 }
 
 @keyframes fadeIn {
   from {
-    opacity: 0;
     transform: scale(0.95);
+    opacity: 0;
   }
   to {
-    opacity: 1;
     transform: scale(1);
+    opacity: 1;
   }
-}
-
-.rgPlayFieldCardWrapper {
-  /* ドラッグ操作を安定させるため */
-  user-select: none;
-  -webkit-user-drag: none;
 }
 
 /*
@@ -127,18 +119,17 @@
   position: absolute;
   top: -22px;
   left: 0;
-  background: rgb(0, 0, 0);
-  backdrop-filter: blur(4px);
-  border: 0.5px solid rgba(255, 255, 255, 0.3);
-  color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 10px;
-  font-weight: 200;
-  letter-spacing: 0.05em;
   padding: 1px 6px;
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
   border-radius: 0;
-  z-index: 10000;
+  backdrop-filter: blur(4px);
+  background: rgb(0, 0, 0);
+  color: #ffffff;
+  font-weight: 200;
+  font-size: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   white-space: nowrap;
   pointer-events: none;
-  text-transform: uppercase;
 }

@@ -5,7 +5,7 @@ import styles from '../ControlPanel.module.css';
 
 interface DiceFactoryProps {
   newCompId: string;
-  onAdd: (newComponent: ComponentInfo) => void;
+  onAdd: (newComponent: ComponentInfo, additionalParams?: any) => void;
   onSuccess: () => void;
   // ComponentFactory側の共通ロジックを利用するための関数を受け取る
   getInitialProps: (type: ComponentType, targetId: string, sides: number) => any;
@@ -18,11 +18,23 @@ export const DiceFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }: Di
     const id = newCompId || `dice-${Date.now()}`;
     const initialProps = getInitialProps('Dice', id, newDiceSides);
 
-    onAdd({
-      id: id,
-      type: 'Dice',
-      props: initialProps,
-    });
+    const additionalParams = {
+      dice: {
+        [id]: {
+          id: id,
+          currentValue: 1,
+        },
+      },
+    };
+
+    onAdd(
+      {
+        id: id,
+        type: 'Dice',
+        props: initialProps,
+      },
+      additionalParams,
+    );
     onSuccess();
   };
 

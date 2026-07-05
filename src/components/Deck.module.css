@@ -1,16 +1,26 @@
 /* src/components/Deck.module.css */
 
-/* --- 基本レイアウト（容器と配置） --- */
+/*
+ * ===========================================
+ * Deck
+ * ===========================================
+ */
+
 .deckSection {
-  width: 280px;
-  height: 220px;
+  display: flex;
+  flex-direction: column;
+  max-width: 580px;
+  max-height: 620px;
   padding: 10px 22px;
+  gap: 8px;
   border: 2px solid #888;
   border-radius: 8px;
   background-color: #f9f9f9;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+}
+
+.deckContainer {
+  position: relative;
+  cursor: pointer;
 }
 
 .deckWrapperFlex {
@@ -21,93 +31,130 @@
 .deckTitle {
   margin-bottom: 1px;
   color: #333;
+  user-select: none;
 }
 
-/* --- 汎用パーツ（ボタン・バッジ・ツールチップ） --- */
+.deckCard {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  object-fit: fill;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+/*
+ * ===========================================
+ * 捨て札
+ * ===========================================
+ */
+
+.discardPileWrapper {
+  overflow: visible;
+  border: 1px solid #777;
+  background-color: #e0e0e0;
+}
+
+.discardModalOverlay {
+  display: flex;
+  z-index: 10000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.discardModalContent {
+  width: 90%;
+  max-width: 1200px;
+  max-height: 85%;
+  padding: 20px;
+  overflow-y: auto;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.discardModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.discardModalHeader h4 {
+  margin: 0;
+  color: #000;
+}
+
+.discardModalGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  padding: 10px;
+  gap: 20px;
+}
+
+.discardModalCard {
+  position: relative;
+  width: 120px;
+  height: 168px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+}
+
+/*
+ * ===========================================
+ * Others
+ * ===========================================
+ */
+
 .deckControls {
   display: flex;
   gap: 8px;
 }
 
 .deckCountBadge {
+  display: flex;
+  z-index: 1000;
   position: absolute;
   top: -10px;
   right: -10px;
-  background-color: #333;
-  color: #fff;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  z-index: 1000;
+  width: 24px;
+  height: 24px;
   border: 2px solid #fff;
+  border-radius: 50%;
+  background-color: #333;
+  color: #fff;
+  font-weight: bold;
+  font-size: 12px;
   pointer-events: none;
 }
 
 .tooltipBase {
   z-index: 9999;
-  color: #333;
-  background-color: white;
-  border: 1px solid #ccc;
   padding: 4px;
-  border-radius: 4px;
-}
-
-/* --- 捨て札確認モーダル（Overlay & Content） --- */
-.discardModalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-}
-
-.discardModalContent {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 1200px;
-  max-height: 85%;
-  overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.discardModalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
-}
-
-.discardModalHeader h4 {
-  color: #000;
-  margin: 0;
-}
-
-.discardModalGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 20px;
-  padding: 10px;
-}
-
-.discardModalCard {
-  width: 120px;
-  height: 168px;
   border: 1px solid #ccc;
-  border-radius: 6px;
-  position: relative;
-  background-color: #fff;
+  border-radius: 4px;
+  background-color: white;
+  color: #333;
+}
+
+.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
 }

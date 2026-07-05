@@ -1,5 +1,5 @@
 // tests/rooms/LobbyRoom.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ControlPanel, GameParam, LobbyGameList, LobbyRoomList, RoomMeta } from 'react-game-ui';
 import { useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
@@ -14,6 +14,8 @@ export function LobbyRoom() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const navigate = useNavigate();
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const lobbySocket = io(SERVER_URL);
@@ -68,7 +70,7 @@ export function LobbyRoom() {
   };
 
   return (
-    <div className="lobby-container">
+    <div className="lobby-container" ref={containerRef}>
       {/* パネルが開いている時だけ背後に敷く透明なレイヤー */}
       {isPanelOpen && (
         <div
@@ -142,14 +144,15 @@ export function LobbyRoom() {
       </div>
 
       <div className={`control-panel-wrapper ${isPanelOpen ? 'open' : ''}`} style={{ zIndex: 999 }}>
-        {socket && (
+        {socket && containerRef ? (
           <ControlPanel
             socket={socket}
             GameParam={games}
             isOpen={isPanelOpen}
             onToggle={() => setIsPanelOpen(!isPanelOpen)}
+            containerRef={containerRef}
           />
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -98,12 +98,6 @@ export type DeckResetData = {
   deckId: DeckId;
 };
 
-export type DeckUpdateData = {
-  currentDeck: CardData[];
-  playFieldCards: CardData[];
-  discardPile: CardData[];
-};
-
 export type CardPlayData = {
   roomId: RoomId;
   deckId: DeckId;
@@ -141,6 +135,12 @@ export type CardMoveFromFieldData = {
   playerId?: PlayerId | null;
 };
 
+export type DeckUpdateData = {
+  currentDeck: CardData[];
+  playFieldCards: CardData[];
+  discardPile: CardData[];
+};
+
 /*
  * ===========================================
  * トークン関連
@@ -160,7 +160,7 @@ export type TokenAcquireData = {
 export type TokenMovableRangeData = {
   roomId: RoomId;
   boardId: BoardId;
-  playerId: PlayerId;
+  tokenId: TokenId;
   moveRange: number;
   isExact: boolean;
 };
@@ -224,10 +224,10 @@ export type DraggableUpdateData = {
 export type DiceRollData = {
   roomId: RoomId;
   diceId: DiceId;
-  sides: number;
 };
 
 export type DiceUpdateData = {
+  diceId: DiceId;
   value: number;
 };
 

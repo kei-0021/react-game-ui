@@ -161,16 +161,11 @@ export function registerDeckListeners(
   // フィールドから「手札」または「捨て札」へ移動
   socket.on('card:move-from-field', (data: CardMoveFromFieldData) => {
     const { roomId, deckId, cardId, playerId } = data;
+
     const state = activeRooms.get(roomId);
-    if (!state || !playerId) return;
+    if (!state) return;
     const param = gameParams[state.gameId];
-
     const roomManager = new RoomManager(io, param, state);
-
-    if (state.holdCards[playerId]) {
-      roomManager.server_log('card', `${playerId} はカードをホールドしているので、カードを移動できません`);
-      return;
-    }
 
     roomManager.moveFromField(deckId, cardId, playerId);
   });

@@ -1,0 +1,103 @@
+/* src/components/Card/Card.module.css */
+
+/*
+ * ===========================================
+ * Card
+ * ===========================================
+ */
+.card {
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.cardWrapper {
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  /* ドラッグ操作を安定させるため */
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/*
+ * ===========================================
+ * CardDisplayContent
+ * ===========================================
+ */
+
+/* デッキ内のカード */
+.deckCard {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  background-color: #333;
+  transition: transform 0.2s;
+}
+
+/* 画像表示（PNG透過対応） */
+.cardImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  border-radius: inherit;
+  background-color: transparent;
+}
+
+/* テキスト表示用 */
+.cardNameWrapper {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: inherit;
+  background-color: #fff;
+  color: #000;
+}
+
+.cardNameText {
+  display: block;
+  width: 100%;
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  text-align: center;
+  word-break: break-all;
+}
+
+/*
+ * ===========================================
+ * Others
+ * ===========================================
+ */
+
+.discardTopCard {
+  display: flex;
+  z-index: 1;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: visible;
+  border-color: #aaa;
+  background-color: white;
+  text-align: center;
+  pointer-events: auto;
+}

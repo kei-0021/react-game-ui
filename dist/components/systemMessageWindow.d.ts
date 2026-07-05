@@ -7,4 +7,4 @@ interface SystemMessageWindowProps {
 }
 export declare function SystemMessageWindow({ socket, roomId, displayDuration }: SystemMessageWindowProps): import("react/jsx-runtime").JSX.Element;
 export {};
-//# sourceMappingURL=systemMessageWindow.d.ts.map
+//# sourceMappingURL=SystemMessageWindow.d.ts.map

@@ -25,6 +25,7 @@ import './DeepAbyssRoom.css';
 
 const SERVER_URL = 'http://127.0.0.1:4000';
 
+const Card_SIZE = { width: 120, height: 160 };
 const Z_INDX_CARD = 200;
 
 interface PopupState {
@@ -214,7 +215,6 @@ export function DeepAbyssRoom() {
           socket={socket}
           roomId={roomId}
           boardId="deepAbyssBoard"
-          players={players}
           myPlayerId={myPlayerId}
           allowTokenDrag={true}
           moveRange={3}
@@ -240,6 +240,7 @@ export function DeepAbyssRoom() {
               title="アクションカード"
               currentPlayerId={currentPlayerId}
               myPlayerId={myPlayerId}
+              size={Card_SIZE}
             />
             <Deck
               socket={socket}
@@ -269,6 +270,7 @@ export function DeepAbyssRoom() {
               myPlayerId={myPlayerId}
               players={players}
               backgroundImage="/gameboard.png"
+              size={Card_SIZE}
               zIndex={Z_INDX_CARD}
               isDebug={true}
             />
@@ -290,6 +292,7 @@ export function DeepAbyssRoom() {
             flipButton={[true, true]}
             turnSkipButton={[true, true]}
             roundSkipButton={[true, false]}
+            size={Card_SIZE}
             enabled={true}
           />
         </div>

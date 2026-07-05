@@ -2,7 +2,7 @@
   {
     "templateId": "RELIC_1",
     "name": "Relic Site 1",
-    "shapeType": "square",
+    "shapeType": "circle",
     "backgroundColor": "#1c2a38",
     "content": "",
     "changedContent": "💎",
@@ -33,7 +33,7 @@
     "backgroundColor": "#1c2a38",
     "content": "",
     "changedContent": "🌋",
-    "customClip": "polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)",
+    "customClip": "polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%)",
     "changedColor": "#ff4500"
   },
   {

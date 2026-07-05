@@ -6,11 +6,19 @@ export const DiceFactory = ({ newCompId, onAdd, onSuccess, getInitialProps }) =>
     const handleAdd = () => {
         const id = newCompId || `dice-${Date.now()}`;
         const initialProps = getInitialProps('Dice', id, newDiceSides);
+        const additionalParams = {
+            dice: {
+                [id]: {
+                    id: id,
+                    currentValue: 1,
+                },
+            },
+        };
         onAdd({
             id: id,
             type: 'Dice',
             props: initialProps,
-        });
+        }, additionalParams);
         onSuccess();
     };
     const handleDragStart = (e) => {

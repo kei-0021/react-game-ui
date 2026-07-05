@@ -4,13 +4,13 @@
 // ダイスの動作確認
 
 /// <reference types="vite/client" />
+import { DiceUpdateData } from '@/types/socketData';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ComponentInfo,
   Deck,
   Dice,
   Draggable,
-  DynamicComponent,
   GameTurnUpdateData,
   Player,
   PlayerId,
@@ -63,8 +63,6 @@ export function SampleRoom() {
   useEffect(() => {
     if (!socket || !roomId) return;
 
-    const handleAssignId = (id: string) => {};
-
     const handleGameComponent = (data: { components: ComponentInfo[] }) => {
       setComponentInfo(data.components);
     };
@@ -80,6 +78,10 @@ export function SampleRoom() {
       setPlayers(updatedPlayers);
     };
 
+    const handleDiceUpdate = (data: DiceUpdateData) => {
+      setCurrentValue(data.value);
+    };
+
     const handleGameTurn = (data: GameTurnUpdateData) => {
       {
         setCurrentPlayerId(data.currentPlayerId);
@@ -90,6 +92,7 @@ export function SampleRoom() {
     socket.on('client:ready-to-sync', onClientReady);
     socket.on('game:component', handleGameComponent);
     socket.on('players:update', handlePlayersUpdate);
+    socket.on('dice:update', handleDiceUpdate);
     socket.on('game:turn', handleGameTurn);
 
     return () => {
@@ -138,20 +141,7 @@ export function SampleRoom() {
       />
 
       <div style={{ display: 'flex', gap: '16px' }}>
-        {componentInfo.map((info) => (
-          <DynamicComponent
-            key={info.id}
-            type={info.type}
-            props={info.props}
-            socket={socket}
-            roomId={roomId}
-            myPlayerId={myPlayerId!}
-            currentPlayerId={currentPlayerId!}
-            players={players}
-            containerRef={containerRef}
-          />
-        ))}
-        <Dice socket={socket} diceId="6面" roomId={roomId} sides={6} title="6面ダイス" onRoll={setCurrentValue} />
+        <Dice socket={socket} diceId="6面" roomId={roomId} title="6面ダイス" />
       </div>
 
       <Timer socket={socket} initialDuration={30} roomId={roomId}></Timer>

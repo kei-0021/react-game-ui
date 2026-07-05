@@ -1,6 +1,7 @@
 import { server_log } from './log/logger.js';
 import { BoardManager } from './logic/board-manager.js';
 import { DeckManager } from './logic/deck-manager.js';
+import { DiceManager } from './logic/dice-manager.js';
 import { TokenManager } from './logic/token-manager.js';
 export const isExplored = (roomState, position) => {
     return roomState.exploredCells.some((loc) => loc.row === position.row && loc.col === position.col);
@@ -209,6 +210,13 @@ export class RoomManager {
             this.server_log('resource', `${player.name}: ${resource.name} 更新`);
             this.emitPlayerUpdate();
         }
+    };
+    /**
+     * ダイスを振る
+     */
+    rollDice = (diceId) => {
+        const diceManager = new DiceManager(this.param, this.state);
+        return diceManager.rollDice(diceId, this);
     };
     /**
      * タイマーを停止させる

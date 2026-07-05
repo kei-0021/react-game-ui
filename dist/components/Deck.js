@@ -1,9 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from 'react';
 import { useEffect } from 'react';
-import { CardDisplayContent } from './Card.js';
-import cardStyles from './Card.module.css';
-import { CardPreview } from './CardPreview.js';
+import { Card, CardDisplayContent } from './Card/Card.js';
 import deckStyles from './Deck.module.css';
 /**
  * 山札の描画、シャッフル、ドローの制御を行う。
@@ -14,9 +12,10 @@ import deckStyles from './Deck.module.css';
  * @param myPlayerId - 操作者自身のプレイヤーID。手札へのドロー先として使用。
  * @param currentPlayerId - 現在のターンプレイヤーID。ターン制の判定に使用。
  * @param alwaysDraw - ターンの制約を無視してドロー可能にするフラグ。
+ * @param size={ width: 90, height: 120 } - デッキのサイズ。
  * @param enabled=true - 各種操作が有効かどうかのフラグ。
  */
-export function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerId, alwaysDraw = false, enabled = true, }) {
+export function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerId, alwaysDraw = false, size = { width: 90, height: 120 }, enabled = true, }) {
     const [deckCards, setDeckCards] = React.useState([]);
     const [discardPile, setDiscardPile] = React.useState([]);
     const [showDiscardModal, setShowDiscardModal] = React.useState(false);
@@ -62,15 +61,18 @@ export function Deck({ socket, roomId, deckId, title, myPlayerId, currentPlayerI
         // 捨て札確認モーダルを開くフラグを立てる
         setShowDiscardModal(true);
     };
-    return (_jsxs("section", { className: deckStyles.deckSection, children: [_jsx("h3", { className: deckStyles.deckTitle, children: title }), _jsxs("div", { className: deckStyles.deckControls, children: [_jsx("button", { onClick: shuffle, disabled: !enabled, children: "\u30B7\u30E3\u30C3\u30D5\u30EB" }), _jsx("button", { onClick: resetDeck, disabled: !enabled, children: "\u5C71\u672D\u306B\u623B\u3059" })] }), _jsxs("div", { className: deckStyles.deckWrapperFlex, children: [_jsxs("div", { className: `${cardStyles.deckContainer} ${!enabled ? cardStyles.disabled : ''}`, onClick: () => enabled && draw(), children: [deckCards.length > 0 && _jsx("div", { className: deckStyles.deckCountBadge, children: deckCards.length }), deckCards.map((c, i) => (_jsx("div", { className: cardStyles.deckCard, style: {
+    return (_jsxs("section", { className: deckStyles.deckSection, children: [_jsx("h3", { className: deckStyles.deckTitle, children: title }), _jsxs("div", { className: deckStyles.deckControls, children: [_jsx("button", { onClick: shuffle, disabled: !enabled, children: "\u30B7\u30E3\u30C3\u30D5\u30EB" }), _jsx("button", { onClick: resetDeck, disabled: !enabled, children: "\u5C71\u672D\u306B\u623B\u3059" })] }), _jsxs("div", { className: deckStyles.deckWrapperFlex, children: [_jsxs("div", { className: `${deckStyles.deckContainer} ${!enabled ? deckStyles.disabled : ''}`, style: { width: size.width, height: size.height }, children: [deckCards.length > 0 && _jsx("div", { className: deckStyles.deckCountBadge, children: deckCards.length }), deckCards.map((c, i) => (_jsx("div", { className: deckStyles.deckCard, style: {
+                                    width: size.width,
+                                    height: size.height,
                                     zIndex: deckCards.length - i,
                                     transform: `translate(${i * 0.3}px, ${i * 0.3}px)`,
-                                    backgroundColor: c.backColor,
-                                } }, c.id)))] }), _jsx("div", { className: `${cardStyles.deckContainer} ${cardStyles.discardPileWrapper}`, onContextMenu: handleContextMenu, children: discardPile.map((c, i) => (_jsx(CardPreview, { card: c, children: _jsx("div", { className: cardStyles.deckCardFront, style: {
-                                    zIndex: i + 1,
-                                    transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
-                                }, children: _jsx(CardDisplayContent, { card: c, canSeeFront: true }) }) }, c.id))) }), showDiscardModal && (_jsx("div", { className: deckStyles.discardModalOverlay, onClick: () => setShowDiscardModal(false), children: _jsxs("div", { className: deckStyles.discardModalContent, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: deckStyles.discardModalHeader, children: [_jsx("h4", { children: "\u6368\u3066\u672D\u306E\u5185\u5BB9" }), _jsx("button", { onClick: () => setShowDiscardModal(false), children: "\u9589\u3058\u308B" })] }), _jsx("div", { className: deckStyles.discardModalGrid, children: discardPile
+                                }, children: _jsx(Card, { card: c, canSeeFront: false, showPreview: false, size: size, onClick: () => enabled && draw() }) }, c.id)))] }), _jsx("div", { className: `${deckStyles.deckContainer} ${deckStyles.discardPileWrapper}`, style: { width: size.width, height: size.height }, onContextMenu: handleContextMenu, children: discardPile.map((c, i) => (_jsx("div", { className: deckStyles.deckCard, style: {
+                                width: size.width,
+                                height: size.height,
+                                zIndex: i + 1,
+                                transform: `translate(${i * -0.3}px, ${i * -0.3}px)`,
+                            }, children: _jsx(Card, { card: c, canSeeFront: true, showPreview: true, size: size }) }))) }), showDiscardModal && (_jsx("div", { className: deckStyles.discardModalOverlay, onClick: () => setShowDiscardModal(false), children: _jsxs("div", { className: deckStyles.discardModalContent, onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: deckStyles.discardModalHeader, children: [_jsx("h4", { children: "\u6368\u3066\u672D\u306E\u5185\u5BB9" }), _jsx("button", { onClick: () => setShowDiscardModal(false), children: "\u9589\u3058\u308B" })] }), _jsx("div", { className: deckStyles.discardModalGrid, children: discardPile
                                         .slice()
                                         .reverse()
-                                        .map((c) => (_jsx("div", { className: deckStyles.discardModalCard, children: _jsx(CardDisplayContent, { card: c, canSeeFront: true }) }, c.id))) })] }) }))] })] }));
+                                        .map((c) => (_jsx("div", { className: deckStyles.discardModalCard, children: _jsx(CardDisplayContent, { card: c, canSeeFront: true, size: size }) }, c.id))) })] }) }))] })] }));
 }
